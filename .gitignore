@@ -1,0 +1,11 @@
+*.iml
+.gradle/
+local.properties
+.idea/
+.DS_Store
+build/
+.externalNativeBuild
+.cxx
+app/app/release
+app/arm64/release
+app/x64/release
