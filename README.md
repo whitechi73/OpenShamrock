@@ -16,7 +16,7 @@
 
 ## 简介
 
-☘ 基于 Xposed 实现 OneBot 标准的 QQ 机器人框架，原作者**fuqiuluo**已脱离开发，接下来由白池接手哦！本项目为OpenShamrock，不会有任何收费行为，欢迎大家的加入！
+☘ 基于 Xposed 实现 OneBot 标准的 QQ 机器人框架，原作者[**fuqiuluo**](https://github.com/fuqiuluo)已脱离开发，接下来由白池接手哦！本项目为OpenShamrock，不会有任何收费行为，欢迎大家的加入！
 
 > 本项目仅提供学习与交流用途，请在24小时内删除。   
 > 本项目目的是研究 Xposed 和 LSPosed 框架的使用。 Epic 框架开发相关知识。  
@@ -28,11 +28,11 @@
 - 一键移植：本项目基于 go-cqhttp 的文档进行开发实现。
 - 平行部署：可多平台部署，未来将会支持 Docker 部署的教程。  
 
-> 若您追求小而轻便的Bot服务, [Chronocat](https://chronocat.vercel.app/)是您的不二之选，而不是迁移到闭源框架。
+> 若您追求小而轻便的Bot服务, [Chronocat](https://chronocat.vercel.app/)是您的不二之选。
 
 ## 权限声明
 
-如出现未在此处声明的权限，请警惕 Shamrock 是否被修改/植入恶意代码
+> 如出现未在此处声明的权限，请警惕 Shamrock 是否被修改/植入恶意代码
 
 - 网络访问权限: Shamrock 进程需要使用 HTTP API 来进行一些操作
 - [Hook 系统框架][hook-system]: 为了保证息屏状态下服务不被杀死，Shamrock 需要 Hook 系统框架
@@ -44,7 +44,7 @@
 
 ## 贡献说明
 
-<img src="https://github.com/whitechi73/Shamrock/assets/61898844/b7b1f44a-2ab3-4eae-a955-4f8a7ef696f5" width="160px"> **我可爱吗？欢迎你的到来，这里是一个很大的地方，有着无限可能，主要是有你啦！**
+<img src="https://github.com/whitechi73/OpenShamrock/assets/98259561/f04d60bc-ec40-41fc-bc15-62c146f1a1f1" width="160px"> **我可爱吗？欢迎你的到来，这里是一个很大的地方，有着无限可能，主要是有你啦！**
 
 ## 开源协议
 
