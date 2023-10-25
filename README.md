@@ -44,7 +44,7 @@
 
 ## 贡献说明
 
-<img src="https://github.com/whitechi73/Shamrock/assets/61898844/b7b1f44a-2ab3-4eae-a955-4f8a7ef696f5" width="160px"> **我可爱吗？欢迎你的到来，这里是一个很大的地方，有着无限可能，主要是有你啦！**
+<img src="https://github.com/whitechi73/OpenShamrock/assets/98259561/f04d60bc-ec40-41fc-bc15-62c146f1a1f1" width="160px"> **我可爱吗？欢迎你的到来，这里是一个很大的地方，有着无限可能，主要是有你啦！**
 
 ## 开源协议
 
