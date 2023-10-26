@@ -7,7 +7,7 @@ import com.tencent.qqnt.kernel.nativeinterface.*
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import moe.fuqiuluo.qqinterface.servlet.msg.toCQCode
+import moe.fuqiuluo.qqinterface.servlet.msg.convert.toCQCode
 import moe.fuqiuluo.qqinterface.servlet.transfile.RichProtoSvc
 import moe.fuqiuluo.shamrock.remote.service.api.GlobalPusher
 import moe.fuqiuluo.shamrock.remote.service.config.ShamrockConfig

@@ -17,6 +17,7 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import moe.fuqiuluo.qqinterface.servlet.TicketSvc
 import moe.fuqiuluo.qqinterface.servlet.msg.*
+import moe.fuqiuluo.qqinterface.servlet.msg.convert.toSegments
 import moe.fuqiuluo.shamrock.remote.service.api.HttpPushServlet
 import moe.fuqiuluo.shamrock.remote.service.config.ShamrockConfig
 import moe.fuqiuluo.shamrock.remote.service.data.push.*
@@ -308,7 +309,10 @@ internal object HttpService: HttpPushServlet() {
                 targetId = if(msgType != MsgType.Private) 0 else record.peerUin,
                 peerId = if (record.senderUin == uin) record.peerUin else uin,
                 userId = record.senderUin,
-                message = if(ShamrockConfig.useCQ()) raw.json else elements.toSegment(record.chatType, record.peerUin.toString()).json,
+                message = if(ShamrockConfig.useCQ()) raw.json
+                else elements.toSegments(record.chatType, record.peerUin.toString()).map {
+                    it.toJson()
+                }.json,
                 rawMessage = raw,
                 font = 0,
                 sender = Sender(

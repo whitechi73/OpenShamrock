@@ -169,7 +169,7 @@ internal object MessageHelper {
         return arrayList.jsonArray
     }
 
-    fun encodeCQCode(msg: ArrayList<HashMap<String, JsonElement>>): String {
+    fun encodeCQCode(msg: List<Map<String, JsonElement>>): String {
         return nativeEncodeCQCode(msg.map {
             val params = hashMapOf<String, String>()
             it.forEach { (key, value) ->

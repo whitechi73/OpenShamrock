@@ -16,7 +16,7 @@ import moe.fuqiuluo.shamrock.tools.*
 import java.lang.Exception
 
 @Serializable
-data class Region(
+internal data class Region(
     val adcode: Int,
     val province: String?,
     val city: String?

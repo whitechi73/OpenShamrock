@@ -357,6 +357,7 @@ private fun FunctionCard(
                 return@Function true
             }
 
+            /*
             Function(
                 title = "专业级接口",
                 desc = "如果你不知道你在做什么，请不要开启本功能。",
@@ -366,7 +367,7 @@ private fun FunctionCard(
                 ShamrockConfig.setPro(ctx, it)
                 AppRuntime.log("专业级API = $it", Level.WARN)
                 return@Function true
-            }
+            }*/
         }
     }
 }

@@ -13,7 +13,7 @@ import moe.fuqiuluo.shamrock.remote.service.data.push.*
 import moe.fuqiuluo.shamrock.tools.json
 import moe.fuqiuluo.qqinterface.servlet.GroupSvc
 import moe.fuqiuluo.qqinterface.servlet.TicketSvc
-import moe.fuqiuluo.qqinterface.servlet.msg.toSegment
+import moe.fuqiuluo.qqinterface.servlet.msg.convert.toSegments
 
 internal class WebSocketClientService(
     override val address: String,
@@ -288,10 +288,9 @@ internal class WebSocketClientService(
                     targetId = if (msgType != MsgType.Private) 0 else record.peerUin,
                     peerId = if (record.senderUin == uin) record.peerUin else uin,
                     userId = record.senderUin,
-                    message = if (ShamrockConfig.useCQ()) raw.json else elements.toSegment(
-                        record.chatType,
-                        record.peerUin.toString()
-                    ).json,
+                    message = if (ShamrockConfig.useCQ()) raw.json else elements.toSegments(record.chatType, record.peerUin.toString()).map {
+                        it.toJson()
+                    }.json,
                     rawMessage = raw,
                     font = 0,
                     sender = Sender(

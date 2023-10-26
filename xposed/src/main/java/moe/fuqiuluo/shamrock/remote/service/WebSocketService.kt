@@ -9,7 +9,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import moe.fuqiuluo.qqinterface.servlet.GroupSvc
 import moe.fuqiuluo.qqinterface.servlet.TicketSvc
-import moe.fuqiuluo.qqinterface.servlet.msg.toSegment
+import moe.fuqiuluo.qqinterface.servlet.msg.convert.toSegments
 import moe.fuqiuluo.shamrock.helper.ErrorTokenException
 import moe.fuqiuluo.shamrock.remote.service.api.WebSocketPushServlet
 import moe.fuqiuluo.shamrock.remote.service.config.ShamrockConfig
@@ -297,7 +297,9 @@ internal class WebSocketService(port: Int): WebSocketPushServlet(port) {
                 targetId = if(msgType != MsgType.Private) 0 else record.peerUin,
                 peerId = if (record.senderUin == uin) record.peerUin else uin,
                 userId = record.senderUin,
-                message = if (ShamrockConfig.useCQ()) raw.json else elements.toSegment(record.chatType, record.peerUin.toString()).json,
+                message = if (ShamrockConfig.useCQ()) raw.json else elements.toSegments(record.chatType, record.peerUin.toString()).map {
+                    it.toJson()
+                }.json,
                 rawMessage = raw,
                 font = 0,
                 sender = Sender(
