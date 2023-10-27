@@ -4,7 +4,6 @@ import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
 import kotlinx.coroutines.suspendCancellableCoroutine
 import moe.fuqiuluo.qqinterface.servlet.FriendSvc
 import moe.fuqiuluo.qqinterface.servlet.GroupSvc
-import moe.fuqiuluo.qqinterface.servlet.MsgSvc
 import moe.fuqiuluo.shamrock.xposed.helper.NTServiceFetcher
 import kotlin.coroutines.resume
 

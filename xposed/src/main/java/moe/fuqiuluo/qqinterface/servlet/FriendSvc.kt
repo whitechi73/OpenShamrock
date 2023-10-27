@@ -1,8 +1,10 @@
+@file:OptIn(DelicateCoroutinesApi::class)
 package moe.fuqiuluo.qqinterface.servlet
 
 import com.tencent.mobileqq.data.Friends
 import com.tencent.mobileqq.friend.api.IFriendDataService
 import com.tencent.mobileqq.friend.api.IFriendHandlerService
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch

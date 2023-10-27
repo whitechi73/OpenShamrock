@@ -23,7 +23,7 @@ import kotlin.concurrent.timer
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
-abstract class BaseSvc {
+internal abstract class BaseSvc {
     companion object {
         val currentUin: String
             get() = app.currentAccountUin

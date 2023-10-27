@@ -11,7 +11,6 @@ import tencent.im.oidb.cmd0x6d8.oidb_0x6d8
 import tencent.im.oidb.oidb_sso
 
 internal object FileSvc: BaseSvc() {
-
     fun createFileFolder(groupId: String, folderName: String) {
         sendOidb("OidbSvc.0x6d7_0", 1751, 0, protobufOf(
             1 to mapOf(

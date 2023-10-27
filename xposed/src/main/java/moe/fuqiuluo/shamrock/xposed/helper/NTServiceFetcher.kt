@@ -73,8 +73,8 @@ internal object NTServiceFetcher {
             LogCenter.log("Register MSG listener successfully.")
             msgService.addMsgListener(AioListener)
 
-            groupService.addKernelGroupListener(GroupEventListener)
-            LogCenter.log("Register Group listener successfully.")
+            //groupService.addKernelGroupListener(GroupEventListener)
+            //LogCenter.log("Register Group listener successfully.")
 
             PrimitiveListener.registerListener()
         } catch (e: Throwable) {

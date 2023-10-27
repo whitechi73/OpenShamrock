@@ -38,8 +38,12 @@ import java.nio.ByteBuffer
 import kotlin.coroutines.resume
 
 internal object GroupSvc: BaseSvc() {
-    private val RefreshTroopMemberInfoLock = Mutex()
-    private val RefreshTroopMemberListLock = Mutex()
+    private val RefreshTroopMemberInfoLock by lazy {
+        Mutex()
+    }
+    private val RefreshTroopMemberListLock by lazy {
+        Mutex()
+    }
 
     private lateinit var METHOD_REQ_MEMBER_INFO: Method
     private lateinit var METHOD_REQ_MEMBER_INFO_V2: Method
