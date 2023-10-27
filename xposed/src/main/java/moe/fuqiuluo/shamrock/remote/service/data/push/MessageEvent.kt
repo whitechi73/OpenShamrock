@@ -41,7 +41,7 @@ internal enum class PostType {
  * 不要使用继承的方式实现通用字段，那样会很难维护！
  */
 @Serializable
-internal data class PushMessage (
+internal data class MessageEvent (
     @SerialName("time") val time: Long,
     @SerialName("self_id") val selfId: Long,
     @SerialName("post_type") val postType: PostType,

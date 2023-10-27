@@ -18,15 +18,14 @@ import moe.fuqiuluo.proto.asUtf8String
 import moe.fuqiuluo.proto.ProtoUtils
 import moe.fuqiuluo.proto.asByteArray
 import moe.fuqiuluo.proto.asList
-import moe.fuqiuluo.proto.asMap
 import moe.fuqiuluo.proto.asULong
 import moe.fuqiuluo.shamrock.helper.MessageHelper
-import moe.fuqiuluo.shamrock.remote.service.api.GlobalPusher
 import moe.fuqiuluo.shamrock.remote.service.data.push.NoticeSubType
 import moe.fuqiuluo.shamrock.remote.service.data.push.NoticeType
 import moe.fuqiuluo.shamrock.tools.slice
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
+import moe.fuqiuluo.shamrock.remote.service.api.GlobalEventTransmitter
 import moe.fuqiuluo.shamrock.tools.readBuf32Long
 import moe.fuqiuluo.shamrock.tools.toHexString
 import moe.fuqiuluo.shamrock.xposed.helper.PacketHandler
@@ -90,7 +89,10 @@ internal object PrimitiveListener {
             }
         LogCenter.log("私聊戳一戳: $operation -> $target")
 
-        GlobalPusher().forEach { it.pushC2CPoke(msgTime, operation.toLong(), target.toLong()) }
+        if(!GlobalEventTransmitter.PrivateNoticeTransmitter
+            .transPrivatePoke(msgTime, operation.toLong(), target.toLong())) {
+            LogCenter.log("私聊戳一戳推送失败！", Level.WARN)
+        }
     }
 
     private fun onGroupPoke(time: Long, pb: ProtoMap) {
@@ -127,7 +129,10 @@ internal object PrimitiveListener {
         }
         LogCenter.log("群戳一戳($groupCode): $operation -> $target")
 
-        GlobalPusher().forEach { it.pushGroupPoke(time, operation.toLong(), target.toLong(), groupCode) }
+        if(!GlobalEventTransmitter.GroupNoticeTransmitter
+            .transGroupPoke(time, operation.toLong(), target.toLong(), groupCode)) {
+            LogCenter.log("群戳一戳推送失败！", Level.WARN)
+        }
     }
 
     private suspend fun onC2CRecall(time: Long, pb: ProtoMap) {
@@ -143,8 +148,9 @@ internal object PrimitiveListener {
 
         LogCenter.log("私聊消息撤回: $operation, seq = $msgSeq, hash = ${mapping.msgHashId}, tip = $tipText")
 
-        GlobalPusher().forEach {
-            it.pushPrivateMsgRecall(time, operation, mapping.msgHashId, tipText)
+        if(!GlobalEventTransmitter.PrivateNoticeTransmitter
+            .transPrivateRecall(time, operation, mapping.msgHashId, tipText)) {
+            LogCenter.log("私聊消息撤回推送失败！", Level.WARN)
         }
     }
 
@@ -157,12 +163,13 @@ internal object PrimitiveListener {
 
         LogCenter.log("群成员增加($groupCode): $target, type = $type")
 
-        GlobalPusher().forEach {
-            it.pushGroupMemberDecreased(time, target, groupCode, operation, NoticeType.GroupMemIncrease, when(type) {
+        if(!GlobalEventTransmitter.GroupNoticeTransmitter
+            .transGroupMemberNumChanged(time, target, groupCode, operation, NoticeType.GroupMemIncrease, when(type) {
                 130 -> NoticeSubType.Approve
                 131 -> NoticeSubType.Invite
                 else -> NoticeSubType.Approve
-            })
+            })) {
+            LogCenter.log("群成员增加推送失败！", Level.WARN)
         }
     }
 
@@ -176,13 +183,14 @@ internal object PrimitiveListener {
         val target = ContactHelper.getUinByUidAsync(targetUid).toLong()
         LogCenter.log("群成员减少($groupCode): $target, type = $type")
 
-        GlobalPusher().forEach {
-            it.pushGroupMemberDecreased(time, target, groupCode, operation, NoticeType.GroupMemDecrease, when(type) {
-                130 -> NoticeSubType.Kick
-                131 -> NoticeSubType.Leave
-                3 -> NoticeSubType.KickMe
-                else -> NoticeSubType.Kick
-            })
+        if(!GlobalEventTransmitter.GroupNoticeTransmitter
+                .transGroupMemberNumChanged(time, target, groupCode, operation, NoticeType.GroupMemDecrease, when(type) {
+                    130 -> NoticeSubType.Kick
+                    131 -> NoticeSubType.Leave
+                    3 -> NoticeSubType.KickMe
+                    else -> NoticeSubType.Kick
+                })) {
+            LogCenter.log("群成员减少推送失败！", Level.WARN)
         }
     }
 
@@ -200,8 +208,9 @@ internal object PrimitiveListener {
         val target = ContactHelper.getUinByUidAsync(targetUid).toLong()
         LogCenter.log("群管理员变动($groupCode): $target, isSetAdmin = $isSetAdmin")
 
-        GlobalPusher().forEach {
-            it.pushGroupAdminChange(msgTime, target, groupCode, isSetAdmin)
+        if(!GlobalEventTransmitter.GroupNoticeTransmitter
+            .transGroupAdminChanged(msgTime, target, groupCode, isSetAdmin)) {
+            LogCenter.log("群管理员变动推送失败！", Level.WARN)
         }
     }
 
@@ -214,8 +223,9 @@ internal object PrimitiveListener {
         val target = ContactHelper.getUinByUidAsync(targetUid).toLong()
         LogCenter.log("群禁言($groupCode): $operation -> $target, 时长 = ${duration}s")
 
-        GlobalPusher().forEach {
-            it.pushGroupBan(msgTime, operation, target, groupCode, duration)
+        if(!GlobalEventTransmitter.GroupNoticeTransmitter
+            .transGroupBan(msgTime, operation, target, groupCode, duration)) {
+            LogCenter.log("群禁言推送失败！", Level.WARN)
         }
     }
 
@@ -246,8 +256,9 @@ internal object PrimitiveListener {
 
             LogCenter.log("群消息撤回($groupCode): $operator -> $target, seq = $msgSeq, hash = $msgHash, tip = $tipText")
 
-            GlobalPusher().forEach {
-                it.pushGroupMsgRecall(time, operator, target, groupCode, msgHash, tipText)
+            if(!GlobalEventTransmitter.GroupNoticeTransmitter
+                .transGroupMsgRecall(time, operator, target, groupCode, msgHash, tipText)) {
+                LogCenter.log("群消息撤回推送失败！", Level.WARN)
             }
         } finally {
             readPacket.release()

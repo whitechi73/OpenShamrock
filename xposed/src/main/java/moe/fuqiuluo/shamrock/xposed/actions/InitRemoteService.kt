@@ -8,12 +8,13 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import moe.fuqiuluo.shamrock.remote.service.WebSocketClientService
 import moe.fuqiuluo.shamrock.remote.service.WebSocketService
-import moe.fuqiuluo.shamrock.remote.service.api.GlobalPusher
+import moe.fuqiuluo.shamrock.remote.service.api.GlobalEventTransmitter
 import moe.fuqiuluo.shamrock.remote.service.config.ShamrockConfig
 import moe.fuqiuluo.shamrock.utils.PlatformUtils
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.remote.HTTPServer
+import moe.fuqiuluo.shamrock.remote.service.HttpService
 import moe.fuqiuluo.shamrock.tools.ShamrockVersion
 import moe.fuqiuluo.shamrock.xposed.helper.AppRuntimeFetcher
 import mqq.app.MobileQQ
@@ -34,7 +35,7 @@ internal class InitRemoteService : IAction {
         if (!PlatformUtils.isMqqPackage()) return
 
         if (ShamrockConfig.allowWebHook()) {
-            GlobalPusher.register(moe.fuqiuluo.shamrock.remote.service.HttpService)
+            HttpService.initTransmitter()
         }
 
         if (ShamrockConfig.openWebSocket()) {
@@ -84,7 +85,7 @@ internal class InitRemoteService : IAction {
                     wsClient.connect()
                     timer(initialDelay = 5000L, period = 5000L) {
                         if (wsClient.isClosed || wsClient.isClosing) {
-                            GlobalPusher.unregister(wsClient)
+                            wsClient.cancelFlowJobs()
                             wsClient = WebSocketClientService(url, wsHeaders)
                             wsClient.connect()
                         }

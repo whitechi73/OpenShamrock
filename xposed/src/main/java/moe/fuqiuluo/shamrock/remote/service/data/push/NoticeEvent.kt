@@ -39,7 +39,7 @@ internal enum class NoticeSubType {
  * 不要使用继承的方式实现通用字段，那样会很难维护！
  */
 @Serializable
-internal data class PushNotice(
+internal data class NoticeEvent(
     @SerialName("time") val time: Long,
     @SerialName("self_id") val selfId: Long,
     @SerialName("post_type") val postType: PostType,
@@ -50,7 +50,7 @@ internal data class PushNotice(
     @SerialName("user_id") val userId: Long = 0,
     @SerialName("sender_id") val senderId: Long = 0,
     @SerialName("duration") val duration: Int = 0,
-    @SerialName("message_id") val msgId: Int,
+    @SerialName("message_id") val msgId: Int = 0,
     @SerialName("tip_text") val tip: String = "",
     @SerialName("target_id") val target: Long = 0,
     @SerialName("file") val file: GroupFileMsg? = null,

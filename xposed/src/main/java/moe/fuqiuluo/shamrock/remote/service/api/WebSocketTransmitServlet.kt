@@ -21,7 +21,6 @@ import moe.fuqiuluo.shamrock.tools.*
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.xposed.helper.AppRuntimeFetcher
-import mqq.app.MobileQQ
 import org.java_websocket.WebSocket
 import org.java_websocket.server.WebSocketServer
 import java.net.InetSocketAddress
@@ -29,15 +28,15 @@ import java.net.URI
 import java.util.Collections
 import kotlin.concurrent.timer
 
-internal abstract class WebSocketPushServlet(
+internal abstract class WebSocketTransmitServlet(
     port: Int
-) : BasePushServlet, WebSocketServer(InetSocketAddress(port)) {
+) : BaseTransmitServlet, WebSocketServer(InetSocketAddress(port)) {
     protected val eventReceivers: MutableList<WebSocket> = Collections.synchronizedList(mutableListOf<WebSocket>())
 
     override val address: String
         get() = "-"
 
-     override fun allowPush(): Boolean {
+     override fun allowTransmit(): Boolean {
          return ShamrockConfig.openWebSocket()
      }
 
@@ -102,16 +101,16 @@ internal abstract class WebSocketPushServlet(
 
     override fun onError(conn: WebSocket, ex: Exception?) {
         LogCenter.log("WSServer Error: " + ex?.stackTraceToString(), Level.ERROR)
-        GlobalPusher.unregister(this)
+        cancelFlowJobs()
     }
 
     override fun onStart() {
-        GlobalPusher.register(this)
+        initTransmitter()
         LogCenter.log("WSServer start running on ws://0.0.0.0:$port!")
     }
 
     protected inline fun <reified T> pushTo(body: T) {
-        if(!allowPush()) return
+        if(!allowTransmit()) return
         try {
             broadcastTextEvent(GlobalJson.encodeToString(body))
         } catch (e: Throwable) {

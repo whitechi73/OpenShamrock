@@ -1,6 +1,5 @@
 package moe.fuqiuluo.shamrock.remote.service.api
 
-import com.arthenica.ffmpegkit.BuildConfig
 import io.ktor.client.network.sockets.ConnectTimeoutException
 import io.ktor.client.plugins.HttpRequestTimeoutException
 import io.ktor.client.request.header
@@ -9,6 +8,7 @@ import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
+import kotlinx.coroutines.Job
 import moe.fuqiuluo.shamrock.remote.service.config.ShamrockConfig
 import moe.fuqiuluo.shamrock.tools.GlobalClient
 import moe.fuqiuluo.shamrock.helper.Level
@@ -19,16 +19,15 @@ import moe.fuqiuluo.shamrock.xposed.helper.AppRuntimeFetcher
 import mqq.app.MobileQQ
 import java.net.SocketException
 
-internal abstract class HttpPushServlet : BasePushServlet {
-    override val address: String
-        get() = ShamrockConfig.getWebHookAddress()
+internal abstract class HttpTransmitServlet : BaseTransmitServlet {
+    override val address: String  by lazy { ShamrockConfig.getWebHookAddress() }
 
-    override fun allowPush(): Boolean {
+    override fun allowTransmit(): Boolean {
         return ShamrockConfig.allowWebHook()
     }
 
     protected suspend inline fun <reified T> pushTo(body: T): HttpResponse? {
-        if (!allowPush()) return null
+        if (!allowTransmit()) return null
         try {
             if (address.startsWith("http://") || address.startsWith("https://")) {
                 return GlobalClient.post(address) {
