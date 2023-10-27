@@ -60,7 +60,7 @@ val ProtoValue.asList: ProtoList
 
 val ProtoValue.asByteArray: ByteArray
     get() = if (this is ProtoMap) {
-        toByteArray()
+        bytes?.toByteArray() ?: toByteArray()
     } else {
         (this as ProtoByteString).toByteArray()
     }
