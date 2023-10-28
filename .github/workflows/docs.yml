@@ -1,0 +1,34 @@
+name: Documentation Deploy
+
+on:
+  push:
+    branches:
+      - docs
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          run_install: true
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: pnpm
+      - name: Build
+        run: pnpm build
+      - name: Deploy
+        uses: crazy-max/ghaction-github-pages@v2
+        with:
+          build_dir: docs/.vuepress/dist
+          target_branch: gh-pages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

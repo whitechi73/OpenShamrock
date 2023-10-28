@@ -1,0 +1,98 @@
+body:before {
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  opacity: 0.1;
+  z-index: -1;
+  content: '';
+  position: fixed;
+  background: url('https://api.armoe.cn/acg/random') center / cover;
+}
+
+table {
+  text-align: center !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+}
+
+thead,
+tbody,
+tr:nth-child(2n) {
+  background: transparent !important;
+  backdrop-filter: blur(16px) !important;
+}
+
+table td {
+  word-break: keep-all !important;
+}
+
+table th {
+  word-break: keep-all !important;
+  white-space: nowrap !important;
+}
+
+h2 {
+  border-color: transparent !important;
+}
+.vp-tabs {
+  /* 移除边框 */
+  border: none;
+
+  table {
+    padding: 1rem;
+  }
+  /*设置选项卡样式*/
+  .vp-tab-nav {
+    font-weight: 500;
+
+    &:hover,
+    &.active {
+      background: none;
+      font-weight: 600;
+    }
+    &.active::before {
+      content: none;
+    }
+    &.active::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      height: 2px;
+      background: var(--badge-info-color);
+    }
+  }
+  .vp-tabs-nav {
+    * {
+      background: none;
+    }
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      height: 2px;
+      background-color: var(--vp-brc);
+    }
+  }
+
+  .vp-tabs-nav,
+  .vp-tab {
+    padding: 0;
+
+    /* 设置背景为透明并添加背景滤镜 */
+    background: transparent;
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+  }
+
+  /* 移除所有元素的外边距 */
+  *,
+  .language-json {
+    margin: 0;
+  }
+}

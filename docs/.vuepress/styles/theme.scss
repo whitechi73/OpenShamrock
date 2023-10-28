@@ -1,0 +1,29 @@
+:root,
+.vp-sidebar,
+.vp-footer-wrapper {
+  background: transparent !important;
+}
+
+.vp-navbar {
+  background: transparent !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+.vp-feature-item {
+  backdrop-filter: blur(16px) !important;
+}
+
+div[class*='language-'],
+.hint-container {
+  background: transparent !important;
+  backdrop-filter: blur(16px) !important;
+}
+
+.highlight-line {
+  opacity: 0.5;
+}
+
+.search-pro-button {
+  background: transparent !important;
+  border: unset !important;
+}
