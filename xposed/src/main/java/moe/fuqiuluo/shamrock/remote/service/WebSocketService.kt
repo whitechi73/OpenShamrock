@@ -29,12 +29,12 @@ internal class WebSocketService(port: Int): WebSocketTransmitServlet(port) {
     }
 
     override fun initTransmitter() {
-        HttpService.submitFlowJob(GlobalScope.launch {
+        submitFlowJob(GlobalScope.launch {
             GlobalEventTransmitter.onMessageEvent { (_, event) ->
                 pushTo(event)
             }
         })
-        HttpService.submitFlowJob(GlobalScope.launch {
+        submitFlowJob(GlobalScope.launch {
             GlobalEventTransmitter.onNoticeEvent { event ->
                 pushTo(event)
             }
@@ -71,7 +71,7 @@ internal class WebSocketService(port: Int): WebSocketTransmitServlet(port) {
             pushMetaLifecycle()
             eventReceivers.add(conn)
         }
-        LogCenter.log({ "WSServer连接(${conn.remoteSocketAddress.address.hostAddress}:${conn.remoteSocketAddress.port}$path)" }, Level.DEBUG)
+        LogCenter.log({ "WSServer连接(${conn.remoteSocketAddress.address.hostAddress}:${conn.remoteSocketAddress.port}$path)" }, Level.WARN)
     }
 
     private fun pushMetaLifecycle() {

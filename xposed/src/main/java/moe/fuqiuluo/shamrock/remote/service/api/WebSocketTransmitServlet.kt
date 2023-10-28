@@ -1,5 +1,8 @@
+@file:OptIn(DelicateCoroutinesApi::class)
+
 package moe.fuqiuluo.shamrock.remote.service.api
 
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
@@ -71,7 +74,7 @@ internal abstract class WebSocketTransmitServlet(
         if (path != "/api") {
             eventReceivers.remove(conn)
         }
-        LogCenter.log({ "WSServer断开(${conn.remoteSocketAddress.address.hostAddress}:${conn.remoteSocketAddress.port}$path): $code,$reason,$remote" }, Level.DEBUG)
+        LogCenter.log({ "WSServer断开(${conn.remoteSocketAddress.address.hostAddress}:${conn.remoteSocketAddress.port}$path): $code,$reason,$remote" }, Level.WARN)
     }
 
     override fun onMessage(conn: WebSocket, message: String) {
@@ -105,8 +108,8 @@ internal abstract class WebSocketTransmitServlet(
     }
 
     override fun onStart() {
-        initTransmitter()
         LogCenter.log("WSServer start running on ws://0.0.0.0:$port!")
+        initTransmitter()
     }
 
     protected inline fun <reified T> pushTo(body: T) {

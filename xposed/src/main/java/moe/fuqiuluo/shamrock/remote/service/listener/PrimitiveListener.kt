@@ -69,7 +69,7 @@ internal object PrimitiveListener {
         }
     }
 
-    private fun onC2cPoke(msgTime: Long, pb: ProtoMap) {
+    private suspend fun onC2cPoke(msgTime: Long, pb: ProtoMap) {
         val detail = pb[1, 3, 2]
         if (detail !is ProtoMap) {
             error("不支持该私聊戳一戳解析: ${(detail as ProtoByteString).toByteArray().toHexString()}")
@@ -95,7 +95,7 @@ internal object PrimitiveListener {
         }
     }
 
-    private fun onGroupPoke(time: Long, pb: ProtoMap) {
+    private suspend fun onGroupPoke(time: Long, pb: ProtoMap) {
         val groupCode1 = pb[1, 1, 1].asULong
 
         var groupCode: Long = groupCode1

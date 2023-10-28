@@ -7,7 +7,6 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import moe.fuqiuluo.qqinterface.servlet.BaseSvc
 import moe.fuqiuluo.qqinterface.servlet.GroupSvc
 import moe.fuqiuluo.qqinterface.servlet.msg.convert.toSegments
-import moe.fuqiuluo.shamrock.remote.service.HttpService
 import moe.fuqiuluo.shamrock.remote.service.config.ShamrockConfig
 import moe.fuqiuluo.shamrock.remote.service.data.push.GroupFileMsg
 import moe.fuqiuluo.shamrock.remote.service.data.push.MemberRole
@@ -32,9 +31,9 @@ internal object GlobalEventTransmitter: BaseSvc() {
         MutableSharedFlow<NoticeEvent>()
     }
 
-    private fun pushNotice(noticeEvent: NoticeEvent) = noticeEventFlow.tryEmit(noticeEvent)
+    private suspend fun pushNotice(noticeEvent: NoticeEvent) = noticeEventFlow.emit(noticeEvent)
 
-    private fun transMessageEvent(record: MsgRecord, message: MessageEvent) = messageEventFlow.tryEmit(record to message)
+    private suspend fun transMessageEvent(record: MsgRecord, message: MessageEvent) = messageEventFlow.emit(record to message)
 
     /**
      * 消息 手淫器
@@ -51,7 +50,7 @@ internal object GlobalEventTransmitter: BaseSvc() {
             postType: PostType = PostType.Msg
         ): Boolean {
             val uin = app.longAccountUin
-            return transMessageEvent(record,
+            transMessageEvent(record,
                 MessageEvent(
                     time = record.msgTime,
                     selfId = uin,
@@ -82,6 +81,7 @@ internal object GlobalEventTransmitter: BaseSvc() {
                     )
                 )
             )
+            return true
         }
 
         /**
@@ -95,7 +95,7 @@ internal object GlobalEventTransmitter: BaseSvc() {
             postType: PostType = PostType.Msg
         ): Boolean {
             val uin = app.longAccountUin
-            return transMessageEvent(record,
+            transMessageEvent(record,
                 MessageEvent(
                     time = record.msgTime,
                     selfId = uin,
@@ -116,16 +116,13 @@ internal object GlobalEventTransmitter: BaseSvc() {
                         userId = record.senderUin,
                         nickname = record.sendNickName,
                         card = record.sendMemberName,
-                        role = when (record.senderUin) {
-                            GroupSvc.getOwner(record.peerUin.toString()) -> MemberRole.Owner
-                            in GroupSvc.getAdminList(record.peerUin.toString()) -> MemberRole.Admin
-                            else -> MemberRole.Member
-                        },
+                        role = MemberRole.Member,
                         title = "",
                         level = "",
                     )
                 )
             )
+            return true
         }
     }
 
@@ -136,7 +133,7 @@ internal object GlobalEventTransmitter: BaseSvc() {
         /**
          * 推送私聊文件事件
          */
-        fun transPrivateFileEvent(
+        suspend fun transPrivateFileEvent(
             msgTime: Long,
             userId: Long,
             fileId: String,
@@ -146,7 +143,7 @@ internal object GlobalEventTransmitter: BaseSvc() {
             expireTime: Long,
             url: String
         ): Boolean {
-            return pushNotice(NoticeEvent(
+            pushNotice(NoticeEvent(
                 time = msgTime,
                 selfId = app.longAccountUin,
                 postType = PostType.Notice,
@@ -163,12 +160,13 @@ internal object GlobalEventTransmitter: BaseSvc() {
                     expire = expireTime
                 )
             ))
+            return true
         }
 
         /**
          * 推送私聊文件事件
          */
-        fun transGroupFileEvent(
+        suspend fun transGroupFileEvent(
             msgTime: Long,
             userId: Long,
             groupId: Long,
@@ -178,7 +176,7 @@ internal object GlobalEventTransmitter: BaseSvc() {
             bizId: Int,
             url: String
         ): Boolean {
-            return pushNotice(NoticeEvent(
+            pushNotice(NoticeEvent(
                 time = msgTime,
                 selfId = app.longAccountUin,
                 postType = PostType.Notice,
@@ -194,6 +192,7 @@ internal object GlobalEventTransmitter: BaseSvc() {
                     url = url
                 )
             ))
+            return true
         }
     }
 
@@ -201,8 +200,8 @@ internal object GlobalEventTransmitter: BaseSvc() {
      * 群聊通知 通知器
      */
     object GroupNoticeTransmitter {
-        fun transGroupPoke(time: Long, operation: Long, target: Long, groupCode: Long): Boolean {
-            return pushNotice(NoticeEvent(
+        suspend fun transGroupPoke(time: Long, operation: Long, target: Long, groupCode: Long): Boolean {
+            pushNotice(NoticeEvent(
                 time = time,
                 selfId = app.longAccountUin,
                 postType = PostType.Notice,
@@ -213,9 +212,10 @@ internal object GlobalEventTransmitter: BaseSvc() {
                 groupId = groupCode,
                 target = target
             ))
+            return true
         }
 
-        fun transGroupMemberNumChanged(
+        suspend fun transGroupMemberNumChanged(
             time: Long,
             target: Long,
             groupCode: Long,
@@ -223,7 +223,7 @@ internal object GlobalEventTransmitter: BaseSvc() {
             noticeType: NoticeType,
             noticeSubType: NoticeSubType
         ): Boolean {
-            return pushNotice(NoticeEvent(
+            pushNotice(NoticeEvent(
                 time = time,
                 selfId = app.longAccountUin,
                 postType = PostType.Notice,
@@ -235,15 +235,16 @@ internal object GlobalEventTransmitter: BaseSvc() {
                 target = target,
                 groupId = groupCode
             ))
+            return true
         }
 
-        fun transGroupAdminChanged(
+        suspend fun transGroupAdminChanged(
             msgTime: Long,
             target: Long,
             groupCode: Long,
             setAdmin: Boolean
         ): Boolean {
-            return pushNotice(NoticeEvent(
+            pushNotice(NoticeEvent(
                 time = msgTime,
                 selfId = app.longAccountUin,
                 postType = PostType.Notice,
@@ -253,16 +254,17 @@ internal object GlobalEventTransmitter: BaseSvc() {
                 target = target,
                 groupId = groupCode
             ))
+            return true
         }
 
-        fun transGroupBan(
+        suspend fun transGroupBan(
             msgTime: Long,
             operation: Long,
             target: Long,
             groupCode: Long,
             duration: Int
         ): Boolean {
-            return pushNotice(NoticeEvent(
+            pushNotice(NoticeEvent(
                 time = msgTime,
                 selfId = app.longAccountUin,
                 postType = PostType.Notice,
@@ -275,9 +277,10 @@ internal object GlobalEventTransmitter: BaseSvc() {
                 groupId = groupCode,
                 duration = duration
             ))
+            return true
         }
 
-        fun transGroupMsgRecall(
+        suspend fun transGroupMsgRecall(
             time: Long,
             operator: Long,
             target: Long,
@@ -285,7 +288,7 @@ internal object GlobalEventTransmitter: BaseSvc() {
             msgHash: Int,
             tipText: String
         ): Boolean {
-            return pushNotice(NoticeEvent(
+            pushNotice(NoticeEvent(
                 time = time,
                 selfId = app.longAccountUin,
                 postType = PostType.Notice,
@@ -296,6 +299,7 @@ internal object GlobalEventTransmitter: BaseSvc() {
                 tip = tipText,
                 groupId = groupCode
             ))
+            return true
         }
     }
 
@@ -303,8 +307,8 @@ internal object GlobalEventTransmitter: BaseSvc() {
      * 私聊通知 通知器
      */
     object PrivateNoticeTransmitter {
-        fun transPrivatePoke(msgTime: Long, operation: Long, target: Long): Boolean {
-            return pushNotice(NoticeEvent(
+        suspend fun transPrivatePoke(msgTime: Long, operation: Long, target: Long): Boolean {
+            pushNotice(NoticeEvent(
                 time = msgTime,
                 selfId = app.longAccountUin,
                 postType = PostType.Notice,
@@ -315,10 +319,11 @@ internal object GlobalEventTransmitter: BaseSvc() {
                 senderId = operation,
                 target = target
             ))
+            return true
         }
 
-        fun transPrivateRecall(time: Long, operation: Long, msgHashId: Int, tipText: String): Boolean {
-            return pushNotice(NoticeEvent(
+        suspend fun transPrivateRecall(time: Long, operation: Long, msgHashId: Int, tipText: String): Boolean {
+            pushNotice(NoticeEvent(
                 time = time,
                 selfId = app.longAccountUin,
                 postType = PostType.Notice,
@@ -329,16 +334,17 @@ internal object GlobalEventTransmitter: BaseSvc() {
                 msgId = msgHashId,
                 tip = tipText
             ))
+            return true
         }
     }
 
     @ShamrockDsl
-    suspend fun onMessageEvent(collector: FlowCollector<Pair<MsgRecord, MessageEvent>>) {
+    suspend inline fun onMessageEvent(collector: FlowCollector<Pair<MsgRecord, MessageEvent>>) {
         messageEventFlow.collect(collector)
     }
 
     @ShamrockDsl
-    suspend fun onNoticeEvent(collector: FlowCollector<NoticeEvent>) {
+    suspend inline fun onNoticeEvent(collector: FlowCollector<NoticeEvent>) {
         noticeEventFlow.collect(collector)
     }
 }

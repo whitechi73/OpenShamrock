@@ -30,12 +30,12 @@ internal class WebSocketClientService(
     }
 
     override fun initTransmitter() {
-        HttpService.submitFlowJob(GlobalScope.launch {
+        submitFlowJob(GlobalScope.launch {
             GlobalEventTransmitter.onMessageEvent { (_, event) ->
                 pushTo(event)
             }
         })
-        HttpService.submitFlowJob(GlobalScope.launch {
+        submitFlowJob(GlobalScope.launch {
             GlobalEventTransmitter.onNoticeEvent { event ->
                 pushTo(event)
             }

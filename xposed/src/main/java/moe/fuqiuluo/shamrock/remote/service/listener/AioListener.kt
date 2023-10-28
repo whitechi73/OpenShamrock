@@ -55,7 +55,7 @@ internal object AioListener: IKernelMsgListener {
                     if(!GlobalEventTransmitter.MessageTransmitter.transGroupMessage(
                         record, record.elements, rawMsg, msgHash
                     )) {
-                        LogCenter.log("群消息推送失败 -> MessageTransmitter", Level.WARN)
+                        LogCenter.log("群消息推送失败 -> 推送目标可能不存在", Level.WARN)
                     }
                 }
                 MsgConstant.KCHATTYPEC2C -> {
