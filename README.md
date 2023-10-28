@@ -69,38 +69,38 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 [![][contrib-image]][contrib-link]
 
-[banner]: https://socialify.git.ci/whitechi73/Shamrock/image?description=1&forks=1&issues=1&logo=https%3A%2F%2Fwhitechi73.github.io%2FShamrock%2Fshamrock.jpg&pattern=Plus&pulls=1&stargazers=1&theme=Auto
+[banner]: https://socialify.git.ci/whitechi73/OpenShamrock/image?description=1&forks=1&issues=1&logo=https%3A%2F%2Fwhitechi73.github.io%2FShamrock%2Fshamrock.jpg&pattern=Plus&pulls=1&stargazers=1&theme=Auto
 
-[actions]: https://img.shields.io/github/actions/workflow/status/whitechi73/Shamrock/build-apk.yml?style=for-the-badge
+[actions]: https://img.shields.io/github/actions/workflow/status/whitechi73/OpenShamrock/build-apk.yml?style=for-the-badge
 
-[actions-link]: https://github.com/whitechi73/Shamrock/actions/workflows/build-apk.yml
+[actions-link]: https://github.com/whitechi73/OpenShamrock/actions/workflows/build-apk.yml
 
-[releases]: https://img.shields.io/github/v/release/whitechi73/Shamrock?style=for-the-badge
+[releases]: https://img.shields.io/github/v/release/whitechi73/OpenShamrock?style=for-the-badge
 
-[releases-link]: https://github.com/whitechi73/Shamrock/releases
+[releases-link]: https://github.com/whitechi73/OpenShamrock/releases
 
-[downloads]: https://img.shields.io/github/downloads/whitechi73/Shamrock/total?style=for-the-badge
+[downloads]: https://img.shields.io/github/downloads/whitechi73/OpenShamrock/total?style=for-the-badge
 
-[license]: https://img.shields.io/github/license/whitechi73/Shamrock?style=for-the-badge
+[license]: https://img.shields.io/github/license/whitechi73/OpenShamrock?style=for-the-badge
 
 [onebot-11]: https://img.shields.io/badge/OneBot-11-black?style=for-the-badge
 
 [onebot-12]: https://img.shields.io/badge/OneBot-12-black?style=for-the-badge
 
-[download-link]: https://whitechi73.github.io/Shamrock/guide/getting-started.html#%E4%B8%8B%E8%BD%BD
+[download-link]: https://whitechi73.github.io/OpenShamrock/guide/getting-started.html#%E4%B8%8B%E8%BD%BD
 
-[deploy-link]: https://whitechi73.github.io/Shamrock/guide/getting-started.html#%E9%83%A8%E7%BD%B2
+[deploy-link]: https://whitechi73.github.io/OpenShamrock/guide/getting-started.html#%E9%83%A8%E7%BD%B2
 
-[api-link]: https://whitechi73.github.io/Shamrock/api
+[api-link]: https://whitechi73.github.io/OpenShamrock/api
 
-[docs-link]: https://whitechi73.github.io/Shamrock/
+[docs-link]: https://whitechi73.github.io/OpenShamrock/
 
-[group-link]: https://whitechi73.github.io/Shamrock/group.html
+[group-link]: https://whitechi73.github.io/OpenShamrock/group.html
 
-[hook-system]: https://github.com/whitechi73/Shamrock/wiki/perm_hook_android
+[hook-system]: https://github.com/whitechi73/OpenShamrock/wiki/perm_hook_android
 
-[voice-support]: https://whitechi73.github.io/Shamrock/advanced/voice.html
+[voice-support]: https://whitechi73.github.io/OpenShamrock/advanced/voice.html
 
-[contrib-image]: https://contrib.rocks/image?repo=whitechi73/Shamrock
+[contrib-image]: https://contrib.rocks/image?repo=whitechi73/OpenShamrock
 
-[contrib-link]: https://github.com/whitechi73/Shamrock/graphs/contributors
+[contrib-link]: https://github.com/whitechi73/OpenShamrock/graphs/contributors
