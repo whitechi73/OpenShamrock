@@ -6,8 +6,8 @@ export default hopeTheme({
   favicon: '/shamrock.webp',
   logo: '/shamrock.webp',
   iconAssets: 'fontawesome-with-brands',
-  repo: 'linxinrao/Shamrock',
-  docsRepo: 'linxinrao/Shamrock',
+  repo: 'whitechi73/OpenShamrock',
+  docsRepo: 'whitechi73/OpenShamrock',
   docsBranch: 'docs',
   docsDir: 'docs',
   plugins: {

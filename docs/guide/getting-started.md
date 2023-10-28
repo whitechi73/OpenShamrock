@@ -17,11 +17,11 @@ Shamrock 仍然处于快速开发阶段，可能会有大量API在未来版本�
 
 ### 稳定版本
 
-- 要下载 Shamrock 的稳定版本，请访问 [GitHub Releases](https://github.com/linxinrao/Shamrock/releases)
+- 要下载 Shamrock 的稳定版本，请访问 [GitHub Releases](https://github.com/whitechi73/OpenShamrock/releases)
 
 ### 开发版本
 
-- 要下载 Shamrock 的开发版本(推荐)，请访问 [GitHub Actions](https://github.com/linxinrao/Shamrock/actions/workflows/build-apk.yml)
+- 要下载 Shamrock 的开发版本(推荐)，请访问 [GitHub Actions](https://github.com/whitechi73/OpenShamrock/actions/workflows/build-apk.yml)
 
 ## 部署
 

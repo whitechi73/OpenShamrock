@@ -19,7 +19,7 @@
 ### 克隆项目
 
 ```bash
-git clone -b docs https://github.com/linxinrao/Shamrock # 注意指定docs分支
+git clone -b docs https://github.com/whitechi73/OpenShamrock # 注意指定docs分支
 ```
 
 ### 安装依赖
@@ -74,4 +74,4 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 [recommend-extensions]: .vscode/extensions.json
 [pnpm]: https://pnpm.io/
 [contrib-image]: https://contrib.rocks/image?repo=whitechi73/OpenShamrock
-[contrib-link]: https://github.com/linxinrao/Shamrock/graphs/contributors
+[contrib-link]: https://github.com/whitechi73/OpenShamrock/graphs/contributors
