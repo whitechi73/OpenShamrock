@@ -65,13 +65,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 [![][contrib-image]][contrib-link]
 
-[banner]: https://socialify.git.ci/linxinrao/Shamrock/image?description=1&forks=1&issues=1&language=1&name=1&owner=1&pulls=1&stargazers=1&theme=Auto
+[banner]: https://socialify.git.ci/whitechi73/OpenShamrock/image?description=1&forks=1&issues=1&language=1&name=1&owner=1&pulls=1&stargazers=1&theme=Auto
 [vuepress]: https://vuepress.vuejs.org/zh/
 [hope-theme]: https://vuepress-theme-hope.github.io/zh/
 [github-pages]: https://pages.github.com/
-[shamrock-docs]: https://linxinrao.github.io/Shamrock/
+[shamrock-docs]: https://whitechi73.github.io/OpenShamrock/
 [vscode]: https://code.visualstudio.com/
 [recommend-extensions]: .vscode/extensions.json
 [pnpm]: https://pnpm.io/
-[contrib-image]: https://contrib.rocks/image?repo=linxinrao/Shamrock
+[contrib-image]: https://contrib.rocks/image?repo=whitechi73/OpenShamrock
 [contrib-link]: https://github.com/linxinrao/Shamrock/graphs/contributors
