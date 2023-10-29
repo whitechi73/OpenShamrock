@@ -345,7 +345,8 @@ internal object GlobalEventTransmitter: BaseSvc() {
 
     @ShamrockDsl
     suspend inline fun onNoticeEvent(collector: FlowCollector<NoticeEvent>) {
-        noticeEventFlow.collect(collector)
+        noticeEventFlow
+            .collect(collector)
     }
 }
 

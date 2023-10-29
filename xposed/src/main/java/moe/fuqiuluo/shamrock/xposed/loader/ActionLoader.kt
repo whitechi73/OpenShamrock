@@ -8,6 +8,7 @@ import kotlin.reflect.full.createInstance
 
 object ActionLoader {
     private val ACTION_FIRST_LIST = arrayOf(
+        AntiDetection::class,
         DataReceiver::class, // 注册一个接收数据的动态广播
         IpcService::class,
         PullConfig::class, // 从APP进程拉扯配置文件
