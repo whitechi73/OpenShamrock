@@ -53,6 +53,10 @@ Shamrock必须是`ALL版本`才能在模拟器正常使用
 [虚拟化透传(镶套虚拟化)](https://zhuanlan.zhihu.com/p/354034712?utm_psn=1695915211926863872)
 之后可在系统内使用安卓模拟器部署。
 
+### 在PVE上直接部署BlissOS  
+操作视频参考[PVE下安装BlissOS及Magisk,LSP](https://www.bilibili.com/video/BV1Mj411e7V9)  
+之后可以直接使用OpenShamrock 
+
 ### 在那Linux KVM部署
 参考文章：[KVM上部署Android](https://cloud.tencent.com/developer/article/1484145)
 该文章使用的安卓版本可能较低，请使用安卓9+系统
