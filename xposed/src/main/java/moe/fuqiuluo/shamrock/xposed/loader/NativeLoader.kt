@@ -25,14 +25,12 @@ internal object NativeLoader {
     fun load(name: String) {
         try {
             if (name == "shamrock") {
-                if (isInitShamrock) return
                 val context = MobileQQ.getContext()
                 val packageManager = context.packageManager
                 val applicationInfo = packageManager.getApplicationInfo("moe.fuqiuluo.shamrock", 0)
                 val file = File(applicationInfo.nativeLibraryDir)
                 LogCenter.log("LoadLibrary(name = $name)")
                 System.load(file.resolve("lib$name.so").absolutePath)
-                isInitShamrock = true
             } else {
                 val sourceFile = externalLibPath.resolve("lib$name.so")
                 val soFile = MobileQQ.getContext().filesDir.parentFile!!.resolve("txlib").resolve("lib$name.so")
