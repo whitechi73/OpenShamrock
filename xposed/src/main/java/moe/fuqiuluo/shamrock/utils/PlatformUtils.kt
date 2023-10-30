@@ -1,6 +1,7 @@
 package moe.fuqiuluo.shamrock.utils
 
 import android.annotation.SuppressLint
+import android.app.ActivityManager
 import android.content.Context
 import android.content.Context.BATTERY_SERVICE
 import android.content.Intent
@@ -8,6 +9,7 @@ import android.content.IntentFilter
 import android.content.pm.PackageInfo
 import android.os.BatteryManager
 import android.os.Build
+import android.os.Process
 import android.provider.Settings
 import kotlinx.serialization.Serializable
 import mqq.app.MobileQQ
@@ -48,6 +50,14 @@ internal object PlatformUtils {
 
     fun isTim(): Boolean {
         return MobileQQ.getMobileQQ().qqProcessName == "com.tencent.tim"
+    }
+
+    fun killProcess(context: Context, processName: String) {
+        for (processInfo in (context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager).runningAppProcesses) {
+            if (processInfo.processName == processName) {
+                Process.killProcess(processInfo.pid)
+            }
+        }
     }
 
     fun getDeviceBattery(): DeviceBattery {

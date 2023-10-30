@@ -14,10 +14,11 @@ internal object ShamrockConfig {
             if (it.exists()) it.delete()
             it.mkdirs()
         }
-    private val Config: ServiceConfig
-        get() = GlobalJson5.decodeFromString(ConfigDir.resolve("config.json").also {
+    private val Config: ServiceConfig by lazy {
+        GlobalJson5.decodeFromString(ConfigDir.resolve("config.json").also {
             if (!it.exists()) it.writeText("{}")
         }.readText())
+    }
 
     fun isInit(): Boolean {
         val mmkv = MMKVFetcher.mmkvWithId("shamrock_config")
@@ -54,7 +55,7 @@ internal object ShamrockConfig {
             Config.passiveWebSocket = intent.getStringExtra("ws_addr")?.split(",", "|", "，")?.filter { address ->
                 Config.passiveWebSocket?.any {
                     it.address == address
-                } == false
+                } != true
             }?.map {
                 ConnectionConfig(address = it)
             }?.toMutableList()

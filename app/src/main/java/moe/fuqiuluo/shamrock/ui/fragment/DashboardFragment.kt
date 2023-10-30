@@ -257,10 +257,10 @@ private fun APIInfoCard(
                 hint = "请输入被动地址",
                 error = "输入的地址不合法",
                 checker = {
-                    it.isNotBlank()
+                    it.startsWith("ws://") || it.startsWith("wss://") || it.isBlank()
                 },
                 confirm = {
-                    if (it.startsWith("ws://") || it.startsWith("wss://")) {
+                    if (it.startsWith("ws://") || it.startsWith("wss://") || it.isBlank()) {
                         ShamrockConfig.setWsAddr(ctx, wsAddress.value)
                         AppRuntime.log("设置被动WebSocket地址为[${wsAddress.value}]。")
                     } else {
