@@ -39,21 +39,46 @@ Shamrock 提供了一个图形化的配置界面，可进行简单的配置操�
 - QQ 主目录: `内部存储目录 + /Android/data/com.tencent.mobileqq`
 - Shamrock 主目录: `QQ主目录 + /Tencent/Shamrock`
 
-## 事件过滤
-
-当前仅支持，群聊 ｜私聊 黑/白名单。
+## 配置文件
 
 将下方 JSON 文件创建在 `Shamrock 主目录 + /config.json`  
 请确保 JSON 格式正确。
 
 ```json
 {
-    "group_rule": {
-        "black_list": [...],
-        "white_list": [...]
-    }
+    "rules": {
+        "group_rule": {
+            "black_list": [12345678], // 如果群号是`12345678`就跳过了哦！
+            "white_list": []
+        },
+        "private_rule": {
+            "black_list": [12345678],
+            "white_list": []
+        }
+    },
+    "default_token": null,
+    "active_websocket": {
+        "port": 5800, // 主动WS监听的端口
+        "token": "aaaa1111,bbbb1111" // 同时允许两个token可使用|或,作为分割
+    },
+    "passive_websocket": [
+        {
+            "address": "ws://xxxxxxxxx" // 这里是个例子，如果默认tk存在则使用默认token鉴权
+        },
+        {
+            "address": "ws://aaaaaaaaa",
+            "token": "aaa666" // 提供了特例化token，将不使用默认token
+        }
+    ]
 }
 ```
+
+| 参数名称 | 类型 | 作用 | 例子 |
+|---------|------|------|-----|
+| default_token | string   | 默认token，**HTTP接口/主被动WS** 如果未单独定义token，则使用默认token   | aaa123456  |
+
+
+!> 记得把注释删掉哦？JSON5貌似也没有完全支持呢？
 
 ## 数据目录
 
