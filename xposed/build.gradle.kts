@@ -3,7 +3,7 @@ plugins {
     id("org.jetbrains.kotlin.android")
     //id("io.realm.kotlin")
     id("kotlin-kapt")
-    kotlin("plugin.serialization") version "1.8.0"
+    kotlin("plugin.serialization") version "1.8.10"
 }
 
 android {
@@ -59,7 +59,8 @@ dependencies {
     //implementation("io.realm.kotlin:library-sync:1.11.0")
 
     val ktorVersion = "2.3.3"
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1")
+    //implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1")
+    implementation("io.github.xn32:json5k:0.3.0")
     implementation("org.jetbrains.kotlinx:kotlinx-io-jvm:0.1.16")
     implementation("io.ktor:ktor-server-core:$ktorVersion")
     implementation("io.ktor:ktor-server-host-common:$ktorVersion")

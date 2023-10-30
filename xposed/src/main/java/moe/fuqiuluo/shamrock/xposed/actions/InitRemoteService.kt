@@ -8,7 +8,6 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import moe.fuqiuluo.shamrock.remote.service.WebSocketClientService
 import moe.fuqiuluo.shamrock.remote.service.WebSocketService
-import moe.fuqiuluo.shamrock.remote.service.api.GlobalEventTransmitter
 import moe.fuqiuluo.shamrock.remote.service.config.ShamrockConfig
 import moe.fuqiuluo.shamrock.utils.PlatformUtils
 import moe.fuqiuluo.shamrock.helper.Level
@@ -45,23 +44,24 @@ internal class InitRemoteService : IAction {
         if (ShamrockConfig.openWebSocketClient()) {
             val runtime = AppRuntimeFetcher.appRuntime
             val curUin = runtime.currentAccountUin
-            val wsHeaders = hashMapOf(
-                "X-Client-Role" to "Universal",
-                "X-Self-ID" to curUin,
-                "User-Agent" to "Shamrock/$ShamrockVersion",
-                "X-QQ-Version" to PlatformUtils.getClientVersion(MobileQQ.getContext()),
-                "X-OneBot-Version" to "11",
-                "X-Impl" to "Shamrock",
-                "Sec-WebSocket-Protocol" to "11.Shamrock"
-            )
-            val token = ShamrockConfig.getToken()
-            if (token.isNotBlank()) {
-                wsHeaders["authorization"] = "bearer $token"
-                //wsHeaders["bearer"] = token
-            }
-            ShamrockConfig.getWebSocketClientAddress().split(",", "|", "，").forEach { url ->
-                if (url.isNotBlank())
-                    startWebSocketClient(url, wsHeaders)
+            val defaultToken = ShamrockConfig.getToken()
+            ShamrockConfig.getWebSocketClientAddress().forEach { conn ->
+                if (!conn.address.isNullOrBlank()) {
+                    val token = conn.token ?: defaultToken
+                    val wsHeaders = hashMapOf(
+                        "X-Client-Role" to "Universal",
+                        "X-Self-ID" to curUin,
+                        "User-Agent" to "Shamrock/$ShamrockVersion",
+                        "X-QQ-Version" to PlatformUtils.getClientVersion(MobileQQ.getContext()),
+                        "X-OneBot-Version" to "11",
+                        "X-Impl" to "Shamrock",
+                        "Sec-WebSocket-Protocol" to "11.Shamrock"
+                    )
+                    if (token.isNotBlank()) {
+                        wsHeaders["authorization"] = "bearer $token"
+                    }
+                    startWebSocketClient(conn.address, wsHeaders)
+                }
             }
         }
     }
@@ -69,7 +69,7 @@ internal class InitRemoteService : IAction {
     private fun startWebSocketServer() {
         GlobalScope.launch {
             try {
-                val server = WebSocketService(ShamrockConfig.getWebSocketPort())
+                val server = WebSocketService(ShamrockConfig.getActiveWebSocketConfig()?.port ?: 5700)
                 server.start()
             } catch (e: Throwable) {
                 LogCenter.log(e.stackTraceToString(), Level.ERROR)
