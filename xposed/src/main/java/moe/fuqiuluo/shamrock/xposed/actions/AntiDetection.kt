@@ -14,6 +14,13 @@ class AntiDetection: IAction {
             return className.contains("fuqiuluo") || className.contains("shamrock") || className.contains("whitechi")
         }
 
+        Thread::class.java.hookMethod("getName").after {
+            val result = it.result as String
+            if (result.contains("fuqiuluo") || result.contains("shamrock") || result.contains("whitechi")) {
+                it.result = "android"
+            }
+        }
+
         Thread::class.java.hookMethod("getStackTrace").after {
             val result = it.result as Array<StackTraceElement>
             it.result = result.filter {

@@ -68,7 +68,7 @@ internal object GroupSvc: BaseSvc() {
             }.getOrThrow()
         }
 
-        getGroupInfo(groupId, refresh).onSuccess {
+        getGroupInfo(groupId, true).onSuccess {
             if(it.wMemberNum > memberList.size) {
                 return getGroupMemberList(groupId, true)
             }
