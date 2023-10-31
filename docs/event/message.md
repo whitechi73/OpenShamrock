@@ -22,6 +22,7 @@ icon: comment
 | sender       | object | 发送人信息    |
 | group_id     | int64                     | 群号       |
 | target_id     | int64                     | 消息目标（私聊）       |
+| temp_source     | int32                     | 临时聊天来源（私聊）       |
 | peer_id      | int64                     | 消息接收者，群聊是群号，私聊时是目标QQ       |
 
 ## 私聊消息

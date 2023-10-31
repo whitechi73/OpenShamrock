@@ -69,7 +69,8 @@ Shamrock 提供了一个图形化的配置界面，可进行简单的配置操�
             "address": "ws://aaaaaaaaa",
             "token": "aaa666" // 提供了特例化token，将不使用默认token
         }
-    ]
+    ],
+    "allow-temp-session": false // 是否允许临时消息
 }
 ```
 

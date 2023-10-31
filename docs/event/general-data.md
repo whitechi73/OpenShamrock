@@ -18,7 +18,6 @@ icon: database
 区别在于 `message` 是收到的消息，`message_sent` 是发送的消息。
 
 默认情况下，Shamrock 只会上报 `message` 类型的消息。  
-并且 Shamrock 暂未实现 `message_sent` 类型的上报。
 :::
 
 ## 事件类型
@@ -101,3 +100,17 @@ icon: database
 | level | string | 发送者等级   |
 | role  | string | 发送者角色   |
 | title | string | 发送者头衔   |
+
+### Post_Message_TempSource
+
+| 类型 | 来源 |
+|------|------|
+| 0 | 群聊 |
+| 1 | QQ咨询 |
+| 2 | 查找 |
+| 3 | QQ电影 |
+| 4 | 热聊 |
+| 6 | 验证消息 |
+| 7 | 多人聊天 |
+| 8 | 约会 |
+| 9 | 通讯录 |
