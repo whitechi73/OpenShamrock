@@ -82,9 +82,16 @@ fun Routing.messageAction() {
     route("/send_private_(msg|message)".toRegex()) {
         get {
             val userId = fetchGetOrThrow("user_id")
+            val groupId = fetchGetOrNull("group_id")
             val message = fetchGetOrThrow("message")
             val autoEscape = fetchGetOrNull("auto_escape")?.toBooleanStrict() ?: false
-            call.respondText(SendMessage(MsgConstant.KCHATTYPEC2C, userId, message, autoEscape))
+            call.respondText(SendMessage(
+                chatType = if (groupId == null) MsgConstant.KCHATTYPEC2C else MsgConstant.KCHATTYPETEMPC2CFROMGROUP,
+                peerId = userId,
+                message = message,
+                autoEscape = autoEscape,
+                fromId = groupId ?: userId
+            ))
         }
         post {
             val userId = fetchPostOrThrow("user_id")

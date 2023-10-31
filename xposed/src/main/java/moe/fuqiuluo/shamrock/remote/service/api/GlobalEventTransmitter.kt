@@ -14,6 +14,7 @@ import moe.fuqiuluo.shamrock.remote.service.data.push.MsgSubType
 import moe.fuqiuluo.shamrock.remote.service.data.push.MsgType
 import moe.fuqiuluo.shamrock.remote.service.data.push.PostType
 import moe.fuqiuluo.shamrock.remote.service.data.push.MessageEvent
+import moe.fuqiuluo.shamrock.remote.service.data.push.MessageTempSource
 import moe.fuqiuluo.shamrock.remote.service.data.push.NoticeEvent
 import moe.fuqiuluo.shamrock.remote.service.data.push.NoticeSubType
 import moe.fuqiuluo.shamrock.remote.service.data.push.NoticeType
@@ -92,7 +93,8 @@ internal object GlobalEventTransmitter: BaseSvc() {
             elements: ArrayList<MsgElement>,
             rawMsg: String,
             msgHash: Int,
-            postType: PostType = PostType.Msg
+            postType: PostType = PostType.Msg,
+            tempSource: MessageTempSource = MessageTempSource.Unknown
         ): Boolean {
             val uin = app.longAccountUin
             transMessageEvent(record,
@@ -119,7 +121,8 @@ internal object GlobalEventTransmitter: BaseSvc() {
                         role = MemberRole.Member,
                         title = "",
                         level = "",
-                    )
+                    ),
+                    tmpSource = tempSource.id
                 )
             )
             return true

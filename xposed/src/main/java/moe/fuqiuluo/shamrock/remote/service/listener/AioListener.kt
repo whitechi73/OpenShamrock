@@ -12,6 +12,7 @@ import moe.fuqiuluo.shamrock.remote.service.config.ShamrockConfig
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.remote.service.api.GlobalEventTransmitter
+import moe.fuqiuluo.shamrock.remote.service.data.push.MessageTempSource
 import moe.fuqiuluo.shamrock.remote.service.data.push.PostType
 import java.util.ArrayList
 import java.util.HashMap
@@ -71,6 +72,24 @@ internal object AioListener: IKernelMsgListener {
                         LogCenter.log("私聊消息推送失败 -> MessageTransmitter", Level.WARN)
                     }
                 }
+
+                MsgConstant.KCHATTYPETEMPC2CFROMGROUP -> {
+                    if (!ShamrockConfig.allowTempSession()) {
+                        return
+                    }
+
+                    LogCenter.log("私聊临时消息(private = ${record.senderUin}, id = $msgHash, msg = $rawMsg)")
+                    ShamrockConfig.getPrivateRule()?.let { rule ->
+                        if (rule.black?.contains(record.peerUin) == true) return
+                        if (rule.white?.contains(record.peerUin) == false) return
+                    }
+
+                    if(!GlobalEventTransmitter.MessageTransmitter.transPrivateMessage(
+                        record, record.elements, rawMsg, msgHash, tempSource = MessageTempSource.Group
+                    )) {
+                        LogCenter.log("私聊临时消息推送失败 -> MessageTransmitter", Level.WARN)
+                    }
+                }
                 else -> LogCenter.log("不支持PUSH事件: ${record.chatType}")
             }
         } catch (e: Throwable) {
@@ -108,6 +127,11 @@ internal object AioListener: IKernelMsgListener {
                     MsgConstant.KCHATTYPEC2C -> {
                         GlobalEventTransmitter.MessageTransmitter
                             .transPrivateMessage(record, record.elements, rawMsg, msgHash, PostType.MsgSent)
+                    }
+                    MsgConstant.KCHATTYPETEMPC2CFROMGROUP -> {
+                        if (!ShamrockConfig.allowTempSession()) return@launch
+                        GlobalEventTransmitter.MessageTransmitter
+                            .transPrivateMessage(record, record.elements, rawMsg, msgHash, PostType.MsgSent, MessageTempSource.Group)
                     }
                     else -> LogCenter.log("不支持SELF PUSH事件: ${record.chatType}")
                 }

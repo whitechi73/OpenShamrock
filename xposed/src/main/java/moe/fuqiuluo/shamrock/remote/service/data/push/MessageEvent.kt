@@ -56,8 +56,22 @@ internal data class MessageEvent (
     @SerialName("message") val message: JsonElement,
     @SerialName("raw_message") val rawMessage: String,
     @SerialName("font") val font: Int,
-    @SerialName("sender") val sender: Sender
+    @SerialName("sender") val sender: Sender,
+    @SerialName("temp_source") val tmpSource: Int = -1
 )
+
+enum class MessageTempSource(val id: Int) {
+    Group(0),
+    Consultation(1),
+    Seek(2),
+    QQMovie(3),
+    HotChat(4),
+    VerifyMsg(6),
+    Discussion(7),
+    Dating(8),
+    Contact(9),
+    Unknown(-1),
+}
 
 @Serializable
 internal data class Anonymous(

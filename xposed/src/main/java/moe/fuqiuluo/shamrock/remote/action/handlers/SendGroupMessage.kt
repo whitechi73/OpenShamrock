@@ -10,7 +10,7 @@ internal object SendGroupMessage: IActionHandler() {
         return if (session.isString("message")) {
             val autoEscape = session.getBooleanOrDefault("auto_escape", false)
             val message = session.getString("message")
-            SendMessage(MsgConstant.KCHATTYPEGROUP, groupId, message, autoEscape, session.echo)
+            SendMessage(MsgConstant.KCHATTYPEGROUP, groupId, message, autoEscape, echo = session.echo)
         } else {
             val message = session.getArray("message")
             SendMessage(MsgConstant.KCHATTYPEGROUP, groupId, message, session.echo)

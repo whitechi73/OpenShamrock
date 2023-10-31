@@ -7,13 +7,15 @@ import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 internal object SendPrivateMessage: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val userId = session.getString("user_id")
+        val groupId = session.getStringOrNull("group_id")
+        val chatTYpe = if (groupId == null) MsgConstant.KCHATTYPEC2C else MsgConstant.KCHATTYPETEMPC2CFROMGROUP
         return if (session.isString("message")) {
             val autoEscape = session.getBooleanOrDefault("auto_escape", false)
             val message = session.getString("message")
-            SendMessage(MsgConstant.KCHATTYPEC2C, userId, message, autoEscape, session.echo)
+            SendMessage(chatTYpe, userId, message, autoEscape, echo = session.echo, fromId = groupId ?: userId)
         } else {
             val message = session.getArray("message")
-            SendMessage(MsgConstant.KCHATTYPEC2C, userId, message, session.echo)
+            SendMessage(chatTYpe, userId, message, session.echo, fromId = groupId ?: userId)
         }
     }
 

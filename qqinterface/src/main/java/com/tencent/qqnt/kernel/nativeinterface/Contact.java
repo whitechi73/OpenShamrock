@@ -44,8 +44,6 @@ public final class Contact implements IKernelModel, Serializable {
 
     public Contact(int i2, String str, String str2) {
         this.serialVersionUID = 1L;
-        this.peerUid = "";
-        this.guildId = "";
         this.chatType = i2;
         this.peerUid = str;
         this.guildId = str2;
