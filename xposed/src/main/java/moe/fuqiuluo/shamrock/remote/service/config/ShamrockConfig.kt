@@ -75,6 +75,10 @@ internal object ShamrockConfig {
         updateConfig()
     }
 
+    fun allowTempSession(): Boolean {
+        return Config.allowTempSession
+    }
+
     fun getGroupMsgRule(): GroupRule? {
         return Config.rules?.groupRule
     }
@@ -180,5 +184,30 @@ internal object ShamrockConfig {
     fun isDev(): Boolean {
         val mmkv = MMKVFetcher.mmkvWithId("shamrock_config")
         return mmkv.getBoolean("dev", false)
+    }
+
+    operator fun set(key: String, value: String) {
+        val mmkv = MMKVFetcher.mmkvWithId("shamrock_config")
+        mmkv.putString(key, value)
+    }
+
+    operator fun set(key: String, value: Boolean) {
+        val mmkv = MMKVFetcher.mmkvWithId("shamrock_config")
+        mmkv.putBoolean(key, value)
+    }
+
+    operator fun set(key: String, value: Int) {
+        val mmkv = MMKVFetcher.mmkvWithId("shamrock_config")
+        mmkv.putInt(key, value)
+    }
+
+    operator fun set(key: String, value: Long) {
+        val mmkv = MMKVFetcher.mmkvWithId("shamrock_config")
+        mmkv.putLong(key, value)
+    }
+
+    operator fun set(key: String, value: Float) {
+        val mmkv = MMKVFetcher.mmkvWithId("shamrock_config")
+        mmkv.putFloat(key, value)
     }
 }

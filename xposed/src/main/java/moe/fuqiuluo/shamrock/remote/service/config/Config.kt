@@ -9,6 +9,7 @@ data class ServiceConfig(
     @SerialName("default_token") var defaultToken: String? = null,
     @SerialName("active_websocket") var activeWebSocket: ConnectionConfig? = null,
     @SerialName("passive_websocket") var passiveWebSocket: MutableList<ConnectionConfig>? = null,
+    @SerialName("allow-temp-session") var allowTempSession: Boolean = false
 )
 
 @Serializable
