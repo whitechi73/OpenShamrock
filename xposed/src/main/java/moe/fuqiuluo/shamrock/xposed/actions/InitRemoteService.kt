@@ -60,6 +60,7 @@ internal class InitRemoteService : IAction {
                     if (token.isNotBlank()) {
                         wsHeaders["authorization"] = "bearer $token"
                     }
+                    LogCenter.log("尝试链接WebSocketClient(url = ${conn.address})",Level.WARN)
                     startWebSocketClient(conn.address, wsHeaders)
                 }
             }
