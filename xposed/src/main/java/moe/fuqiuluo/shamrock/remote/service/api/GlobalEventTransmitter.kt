@@ -5,6 +5,7 @@ import com.tencent.qqnt.kernel.nativeinterface.MsgRecord
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableSharedFlow
 import moe.fuqiuluo.qqinterface.servlet.BaseSvc
+import moe.fuqiuluo.qqinterface.servlet.CardSvc
 import moe.fuqiuluo.qqinterface.servlet.GroupSvc
 import moe.fuqiuluo.qqinterface.servlet.msg.convert.toSegments
 import moe.fuqiuluo.shamrock.remote.service.config.ShamrockConfig
@@ -96,17 +97,23 @@ internal object GlobalEventTransmitter: BaseSvc() {
             postType: PostType = PostType.Msg,
             tempSource: MessageTempSource = MessageTempSource.Unknown
         ): Boolean {
-            val uin = app.longAccountUin
+            val botUin = app.longAccountUin
+            var nickName = record.sendNickName
+            if (nickName.isNullOrBlank()) {
+                CardSvc.getProfileCard(record.senderUin.toString()).onSuccess {
+                    nickName = it.strNick ?: ""
+                }
+            }
             transMessageEvent(record,
                 MessageEvent(
                     time = record.msgTime,
-                    selfId = uin,
+                    selfId = botUin,
                     postType = postType,
                     messageType = MsgType.Private,
                     subType = MsgSubType.Friend,
                     messageId = msgHash,
                     targetId = record.peerUin,
-                    peerId = uin,
+                    peerId = botUin,
                     userId = record.senderUin,
                     message = if(ShamrockConfig.useCQ()) rawMsg.json
                     else elements.toSegments(record.chatType, record.peerUin.toString()).map {
@@ -116,7 +123,7 @@ internal object GlobalEventTransmitter: BaseSvc() {
                     font = 0,
                     sender = Sender(
                         userId = record.senderUin,
-                        nickname = record.sendNickName,
+                        nickname = nickName,
                         card = record.sendMemberName,
                         role = MemberRole.Member,
                         title = "",
