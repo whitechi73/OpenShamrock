@@ -247,13 +247,12 @@ internal object PrimitiveListener {
             val tipText = if (detail.has(11, 9)) detail[11, 9, 2].asUtf8String else ""
             val mapping = MessageHelper.getMsgMappingBySeq(MsgConstant.KCHATTYPEGROUP, msgSeq.toInt())
             if (mapping == null) {
-                LogCenter.log("由于缺失消息映射关系，消息撤回事件无法推送！", Level.WARN)
+                LogCenter.log("由于缺失消息映射关系(seq = $msgSeq)，消息撤回事件无法推送！", Level.WARN)
                 return
             }
             val msgHash = mapping.msgHashId
             val operator = ContactHelper.getUinByUidAsync(operatorUid).toLong()
             val target = ContactHelper.getUinByUidAsync(targetUid).toLong()
-
             LogCenter.log("群消息撤回($groupCode): $operator -> $target, seq = $msgSeq, hash = $msgHash, tip = $tipText")
 
             if(!GlobalEventTransmitter.GroupNoticeTransmitter

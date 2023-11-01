@@ -2,6 +2,7 @@ package moe.fuqiuluo.qqinterface.servlet.msg.convert
 
 import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
 import com.tencent.qqnt.kernel.nativeinterface.MsgElement
+import moe.fuqiuluo.qqinterface.servlet.MsgSvc
 import moe.fuqiuluo.qqinterface.servlet.transfile.RichProtoSvc
 import moe.fuqiuluo.shamrock.helper.ContactHelper
 import moe.fuqiuluo.shamrock.helper.Level
@@ -252,7 +253,11 @@ internal sealed class MessageElemConverter: IMessageConvert {
             } else {
                 MessageDB.getInstance().messageMappingDao()
                     .queryByMsgSeq(chatType, peerId, reply.replayMsgSeq?.toInt() ?: 0)?.msgHashId
-                    ?: MessageHelper.generateMsgIdHash(chatType, reply.sourceMsgIdInRecords)
+                    ?:
+                    kotlin.run {
+                        LogCenter.log("消息映射关系未找到: Message($reply)", Level.WARN)
+                        MessageHelper.generateMsgIdHash(chatType, reply.sourceMsgIdInRecords)
+                    }
             }
 
             return MessageSegment(

@@ -5,7 +5,9 @@ import moe.fuqiuluo.shamrock.helper.MessageHelper
 import com.tencent.qqnt.kernel.nativeinterface.*
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import moe.fuqiuluo.qqinterface.servlet.MsgSvc
 import moe.fuqiuluo.qqinterface.servlet.msg.convert.toCQCode
 import moe.fuqiuluo.qqinterface.servlet.transfile.RichProtoSvc
 import moe.fuqiuluo.shamrock.remote.service.config.ShamrockConfig
@@ -16,6 +18,8 @@ import moe.fuqiuluo.shamrock.remote.service.data.push.MessageTempSource
 import moe.fuqiuluo.shamrock.remote.service.data.push.PostType
 import java.util.ArrayList
 import java.util.HashMap
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 internal object AioListener: IKernelMsgListener {
     override fun onRecvMsg(msgList: ArrayList<MsgRecord>) {
@@ -97,10 +101,28 @@ internal object AioListener: IKernelMsgListener {
         }
     }
 
-    override fun onAddSendMsg(record: MsgRecord) {
+    override fun onAddSendMsg(tmpRecord: MsgRecord) {
         GlobalScope.launch {
             try {
-                val msgHash = MessageHelper.generateMsgIdHash(record.chatType, record.msgId)
+                val msgHash = MessageHelper.generateMsgIdHash(tmpRecord.chatType, tmpRecord.msgId)
+
+                val record = suspendCoroutine<MsgRecord?> {
+                    GlobalScope.launch {
+                        while (true) {
+                            MsgSvc.getMsgByQMsgId(tmpRecord.chatType, tmpRecord.peerUin.toString(), tmpRecord.msgId).onSuccess { record ->
+                                if (record.sendStatus == MsgConstant.KSENDSTATUSSUCCESS ||
+                                    record.sendStatus == MsgConstant.KSENDSTATUSSUCCESSNOSEQ
+                                ) {
+                                    it.resume(record)
+                                } else if (record.sendStatus == MsgConstant.KSENDSTATUSFAILED) {
+                                    it.resume(null)
+                                }
+                            }
+                            delay(50)
+                        }
+                    }
+                } ?: return@launch
+
                 MessageHelper.saveMsgMapping(
                     hash = msgHash,
                     qqMsgId = record.msgId,
@@ -114,7 +136,7 @@ internal object AioListener: IKernelMsgListener {
                 val rawMsg = record.elements.toCQCode(record.chatType, record.peerUin.toString())
                 if (rawMsg.isEmpty()) return@launch
 
-                LogCenter.log("发送消息($msgHash|${record.msgSeq}): $rawMsg")
+                LogCenter.log("发送消息($msgHash | ${record.msgSeq} | ${record.msgId}): $rawMsg")
 
                 if (!ShamrockConfig.enableSelfMsg())
                     return@launch

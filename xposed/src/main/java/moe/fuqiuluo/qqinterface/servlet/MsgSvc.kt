@@ -50,6 +50,36 @@ internal object MsgSvc: BaseSvc() {
         }
     }
 
+    suspend fun getMsgByQMsgId(
+        chatType: Int,
+        peerId: String,
+        qqMsgId: Long
+    ): Result<MsgRecord> {
+        val contact = MessageHelper.generateContact(chatType, peerId)
+
+        val msg = withTimeoutOrNull(5000) {
+            val service = QRoute.api(IMsgService::class.java)
+            suspendCancellableCoroutine { continuation ->
+                service.getMsgsByMsgId(contact, arrayListOf(qqMsgId)) { code, _, msgRecords ->
+                    if (code == 0 && msgRecords.isNotEmpty()) {
+                        continuation.resume(msgRecords.first())
+                    } else {
+                        continuation.resume(null)
+                    }
+                }
+                continuation.invokeOnCancellation {
+                    continuation.resume(null)
+                }
+            }
+        }
+
+        return if (msg != null) {
+            Result.success(msg)
+        } else {
+            Result.failure(Exception("获取消息失败"))
+        }
+    }
+
     /**
      * 什么鸟屎都获取不到
      */
@@ -59,7 +89,7 @@ internal object MsgSvc: BaseSvc() {
         seq: Long
     ): Result<MsgRecord> {
         val contact = MessageHelper.generateContact(chatType, peerId)
-        val msg = withTimeoutOrNull(60 * 1000) {
+        val msg = withTimeoutOrNull(1000) {
             val service = QRoute.api(IMsgService::class.java)
             suspendCancellableCoroutine { continuation ->
                 service.getMsgsBySeqs(contact, arrayListOf(seq)) { code, _, msgRecords ->
