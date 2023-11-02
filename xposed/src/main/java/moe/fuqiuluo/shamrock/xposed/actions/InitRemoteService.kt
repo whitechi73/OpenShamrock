@@ -92,13 +92,11 @@ internal class InitRemoteService : IAction {
         GlobalScope.launch {
             try {
                 if (url.startsWith("ws://") || url.startsWith("wss://")) {
-                    var wsClient = WebSocketClientService(url, wsHeaders)
+                    val wsClient = WebSocketClientService(url, wsHeaders)
                     wsClient.connect()
                     timer(initialDelay = 5000L, period = 5000L) {
                         if (wsClient.isClosed || wsClient.isClosing) {
-                            wsClient.cancelFlowJobs()
-                            wsClient = WebSocketClientService(url, wsHeaders)
-                            wsClient.connect()
+                            wsClient.reconnect()
                         }
                     }
                 } else {

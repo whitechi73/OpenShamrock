@@ -5,6 +5,8 @@ package moe.fuqiuluo.shamrock.remote.service.api
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import moe.fuqiuluo.shamrock.remote.action.ActionManager
@@ -35,6 +37,7 @@ internal abstract class WebSocketTransmitServlet(
     host:String,
     port: Int
 ) : BaseTransmitServlet, WebSocketServer(InetSocketAddress(host, port)) {
+    private val sendLock = Mutex()
     protected val eventReceivers: MutableList<WebSocket> = Collections.synchronizedList(mutableListOf<WebSocket>())
 
     override val address: String
@@ -113,10 +116,12 @@ internal abstract class WebSocketTransmitServlet(
         initTransmitter()
     }
 
-    protected inline fun <reified T> pushTo(body: T) {
+    protected suspend inline fun <reified T> pushTo(body: T) {
         if(!allowTransmit()) return
         try {
-            broadcastTextEvent(GlobalJson.encodeToString(body))
+            sendLock.withLock {
+                broadcastTextEvent(GlobalJson.encodeToString(body))
+            }
         } catch (e: Throwable) {
             LogCenter.log("WS推送失败: ${e.stackTraceToString()}", Level.ERROR)
         }

@@ -7,6 +7,8 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import moe.fuqiuluo.shamrock.remote.action.ActionManager
@@ -36,6 +38,8 @@ internal abstract class WebSocketClientServlet(
     url: String,
     wsHeaders: Map<String, String>
 ) : BaseTransmitServlet, WebSocketClient(URI(url), wsHeaders) {
+    private val sendLock = Mutex()
+
     override fun allowTransmit(): Boolean {
         return ShamrockConfig.openWebSocketClient()
     }
@@ -89,10 +93,12 @@ internal abstract class WebSocketClientServlet(
         cancelFlowJobs()
     }
 
-    protected inline fun <reified T> pushTo(body: T) {
+    protected suspend inline fun <reified T> pushTo(body: T) {
         if (!allowTransmit() || isClosed || isClosing) return
         try {
-            send(GlobalJson.encodeToString(body))
+            sendLock.withLock {
+                send(GlobalJson.encodeToString(body))
+            }
         } catch (e: Throwable) {
             LogCenter.log("被动WS推送失败: ${e.stackTraceToString()}", Level.ERROR)
         }
