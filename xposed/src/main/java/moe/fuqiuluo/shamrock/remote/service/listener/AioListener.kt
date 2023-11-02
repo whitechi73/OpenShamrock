@@ -144,14 +144,14 @@ internal object AioListener: IKernelMsgListener {
                         msgSeq = record.msgSeq.toInt(),
                         time = record.msgTime
                     )
+                } else {
+                    LogCenter.log("Update message info from ${mapping.msgSeq} to ${record.msgSeq}", Level.INFO)
+                    MessageDB.getInstance().messageMappingDao()
+                        .updateMsgSeqByMsgHash(msgHash, record.msgSeq.toInt())
                 }
 
                 if (!ShamrockConfig.enableSelfMsg())
                     return@launch
-
-                LogCenter.log("Update message info from ${mapping?.msgSeq} to ${record.msgSeq}", Level.INFO)
-                MessageDB.getInstance().messageMappingDao()
-                    .updateMsgSeqByMsgHash(msgHash, record.msgSeq.toInt())
 
                 val rawMsg = record.elements.toCQCode(record.chatType, record.peerUin.toString())
                 if (rawMsg.isEmpty()) return@launch
