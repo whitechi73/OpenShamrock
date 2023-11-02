@@ -29,6 +29,9 @@ interface MessageMappingDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insert(mapping: MessageMapping)
 
+    @Query("UPDATE message_mapping SET msgSeq = :msgSeq WHERE msgHashId = :hash")
+    fun updateMsgSeqByMsgHash(hash: Int, msgSeq: Int)
+
     @Query("DELETE FROM message_mapping WHERE msgHashId = :hash")
     fun deleteByMsgHash(hash: Int)
 

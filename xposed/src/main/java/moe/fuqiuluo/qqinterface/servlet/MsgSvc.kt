@@ -11,6 +11,7 @@ import moe.fuqiuluo.shamrock.helper.MessageHelper
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.xposed.helper.NTServiceFetcher
 import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 internal object MsgSvc: BaseSvc() {
     fun uploadForwardMsg(): Result<String> {
@@ -60,16 +61,13 @@ internal object MsgSvc: BaseSvc() {
             return Result.failure(Exception("获取消息服务"))
 
         val msg = withTimeoutOrNull(5000) {
-            suspendCancellableCoroutine { continuation ->
+            suspendCoroutine { continuation ->
                 service.getMsgsByMsgId(contact, arrayListOf(qqMsgId)) { code, _, msgRecords ->
                     if (code == 0 && msgRecords.isNotEmpty()) {
                         continuation.resume(msgRecords.first())
                     } else {
                         continuation.resume(null)
                     }
-                }
-                continuation.invokeOnCancellation {
-                    continuation.resume(null)
                 }
             }
         }
