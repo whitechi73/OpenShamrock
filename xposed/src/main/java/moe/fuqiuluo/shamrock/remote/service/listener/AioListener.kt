@@ -176,6 +176,10 @@ internal object AioListener: IKernelMsgListener {
         }
     }
 
+    override fun onTempChatInfoUpdate(tempChatInfo: TempChatInfo) {
+
+    }
+
     override fun onMsgAbstractUpdate(arrayList: ArrayList<MsgAbstract>?) {
         //arrayList?.forEach {
         //    LogCenter.log("onMsgAbstractUpdate($it)", Level.WARN)
@@ -446,10 +450,6 @@ internal object AioListener: IKernelMsgListener {
 
     override fun onSysMsgNotification(i2: Int, j2: Long, j3: Long, arrayList: ArrayList<Byte>?) {
         LogCenter.log("onSysMsgNotification($i2, $j2, $j3, $arrayList)", Level.DEBUG)
-    }
-
-    override fun onTempChatInfoUpdate(tempChatInfo: TempChatInfo?) {
-
     }
 
     override fun onUnreadCntAfterFirstView(hashMap: HashMap<Int, ArrayList<UnreadCntInfo>>?) {
