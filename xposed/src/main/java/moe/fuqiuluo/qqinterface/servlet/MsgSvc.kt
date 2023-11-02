@@ -56,9 +56,10 @@ internal object MsgSvc: BaseSvc() {
         qqMsgId: Long
     ): Result<MsgRecord> {
         val contact = MessageHelper.generateContact(chatType, peerId)
+        val service = QRoute.api(IMsgService::class.java) ?:
+            return Result.failure(Exception("获取消息服务"))
 
         val msg = withTimeoutOrNull(5000) {
-            val service = QRoute.api(IMsgService::class.java)
             suspendCancellableCoroutine { continuation ->
                 service.getMsgsByMsgId(contact, arrayListOf(qqMsgId)) { code, _, msgRecords ->
                     if (code == 0 && msgRecords.isNotEmpty()) {

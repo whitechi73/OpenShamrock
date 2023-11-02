@@ -117,6 +117,8 @@ internal object AioListener: IKernelMsgListener {
                                 } else if (record.sendStatus == MsgConstant.KSENDSTATUSFAILED) {
                                     it.resume(null)
                                 }
+                            }.onFailure { _ ->
+                                it.resume(null)
                             }
                             delay(50)
                         }
