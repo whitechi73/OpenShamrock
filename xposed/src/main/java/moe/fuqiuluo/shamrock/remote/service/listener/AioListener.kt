@@ -126,12 +126,32 @@ internal object AioListener: IKernelMsgListener {
     override fun onMsgInfoListUpdate(msgList: ArrayList<MsgRecord>?) {
         msgList?.forEach { record ->
             GlobalScope.launch {
-                if (!ShamrockConfig.enableSelfMsg())
+                if (record.sendStatus == MsgConstant.KSENDSTATUSFAILED
+                    || record.sendStatus == MsgConstant.KSENDSTATUSSENDING) {
                     return@launch
+                }
 
                 val msgHash = MessageHelper.generateMsgIdHash(record.chatType, record.msgId)
 
-                MessageDB.getInstance().messageMappingDao().updateMsgSeqByMsgHash(msgHash, record.msgSeq.toInt())
+                val mapping = MessageHelper.getMsgMappingByHash(msgHash)
+                if (mapping == null) {
+                    MessageHelper.saveMsgMapping(
+                        hash = msgHash,
+                        qqMsgId = record.msgId,
+                        chatType = record.chatType,
+                        subChatType = record.chatType,
+                        peerId = record.peerUin.toString(),
+                        msgSeq = record.msgSeq.toInt(),
+                        time = record.msgTime
+                    )
+                }
+
+                if (!ShamrockConfig.enableSelfMsg())
+                    return@launch
+
+                LogCenter.log("Update message info from ${mapping?.msgSeq} to ${record.msgSeq}", Level.INFO)
+                MessageDB.getInstance().messageMappingDao()
+                    .updateMsgSeqByMsgHash(msgHash, record.msgSeq.toInt())
 
                 val rawMsg = record.elements.toCQCode(record.chatType, record.peerUin.toString())
                 if (rawMsg.isEmpty()) return@launch
