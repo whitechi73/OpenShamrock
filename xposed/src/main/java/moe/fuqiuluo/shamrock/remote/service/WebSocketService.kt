@@ -21,7 +21,7 @@ import org.java_websocket.WebSocket
 import org.java_websocket.handshake.ClientHandshake
 import java.net.URI
 
-internal class WebSocketService(port: Int): WebSocketTransmitServlet(port) {
+internal class WebSocketService(host: String, port: Int): WebSocketTransmitServlet(host, port) {
     private val eventJobList = mutableSetOf<Job>()
 
     override fun submitFlowJob(job: Job) {

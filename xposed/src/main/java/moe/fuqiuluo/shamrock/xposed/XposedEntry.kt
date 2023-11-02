@@ -118,9 +118,9 @@ internal class XposedEntry: IXposedHookLoadPackage {
 
             log("Process Name = " + MobileQQ.getMobileQQ().qqProcessName.apply {
                 // if (!contains("msf", ignoreCase = true)) return // 非MSF进程 退出
-                if (contains("peak")) {
-                    PlatformUtils.killProcess(ctx, this)
-                }
+                //if (contains("peak")) {
+                //    PlatformUtils.killProcess(ctx, this)
+                //}
             })
 
             PlatformUtils.isTim()

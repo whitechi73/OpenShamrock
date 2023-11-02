@@ -32,8 +32,9 @@ import java.util.Collections
 import kotlin.concurrent.timer
 
 internal abstract class WebSocketTransmitServlet(
+    host:String,
     port: Int
-) : BaseTransmitServlet, WebSocketServer(InetSocketAddress(port)) {
+) : BaseTransmitServlet, WebSocketServer(InetSocketAddress(host, port)) {
     protected val eventReceivers: MutableList<WebSocket> = Collections.synchronizedList(mutableListOf<WebSocket>())
 
     override val address: String
