@@ -79,7 +79,7 @@ Shamrock 提供了一个图形化的配置界面，可进行简单的配置操�
 | default_token | string   | 默认token，**HTTP接口/主被动WS** 如果未单独定义token，则使用默认token   | aaa123456  |
 
 
-!> 记得把注释删掉哦？JSON5貌似也没有完全支持呢？
+> 记得把注释删掉哦？JSON5貌似也没有完全支持呢？该配置文件采用Json5标准！
 
 ## 数据目录
 
