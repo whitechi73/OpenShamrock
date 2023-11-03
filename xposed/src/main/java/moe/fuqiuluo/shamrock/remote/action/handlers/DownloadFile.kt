@@ -1,5 +1,6 @@
 package moe.fuqiuluo.shamrock.remote.action.handlers
 
+import android.util.Base64
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
@@ -13,7 +14,8 @@ import moe.fuqiuluo.shamrock.utils.MD5
 
 internal object DownloadFile: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
-        val url = session.getString("url")
+        val url = session.getStringOrNull("url")
+        val b64 = session.getStringOrNull("base64")
         val threadCnt = session.getIntOrNull("thread_cnt") ?: 3
         val headers = if (session.isArray("headers")) {
             session.getArray("headers").map {
@@ -22,26 +24,54 @@ internal object DownloadFile: IActionHandler() {
         } else {
             session.getString("headers").split("\r\n")
         }
-        return invoke(url, threadCnt, headers, session.echo)
+        return invoke(url, b64, threadCnt, headers, session.echo)
     }
 
     suspend operator fun invoke(
-        url: String,
+        url: String?,
+        base64: String?,
         threadCnt: Int,
         headers: List<String>,
         echo: JsonElement = EmptyJsonString
     ): String {
-        val headerMap = mutableMapOf(
-            "User-Agent" to "Shamrock"
-        )
-        headers.forEach {
-            val pair = it.split("=")
-            if (pair.size >= 2) {
-                val (k, v) = pair
-                headerMap[k] = v
+        if (url != null) {
+            val headerMap = mutableMapOf(
+                "User-Agent" to "Shamrock"
+            )
+            headers.forEach {
+                val pair = it.split("=")
+                if (pair.size >= 2) {
+                    val (k, v) = pair
+                    headerMap[k] = v
+                }
             }
+            return invoke(url, threadCnt, headerMap, echo)
+        } else if (base64 != null) {
+            return invoke(base64, echo)
+        } else {
+            return noParam("url/base64", echo)
         }
-        return invoke(url, threadCnt, headerMap, echo)
+    }
+
+    operator fun invoke(
+        base64: String,
+        echo: JsonElement
+    ): String {
+        kotlin.runCatching {
+            val bytes = Base64.decode(base64, Base64.DEFAULT)
+            FileUtils.getTmpFile("cache").also {
+                it.writeBytes(bytes)
+            }
+        }.onSuccess {
+            val tmp = FileUtils.renameByMd5(it)
+            return ok(data = DownloadResult(
+                file = tmp.absolutePath,
+                md5 = MD5.genFileMd5Hex(tmp.absolutePath)
+            ), msg = "成功", echo = echo)
+        }.onFailure {
+            return logic("Base64格式错误", echo)
+        }
+        return logic("未知错误", echo)
     }
 
     suspend operator fun invoke(
@@ -69,8 +99,6 @@ internal object DownloadFile: IActionHandler() {
             logic(it.stackTraceToString(), echo)
         }
     }
-
-    override val requiredParams: Array<String> = arrayOf("url")
 
     override fun path(): String = "download_file"
 
