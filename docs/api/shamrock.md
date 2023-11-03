@@ -3,6 +3,24 @@ title: Shamrock 接口
 icon: feather-alt
 ---
 
+## 上传文件到缓存目录
+
+### API 端点
+
+`/upload_file`
+
+### 参数
+
+以**file**格式上传文件，不要使用**binary**。
+
+### 响应
+
+```json
+{
+  "file": "/scard/Android/data/com.tencent.mobileqq/Tencent/Shamrock/xxxx"
+}
+```
+
 ## 下载文件到缓存目录
 
 ### API 端点
@@ -13,7 +31,8 @@ icon: feather-alt
 
 | 字段   | 类型    | 必须 | 说明                 | 默认值 |
 | ------ | ------- | ---- | -------------------- | ------ |
-| url  | string | 是   | 下载地址             |        |
+| url  | string | 否   | 下载地址             |        |
+| base64  | string | 否   | 文件base64内容             |        |
 | thread_cnt | int32  | 否   | 下载的线程数量 |   |
 | headers | `string` or `array` | 否 | 请求头 | |
 
@@ -98,16 +117,6 @@ User-Agent=YOUR_UA[\r\n]Referer=https://www.baidu.com
 | ------ | ------- | ---- | -------------------- | ------ |
 | start  | int32 | 否   | 开始的行             |        |
 | recent | bool  | 否   | 是否只显示最近的日志 | false  |
-
-### 响应
-
-```json
-{
-  "status": "ok",
-  "retcode": 0,
-  "data": 1696749716155
-}
-```
 
 ## 关闭Shamrock
 
