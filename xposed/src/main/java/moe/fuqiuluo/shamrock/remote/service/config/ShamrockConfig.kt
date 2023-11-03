@@ -25,7 +25,7 @@ internal object ShamrockConfig {
         return mmkv.getBoolean("isInit", false)
     }
 
-    fun updateConfig(config: ServiceConfig = Config) {
+    private fun updateConfig(config: ServiceConfig = Config) {
         ConfigDir.resolve("config.json").writeText(GlobalJson5.encodeToString(config))
     }
 
