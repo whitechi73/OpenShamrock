@@ -56,20 +56,14 @@ public final class TempChatPrepareInfo {
         return "TempChatPrepareInfo{chatType=" + this.chatType + ",peerUid=" + this.peerUid + ",peerNickname=" + this.peerNickname + ",fromGroupCode=" + this.fromGroupCode + ",sig=" + this.sig + ",selfUid=" + this.selfUid + ",selfPhone=" + this.selfPhone + ",gameSession=" + this.gameSession + ",}";
     }
 
-    public TempChatPrepareInfo(int i2, String str, String str2, String str3, byte[] bArr, String str4, String str5, TempChatGameSession tempChatGameSession) {
-        this.peerUid = "";
-        this.peerNickname = "";
-        this.fromGroupCode = "";
-        this.sig = new byte[0];
-        this.selfUid = "";
-        this.selfPhone = "";
-        this.chatType = i2;
-        this.peerUid = str;
-        this.peerNickname = str2;
-        this.fromGroupCode = str3;
-        this.sig = bArr;
-        this.selfUid = str4;
-        this.selfPhone = str5;
-        this.gameSession = tempChatGameSession;
+    public TempChatPrepareInfo(int chatType, String peerId, String nickName, String fromGroup, byte[] sig, String selfUid, String selfPhone, TempChatGameSession session) {
+        this.chatType = chatType;
+        this.peerUid = peerId;
+        this.peerNickname = nickName;
+        this.fromGroupCode = fromGroup;
+        this.sig = sig;
+        this.selfUid = selfUid;
+        this.selfPhone = selfPhone;
+        this.gameSession = session;
     }
 }

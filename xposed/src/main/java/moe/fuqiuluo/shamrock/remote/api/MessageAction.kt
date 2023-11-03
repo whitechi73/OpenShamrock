@@ -42,13 +42,13 @@ fun Routing.messageAction() {
         }
         post {
             val msgType = fetchPostOrThrow("message_type")
-            val peerIdKey = if(msgType == "group") "group_id" else "user_id"
             val chatType = MessageHelper.obtainMessageTypeByDetailType(msgType)
+            val peerId = fetchPostOrThrow(if(msgType == "group") "group_id" else "user_id")
             call.respondText(if (isJsonData() && !isJsonString("message")) {
-                SendMessage(chatType, fetchPostOrThrow(peerIdKey), fetchPostJsonArray("message"))
+                SendMessage(chatType, peerId, fetchPostJsonArray("message"))
             } else {
                 val autoEscape = fetchPostOrNull("auto_escape")?.toBooleanStrict() ?: false
-                SendMessage(chatType, fetchPostOrThrow(peerIdKey), fetchPostOrThrow("message"), autoEscape)
+                SendMessage(chatType, peerId, fetchPostOrThrow("message"), autoEscape)
             })
         }
     }

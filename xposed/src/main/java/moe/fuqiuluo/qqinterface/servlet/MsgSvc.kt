@@ -1,21 +1,51 @@
 package moe.fuqiuluo.qqinterface.servlet
 
 import com.tencent.mobileqq.qroute.QRoute
+import com.tencent.mobileqq.troop.api.ITroopMemberNameService
+import com.tencent.qqnt.kernel.api.IKernelService
 import com.tencent.qqnt.kernel.nativeinterface.IOperateCallback
+import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
 import com.tencent.qqnt.kernel.nativeinterface.MsgRecord
+import com.tencent.qqnt.kernel.nativeinterface.TempChatGameSession
+import com.tencent.qqnt.kernel.nativeinterface.TempChatPrepareInfo
 import com.tencent.qqnt.msg.api.IMsgService
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.JsonArray
-import moe.fuqiuluo.shamrock.helper.MessageHelper
+import moe.fuqiuluo.shamrock.helper.ContactHelper
+import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
+import moe.fuqiuluo.shamrock.helper.MessageHelper
+import moe.fuqiuluo.shamrock.tools.EMPTY_BYTE_ARRAY
 import moe.fuqiuluo.shamrock.xposed.helper.NTServiceFetcher
+import moe.fuqiuluo.shamrock.xposed.helper.msgService
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 internal object MsgSvc: BaseSvc() {
     fun uploadForwardMsg(): Result<String> {
         return Result.failure(Exception("Not implemented"))
+    }
+
+    suspend fun prepareTempChatFromGroup(
+        groupId: String,
+        peerId: String
+    ): Result<Unit> {
+        LogCenter.log("主动临时消息，创建临时会话。", Level.INFO)
+        val msgService = app.getRuntimeService(IKernelService::class.java, "all").msgService
+            ?: return Result.failure(Exception("获取消息服务失败"))
+        msgService.prepareTempChat(TempChatPrepareInfo(
+            MsgConstant.KCHATTYPETEMPC2CFROMGROUP,
+            ContactHelper.getUidByUinAsync(peerId = peerId.toLong()),
+            app.getRuntimeService(ITroopMemberNameService::class.java, "all")
+                .getTroopMemberNameRemarkFirst(groupId, peerId),
+            groupId, EMPTY_BYTE_ARRAY, app.currentUid, "", TempChatGameSession()
+        )) { code, reason ->
+            if (code != 0) {
+                LogCenter.log("临时会话创建失败: $code, $reason", Level.ERROR)
+            }
+        }
+        return Result.success(Unit)
     }
 
     /**
@@ -139,6 +169,17 @@ internal object MsgSvc: BaseSvc() {
     ): Pair<Long, Int> {
         //LogCenter.log(message.toString(), Level.ERROR)
         //callback.msgHash = result.second 什么垃圾代码，万一cb比你快，你不就寄了？
+
+        // 主动临时消息
+        when(chatType) {
+            MsgConstant.KCHATTYPETEMPC2CFROMGROUP -> {
+                prepareTempChatFromGroup(fromId, peedId).onFailure {
+                    LogCenter.log("主动临时消息，创建临时会话失败。", Level.ERROR)
+                    return -1L to 0
+                }
+            }
+        }
+
         return MessageHelper.sendMessageWithoutMsgId(chatType, peedId, message, MessageCallback(peedId, 0), fromId)
     }
 

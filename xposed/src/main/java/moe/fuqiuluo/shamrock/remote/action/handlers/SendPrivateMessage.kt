@@ -12,10 +12,23 @@ internal object SendPrivateMessage: IActionHandler() {
         return if (session.isString("message")) {
             val autoEscape = session.getBooleanOrDefault("auto_escape", false)
             val message = session.getString("message")
-            SendMessage(chatTYpe, userId, message, autoEscape, echo = session.echo, fromId = groupId ?: userId)
+            SendMessage.invoke(
+                chatType = chatTYpe,
+                peerId = userId,
+                message = message,
+                autoEscape = autoEscape,
+                echo = session.echo,
+                fromId = groupId ?: userId
+            )
         } else {
             val message = session.getArray("message")
-            SendMessage(chatTYpe, userId, message, session.echo, fromId = groupId ?: userId)
+            SendMessage(
+                chatType = chatTYpe,
+                peerId = userId,
+                message = message,
+                echo = session.echo,
+                fromId = groupId ?: userId
+            )
         }
     }
 

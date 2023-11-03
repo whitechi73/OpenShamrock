@@ -44,6 +44,7 @@ internal object MessageHelper {
             if(callback is MsgSvc.MessageCallback) {
                 callback.msgHash = uniseq.first
             }
+
             service.sendMsg(
                 generateContact(chatType, peerId, fromId),
                 uniseq.second,

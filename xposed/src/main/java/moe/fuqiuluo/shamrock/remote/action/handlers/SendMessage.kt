@@ -81,10 +81,13 @@ internal object SendMessage: IActionHandler() {
                 MsgSvc.sendToAio(chatType, peerId, msg, fromId = fromId)
             }
         }
+        if (result.first <= 0) {
+            return logic("send message failed", echo = echo)
+        }
         return ok(MessageResult(
             msgId = result.second,
             time = result.first * 0.001
-        ), echo)
+        ), echo = echo)
     }
 
     // 消息段格式消息
@@ -95,6 +98,9 @@ internal object SendMessage: IActionHandler() {
         //    return logic("contact is not found", echo = echo)
         //}
         val result = MsgSvc.sendToAio(chatType, peerId, message, fromId = fromId)
+        if (result.first <= 0) {
+            return logic("send message failed", echo = echo)
+        }
         return ok(MessageResult(
             msgId = result.second,
             time = result.first * 0.001

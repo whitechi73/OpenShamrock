@@ -81,6 +81,10 @@ public abstract class AppRuntime {
         return !"0".equals(getCurrentAccountUin()) ? getCurrentAccountUin() : "";
     }
 
+    public String getCurrentUid() {
+        return "";
+    }
+
     public long getLongAccountUin() {
         return 0;
     }
