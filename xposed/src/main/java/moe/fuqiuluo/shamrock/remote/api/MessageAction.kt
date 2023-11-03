@@ -11,6 +11,7 @@ import io.ktor.server.routing.route
 import moe.fuqiuluo.shamrock.remote.action.handlers.*
 import moe.fuqiuluo.shamrock.tools.fetchGetOrNull
 import moe.fuqiuluo.shamrock.tools.fetchGetOrThrow
+import moe.fuqiuluo.shamrock.tools.fetchOrNull
 import moe.fuqiuluo.shamrock.tools.fetchOrThrow
 import moe.fuqiuluo.shamrock.tools.fetchPostJsonArray
 import moe.fuqiuluo.shamrock.tools.fetchPostJsonString
@@ -36,19 +37,43 @@ fun Routing.messageAction() {
             val msgType = fetchGetOrThrow("message_type")
             val message = fetchGetOrThrow("message")
             val autoEscape = fetchGetOrNull("auto_escape")?.toBooleanStrict() ?: false
-            val peerIdKey = if(msgType == "group") "group_id" else "user_id"
             val chatType = MessageHelper.obtainMessageTypeByDetailType(msgType)
-            call.respondText(SendMessage(chatType, fetchGetOrThrow(peerIdKey), message, autoEscape))
+
+            val userId = fetchGetOrNull("user_id")
+            val groupId = fetchGetOrNull("group_id")
+
+            call.respondText(SendMessage(
+                chatType = chatType,
+                peerId = if (chatType == MsgConstant.KCHATTYPEC2C) userId!! else groupId!!,
+                message = message,
+                autoEscape = autoEscape,
+                fromId = groupId ?: userId ?: ""
+            ))
         }
         post {
             val msgType = fetchPostOrThrow("message_type")
             val chatType = MessageHelper.obtainMessageTypeByDetailType(msgType)
-            val peerId = fetchPostOrThrow(if(msgType == "group") "group_id" else "user_id")
+
+            val userId = fetchPostOrNull("user_id")
+            val groupId = fetchPostOrNull("group_id")
+
             call.respondText(if (isJsonData() && !isJsonString("message")) {
-                SendMessage(chatType, peerId, fetchPostJsonArray("message"))
+                SendMessage(
+                    chatType = chatType,
+                    peerId = if (chatType == MsgConstant.KCHATTYPEC2C) userId!! else groupId!!,
+                    message = fetchPostJsonArray("message"),
+                    fromId = groupId ?: userId ?: ""
+                )
             } else {
                 val autoEscape = fetchPostOrNull("auto_escape")?.toBooleanStrict() ?: false
-                SendMessage(chatType, peerId, fetchPostOrThrow("message"), autoEscape)
+                //SendMessage(chatType, peerId, fetchPostOrThrow("message"), autoEscape)
+                SendMessage(
+                    chatType = chatType,
+                    peerId = if (chatType == MsgConstant.KCHATTYPEC2C) userId!! else groupId!!,
+                    message = fetchPostOrThrow("message"),
+                    autoEscape = autoEscape,
+                    fromId = groupId ?: userId ?: ""
+                )
             })
         }
     }
@@ -95,16 +120,31 @@ fun Routing.messageAction() {
         }
         post {
             val userId = fetchPostOrThrow("user_id")
+            val groupId = fetchPostOrNull("group_id")
             val autoEscape = fetchPostOrNull("auto_escape")?.toBooleanStrict() ?: false
 
             val result = if (isJsonData()) {
                 if (isJsonString("message")) {
-                    SendMessage(MsgConstant.KCHATTYPEC2C, userId, fetchPostJsonString("message"), autoEscape)
+                    SendMessage(
+                        chatType = if (groupId == null) MsgConstant.KCHATTYPEC2C else MsgConstant.KCHATTYPETEMPC2CFROMGROUP,
+                        userId,
+                        fetchPostJsonString("message"),
+                        autoEscape
+                    )
                 } else {
-                    SendMessage(MsgConstant.KCHATTYPEC2C, userId, fetchPostJsonArray("message"))
+                    SendMessage(
+                        chatType = if (groupId == null) MsgConstant.KCHATTYPEC2C else MsgConstant.KCHATTYPETEMPC2CFROMGROUP,
+                        userId,
+                        fetchPostJsonArray("message")
+                    )
                 }
             } else {
-                SendMessage(MsgConstant.KCHATTYPEC2C, userId, fetchPostOrThrow("message"), autoEscape)
+                SendMessage(
+                    chatType = if (groupId == null) MsgConstant.KCHATTYPEC2C else MsgConstant.KCHATTYPETEMPC2CFROMGROUP,
+                    userId,
+                    fetchPostOrThrow("message"),
+                    autoEscape
+                )
             }
 
             call.respondText(result)
