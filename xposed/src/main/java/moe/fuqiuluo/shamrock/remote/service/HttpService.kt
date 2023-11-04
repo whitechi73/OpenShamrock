@@ -28,15 +28,22 @@ internal object HttpService: HttpTransmitServlet() {
         "record", "voice", "video", "markdown"
     )
 
+    private val jobList = arrayListOf<Job>()
+
     override fun submitFlowJob(job: Job) {
         // HTTP 回调不会触发断连，无需释放之前的JOB
+        jobList.add(job)
     }
 
     override fun cancelFlowJobs() {
-
+        jobList.removeIf {
+            it.cancel()
+            return@removeIf true
+        }
     }
 
     override fun initTransmitter() {
+        if (jobList.isNotEmpty()) return
         submitFlowJob(GlobalScope.launch {
             GlobalEventTransmitter.onMessageEvent { (record, event) ->
                 val respond = pushTo(event) ?: return@onMessageEvent
