@@ -10,6 +10,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withTimeoutOrNull
 import moe.fuqiuluo.shamrock.utils.MD5
 import moe.fuqiuluo.shamrock.xposed.helper.AppRuntimeFetcher
 import mqq.app.AppRuntime
@@ -73,30 +74,34 @@ internal abstract class FileTransfer {
         transferRequest: TransferRequest,
         wait: Boolean
     ): Boolean {
-        val service = runtime.getRuntimeService(ITransFileController::class.java, "all")
-        if(service.transferAsync(transferRequest)) {
-            if (!wait) { // 如果无需等待直接返回
-                return true
-            }
-            return suspendCancellableCoroutine { continuation ->
-                val waiter = GlobalScope.launch {
-                    while (
-                        service.findProcessor(transferRequest.keyForTransfer) != null
-                        // 如果上传处理器依旧存在，说明没有上传成功
-                    ) {
-                        delay(100)
+        return withTimeoutOrNull(60_000) {
+            val service = runtime.getRuntimeService(ITransFileController::class.java, "all")
+            if(service.transferAsync(transferRequest)) {
+                if (!wait) { // 如果无需等待直接返回
+                    return@withTimeoutOrNull true
+                }
+                suspendCancellableCoroutine { continuation ->
+                    GlobalScope.launch {
+                        while (
+                        //service.findProcessor(
+                        //    transferRequest.keyForTransfer // uin + uniseq
+                        //) != null
+                            service.containsProcessor(runtime.currentAccountUin, transferRequest.mUniseq)
+                            // 如果上传处理器依旧存在，说明没有上传成功
+                            && service.isWorking.get()
+                        ) {
+                            delay(100)
+                        }
+                        continuation.resume(true)
                     }
-                    continuation.resume(true)
+                    // 实现取消上传器
+                    // 目前没什么用
+                    continuation.invokeOnCancellation {
+                        continuation.resume(false)
+                    }
                 }
-                // 实现取消上传器
-                // 目前没什么用
-                continuation.invokeOnCancellation {
-                    waiter.cancel()
-                    continuation.resume(false)
-                }
-            }
-        }
-        return false
+            } else false
+        } ?: false
     }
 
     companion object {

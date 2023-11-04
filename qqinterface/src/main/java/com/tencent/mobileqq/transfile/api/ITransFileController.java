@@ -14,7 +14,7 @@ public interface ITransFileController extends IRuntimeService {
     //@Deprecated
     //void addProcessor(String str, IHttpCommunicatorListener iHttpCommunicatorListener);
 
-    //boolean containsProcessor(String str, long j2);
+    boolean containsProcessor(String name, long uin);
 
     IHttpCommunicatorListener findProcessor(String str);
 

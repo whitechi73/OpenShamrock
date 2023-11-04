@@ -2,6 +2,7 @@
 package moe.fuqiuluo.shamrock.xposed.actions
 
 import android.content.Context
+import android.content.pm.PackageManager
 import android.os.Build
 import moe.fuqiuluo.shamrock.tools.hookMethod
 
@@ -12,10 +13,22 @@ class AntiDetection: IAction {
     override fun invoke(ctx: Context) {
         antiTrace()
         antiMemoryWalking()
+        antiFindPackage()
     }
 
     val isModuleStack = fun String.(): Boolean {
         return contains("fuqiuluo") || contains("shamrock") || contains("whitechi") || contains("lsposed") || contains("xposed")
+    }
+
+    private fun antiFindPackage() {
+        //PackageManager::class.java.hookMethod("getApplicationInfo").before {
+        //    val packageName = it.args[0] as String
+        //    if(packageName == "moe.fuqiuluo.shamrock") {
+        //        it.throwable = PackageManager.NameNotFoundException()
+        //    } else if (packageName == "moe.fuqiuluo.shamrock.hided") {
+        //        it.args[0] = "moe.fuqiuluo.shamrock"
+        //    }
+        //}
     }
 
     private fun antiMemoryWalking() {

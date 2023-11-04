@@ -9,6 +9,11 @@ import mqq.app.AppRuntime;
 
 public class BaseTransFileController implements ITransFileController {
     @Override
+    public boolean containsProcessor(String name, long uin) {
+        return false;
+    }
+
+    @Override
     public IHttpCommunicatorListener findProcessor(String str) {
         return null;
     }

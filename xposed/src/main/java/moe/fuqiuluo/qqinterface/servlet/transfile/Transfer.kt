@@ -24,12 +24,12 @@ internal object Transfer: FileTransfer() {
     )
 
     suspend fun uploadC2CVideo(
-        groupId: String,
+        userId: String,
         file: File,
         thumb: File,
         wait: Boolean = true
     ): Boolean {
-        return transC2CResource(groupId, file, FileMsg.TRANSFILE_TYPE_SHORT_VIDEO_C2C, BUSI_TYPE_SHORT_VIDEO, wait) {
+        return transC2CResource(userId, file, FileMsg.TRANSFILE_TYPE_SHORT_VIDEO_C2C, BUSI_TYPE_SHORT_VIDEO, wait) {
             it.mSourceVideoCodecFormat = VIDEO_FORMAT_MP4
             it.mRec = MessageForShortVideo().also {
                 it.busiType = BUSI_TYPE_SHORT_VIDEO
@@ -56,11 +56,11 @@ internal object Transfer: FileTransfer() {
     }
 
     suspend fun uploadC2CVoice(
-        groupId: String,
+        userId: String,
         file: File,
         wait: Boolean = true
     ): Boolean {
-        return transC2CResource(groupId, file, FileMsg.TRANSFILE_TYPE_PTT, 1002, wait) {
+        return transC2CResource(userId, file, FileMsg.TRANSFILE_TYPE_PTT, 1002, wait) {
             it.mPttUploadPanel = 3
             it.mPttCompressFinish = true
             it.mIsPttPreSend = true
