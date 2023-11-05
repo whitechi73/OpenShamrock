@@ -1,12 +1,17 @@
 package moe.fuqiuluo.qqinterface.servlet
 
 import com.tencent.mobileqq.pb.ByteStringMicro
+import io.ktor.util.Deflate
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import moe.fuqiuluo.proto.protobufOf
 import moe.fuqiuluo.qqinterface.servlet.transfile.RichProtoSvc
+import moe.fuqiuluo.shamrock.helper.Level
+import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.tools.EMPTY_BYTE_ARRAY
 import moe.fuqiuluo.shamrock.tools.slice
+import moe.fuqiuluo.shamrock.tools.toHexString
+import moe.fuqiuluo.shamrock.utils.DeflateTools
 import tencent.im.oidb.cmd0x6d8.oidb_0x6d8
 import tencent.im.oidb.oidb_sso
 
@@ -92,7 +97,7 @@ internal object FileSvc: BaseSvc() {
         )
     }
 
-    suspend fun getGroupRootFiles(groupId: Long): GroupFileList {
+    suspend fun getGroupRootFiles(groupId: Long): Result<GroupFileList> {
         return getGroupFiles(groupId, "/")
     }
 
@@ -100,7 +105,7 @@ internal object FileSvc: BaseSvc() {
         return FileUrl(RichProtoSvc.getGroupFileDownUrl(groupId, fileId, busid))
     }
 
-    suspend fun getGroupFiles(groupId: Long, folderId: String): GroupFileList {
+    suspend fun getGroupFiles(groupId: Long, folderId: String): Result<GroupFileList> {
         val fileSystemInfo = getGroupFileSystemInfo(groupId)
         val rspGetFileListBuffer = sendOidbAW("OidbSvc.0x6d8_1", 1752, 1, oidb_0x6d8.ReqBody().also {
             it.file_list_info_req.set(oidb_0x6d8.GetFileListReqBody().apply {
@@ -122,17 +127,20 @@ internal object FileSvc: BaseSvc() {
 
                 uint32_show_onlinedoc_folder.set(0)
             })
-        }.toByteArray())
+        }.toByteArray(), timeout = 15_000L)
 
-        val files = arrayListOf<FileInfo>()
-        val dirs = arrayListOf<FolderInfo>()
-        if (rspGetFileListBuffer != null) {
-            oidb_0x6d8.RspBody().mergeFrom(oidb_sso.OIDBSSOPkg()
-                .mergeFrom(rspGetFileListBuffer.slice(4))
-                .bytes_bodybuffer.get()
-                .toByteArray()).file_list_info_rsp.apply {
+        return kotlin.runCatching {
+            val files = arrayListOf<FileInfo>()
+            val dirs = arrayListOf<FolderInfo>()
+            if (rspGetFileListBuffer != null) {
+                val oidb = oidb_sso.OIDBSSOPkg().mergeFrom(rspGetFileListBuffer.slice(4).let {
+                    if (it[0] == 0x78.toByte()) DeflateTools.uncompress(it) else it
+                })
+
+                oidb_0x6d8.RspBody().mergeFrom(oidb.bytes_bodybuffer.get().toByteArray())
+                    .file_list_info_rsp.apply {
                     rpt_item_list.get().forEach { file ->
-                        if (file.uint32_type.get() == 1) {
+                        if (file.uint32_type.get() == oidb_0x6d8.GetFileListRspBody.TYPE_FILE) {
                             val fileInfo = file.file_info
                             files.add(FileInfo(
                                 groupId = groupId,
@@ -147,7 +155,8 @@ internal object FileSvc: BaseSvc() {
                                 uploadUin = fileInfo.uint64_uploader_uin.get(),
                                 uploadNick = fileInfo.str_uploader_name.get()
                             ))
-                        } else if (file.uint32_type.get() == 2) {
+                        }
+                        else if (file.uint32_type.get() == oidb_0x6d8.GetFileListRspBody.TYPE_FOLDER) {
                             val folderInfo = file.folder_info
                             dirs.add(FolderInfo(
                                 groupId = groupId,
@@ -158,14 +167,19 @@ internal object FileSvc: BaseSvc() {
                                 creator = folderInfo.uint64_create_uin.get(),
                                 creatorNick = folderInfo.str_creator_name.get()
                             ))
+                        } else {
+                            LogCenter.log("未知文件类型: ${file.uint32_type.get()}", Level.WARN)
                         }
                     }
+                }
+            } else {
+                throw RuntimeException("获取群文件列表失败")
             }
-        } else {
-            throw RuntimeException("获取群文件列表失败")
-        }
 
-        return GroupFileList(files, dirs)
+            GroupFileList(files, dirs)
+        }.onFailure {
+            LogCenter.log(it.message + ", buffer: ${rspGetFileListBuffer.toHexString()}", Level.ERROR)
+        }
     }
 
     @Serializable

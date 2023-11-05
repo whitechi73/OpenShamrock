@@ -11,6 +11,7 @@ import de.robv.android.xposed.XposedBridge
 import de.robv.android.xposed.XposedHelpers
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
+import moe.fuqiuluo.shamrock.remote.service.config.ShamrockConfig
 import moe.fuqiuluo.shamrock.tools.hookMethod
 import moe.fuqiuluo.shamrock.xposed.loader.LuoClassloader
 import mqq.app.MobileQQ
@@ -21,7 +22,8 @@ import mqq.app.MobileQQ
 class AntiDetection: IAction {
     override fun invoke(ctx: Context) {
         antiFindPackage(ctx)
-        antiTrace()
+        if (ShamrockConfig.isAntiTrace())
+            antiTrace()
         antiMemoryWalking()
     }
 
