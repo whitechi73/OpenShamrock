@@ -27,7 +27,7 @@ internal object NativeLoader {
             if (name == "shamrock") {
                 val context = MobileQQ.getContext()
                 val packageManager = context.packageManager
-                val applicationInfo = packageManager.getApplicationInfo("moe.fuqiuluo.shamrock", 0)
+                val applicationInfo = packageManager.getApplicationInfo("moe.fuqiuluo.shamrock.hided", 0)
                 val file = File(applicationInfo.nativeLibraryDir)
                 LogCenter.log("LoadLibrary(name = $name)")
                 System.load(file.resolve("lib$name.so").absolutePath)

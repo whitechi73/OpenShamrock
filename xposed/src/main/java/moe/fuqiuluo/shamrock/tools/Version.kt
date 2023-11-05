@@ -7,4 +7,4 @@ private val packageManager = context.packageManager
 
 private fun getPackageInfo(packageName: String) = packageManager.getPackageInfo(packageName, 0)
 
-val ShamrockVersion: String = getPackageInfo("moe.fuqiuluo.shamrock").versionName
+val ShamrockVersion: String = getPackageInfo("moe.fuqiuluo.shamrock.hided").versionName

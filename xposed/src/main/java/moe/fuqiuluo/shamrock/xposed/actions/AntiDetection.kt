@@ -1,34 +1,76 @@
-@file:Suppress("UNCHECKED_CAST")
+@file:Suppress("UNCHECKED_CAST", "LocalVariableName")
 package moe.fuqiuluo.shamrock.xposed.actions
 
 import android.content.Context
 import android.content.pm.PackageManager
+import android.content.pm.VersionedPackage
 import android.os.Build
+import de.robv.android.xposed.XC_MethodHook
+import de.robv.android.xposed.XC_MethodReplacement
+import de.robv.android.xposed.XposedBridge
+import de.robv.android.xposed.XposedHelpers
+import moe.fuqiuluo.shamrock.helper.Level
+import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.tools.hookMethod
+import moe.fuqiuluo.shamrock.xposed.loader.LuoClassloader
+import mqq.app.MobileQQ
 
 /**
  * 反检测
  */
 class AntiDetection: IAction {
     override fun invoke(ctx: Context) {
+        antiFindPackage(ctx)
         antiTrace()
         antiMemoryWalking()
-        antiFindPackage()
     }
 
     val isModuleStack = fun String.(): Boolean {
         return contains("fuqiuluo") || contains("shamrock") || contains("whitechi") || contains("lsposed") || contains("xposed")
     }
 
-    private fun antiFindPackage() {
-        //PackageManager::class.java.hookMethod("getApplicationInfo").before {
-        //    val packageName = it.args[0] as String
-        //    if(packageName == "moe.fuqiuluo.shamrock") {
-        //        it.throwable = PackageManager.NameNotFoundException()
-        //    } else if (packageName == "moe.fuqiuluo.shamrock.hided") {
-        //        it.args[0] = "moe.fuqiuluo.shamrock"
-        //    }
-        //}
+    private fun isModuleStack(): Boolean {
+        Thread.currentThread().stackTrace.forEach {
+            if (it.className.isModuleStack()) return true
+        }
+        return false
+    }
+
+    private fun antiFindPackage(context: Context) {
+        val packageManager = context.packageManager
+        val applicationInfo = packageManager.getApplicationInfo("moe.fuqiuluo.shamrock", 0)
+        val packageInfo = packageManager.getPackageInfo("moe.fuqiuluo.shamrock", 0)
+
+        packageManager.javaClass.hookMethod("getApplicationInfo").before {
+            val packageName = it.args[0] as String
+            if(packageName == "moe.fuqiuluo.shamrock") {
+                LogCenter.log("AntiDetection: 检测到对Shamrock的检测，欺骗PackageManager(GA)", Level.WARN)
+                it.throwable = PackageManager.NameNotFoundException()
+            } else if (packageName == "moe.fuqiuluo.shamrock.hided") {
+                it.result = applicationInfo
+            }
+        }
+
+        packageManager.javaClass.hookMethod("getPackageInfo").before {
+            when(val packageName = it.args[0]) {
+                is String -> {
+                    if(packageName == "moe.fuqiuluo.shamrock") {
+                        LogCenter.log("AntiDetection: 检测到对Shamrock的检测，欺骗PackageManager(GP)", Level.WARN)
+                        it.throwable = PackageManager.NameNotFoundException()
+                    } else if (packageName == "moe.fuqiuluo.shamrock.hided") {
+                        it.result = packageInfo
+                    }
+                }
+                else -> {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && packageName is VersionedPackage) {
+                        if(packageName.packageName == "moe.fuqiuluo.shamrock") {
+                            LogCenter.log("AntiDetection: 检测到对Shamrock的检测，欺骗PackageManager(GPV)", Level.WARN)
+                            it.throwable = PackageManager.NameNotFoundException()
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private fun antiMemoryWalking() {
@@ -41,6 +83,19 @@ class AntiDetection: IAction {
         //val getMethodTracingModeMethod = c.getDeclaredMethod("getMethodTracingMode")
         //val getRuntimeStatMethod = c.getDeclaredMethod("getRuntimeStat", String::class.java)
         //val getRuntimeStatsMethod = c.getDeclaredMethod("getRuntimeStats")
+        val VMClassLoader = LuoClassloader.load("java/lang/VMClassLoader")
+        if (VMClassLoader != null) {
+            // ...
+        }
+
+        kotlin.runCatching {
+            XposedHelpers.findAndHookMethod(XposedHelpers.findClass("com.tencent.bugly.agent.CrashReport", LuoClassloader.hostClassLoader),
+                "initCrashReport", object: XC_MethodReplacement() {
+                    override fun replaceHookedMethod(param: MethodHookParam): Any? {
+                        return null
+                    }
+                })
+        }
 
         c.hookMethod("countInstancesOfClass").before {
             val clz = it.args[0] as Class<*>
