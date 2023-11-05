@@ -100,7 +100,7 @@ internal abstract class FileTransfer {
                         continuation.resume(false)
                     }
                 }
-            } else false
+            } else true
         } ?: false
     }
 
