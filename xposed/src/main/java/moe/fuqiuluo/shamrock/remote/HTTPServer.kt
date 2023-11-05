@@ -62,6 +62,7 @@ internal object HTTPServer {
             weatherAction()
             otherAction()
             guildAction()
+            testAction()
             if (ShamrockConfig.isDev()) {
                 qsign()
                 obtainProtocolData()

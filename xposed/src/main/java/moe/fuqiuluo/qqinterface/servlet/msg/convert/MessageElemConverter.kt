@@ -2,7 +2,6 @@ package moe.fuqiuluo.qqinterface.servlet.msg.convert
 
 import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
 import com.tencent.qqnt.kernel.nativeinterface.MsgElement
-import moe.fuqiuluo.qqinterface.servlet.MsgSvc
 import moe.fuqiuluo.qqinterface.servlet.transfile.RichProtoSvc
 import moe.fuqiuluo.shamrock.helper.ContactHelper
 import moe.fuqiuluo.shamrock.helper.Level
@@ -195,6 +194,15 @@ internal sealed class MessageElemConverter: IMessageConvert {
         ): MessageSegment {
             val data = element.arkElement.bytesData.asJsonObject
             return when (data["app"].asString) {
+                "com.tencent.multimsg" -> {
+                    val info = data["meta"].asJsonObject["detail"].asJsonObject
+                    MessageSegment(
+                        type = "forward",
+                        data = mapOf(
+                            "id" to info["resid"].asString
+                        )
+                    )
+                }
                 "com.tencent.troopsharecard" -> {
                     val info = data["meta"].asJsonObject["contact"].asJsonObject
                     MessageSegment(
@@ -230,7 +238,7 @@ internal sealed class MessageElemConverter: IMessageConvert {
                 else -> MessageSegment(
                     type = "json",
                     data = mapOf(
-                        "data" to element.arkElement.bytesData.asJsonObject
+                        "data" to element.arkElement.bytesData.asJsonObject.toString()
                     )
                 )
             }
@@ -314,6 +322,41 @@ internal sealed class MessageElemConverter: IMessageConvert {
         ): MessageSegment {
             // 使用其他地方的推送，而不是使用消息
             throw UnknownError()
+        }
+    }
+
+    /**
+     * 老板QQ的合并转发信息
+     */
+    object XmlMultiMsgConverter: MessageElemConverter() {
+        override suspend fun convert(
+            chatType: Int,
+            peerId: String,
+            element: MsgElement
+        ): MessageSegment {
+            val multiMsg = element.multiForwardMsgElement
+            return MessageSegment(
+                type = "forward",
+                data = mapOf(
+                    "id" to multiMsg.resId
+                )
+            )
+        }
+    }
+
+    object XmlLongMsgConverter: MessageElemConverter() {
+        override suspend fun convert(
+            chatType: Int,
+            peerId: String,
+            element: MsgElement
+        ): MessageSegment {
+            val longMsg = element.structLongMsgElement
+            return MessageSegment(
+                type = "forward",
+                data = mapOf(
+                    "id" to longMsg.resId
+                )
+            )
         }
     }
 

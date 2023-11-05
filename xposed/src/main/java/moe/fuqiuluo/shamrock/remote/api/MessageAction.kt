@@ -22,6 +22,12 @@ import moe.fuqiuluo.shamrock.tools.isJsonData
 import moe.fuqiuluo.shamrock.tools.isJsonString
 
 fun Routing.messageAction() {
+    getOrPost("/clear_msgs") {
+        val msgType = fetchOrThrow("message_type")
+        val peerId = fetchOrThrow(if (msgType == "group") "group_id" else "user_id")
+        call.respondText(ClearMsgs(msgType, peerId))
+    }
+
     getOrPost("/delete_msg") {
         val msgHash = fetchOrThrow("message_id").toInt()
         call.respondText(DeleteMessage(msgHash))

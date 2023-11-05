@@ -12,6 +12,8 @@ internal object GetForwardMsg: IActionHandler() {
         val sessionService = kernelService.wrapperSession
         val msgService = sessionService.msgService
 
+        //msgService.getMultiMsg()
+
         return error("不支持实现，请提交ISSUE！", session.echo)
     }
 

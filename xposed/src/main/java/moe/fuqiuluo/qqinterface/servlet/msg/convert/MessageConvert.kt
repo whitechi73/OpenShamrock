@@ -52,7 +52,9 @@ internal object MessageConvert {
             MsgConstant.KELEMTYPEARKSTRUCT to MessageElemConverter.StructJsonConverter,
             MsgConstant.KELEMTYPEREPLY to MessageElemConverter.ReplyConverter,
             MsgConstant.KELEMTYPEGRAYTIP to MessageElemConverter.GrayTipsConverter,
-            MsgConstant.KELEMTYPEFILE to MessageElemConverter.FileConverter
+            MsgConstant.KELEMTYPEFILE to MessageElemConverter.FileConverter,
+            MsgConstant.KELEMTYPEMULTIFORWARD to MessageElemConverter.XmlMultiMsgConverter,
+            MsgConstant.KELEMTYPESTRUCTLONGMSG to MessageElemConverter.XmlLongMsgConverter,
         )
     }
 
