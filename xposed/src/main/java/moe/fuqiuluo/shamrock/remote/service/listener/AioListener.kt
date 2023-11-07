@@ -31,6 +31,8 @@ internal object AioListener: IKernelMsgListener {
 
     private suspend fun handleMsg(record: MsgRecord) {
         try {
+            if (record.chatType == MsgConstant.KCHATTYPEGUILD) return // TODO: 频道消息暂不处理
+
             val msgHash = MessageHelper.generateMsgIdHash(record.chatType, record.msgId)
 
             MessageHelper.saveMsgMapping(
@@ -99,6 +101,8 @@ internal object AioListener: IKernelMsgListener {
     }
 
     override fun onAddSendMsg(record: MsgRecord) {
+        if (record.chatType == MsgConstant.KCHATTYPEGUILD) return // TODO: 频道消息暂不处理
+
         GlobalScope.launch {
             try {
                 val msgHash = MessageHelper.generateMsgIdHash(record.chatType, record.msgId)
@@ -125,6 +129,7 @@ internal object AioListener: IKernelMsgListener {
 
     override fun onMsgInfoListUpdate(msgList: ArrayList<MsgRecord>?) {
         msgList?.forEach { record ->
+            if (record.chatType != MsgConstant.KCHATTYPEGUILD)  // TODO: 频道消息暂不处理
             GlobalScope.launch {
                 if (record.sendStatus == MsgConstant.KSENDSTATUSFAILED
                     || record.sendStatus == MsgConstant.KSENDSTATUSSENDING) {
