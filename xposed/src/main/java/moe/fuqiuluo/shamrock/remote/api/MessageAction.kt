@@ -22,6 +22,19 @@ import moe.fuqiuluo.shamrock.tools.isJsonData
 import moe.fuqiuluo.shamrock.tools.isJsonString
 
 fun Routing.messageAction() {
+    getOrPost("/get_group_msg_history") {
+        val peerId = fetchOrThrow("group_id")
+        val cnt = fetchOrNull("count")?.toInt() ?: 20
+        call.respondText(GetHistoryMsg("group", peerId, cnt))
+    }
+
+    getOrPost("/get_history_msg") {
+        val msgType = fetchOrThrow("message_type")
+        val peerId = fetchOrThrow(if (msgType == "group") "group_id" else "user_id")
+        val cnt = fetchOrNull("count")?.toInt() ?: 20
+        call.respondText(GetHistoryMsg(msgType, peerId, cnt))
+    }
+
     getOrPost("/clear_msgs") {
         val msgType = fetchOrThrow("message_type")
         val peerId = fetchOrThrow(if (msgType == "group") "group_id" else "user_id")
