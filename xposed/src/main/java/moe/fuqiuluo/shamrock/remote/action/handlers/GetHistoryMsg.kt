@@ -2,6 +2,8 @@ package moe.fuqiuluo.shamrock.remote.action.handlers
 
 import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
 import com.tencent.qqnt.kernel.nativeinterface.MsgRecord
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 import moe.fuqiuluo.qqinterface.servlet.msg.convert.MessageConvert
 import moe.fuqiuluo.shamrock.helper.MessageHelper
@@ -60,13 +62,18 @@ internal object GetHistoryMsg: IActionHandler() {
             )
         }
 
-        return ok(data = msgList, echo = echo)
+        return ok(data = GetHistoryMsgResult(msgList), echo = echo)
     }
 
     override val requiredParams: Array<String>
         get() = arrayOf("message_type")
 
     override fun path(): String = "get_history_msg"
+
+    @Serializable
+    data class GetHistoryMsgResult(
+        @SerialName("messages") val msgs: List<MessageDetail>
+    )
 
     data class GetMsgResult(
         val code: Int,

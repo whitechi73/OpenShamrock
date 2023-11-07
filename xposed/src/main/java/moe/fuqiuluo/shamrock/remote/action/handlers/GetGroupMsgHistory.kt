@@ -10,5 +10,8 @@ internal object GetGroupMsgHistory: IActionHandler() {
         return GetHistoryMsg("group", groupId, cnt, session.echo)
     }
 
+    override val requiredParams: Array<String>
+        get() = arrayOf("group_id")
+
     override fun path(): String = "get_group_msg_history"
 }
