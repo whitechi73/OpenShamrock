@@ -176,6 +176,8 @@ icon: comment
 
 > `peer_id`是其他同类框架所表达的`target_id`!
 
+## 获取群聊历史消息
+
 ### API 端点
 
 `/get_group_msg_history`
