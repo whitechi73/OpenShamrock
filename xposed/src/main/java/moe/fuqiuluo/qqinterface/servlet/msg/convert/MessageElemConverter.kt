@@ -320,8 +320,28 @@ internal sealed class MessageElemConverter: IMessageConvert {
             peerId: String,
             element: MsgElement
         ): MessageSegment {
-            // 使用其他地方的推送，而不是使用消息
-            throw UnknownError()
+            val fileMsg = element.fileElement
+            val fileName = fileMsg.fileName
+            val fileSize = fileMsg.fileSize
+            val expireTime = fileMsg.expireTime ?: 0
+            val fileId = fileMsg.fileUuid
+            val bizId = fileMsg.fileBizId
+            val fileSubId = fileMsg.fileSubId ?: ""
+            val url = if (chatType == MsgConstant.KCHATTYPEC2C) RichProtoSvc.getC2CFileDownUrl(fileId, fileSubId)
+            else RichProtoSvc.getGroupFileDownUrl(peerId.toLong(), fileId, fileMsg.fileBizId)
+
+            return MessageSegment(
+                type = "file",
+                data = mapOf(
+                    "name" to fileName,
+                    "size" to fileSize,
+                    "expire" to expireTime,
+                    "id" to fileId,
+                    "url" to url,
+                    "biz" to bizId,
+                    "sub" to fileSubId
+                )
+            )
         }
     }
 
