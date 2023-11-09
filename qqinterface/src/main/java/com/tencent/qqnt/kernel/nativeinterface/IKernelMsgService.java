@@ -30,6 +30,10 @@ public interface IKernelMsgService {
 
     void getMultiMsg(Contact contact, long rootMsgId, long parentMsgId, IGetMultiMsgCallback cb);
 
+    void multiForwardMsg(ArrayList<MultiMsgInfo> arrayList, Contact from, Contact to, IOperateCallback cb);
+
+    void setAllC2CAndGroupMsgRead(IOperateCallback cb);
+
     void clearMsgRecords(Contact contact, IClearMsgRecordsCallback cb);
 
     String createUidFromTinyId(long j2, long j3);

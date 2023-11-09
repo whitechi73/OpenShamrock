@@ -173,24 +173,19 @@ dependencies {
     implementation("io.coil-kt:coil:2.4.0")
     implementation("io.coil-kt:coil-compose:2.4.0")
 
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1")
     implementation("org.jetbrains.kotlinx:kotlinx-io-jvm:0.1.16")
-    implementation("io.ktor:ktor-server-core:2.3.3")
-    implementation("io.ktor:ktor-server-host-common:2.3.3")
-    implementation("io.ktor:ktor-server-status-pages:2.3.3")
-    implementation("io.ktor:ktor-server-netty:2.3.3")
-    implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.3")
-    implementation("io.ktor:ktor-server-content-negotiation:2.3.3")
-    implementation("io.ktor:ktor-client-core:2.3.3")
-    implementation("io.ktor:ktor-client-cio:2.3.3")
-    implementation("io.ktor:ktor-client-content-negotiation:2.3.3")
-    implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.3")
-    // useless
-    //implementation ("com.maxkeppeler.sheets-compose-dialogs:core:1.2.0")
-    //implementation ("com.maxkeppeler.sheets-compose-dialogs:info:1.2.0")
-    //implementation ("com.maxkeppeler.sheets-compose-dialogs:input:1.2.0")
-    //implementation ("com.maxkeppeler.sheets-compose-dialogs:list:1.2.0")
-    //implementation ("com.maxkeppeler.sheets-compose-dialogs:state:1.2.0")
+
+    val ktorVersion = "2.3.3"
+    implementation("io.ktor:ktor-server-core:$ktorVersion")
+    implementation("io.ktor:ktor-server-host-common:$ktorVersion")
+    implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
+    implementation("io.ktor:ktor-server-netty:$ktorVersion")
+    implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")
+    implementation("io.ktor:ktor-client-core:$ktorVersion")
+    implementation("io.ktor:ktor-client-cio:$ktorVersion")
+    implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
+    //implementation("io.ktor:ktor-serialization-kotlinx-protobuf:$ktorVersion")
 
     implementation(project(":xposed"))
 

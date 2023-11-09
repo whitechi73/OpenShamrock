@@ -1,3 +1,5 @@
+@file:OptIn(DelicateCoroutinesApi::class)
+
 package moe.fuqiuluo.qqinterface.servlet
 
 import com.tencent.mobileqq.qroute.QRoute
@@ -9,9 +11,15 @@ import com.tencent.qqnt.kernel.nativeinterface.MsgRecord
 import com.tencent.qqnt.kernel.nativeinterface.TempChatGameSession
 import com.tencent.qqnt.kernel.nativeinterface.TempChatPrepareInfo
 import com.tencent.qqnt.msg.api.IMsgService
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.time.withTimeoutOrNull
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.JsonArray
+import moe.fuqiuluo.proto.protobufOf
 import moe.fuqiuluo.shamrock.helper.ContactHelper
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
@@ -19,6 +27,7 @@ import moe.fuqiuluo.shamrock.helper.MessageHelper
 import moe.fuqiuluo.shamrock.tools.EMPTY_BYTE_ARRAY
 import moe.fuqiuluo.shamrock.xposed.helper.NTServiceFetcher
 import moe.fuqiuluo.shamrock.xposed.helper.msgService
+import java.util.UUID
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
@@ -181,6 +190,44 @@ internal object MsgSvc: BaseSvc() {
         }
 
         return MessageHelper.sendMessageWithoutMsgId(chatType, peedId, message, MessageCallback(peedId, 0), fromId)
+    }
+
+    suspend fun getMultiMsg(resId: String): Result<List<MsgRecord>> {
+        val kernelService = NTServiceFetcher.kernelService
+        val sessionService = kernelService.wrapperSession
+        val msgService = sessionService.msgService
+        val contact = MessageHelper.generateContact(MsgConstant.KCHATTYPEC2C, TicketSvc.getUin())
+
+        val content = "{\"app\":\"com.tencent.multimsg\",\"config\":{\"autosize\":1,\"forward\":1,\"round\":1,\"type\":\"normal\",\"width\":300},\"desc\":\"[聊天记录]\",\"extra\":\"\",\"meta\":{\"detail\":{\"news\":[{\"text\":\"Shamrock: 这是条假消息！\"}],\"resid\":\"$resId\",\"source\":\"聊天记录\",\"summary\":\"转发消息\",\"uniseq\":\"${UUID.randomUUID()}\"}},\"prompt\":\"[聊天记录]\",\"ver\":\"0.0.0.5\",\"view\":\"contact\"}"
+        val msgId = PacketSvc.fakeSelfRecvJsonMsg(msgService, content)
+        if (msgId < 0) {
+            return Result.failure(Exception("获取合并转发消息ID失败"))
+        }
+        val msgList = withTimeoutOrNull(5000L) {
+            suspendCancellableCoroutine<ArrayList<MsgRecord>> {
+                val job = GlobalScope.launch {
+                    var hasResult = false
+                    while (!hasResult) {
+                        msgService.getMultiMsg(contact, msgId, msgId) { code, why, msgList ->
+                            if (code == 0) {
+                                it.resume(msgList)
+                                hasResult = true
+                            } else {
+                                LogCenter.log("获取合并转发消息失败: $code($why): $msgId", Level.ERROR)
+                            }
+                        }
+                        delay(200)
+                    }
+                }
+                it.invokeOnCancellation {
+                    job.cancel()
+                }
+            }
+        } ?: return Result.failure(Exception("获取合并转发消息失败"))
+
+        //msgService.deleteMsg(contact, arrayListOf(msgId), null)
+
+        return Result.success(msgList)
     }
 
     class MessageCallback(

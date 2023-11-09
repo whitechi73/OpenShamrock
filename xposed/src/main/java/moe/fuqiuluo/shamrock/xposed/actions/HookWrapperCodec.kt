@@ -8,6 +8,7 @@ import com.tencent.qphone.base.remote.ToServiceMsg
 import com.tencent.qphone.base.util.CodecWarpper
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.DelicateCoroutinesApi
+import moe.fuqiuluo.qqinterface.servlet.TicketSvc
 import moe.fuqiuluo.shamrock.remote.service.PacketReceiver
 import moe.fuqiuluo.shamrock.remote.service.config.ShamrockConfig
 import moe.fuqiuluo.shamrock.tools.EMPTY_BYTE_ARRAY
@@ -15,7 +16,10 @@ import moe.fuqiuluo.shamrock.tools.hookMethod
 import moe.fuqiuluo.shamrock.tools.slice
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
-import moe.fuqiuluo.shamrock.utils.PlatformUtils
+import moe.fuqiuluo.shamrock.xposed.helper.internal.DynamicReceiver
+import moe.fuqiuluo.shamrock.xposed.helper.internal.IPCRequest
+
+private const val MAGIC_APP_ID = 114514
 
 internal class HookWrapperCodec: IAction {
     private val IgnoredCmd = arrayOf(
@@ -54,12 +58,12 @@ internal class HookWrapperCodec: IAction {
             val isInit = atomic(false)
             CodecWarpper::class.java.hookMethod("init").after {
                 if (isInit.value) return@after
-                hookReceive(it.thisObject.javaClass)
+                hookReceive(it.thisObject, it.thisObject.javaClass)
                 isInit.lazySet(true)
             }
             CodecWarpper::class.java.hookMethod("nativeOnReceData").before {
                 if (isInit.value) return@before
-                hookReceive(it.thisObject.javaClass)
+                hookReceive(it.thisObject, it.thisObject.javaClass)
                 isInit.lazySet(true)
             }
         } catch (e: Exception) {
@@ -67,7 +71,26 @@ internal class HookWrapperCodec: IAction {
         }
     }
 
-    private fun hookReceive(thizClass: Class<*>) {
+    private fun hookReceive(thiz: Any, thizClass: Class<*>) {
+        val onResponse = thizClass.getDeclaredMethod("onResponse", Integer.TYPE, Any::class.java, Integer.TYPE)
+        //LogCenter.log("HookWrapperCodec: onResponse = $onResponse", Level.INFO)
+        DynamicReceiver.register("fake_packet", IPCRequest {
+            val uin = it.getStringExtra("package_uin")!!
+            val cmd = it.getStringExtra("package_cmd")!!
+            val seq = it.getIntExtra("package_seq", 0)
+            val buffer = it.getByteArrayExtra("package_buffer")!!
+            //LogCenter.log("伪造收包(cmd = $cmd)")
+
+            val from = FromServiceMsg()
+            from.requestSsoSeq = seq
+            from.putWupBuffer(buffer)
+            from.serviceCmd = cmd
+            from.appId = MAGIC_APP_ID
+            from.setMsgSuccess()
+            from.uin = uin
+            from.appSeq = seq
+            onResponse.invoke(thiz, 0, from, 0)
+        })
         thizClass.hookMethod("onResponse").before {
             val from = it.args[1] as FromServiceMsg
             try {
@@ -88,7 +111,7 @@ internal class HookWrapperCodec: IAction {
                     }
                     merge.BusiBuffVec.set(busiBufVec)
                     from.putWupBuffer(merge.toByteArray())
-                } else {
+                } else if (from.appId != MAGIC_APP_ID) {
                     if (from.serviceCmd in IgnoredCmd && ShamrockConfig.isInjectPacket()) {
                         from.serviceCmd = "ShamrockInjectedCmd"
                         from.putWupBuffer(EMPTY_BYTE_ARRAY)

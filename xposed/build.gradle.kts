@@ -74,6 +74,7 @@ dependencies {
     implementation("io.ktor:ktor-client-cio:$ktorVersion")
     implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
     implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
+    //implementation("io.ktor:ktor-serialization-kotlinx-protobuf:$ktorVersion")
     implementation("io.ktor:ktor-network-tls-certificates:$ktorVersion")
 
     /**

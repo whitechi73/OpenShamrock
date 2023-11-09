@@ -53,8 +53,8 @@ internal object MessageConvert {
             MsgConstant.KELEMTYPEREPLY to MessageElemConverter.ReplyConverter,
             MsgConstant.KELEMTYPEGRAYTIP to MessageElemConverter.GrayTipsConverter,
             MsgConstant.KELEMTYPEFILE to MessageElemConverter.FileConverter,
-            MsgConstant.KELEMTYPEMULTIFORWARD to MessageElemConverter.XmlMultiMsgConverter,
-            MsgConstant.KELEMTYPESTRUCTLONGMSG to MessageElemConverter.XmlLongMsgConverter,
+            //MsgConstant.KELEMTYPEMULTIFORWARD to MessageElemConverter.XmlMultiMsgConverter,
+            //MsgConstant.KELEMTYPESTRUCTLONGMSG to MessageElemConverter.XmlLongMsgConverter,
         )
     }
 

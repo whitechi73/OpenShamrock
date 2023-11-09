@@ -101,7 +101,7 @@ internal abstract class BaseSvc {
             app.sendToService(to)
         }
 
-        fun sendBuffer(cmd: String, isPb: Boolean, buffer: ByteArray, seq: Int) {
+        fun sendBuffer(cmd: String, isPb: Boolean, buffer: ByteArray, seq: Int = MsfCore.getNextSeq()) {
             val toServiceMsg = ToServiceMsg("mobileqq.service", app.currentUin, cmd)
             toServiceMsg.putWupBuffer(buffer)
             toServiceMsg.addAttribute("req_pb_protocol_flag", isPb)

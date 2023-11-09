@@ -1,7 +1,5 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* compiled from: P */
-/* loaded from: classes2.dex */
 public final class MultiMsgInfo {
     long msgId;
     String senderShowName;
@@ -21,8 +19,6 @@ public final class MultiMsgInfo {
         return "MultiMsgInfo{msgId=" + this.msgId + ",senderShowName=" + this.senderShowName + ",}";
     }
 
-    public MultiMsgInfo(long j2, String str) {
-        this.msgId = j2;
-        this.senderShowName = str;
+    public MultiMsgInfo(long msgId, String showName) {
     }
 }

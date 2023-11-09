@@ -26,19 +26,52 @@ internal object MessageHelper {
     suspend fun sendMessageWithoutMsgId(
         chatType: Int,
         peerId: String,
+        message: String,
+        callback: IOperateCallback,
+        fromId: String = peerId
+    ): Pair<Long, Int> {
+        val uniseq = generateMsgId(chatType)
+        val msg = messageArrayToMessageElements(chatType, uniseq.second, peerId, decodeCQCode(message)).also {
+            if (it.second.isEmpty() && !it.first) error("消息合成失败，请查看日志或者检查输入。")
+        }.second.filter {
+            it.elementType != -1
+        } as ArrayList<MsgElement>
+        return sendMessageWithoutMsgId(chatType, peerId, msg, callback, fromId)
+    }
+
+    suspend fun sendMessageWithoutMsgId(
+        chatType: Int,
+        peerId: String,
         message: JsonArray,
         callback: IOperateCallback,
         fromId: String = peerId
     ): Pair<Long, Int> {
         val uniseq = generateMsgId(chatType)
-        var nonMsg: Boolean
         val msg = messageArrayToMessageElements(chatType, uniseq.second, peerId, message).also {
             if (it.second.isEmpty() && !it.first) error("消息合成失败，请查看日志或者检查输入。")
         }.second.filter {
             it.elementType != -1
-        }.also {
-            nonMsg = it.isEmpty()
-        }
+        } as ArrayList<MsgElement>
+        return sendMessageWithoutMsgId(chatType, peerId, msg, callback, fromId)
+    }
+
+    suspend fun sendMessageWithoutMsgId(
+        chatType: Int,
+        peerId: String,
+        message: ArrayList<MsgElement>,
+        callback: IOperateCallback,
+        fromId: String = peerId
+    ): Pair<Long, Int> {
+        return sendMessageWithoutMsgId(generateContact(chatType, peerId, fromId), message, callback)
+    }
+
+    fun sendMessageWithoutMsgId(
+        contact: Contact,
+        message: ArrayList<MsgElement>,
+        callback: IOperateCallback
+    ): Pair<Long, Int> {
+        val uniseq = generateMsgId(contact.chatType)
+        val nonMsg: Boolean = message.isEmpty()
         return if (!nonMsg) {
             val service = QRoute.api(IMsgService::class.java)
             if(callback is MsgSvc.MessageCallback) {
@@ -46,14 +79,72 @@ internal object MessageHelper {
             }
 
             service.sendMsg(
-                generateContact(chatType, peerId, fromId),
+                contact,
                 uniseq.second,
-                msg as ArrayList<MsgElement>,
+                message,
                 callback
             )
             System.currentTimeMillis() to uniseq.first
         } else {
             System.currentTimeMillis() to 0
+        }
+    }
+
+    suspend fun sendMessageWithMsgId(
+        chatType: Int,
+        peerId: String,
+        message: JsonArray,
+        callback: IOperateCallback,
+        fromId: String = peerId
+    ): Pair<Long, Int> {
+        val uniseq = generateMsgId(chatType)
+        val msg = messageArrayToMessageElements(chatType, uniseq.second, peerId, message).also {
+            if (it.second.isEmpty() && !it.first) error("消息合成失败，请查看日志或者检查输入。")
+        }.second.filter {
+            it.elementType != -1
+        } as ArrayList<MsgElement>
+        val contact = generateContact(chatType, peerId, fromId)
+        val nonMsg: Boolean = message.isEmpty()
+        return if (!nonMsg) {
+            val service = QRoute.api(IMsgService::class.java)
+            if(callback is MsgSvc.MessageCallback) {
+                callback.msgHash = uniseq.first
+            }
+
+            service.sendMsg(
+                contact,
+                uniseq.second,
+                msg,
+                callback
+            )
+            uniseq.second to uniseq.first
+        } else {
+            uniseq.second to 0
+        }
+    }
+
+    fun sendMessageWithMsgId(
+        contact: Contact,
+        message: ArrayList<MsgElement>,
+        callback: IOperateCallback
+    ): Pair<Long, Int> {
+        val uniseq = generateMsgId(contact.chatType)
+        val nonMsg: Boolean = message.isEmpty()
+        return if (!nonMsg) {
+            val service = QRoute.api(IMsgService::class.java)
+            if(callback is MsgSvc.MessageCallback) {
+                callback.msgHash = uniseq.first
+            }
+
+            service.sendMsg(
+                contact,
+                uniseq.second,
+                message,
+                callback
+            )
+            uniseq.second to uniseq.first
+        } else {
+            0L to 0
         }
     }
 
