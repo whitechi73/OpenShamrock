@@ -214,3 +214,56 @@ icon: comment
 ### 响应
 
 该接口将返回处理结果，其中 `data` 字段无数据。
+
+## 获取合并转发消息内容
+
+获取合并转发内容
+
+### API 端点
+
+`/get_forward_msg`
+
+### 参数
+
+| 字段       | 类型  | 必须 | 说明    |
+| ---------- | ----- | ---- | ------- |
+| id | string | 是   | 消息资源ID（卡片消息里面的resId） |
+
+> 由于QQ内部错误，该接口可能导致闪退等问题的出现！一般是闪退一次后再次重新启动便不再闪退，但是可能无法获取合并转发的内容！
+
+### 响应
+
+```json
+{
+  "status": "ok",
+  "retcode": 0,
+  "data": {
+    "messages": [
+      {
+        "time": 1699375697,
+        "message_type": "private",
+        "message_id": 123456,
+        "real_id": 0,
+        "sender": {
+          "user_id": 114514,
+          "nickname": "伏秋洛~",
+          "sex": "unknown",
+          "age": 0,
+          "uid": "u_xxxx"
+        },
+        "message": [
+          {
+            "type": "text",
+            "data": {
+              "text": "aaaaaaaaaa"
+            }
+          }
+        ],
+        "peer_id": 114514,
+        "target_id": 114514
+      }
+    ]
+  },
+  "echo": ""
+}
+```
