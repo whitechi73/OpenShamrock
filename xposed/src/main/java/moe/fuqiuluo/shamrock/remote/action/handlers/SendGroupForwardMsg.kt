@@ -89,7 +89,7 @@ internal object SendGroupForwardMsg: IActionHandler() {
             forwardMsgCallback = {
                 msgService.multiForwardMsg(ArrayList<MultiMsgInfo>(msgIds.size).apply {
                     msgIds.forEach { add(MultiMsgInfo(it.second, it.first)) }
-                }, from, to) { code, why ->
+                }.also { it.reverse() }, from, to) { code, why ->
                     if (code != 0)
                         LogCenter.log("合并转发消息：$code($why)", Level.WARN)
                 }
