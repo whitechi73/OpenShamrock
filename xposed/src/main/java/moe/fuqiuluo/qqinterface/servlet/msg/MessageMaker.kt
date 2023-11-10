@@ -95,8 +95,26 @@ internal object MessageMaker {
         "reply" to MessageMaker::createReplyElem,
         "touch" to MessageMaker::createTouchElem,
         "weather" to MessageMaker::createWeatherElem,
+        "json" to MessageMaker::createJsonElem,
         //"multi_msg" to MessageMaker::createLongMsgStruct,
     )
+
+    private suspend fun createJsonElem(
+        chatType: Int,
+        msgId: Long,
+        peerId: String,
+        data: JsonObject
+    ): Result<MsgElement> {
+        data.checkAndThrow("data")
+        val jsonStr = data["data"].let {
+            if (it is JsonObject) it.asJsonObject.toString() else it.asString
+        }
+        val element = MsgElement()
+        element.elementType = MsgConstant.KELEMTYPEARKSTRUCT
+        val ark = ArkElement(jsonStr, null, null)
+        element.arkElement = ark
+        return Result.success(element)
+    }
 
     private suspend fun createTouchElem(
         chatType: Int,
