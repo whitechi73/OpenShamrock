@@ -283,7 +283,7 @@ icon: comment
 | 字段       | 类型  | 必须 | 说明    |
 | ---------- | ----- | ---- | ------- |
 | group_id | int64 | 是   | 发送到的目标群号 |
-| message | foward message[] | 合并转发消息集 |
+| messages | foward message[] | 合并转发消息集 |
 
 ### 响应
 
@@ -373,7 +373,7 @@ icon: comment
 | 字段       | 类型  | 必须 | 说明    |
 | ---------- | ----- | ---- | ------- |
 | user_id | int64 | 是   | 发送到的目标QQ |
-| message | foward message[] | 合并转发消息集 |
+| messages | foward message[] | 合并转发消息集 |
 
 ### 响应
 
