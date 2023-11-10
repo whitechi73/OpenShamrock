@@ -7,6 +7,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 import moe.fuqiuluo.qqinterface.servlet.msg.convert.MessageConvert
 import moe.fuqiuluo.shamrock.helper.MessageHelper
+import moe.fuqiuluo.shamrock.helper.db.MessageDB
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.shamrock.remote.service.data.MessageDetail
@@ -22,20 +23,29 @@ internal object GetHistoryMsg: IActionHandler() {
         val msgType = session.getString("message_type")
         val peerId = session.getString(if (msgType == "group") "group_id" else "user_id")
         val cnt = session.getIntOrNull("count") ?: 20
-        return invoke(msgType, peerId, cnt, session.echo)
+
+        val startId = session.getIntOrNull("message_seq")?.let {
+            if (it == 0) return@let 0L
+            MessageDB.getInstance()
+                .messageMappingDao()
+                .queryByMsgHashId(it)?.qqMsgId
+        } ?: 0L
+
+        return invoke(msgType, peerId, cnt, startId, echo = session.echo)
     }
 
     suspend operator fun invoke(
         msgType: String,
         peerId: String,
         cnt: Int,
+        startMsgId: Long = 0,
         echo: JsonElement = EmptyJsonString
     ): String {
         val msgService = NTServiceFetcher.kernelService.wrapperSession.msgService
         val chatType = MessageHelper.obtainMessageTypeByDetailType(msgType)
         val contact = MessageHelper.generateContact(chatType, peerId)
         val result = suspendCoroutine {
-            msgService.getMsgs(contact, 0L, cnt, true) { code, why, msgs ->
+            msgService.getMsgs(contact, startMsgId, cnt, true) { code, why, msgs ->
                 it.resume(GetMsgResult(code, why, msgs))
             }
         }
