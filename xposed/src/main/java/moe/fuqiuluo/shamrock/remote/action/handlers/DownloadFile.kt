@@ -17,13 +17,13 @@ internal object DownloadFile: IActionHandler() {
         val url = session.getStringOrNull("url")
         val b64 = session.getStringOrNull("base64")
         val threadCnt = session.getIntOrNull("thread_cnt") ?: 3
-        val headers = if (session.isArray("headers")) {
+        val headers = if (session.has("headers")) (if (session.isArray("headers")) {
             session.getArray("headers").map {
                 it.asString
             }
         } else {
             session.getString("headers").split("\r\n")
-        }
+        }) else emptyList()
         return invoke(url, b64, threadCnt, headers, session.echo)
     }
 
