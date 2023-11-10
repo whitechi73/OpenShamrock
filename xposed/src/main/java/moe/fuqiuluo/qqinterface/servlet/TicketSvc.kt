@@ -43,6 +43,10 @@ internal object TicketSvc: BaseSvc() {
         return app.currentUin.ifBlank { "0" }
     }
 
+    fun getLongUin(): Long {
+        return app.longAccountUin
+    }
+
     fun getCookie(): String {
         val uin = getUin()
         val skey = getRealSkey(uin)

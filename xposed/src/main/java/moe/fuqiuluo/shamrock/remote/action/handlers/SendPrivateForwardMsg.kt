@@ -22,9 +22,9 @@ import moe.fuqiuluo.shamrock.tools.asStringOrNull
 import moe.fuqiuluo.shamrock.tools.json
 import moe.fuqiuluo.shamrock.xposed.helper.NTServiceFetcher
 
-internal object SendGroupForwardMsg: IActionHandler() {
+internal object SendPrivateForwardMsg: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
-        val groupId = session.getString("group_id")
+        val groupId = session.getString("user_id")
         if (session.isArray("messages")) {
             val messages = session.getArray("messages")
             return invoke(messages, groupId,  session.echo)
@@ -34,7 +34,7 @@ internal object SendGroupForwardMsg: IActionHandler() {
 
     suspend operator fun invoke(
         message: JsonArray,
-        groupId: String,
+        userId: String,
         echo: JsonElement = EmptyJsonString
     ): String {
         kotlin.runCatching {
@@ -93,7 +93,7 @@ internal object SendGroupForwardMsg: IActionHandler() {
             }
 
             val from = MessageHelper.generateContact(MsgConstant.KCHATTYPEC2C, selfUin)
-            val to = MessageHelper.generateContact(MsgConstant.KCHATTYPEGROUP, groupId)
+            val to = MessageHelper.generateContact(MsgConstant.KCHATTYPEC2C, userId)
             forwardMsgCallback = {
                 msgService.multiForwardMsg(ArrayList<MultiMsgInfo>().apply {
                     msgIds.forEach { add(MultiMsgInfo(it.second, it.first)) }
@@ -109,9 +109,9 @@ internal object SendGroupForwardMsg: IActionHandler() {
         return logic("合并转发消息失败(unknown error)", echo)
     }
 
-    override val requiredParams: Array<String> = arrayOf("group_id")
+    override val requiredParams: Array<String> = arrayOf("user_id")
 
-    override fun path(): String = "send_group_forward_msg"
+    override fun path(): String = "send_private_forward_msg"
 
     class MessageIdNode(
         val id: Int

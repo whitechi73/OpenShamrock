@@ -6,6 +6,7 @@ import com.tencent.qqnt.kernel.nativeinterface.*
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import moe.fuqiuluo.qqinterface.servlet.TicketSvc
 import moe.fuqiuluo.qqinterface.servlet.msg.convert.toCQCode
 import moe.fuqiuluo.qqinterface.servlet.transfile.RichProtoSvc
 import moe.fuqiuluo.shamrock.remote.service.config.ShamrockConfig
@@ -119,6 +120,7 @@ internal object AioListener: IKernelMsgListener {
 
     override fun onAddSendMsg(record: MsgRecord) {
         if (record.chatType == MsgConstant.KCHATTYPEGUILD) return // TODO: 频道消息暂不处理
+        if (record.peerUin == TicketSvc.getLongUin()) return // 发给自己的消息不处理
 
         GlobalScope.launch {
             try {

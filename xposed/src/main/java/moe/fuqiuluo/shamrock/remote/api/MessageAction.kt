@@ -22,6 +22,18 @@ import moe.fuqiuluo.shamrock.tools.isJsonData
 import moe.fuqiuluo.shamrock.tools.isJsonString
 
 fun Routing.messageAction() {
+    post("/send_group_forward_msg") {
+        val groupId = fetchPostOrNull("group_id")
+        val messages = fetchPostJsonArray("messages")
+        call.respondText(SendGroupForwardMsg(messages, groupId ?: ""))
+    }
+
+    post("/send_private_forward_msg") {
+        val userId = fetchPostOrNull("user_id")
+        val messages = fetchPostJsonArray("messages")
+        call.respondText(SendPrivateForwardMsg(messages, userId ?: ""))
+    }
+
     getOrPost("/get_forward_msg") {
         val id = fetchOrThrow("id")
         call.respondText(GetForwardMsg(id))

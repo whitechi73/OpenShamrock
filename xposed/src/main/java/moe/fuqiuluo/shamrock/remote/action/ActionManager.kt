@@ -33,7 +33,7 @@ internal object ActionManager {
 
             // MSG ACTIONS
             SendMessage, DeleteMessage, GetMsg, GetForwardMsg, SendGroupForwardMsg, SendGroupMessage, SendPrivateMessage,
-            ClearMsgs, GetHistoryMsg, GetGroupMsgHistory,
+            ClearMsgs, GetHistoryMsg, GetGroupMsgHistory, SendPrivateForwardMsg,
 
             // RESOURCE ACTION
             GetRecord, GetImage, UploadGroupFile, CreateGroupFileFolder, DeleteGroupFolder,
