@@ -32,6 +32,7 @@ icon: feather-alt
 | 字段   | 类型    | 必须 | 说明                 | 默认值 |
 | ------ | ------- | ---- | -------------------- | ------ |
 | url  | string | 否   | 下载地址             |        |
+| name  | string | 否   | 文件名称             |   文件md5     |
 | base64  | string | 否   | 文件base64内容             |        |
 | thread_cnt | int32  | 否   | 下载的线程数量 |   |
 | headers | `string` or `array` | 否 | 请求头 | |
