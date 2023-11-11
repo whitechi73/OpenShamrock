@@ -153,6 +153,7 @@ icon: comment
 | user_id | int64 | 否   | 私聊QQ |
 | group_id | int64 | 否   | 群号 |
 | count | int32 | 否 | 获取的消息数量（默认为20）|
+| message_seq | int32 | 否 | 起始消息的message_id（默认为0，表示从最后一条发言往前） |
 
 ### 响应
 
@@ -184,10 +185,11 @@ icon: comment
 
 ### 参数
 
-| 字段       | 类型  | 必须 | 说明    |
-| ---------- | ----- | ---- | ------- |
-| group_id | int64 | 是   | 群号 |
-| count | int32 | 否 | 获取的消息数量（默认为20）|
+| 字段       | 类型    | 必须 | 说明                              |
+| ---------- |-------| ---- |---------------------------------|
+| group_id | int64 | 是   | 群号                              |
+| count | int32 | 否 | 获取的消息数量（默认为20）                  |
+| message_seq | int32 | 否 | 起始消息的message_id（默认为0，表示从最后一条发言往前） |
 
 ### 响应
 
@@ -281,7 +283,7 @@ icon: comment
 | 字段       | 类型  | 必须 | 说明    |
 | ---------- | ----- | ---- | ------- |
 | group_id | int64 | 是   | 发送到的目标群号 |
-| message | foward message[] | 合并转发消息集 |
+| messages | foward message[] | 合并转发消息集 |
 
 ### 响应
 
@@ -371,7 +373,7 @@ icon: comment
 | 字段       | 类型  | 必须 | 说明    |
 | ---------- | ----- | ---- | ------- |
 | user_id | int64 | 是   | 发送到的目标QQ |
-| message | foward message[] | 合并转发消息集 |
+| messages | foward message[] | 合并转发消息集 |
 
 ### 响应
 
