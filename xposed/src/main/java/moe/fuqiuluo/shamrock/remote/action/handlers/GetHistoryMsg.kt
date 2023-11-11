@@ -5,6 +5,7 @@ import com.tencent.qqnt.kernel.nativeinterface.MsgRecord
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
+import moe.fuqiuluo.qqinterface.servlet.MsgSvc
 import moe.fuqiuluo.qqinterface.servlet.msg.convert.MessageConvert
 import moe.fuqiuluo.shamrock.helper.MessageHelper
 import moe.fuqiuluo.shamrock.helper.db.MessageDB
@@ -53,23 +54,46 @@ internal object GetHistoryMsg: IActionHandler() {
             return logic(result.msg ?: "获取历史消息失败", echo = echo)
         }
 
-        val msgList = result.data!!.map { msg ->
-            val msgHash = MessageHelper.generateMsgIdHash(msg.chatType, msg.msgId)
-            MessageDetail(
-                time = msg.msgTime.toInt(),
-                msgType = MessageHelper.obtainDetailTypeByMsgType(msg.chatType),
-                msgId = msgHash,
-                realId = msg.msgSeq.toInt(),
-                sender = MessageSender(
-                    msg.senderUin, msg.sendNickName, "unknown", 0, msg.senderUid
-                ),
-                message = MessageConvert.convertMessageRecordToMsgSegment(msg).map {
-                    it.toJson()
-                },
-                peerId = msg.peerUin,
-                groupId = if (msg.chatType == MsgConstant.KCHATTYPEGROUP) msg.peerUin else 0,
-                targetId = if (msg.chatType != MsgConstant.KCHATTYPEGROUP) msg.peerUin else 0
-            )
+        val msgList = ArrayList<MessageDetail>().apply {
+            addAll(result.data!!.map { msg ->
+                val msgHash = MessageHelper.generateMsgIdHash(msg.chatType, msg.msgId)
+                MessageDetail(
+                    time = msg.msgTime.toInt(),
+                    msgType = MessageHelper.obtainDetailTypeByMsgType(msg.chatType),
+                    msgId = msgHash,
+                    realId = msg.msgSeq.toInt(),
+                    sender = MessageSender(
+                        msg.senderUin, msg.sendNickName, "unknown", 0, msg.senderUid
+                    ),
+                    message = MessageConvert.convertMessageRecordToMsgSegment(msg).map {
+                        it.toJson()
+                    },
+                    peerId = msg.peerUin,
+                    groupId = if (msg.chatType == MsgConstant.KCHATTYPEGROUP) msg.peerUin else 0,
+                    targetId = if (msg.chatType != MsgConstant.KCHATTYPEGROUP) msg.peerUin else 0
+                )
+            })
+            if (startMsgId != 0L) {
+                val msg = MsgSvc.getMsgByQMsgId(chatType, peerId, startMsgId).onFailure {
+                    return logic("Obtain msg failed, please check your msg_id.", echo)
+                }.getOrThrow()
+                val seq = msg.clientSeq.toInt()
+                add(MessageDetail(
+                    time = msg.msgTime.toInt(),
+                    msgType = MessageHelper.obtainDetailTypeByMsgType(msg.chatType),
+                    msgId = MessageHelper.generateMsgIdHash(msg.chatType, msg.msgId),
+                    realId = seq,
+                    sender = MessageSender(
+                        msg.senderUin, msg.sendNickName, "unknown", 0, msg.senderUid
+                    ),
+                    message = MessageConvert.convertMessageRecordToMsgSegment(msg).map {
+                        it.toJson()
+                    },
+                    peerId = msg.peerUin,
+                    groupId = if (msg.chatType == MsgConstant.KCHATTYPEGROUP) msg.peerUin else 0,
+                    targetId = if (msg.chatType != MsgConstant.KCHATTYPEGROUP) msg.peerUin else 0
+                ))
+            }
         }
 
         return ok(data = GetHistoryMsgResult(msgList), echo = echo)
