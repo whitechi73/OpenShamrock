@@ -239,9 +239,19 @@ object ShamrockConfig {
         return preferences.getBoolean("enable_auto_start", false)
     }
 
+    fun allowShell(ctx: Context): Boolean {
+        val preferences = ctx.getSharedPreferences("config", 0)
+        return preferences.getBoolean("shell", false)
+    }
+
     fun setAutoStart(ctx: Context, v: Boolean) {
         val preferences = ctx.getSharedPreferences("config", 0)
         preferences.edit().putBoolean("enable_auto_start", v).apply()
+    }
+
+    fun setShellStatus(ctx: Context, v: Boolean) {
+        val preferences = ctx.getSharedPreferences("config", 0)
+        preferences.edit().putBoolean("shell", v).apply()
     }
 
     fun enableSelfMsg(ctx: Context): Boolean {
@@ -288,6 +298,7 @@ object ShamrockConfig {
             "key_store" to preferences.getString("key_store", ""),
             "enable_self_msg" to preferences.getBoolean("enable_self_msg", false),
             "echo_number" to preferences.getBoolean("echo_number", false),
+            "shell" to preferences.getBoolean("shell", false),
         )
     }
 

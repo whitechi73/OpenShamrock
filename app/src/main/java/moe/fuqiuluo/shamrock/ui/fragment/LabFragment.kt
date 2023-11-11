@@ -100,7 +100,7 @@ fun LabFragment() {
 
                 Function(
                     title = "自动清理QQ垃圾",
-                    desc = "也许会导致奇怪的问题。",
+                    desc = "也许会导致奇怪的问题（无效）。",
                     descColor = it,
                     isSwitch = ShamrockConfig.isAutoClean(ctx)
                 ) {
@@ -127,6 +127,16 @@ fun LabFragment() {
                     isSwitch = ShamrockConfig.enableAutoStart(ctx)
                 ) {
                     ShamrockConfig.setAutoStart(ctx, it)
+                    return@Function true
+                }
+
+                Function(
+                    title = "开启Shell接口",
+                    desc = "可能导致设备被入侵，请勿随意开启。",
+                    descColor = it,
+                    isSwitch = ShamrockConfig.allowShell(ctx)
+                ) {
+                    ShamrockConfig.setShellStatus(ctx, it)
                     return@Function true
                 }
             }

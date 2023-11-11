@@ -67,6 +67,7 @@ internal object ShamrockConfig {
             putBoolean("auto_clear", intent.getBooleanExtra("auto_clear", false)) // 自动清理
 
             putBoolean("enable_self_msg", intent.getBooleanExtra("enable_self_msg", false)) // 推送自己发的消息
+            putBoolean("shell", intent.getBooleanExtra("shell", false)) // 开启Shell接口
 
             putBoolean("isInit", true)
         }
@@ -211,5 +212,10 @@ internal object ShamrockConfig {
 
     fun isAntiTrace(): Boolean {
         return Config.antiTrace
+    }
+
+    fun allowShell(): Boolean {
+        val mmkv = MMKVFetcher.mmkvWithId("shamrock_config")
+        return mmkv.getBoolean("shell", false)
     }
 }
