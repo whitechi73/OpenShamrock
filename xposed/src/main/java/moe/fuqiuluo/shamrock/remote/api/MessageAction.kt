@@ -2,6 +2,7 @@ package moe.fuqiuluo.shamrock.remote.api
 
 import moe.fuqiuluo.shamrock.helper.MessageHelper
 import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
+import io.ktor.http.ContentType
 import io.ktor.server.application.call
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.Routing
@@ -26,18 +27,18 @@ fun Routing.messageAction() {
     post("/send_group_forward_msg") {
         val groupId = fetchPostOrNull("group_id")
         val messages = fetchPostJsonArray("messages")
-        call.respondText(SendGroupForwardMsg(messages, groupId ?: ""))
+        call.respondText(SendGroupForwardMsg(messages, groupId ?: ""), ContentType.Application.Json)
     }
 
     post("/send_private_forward_msg") {
         val userId = fetchPostOrNull("user_id")
         val messages = fetchPostJsonArray("messages")
-        call.respondText(SendPrivateForwardMsg(messages, userId ?: ""))
+        call.respondText(SendPrivateForwardMsg(messages, userId ?: ""), ContentType.Application.Json)
     }
 
     getOrPost("/get_forward_msg") {
         val id = fetchOrThrow("id")
-        call.respondText(GetForwardMsg(id))
+        call.respondText(GetForwardMsg(id), ContentType.Application.Json)
     }
 
     getOrPost("/get_group_msg_history") {
@@ -49,7 +50,7 @@ fun Routing.messageAction() {
                 .messageMappingDao()
                 .queryByMsgHashId(it)?.qqMsgId
         } ?: 0L
-        call.respondText(GetHistoryMsg("group", peerId, cnt, startId))
+        call.respondText(GetHistoryMsg("group", peerId, cnt, startId), ContentType.Application.Json)
     }
 
     getOrPost("/get_history_msg") {
@@ -62,23 +63,23 @@ fun Routing.messageAction() {
                 .messageMappingDao()
                 .queryByMsgHashId(it)?.qqMsgId
         } ?: 0L
-        call.respondText(GetHistoryMsg(msgType, peerId, cnt, startId))
+        call.respondText(GetHistoryMsg(msgType, peerId, cnt, startId), ContentType.Application.Json)
     }
 
     getOrPost("/clear_msgs") {
         val msgType = fetchOrThrow("message_type")
         val peerId = fetchOrThrow(if (msgType == "group") "group_id" else "user_id")
-        call.respondText(ClearMsgs(msgType, peerId))
+        call.respondText(ClearMsgs(msgType, peerId), ContentType.Application.Json)
     }
 
     getOrPost("/delete_msg") {
         val msgHash = fetchOrThrow("message_id").toInt()
-        call.respondText(DeleteMessage(msgHash))
+        call.respondText(DeleteMessage(msgHash), ContentType.Application.Json)
     }
 
     getOrPost("/get_msg") {
         val msgHash = fetchOrThrow("message_id").toInt()
-        call.respondText(GetMsg(msgHash))
+        call.respondText(GetMsg(msgHash), ContentType.Application.Json)
     }
 
     route("/(send_msg|send_message)".toRegex()) {
@@ -97,7 +98,7 @@ fun Routing.messageAction() {
                 message = message,
                 autoEscape = autoEscape,
                 fromId = groupId ?: userId ?: ""
-            ))
+            ), ContentType.Application.Json)
         }
         post {
             val msgType = fetchPostOrThrow("message_type")
@@ -123,7 +124,7 @@ fun Routing.messageAction() {
                     autoEscape = autoEscape,
                     fromId = groupId ?: userId ?: ""
                 )
-            })
+            }, ContentType.Application.Json)
         }
     }
 
@@ -149,7 +150,7 @@ fun Routing.messageAction() {
                 SendMessage(MsgConstant.KCHATTYPEGROUP, groupId, fetchPostOrThrow("message"), autoEscape)
             }
 
-            call.respondText(result)
+            call.respondText(result, ContentType.Application.Json)
         }
     }
 
@@ -165,7 +166,7 @@ fun Routing.messageAction() {
                 message = message,
                 autoEscape = autoEscape,
                 fromId = groupId ?: userId
-            ))
+            ), ContentType.Application.Json)
         }
         post {
             val userId = fetchPostOrThrow("user_id")
@@ -196,7 +197,7 @@ fun Routing.messageAction() {
                 )
             }
 
-            call.respondText(result)
+            call.respondText(result, ContentType.Application.Json)
         }
     }
 }

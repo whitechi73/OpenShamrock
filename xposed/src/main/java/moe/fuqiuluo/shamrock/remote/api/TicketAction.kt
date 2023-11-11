@@ -1,5 +1,6 @@
 package moe.fuqiuluo.shamrock.remote.api
 
+import io.ktor.http.ContentType
 import moe.fuqiuluo.qqinterface.servlet.TicketSvc
 import io.ktor.server.application.call
 import io.ktor.server.response.respondText
@@ -13,7 +14,7 @@ fun Routing.ticketActions() {
         val appid =fetchOrThrow("appid")
         val daid = fetchOrThrow("daid")
         val jumpurl = fetchOrThrow("jumpurl")
-        call.respondText(GetHttpCookies(appid, daid, jumpurl))
+        call.respondText(GetHttpCookies(appid, daid, jumpurl), ContentType.Application.Json)
     }
 
     getOrPost("/get_credentials") {
@@ -21,7 +22,7 @@ fun Routing.ticketActions() {
         if (domain != null) {
             call.respondText(GetCredentials(domain))
         } else {
-            call.respondText(GetCredentials())
+            call.respondText(GetCredentials(), ContentType.Application.Json)
         }
     }
 
@@ -30,7 +31,7 @@ fun Routing.ticketActions() {
         if (domain != null) {
             call.respondText(GetCookies(domain = domain))
         } else {
-            call.respondText(GetCookies())
+            call.respondText(GetCookies(), ContentType.Application.Json)
         }
     }
 
@@ -39,7 +40,7 @@ fun Routing.ticketActions() {
         if (domain != null) {
             call.respondText(GetCSRF(domain))
         } else {
-            call.respondText(GetCSRF())
+            call.respondText(GetCSRF(), ContentType.Application.Json)
         }
     }
 
