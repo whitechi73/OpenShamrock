@@ -113,7 +113,7 @@ internal class HookWrapperCodec: IAction {
                     from.putWupBuffer(merge.toByteArray())
                 } else if (from.appId != MAGIC_APP_ID) {
                     if (from.serviceCmd in IgnoredCmd && ShamrockConfig.isInjectPacket()) {
-                        from.serviceCmd = "ShamrockInjectedCmd"
+                        from.serviceCmd = "ShamrockInjectedCmd_${from.serviceCmd}"
                         from.putWupBuffer(EMPTY_BYTE_ARRAY)
                     } else {
                         pushOnReceive(from)
