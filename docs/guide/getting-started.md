@@ -50,7 +50,7 @@ Shamrock必须是`ALL版本`才能在模拟器正常使用
 
 ### 在PVE上使用Windows部署
 使用PVE安装任意Windows系统之后，阅读文章
-[虚拟化透传(镶套虚拟化)](https://zhuanlan.zhihu.com/p/354034712?utm_psn=1695915211926863872)
+[PVE开启嵌套虚拟化](https://zhuanlan.zhihu.com/p/354034712?utm_psn=1695915211926863872)
 之后可在系统内使用安卓模拟器部署。
 
 ### 在PVE上直接部署BlissOS  
