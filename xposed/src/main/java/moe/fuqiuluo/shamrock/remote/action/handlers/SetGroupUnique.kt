@@ -15,8 +15,8 @@ internal object SetGroupUnique: IActionHandler() {
     }
 
     suspend operator fun invoke(groupId: String, userId: String, unique: String, echo: JsonElement = EmptyJsonString): String {
-        if (!GroupSvc.isAdmin(groupId)) {
-            return error("you are not admin", echo)
+        if (!GroupSvc.isOwner(groupId)) {
+            return error("you are not owner", echo)
         }
         GroupSvc.setGroupUniqueTitle(groupId, userId, unique)
         return ok("成功", echo)
