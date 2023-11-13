@@ -110,8 +110,8 @@ fun LabFragment() {
                 }
 
                 Function(
-                    title = "拦截QQ无用发包",
-                    desc = "测试阶段，可能导致网络异常。",
+                    title = "拦截QQ无用收包",
+                    desc = "测试阶段，可能导致网络异常或掉线。",
                     descColor = it,
                     isSwitch = ShamrockConfig.isInjectPacket(ctx)
                 ) {

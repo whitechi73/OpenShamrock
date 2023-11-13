@@ -36,7 +36,7 @@ import java.util.concurrent.TimeUnit
 fun Routing.otherAction() {
 
     if (ShamrockConfig.allowShell()) {
-        getOrPost("/shell") {
+        post("/shell") {
             val runtime = Runtime.getRuntime()
             val dir = fetchOrThrow("dir")
             val out = StringBuilder()
