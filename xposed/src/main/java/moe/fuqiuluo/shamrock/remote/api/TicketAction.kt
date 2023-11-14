@@ -20,7 +20,7 @@ fun Routing.ticketActions() {
     getOrPost("/get_credentials") {
         val domain = fetchOrNull("domain")
         if (domain != null) {
-            call.respondText(GetCredentials(domain))
+            call.respondText(GetCredentials(domain), ContentType.Application.Json)
         } else {
             call.respondText(GetCredentials(), ContentType.Application.Json)
         }
@@ -29,7 +29,7 @@ fun Routing.ticketActions() {
     getOrPost("/get_cookies") {
         val domain = fetchOrNull("domain")
         if (domain != null) {
-            call.respondText(GetCookies(domain = domain))
+            call.respondText(GetCookies(domain = domain), ContentType.Application.Json)
         } else {
             call.respondText(GetCookies(), ContentType.Application.Json)
         }
@@ -38,7 +38,7 @@ fun Routing.ticketActions() {
     getOrPost("/get_csrf_token") {
         val domain = fetchOrNull("domain")
         if (domain != null) {
-            call.respondText(GetCSRF(domain))
+            call.respondText(GetCSRF(domain), ContentType.Application.Json)
         } else {
             call.respondText(GetCSRF(), ContentType.Application.Json)
         }
