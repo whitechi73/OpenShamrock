@@ -1,5 +1,6 @@
 package moe.fuqiuluo.shamrock.remote.api
 
+import io.ktor.http.ContentType
 import io.ktor.server.application.call
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.Routing
@@ -15,11 +16,11 @@ fun Routing.weatherAction() {
             call.respondText(GetWeather(city))
             return@getOrPost
         }
-        call.respondText(GetWeather(cityCode.toInt()))
+        call.respondText(GetWeather(cityCode.toInt()), ContentType.Application.Json)
     }
 
     getOrPost("/get_weather_city_code") {
         val city = fetchOrThrow("city")
-        call.respondText(GetWeatherCityCode(city))
+        call.respondText(GetWeatherCityCode(city), ContentType.Application.Json)
     }
 }

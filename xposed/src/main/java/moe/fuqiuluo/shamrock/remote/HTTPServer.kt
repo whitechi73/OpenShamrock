@@ -68,6 +68,10 @@ internal object HTTPServer {
                 obtainProtocolData()
             }
         }
+
+//        intercept(ApplicationCallPipeline.Plugins) {
+//            call.response.headers.appendIfAbsent("Content-Type", ContentType.Application.Json.toString())
+//        }
     }
 
     private fun ApplicationEngineEnvironmentBuilder.configSSL() {

@@ -1,5 +1,6 @@
 package moe.fuqiuluo.shamrock.remote.api
 
+import io.ktor.http.ContentType
 import io.ktor.http.content.PartData
 import io.ktor.http.content.forEachPart
 import io.ktor.http.content.streamProvider
@@ -73,19 +74,19 @@ fun Routing.otherAction() {
     }
 
     getOrPost("/get_version_info") {
-        call.respondText(GetVersionInfo())
+        call.respondText(GetVersionInfo(), ContentType.Application.Json)
     }
 
     getOrPost("/get_device_battery") {
-        call.respondText(GetDeviceBattery())
+        call.respondText(GetDeviceBattery(), ContentType.Application.Json)
     }
 
     getOrPost("/clean_cache") {
-        call.respondText(CleanCache())
+        call.respondText(CleanCache(), ContentType.Application.Json)
     }
 
     getOrPost("/set_restart") {
-        call.respondText(RestartMe(2000))
+        call.respondText(RestartMe(2000), ContentType.Application.Json)
     }
 
     getOrPost("/download_file") {
@@ -94,7 +95,7 @@ fun Routing.otherAction() {
         val name = fetchOrNull("name")
         val threadCnt = fetchOrNull("thread_cnt")?.toInt() ?: 0
         val headers = fetchOrNull("headers") ?: ""
-        call.respondText(DownloadFile(url, b64, threadCnt, headers.split("\r\n"), name))
+        call.respondText(DownloadFile(url, b64, threadCnt, headers.split("\r\n"), name), ContentType.Application.Json)
     }
 
     post("/upload_file") {

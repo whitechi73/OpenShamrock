@@ -1,5 +1,6 @@
 package moe.fuqiuluo.shamrock.remote.api
 
+import io.ktor.http.ContentType
 import moe.fuqiuluo.qqinterface.servlet.TicketSvc
 import io.ktor.server.application.call
 import io.ktor.server.response.respondText
@@ -13,33 +14,33 @@ fun Routing.ticketActions() {
         val appid =fetchOrThrow("appid")
         val daid = fetchOrThrow("daid")
         val jumpurl = fetchOrThrow("jumpurl")
-        call.respondText(GetHttpCookies(appid, daid, jumpurl))
+        call.respondText(GetHttpCookies(appid, daid, jumpurl), ContentType.Application.Json)
     }
 
     getOrPost("/get_credentials") {
         val domain = fetchOrNull("domain")
         if (domain != null) {
-            call.respondText(GetCredentials(domain))
+            call.respondText(GetCredentials(domain), ContentType.Application.Json)
         } else {
-            call.respondText(GetCredentials())
+            call.respondText(GetCredentials(), ContentType.Application.Json)
         }
     }
 
     getOrPost("/get_cookies") {
         val domain = fetchOrNull("domain")
         if (domain != null) {
-            call.respondText(GetCookies(domain = domain))
+            call.respondText(GetCookies(domain = domain), ContentType.Application.Json)
         } else {
-            call.respondText(GetCookies())
+            call.respondText(GetCookies(), ContentType.Application.Json)
         }
     }
 
     getOrPost("/get_csrf_token") {
         val domain = fetchOrNull("domain")
         if (domain != null) {
-            call.respondText(GetCSRF(domain))
+            call.respondText(GetCSRF(domain), ContentType.Application.Json)
         } else {
-            call.respondText(GetCSRF())
+            call.respondText(GetCSRF(), ContentType.Application.Json)
         }
     }
 
