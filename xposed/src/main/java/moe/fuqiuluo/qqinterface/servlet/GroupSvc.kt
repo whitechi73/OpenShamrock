@@ -113,7 +113,7 @@ internal object GroupSvc: BaseSvc() {
         val memberInfo = Oidb_0x8fc.MemberInfo()
         memberInfo.uint64_uin.set(userId.toLong())
         memberInfo.bytes_uin_name.set(ByteStringMicro.copyFromUtf8(localMemberInfo.troopnick.ifBlank {
-            localMemberInfo.troopremark
+            localMemberInfo.troopremark.ifNullOrEmpty("")
         }))
         memberInfo.bytes_special_title.set(ByteStringMicro.copyFromUtf8(title))
         memberInfo.uint32_special_title_expire_time.set(-1)
