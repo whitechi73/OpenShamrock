@@ -86,9 +86,9 @@ internal object VisitorSvc: BaseSvc() {
             it.putLong(moe.fuqiuluo.shamrock.remote.service.data.profile.ProfileProtocolConst.PARAM_TARGET_UIN, target)
             it.putByteArray("vCookies", card.vCookies)
             it.putBoolean("nearby_people", true)
-            it.putInt("favoriteSource", SUB_FROM_SHARE_CARD_TROOP)
+            it.putInt("favoriteSource", FROM_CONTACTS_TAB)
             it.putInt("iCount", count)
-            it.putInt("from", FROM_SHARE_CARD)
+            it.putInt("from", FROM_CONTACTS_TAB)
         }
         return Result.success(Unit)
     }
