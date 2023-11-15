@@ -17,7 +17,7 @@ internal object GetCSRF: IActionHandler() {
     suspend operator fun invoke(domain: String, echo: JsonElement = EmptyJsonString): String {
         val uin = TicketSvc.getUin()
         val pskey = TicketSvc.getPSKey(uin, domain)
-            ?: return invoke()
+            ?: return invoke(echo)
         return ok(Credentials(bkn = TicketSvc.getCSRF(pskey)), echo)
     }
 
