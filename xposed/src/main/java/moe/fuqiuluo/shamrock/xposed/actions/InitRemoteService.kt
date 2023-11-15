@@ -81,6 +81,7 @@ internal class InitRemoteService : IAction {
                 }
                 require(config.port in 0 .. 65536) { "WebSocketServer端口不合法" }
                 val server = WebSocketService(config.address, config.port!!)
+                server.isReuseAddr = true
                 server.start()
             } catch (e: Throwable) {
                 LogCenter.log(e.stackTraceToString(), Level.ERROR)
