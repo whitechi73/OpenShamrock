@@ -16,7 +16,7 @@ internal object GetFriendList: IActionHandler() {
 
     suspend operator fun invoke(refresh: Boolean, echo: JsonElement = EmptyJsonString): String {
         val friendList = FriendSvc.getFriendList(refresh).onFailure {
-            return error(it.message ?: "unknown error", echo)
+            return error(it.message ?: "unknown error", echo, arrayResult = true)
         }.getOrThrow()
         return ok(friendList.map { friend ->
             FriendEntry(

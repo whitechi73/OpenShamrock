@@ -98,16 +98,16 @@ internal abstract class IActionHandler {
         return failed(Status.BadParam, why, echo)
     }
 
-    protected fun error(why: String, echo: JsonElement): String {
-        return failed(Status.InternalHandlerError, why, echo)
+    protected fun error(why: String, echo: JsonElement, arrayResult: Boolean = false): String {
+        return failed(Status.InternalHandlerError, why, echo, arrayResult)
     }
 
-    protected fun logic(why: String, echo: JsonElement): String {
-        return failed(Status.LogicError, why, echo)
+    protected fun logic(why: String, echo: JsonElement, arraayResult: Boolean = false): String {
+        return failed(Status.LogicError, why, echo, arraayResult)
     }
 
-    protected fun failed(status: Status, msg: String, echo: JsonElement): String {
-        return resultToString(false, status, EmptyObject, msg, echo = echo)
+    protected fun failed(status: Status, msg: String, echo: JsonElement, arrResult: Boolean = false): String {
+        return resultToString(false, status, if (arrResult) EmptyJsonArray else EmptyJsonObject, msg, echo = echo)
     }
 }
 

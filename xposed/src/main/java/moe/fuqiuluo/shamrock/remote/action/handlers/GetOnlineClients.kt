@@ -15,7 +15,7 @@ internal object GetOnlineClients: IActionHandler() {
 
     suspend operator fun invoke(echo: JsonElement = EmptyJsonString): String {
         val clients = QSafeSvc.getOnlineClients()
-            ?: return logic("获取在线设备信息失败", echo)
+            ?: return logic("获取在线设备信息失败", echo, arraayResult = true)
         return ok(clients.map {
             DevInfo(it.iAppId, it.strDeviceName, it.strDeviceTypeInfo, it.iLoginTime,
                 it.iLoginPlatform, it.strLoginLocation

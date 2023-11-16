@@ -14,7 +14,8 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.long
 
-val EmptyJsonObject = JsonObject(mapOf())
+val EmptyJsonObject = JsonObject(emptyMap())
+val EmptyJsonArray = JsonArray(emptyList())
 val EmptyJsonString = "".json
 
 val GlobalJson = Json {

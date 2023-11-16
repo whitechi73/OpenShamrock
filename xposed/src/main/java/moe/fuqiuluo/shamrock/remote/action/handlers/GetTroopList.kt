@@ -16,7 +16,7 @@ internal object GetTroopList : IActionHandler() {
     suspend operator fun invoke(refresh: Boolean, echo: JsonElement = EmptyJsonString): String {
         val troopList = arrayListOf<SimpleTroopInfo>()
         GroupSvc.getGroupList(refresh).onFailure {
-            return error(it.message ?: "unknown error", echo)
+            return error(it.message ?: "unknown error", echo, arrayResult = true)
         }.onSuccess { troops ->
             troops.forEach { groupInfo ->
                 if (groupInfo.troopcode.isNullOrEmpty()) return@forEach
