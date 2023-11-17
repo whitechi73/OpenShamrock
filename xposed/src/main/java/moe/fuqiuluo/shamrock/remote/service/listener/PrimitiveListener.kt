@@ -47,11 +47,14 @@ internal object PrimitiveListener {
         if (
             !pb.has(1, 3)
             || !pb.has(1, 2)
-            || !pb.has(1, 2, 2)
+//            || !pb.has(1, 2, 2)
             || !pb.has(1, 2, 6)
         ) return
         val msgType = pb[1, 2, 1].asInt
-        val subType = pb[1, 2, 2].asInt
+        var subType = 0
+        if (pb.has(1, 2, 3)) {
+            subType = pb[1, 2, 2].asInt
+        }
         val msgTime = pb[1, 2, 6].asLong
         when(msgType) {
             33 -> onGroupMemIncreased(msgTime, pb)
@@ -63,7 +66,11 @@ internal object PrimitiveListener {
             }
             732 -> when(subType) {
                 12 -> onGroupBan(msgTime, pb)
-                17 -> onGroupRecall(msgTime, pb)
+                17 -> {
+                    onGroupRecall(msgTime, pb)
+                    // invite
+                    onGroupMemIncreased(msgTime, pb)
+                }
                 20 -> onGroupPoke(msgTime, pb)
             }
         }
@@ -155,21 +162,47 @@ internal object PrimitiveListener {
     }
 
     private suspend fun onGroupMemIncreased(time: Long, pb: ProtoMap) {
-        val groupCode = pb[1, 3, 2, 1].asULong
-        val targetUid = pb[1, 3, 2, 3].asUtf8String
-        val type = pb[1, 3, 2, 4].asInt
-        val operation = ContactHelper.getUinByUidAsync(pb[1, 3, 2, 5].asUtf8String).toLong()
-        val target = ContactHelper.getUinByUidAsync(targetUid).toLong()
+        when(pb[1, 2, 1].asInt) {
+            732 -> {
+                // invite
+                val groupCode = pb[1, 3, 2, 4].asULong
+                lateinit var target: String
+                lateinit var operation: String
+                pb[1, 3, 2, 26, 7].asList
+                    .value
+                    .forEach {
+                        val value = it[2].asUtf8String
+                        when (it[1].asUtf8String) {
+                            "invitee" -> operation = value
+                            "invitor" -> target = value
+                        }
+                    }
+                val type = 131
+                LogCenter.log("群成员增加($groupCode): $target, type = $type")
 
-        LogCenter.log("群成员增加($groupCode): $target, type = $type")
+                if(!GlobalEventTransmitter.GroupNoticeTransmitter
+                        .transGroupMemberNumChanged(time, target.toLong(), groupCode, operation.toLong(), NoticeType.GroupMemIncrease, NoticeSubType.Invite)) {
+                    LogCenter.log("群成员增加推送失败！", Level.WARN)
+                }
+            }
+            33 -> {
+                // approve
+                val groupCode = pb[1, 3, 2, 1].asULong
+                val targetUid = pb[1, 3, 2, 3].asUtf8String
+                val type = pb[1, 3, 2, 4].asInt
+                val operation = ContactHelper.getUinByUidAsync(pb[1, 3, 2, 5].asUtf8String).toLong()
+                val target = ContactHelper.getUinByUidAsync(targetUid).toLong()
+                LogCenter.log("群成员增加($groupCode): $target, type = $type")
 
-        if(!GlobalEventTransmitter.GroupNoticeTransmitter
-            .transGroupMemberNumChanged(time, target, groupCode, operation, NoticeType.GroupMemIncrease, when(type) {
-                130 -> NoticeSubType.Approve
-                131 -> NoticeSubType.Invite
-                else -> NoticeSubType.Approve
-            })) {
-            LogCenter.log("群成员增加推送失败！", Level.WARN)
+                if(!GlobalEventTransmitter.GroupNoticeTransmitter
+                        .transGroupMemberNumChanged(time, target, groupCode, operation, NoticeType.GroupMemIncrease, when(type) {
+                            130 -> NoticeSubType.Approve
+                            131 -> NoticeSubType.Invite
+                            else -> NoticeSubType.Approve
+                        })) {
+                    LogCenter.log("群成员增加推送失败！", Level.WARN)
+                }
+            }
         }
     }
 
