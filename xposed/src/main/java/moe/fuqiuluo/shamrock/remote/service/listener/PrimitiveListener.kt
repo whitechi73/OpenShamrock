@@ -60,7 +60,11 @@ internal object PrimitiveListener {
             33 -> onGroupMemIncreased(msgTime, pb)
             34 -> onGroupMemberDecreased(msgTime, pb)
             44 -> onGroupAdminChange(msgTime, pb)
+            84 -> onGroupApply(msgTime, pb)
             528 -> when(subType) {
+                35 -> onFriendApply(msgTime, pb)
+                // invite
+                68 -> onGroupApply(msgTime, pb)
                 138 -> onC2CRecall(msgTime, pb)
                 290 -> onC2cPoke(msgTime, pb)
             }
@@ -101,6 +105,22 @@ internal object PrimitiveListener {
             LogCenter.log("私聊戳一戳推送失败！", Level.WARN)
         }
     }
+
+    private suspend fun onFriendApply(msgTime: Long, pb: ProtoMap) {
+        val applierUid = pb[1, 3, 2, 1, 2].asUtf8String
+        val msg = pb[1, 3, 2, 1, 10].asUtf8String
+        val source = pb[1, 3, 2, 1, 11].asUtf8String
+        var applier = ContactHelper.getUinByUidAsync(applierUid).toLong()
+        if (applier == 0L) {
+            applier = pb[4, 3, 8].asLong
+        }
+        LogCenter.log("来自$applier 的好友申请：$msg ($source)")
+        if(!GlobalEventTransmitter.PrivateNoticeTransmitter
+                .transFriendApply(msgTime, applier, msg)) {
+            LogCenter.log("好友申请推送失败！", Level.WARN)
+        }
+    }
+
 
     private suspend fun onGroupPoke(time: Long, pb: ProtoMap) {
         val groupCode1 = pb[1, 1, 1].asULong
@@ -294,6 +314,34 @@ internal object PrimitiveListener {
             }
         } finally {
             readPacket.release()
+        }
+    }
+
+    private suspend fun onGroupApply(time: Long, pb: ProtoMap) {
+        when(pb[1, 2, 1].asInt) {
+            84 -> {
+                val groupCode = pb[1, 3, 2, 1].asULong
+                val applierUid = pb[1, 3, 2, 3].asUtf8String
+                val reason = pb[1, 3, 2, 5].asUtf8String
+                val applier = ContactHelper.getUinByUidAsync(applierUid).toLong()
+                LogCenter.log("入群申请($groupCode) $applier: \"$reason\"")
+
+                if(!GlobalEventTransmitter.GroupNoticeTransmitter
+                        .transGroupApply(time, applier, reason, groupCode, NoticeSubType.Add)) {
+                    LogCenter.log("入群申请推送失败！", Level.WARN)
+                }
+            }
+            528 -> {
+                val groupCode = pb[1, 3, 2, 2, 3].asULong
+                val applierUid = pb[1, 3, 2, 2, 5].asUtf8String
+                val applier = ContactHelper.getUinByUidAsync(applierUid).toLong()
+                LogCenter.log("邀请入群申请($groupCode): $applier")
+
+                if(!GlobalEventTransmitter.GroupNoticeTransmitter
+                        .transGroupApply(time, applier, "", groupCode, NoticeSubType.Invite)) {
+                    LogCenter.log("邀请入群申请推送失败！", Level.WARN)
+                }
+            }
         }
     }
 }
