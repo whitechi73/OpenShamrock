@@ -10,7 +10,9 @@ internal enum class NoticeType {
     @SerialName("group_decrease") GroupMemDecrease,
     @SerialName("group_increase") GroupMemIncrease,
     @SerialName("group_recall") GroupRecall,
+    @SerialName("group_apply") GroupApply,
     @SerialName("friend_recall") FriendRecall,
+    @SerialName("friend_add") FriendApply,
     @SerialName("notify") Notify,
     @SerialName("group_upload") GroupUpload,
     @SerialName("private_upload") PrivateUpload
@@ -26,6 +28,7 @@ internal enum class NoticeSubType {
     @SerialName("set") Set,
     @SerialName("un_set") UnSet,
 
+    @SerialName("add") Add,
     @SerialName("invite") Invite,
     @SerialName("approve") Approve,
     @SerialName("leave") Leave,
