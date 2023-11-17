@@ -53,7 +53,6 @@ internal object GetTroopMemberList : IActionHandler() {
                             role = when {
                                 GroupSvc.getOwner(groupId)
                                     .toString() == info.memberuin -> MemberRole.Owner
-
                                 info.memberuin.toLong() in GroupSvc.getAdminList(groupId) -> MemberRole.Admin
                                 else -> MemberRole.Member
                             },

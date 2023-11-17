@@ -11,6 +11,7 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import moe.fuqiuluo.shamrock.helper.db.MessageDB
 import moe.fuqiuluo.shamrock.remote.action.handlers.*
+import moe.fuqiuluo.shamrock.remote.entries.Status
 import moe.fuqiuluo.shamrock.tools.fetchGetOrNull
 import moe.fuqiuluo.shamrock.tools.fetchGetOrThrow
 import moe.fuqiuluo.shamrock.tools.fetchOrNull
@@ -22,12 +23,21 @@ import moe.fuqiuluo.shamrock.tools.fetchPostOrThrow
 import moe.fuqiuluo.shamrock.tools.getOrPost
 import moe.fuqiuluo.shamrock.tools.isJsonData
 import moe.fuqiuluo.shamrock.tools.isJsonString
+import moe.fuqiuluo.shamrock.tools.respond
 
 fun Routing.messageAction() {
+    route("/send_group_forward_msg") {
+        post {
+            val groupId = fetchPostOrNull("group_id")
+            val messages = fetchPostJsonArray("messages")
+            call.respondText(SendGroupForwardMsg(messages, groupId ?: ""), ContentType.Application.Json)
+        }
+        get {
+            respond(false, Status.InternalHandlerError, "Not support GET method")
+        }
+    }
     post("/send_group_forward_msg") {
-        val groupId = fetchPostOrNull("group_id")
-        val messages = fetchPostJsonArray("messages")
-        call.respondText(SendGroupForwardMsg(messages, groupId ?: ""), ContentType.Application.Json)
+
     }
 
     post("/send_private_forward_msg") {
