@@ -31,5 +31,6 @@ internal object SetEssenceMessage: IActionHandler() {
 
     }
 
-    override fun path(): String = "set_essence_message"
+    override val alias: Array<String> = arrayOf("set_essence_message")
+    override fun path(): String = "set_essence_msg"
 }

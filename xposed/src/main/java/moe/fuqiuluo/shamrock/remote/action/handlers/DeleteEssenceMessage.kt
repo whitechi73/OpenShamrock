@@ -30,5 +30,6 @@ internal object DeleteEssenceMessage: IActionHandler() {
         }
     }
 
-    override fun path(): String = "delete_essence_message"
+    override val alias: Array<String> = arrayOf("delete_essence_message")
+    override fun path(): String = "delete_essence_msg"
 }
