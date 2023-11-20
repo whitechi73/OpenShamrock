@@ -22,7 +22,10 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeoutOrNull
+import moe.fuqiuluo.proto.ProtoUtils
+import moe.fuqiuluo.proto.asUtf8String
 import moe.fuqiuluo.proto.protobufOf
+import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.tools.ifNullOrEmpty
 import moe.fuqiuluo.shamrock.tools.putBuf32Long
 import moe.fuqiuluo.shamrock.tools.slice
@@ -32,6 +35,7 @@ import mqq.app.MobileQQ
 import tencent.im.oidb.cmd0x89a.oidb_0x89a
 import tencent.im.oidb.cmd0x8a0.oidb_0x8a0
 import tencent.im.oidb.cmd0x8fc.Oidb_0x8fc
+import tencent.im.oidb.oidb_sso
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import java.nio.ByteBuffer
@@ -137,6 +141,51 @@ internal object GroupSvc: BaseSvc() {
         createToServiceMsg.extraData.putLong("dwNewSeq", 0L)
         send(createToServiceMsg)
         return true
+    }
+
+    suspend fun setEssenceMessage(groupId: Long, seq: Long, rand: Long): Pair<Boolean, String> {
+        val array = protobufOf(
+            1 to groupId,
+            2 to seq,
+            3 to rand
+        ).toByteArray()
+        val buffer = sendOidbAW("OidbSvc.0xeac_1", 3756, 1, array)
+        val body = oidb_sso.OIDBSSOPkg()
+        if (buffer == null) {
+            return Pair(false, "unknown error")
+        }
+        body.mergeFrom(buffer.slice(4))
+        val result = ProtoUtils.decodeFromByteArray(body.bytes_bodybuffer.get().toByteArray())
+        return if (result.has(1)) {
+            LogCenter.log("设置群精华失败: ${result[1].asUtf8String}")
+            Pair(false, "设置群精华失败: ${result[1].asUtf8String}")
+        } else {
+            LogCenter.log("设置群精华 -> $groupId:$seq")
+            Pair(true, "ok")
+        }
+    }
+
+    suspend fun deleteEssenceMessage(groupId: Long, seq: Long, rand: Long): Pair<Boolean, String> {
+        val array = protobufOf(
+            1 to groupId,
+            2 to seq,
+            3 to rand
+        ).toByteArray()
+        val buffer = sendOidbAW("OidbSvc.0xeac_2", 3756, 2, array)
+        val body = oidb_sso.OIDBSSOPkg()
+        if (buffer == null) {
+            return Pair(false, "unknown error")
+        }
+        body.mergeFrom(buffer.slice(4))
+        val result = ProtoUtils.decodeFromByteArray(body.bytes_bodybuffer.get().toByteArray())
+        return if (result.has(1)) {
+            LogCenter.log("移除群精华失败: ${result[1].asUtf8String}")
+            Pair(false, "移除群精华失败: ${result[1].asUtf8String}")
+        } else {
+            LogCenter.log("移除群精华 -> $groupId:$seq")
+            Pair(true, "ok")
+        }
+
     }
 
     fun setGroupAdmin(groupId: Long, userId: Long, enable: Boolean) {

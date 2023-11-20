@@ -95,4 +95,15 @@ fun Routing.troopAction() {
         val groupId = fetchOrThrow("group_id").toLong()
         call.respondText(KickTroopMember(groupId, userId), ContentType.Application.Json)
     }
+
+    getOrPost("/set_essence_msg") {
+        val messageId = fetchOrThrow("message_id").toInt()
+        call.respondText(SetEssenceMessage(messageId), ContentType.Application.Json)
+    }
+
+    getOrPost("/delete_essence_msg") {
+        val messageId = fetchOrThrow("message_id").toInt()
+        call.respondText(DeleteEssenceMessage(messageId), ContentType.Application.Json)
+    }
+
 }
