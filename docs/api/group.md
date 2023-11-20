@@ -161,7 +161,7 @@ icon: user-group
 
 该接口将返回处理结果，其中 `data` 字段无数据。。
 
-## 设置精华消息 <Badge text="未实现" type="danger" />
+## 设置精华消息
 
 该接口用于设置精华消息。
 
@@ -179,7 +179,7 @@ icon: user-group
 该 API 没有响应数据
 :::
 
-## 移出精华消息 <Badge text="未实现" type="danger" />
+## 移出精华消息
 
 该接口用于移出精华消息。
 
