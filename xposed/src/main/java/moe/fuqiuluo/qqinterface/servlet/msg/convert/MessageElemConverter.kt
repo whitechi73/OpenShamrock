@@ -143,13 +143,15 @@ internal sealed class MessageElemConverter: IMessageConvert {
             element: MsgElement
         ): MessageSegment {
             val video = element.videoElement
+            val md5 = video.fileName.split(".")[0]
+
             return MessageSegment(
                 type = "video",
                 data = hashMapOf(
                     "file" to video.fileName,
                     "url" to when(chatType) {
-                        MsgConstant.KCHATTYPEGROUP -> RichProtoSvc.getGroupVideoDownUrl("0", video.fileName, video.fileUuid)
-                        MsgConstant.KCHATTYPEC2C -> RichProtoSvc.getC2CVideoDownUrl("0", video.fileName, video.fileUuid)
+                        MsgConstant.KCHATTYPEGROUP -> RichProtoSvc.getGroupVideoDownUrl("0", md5, video.fileUuid)
+                        MsgConstant.KCHATTYPEC2C -> RichProtoSvc.getC2CVideoDownUrl("0", md5, video.fileUuid)
                         else -> unknownChatType(chatType)
                     }
                 ).also {
