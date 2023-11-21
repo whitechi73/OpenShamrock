@@ -9,7 +9,7 @@ public interface IKernelRichMediaService {
 
     void cancelTransferTask(Contact contact, ArrayList<Long> arrayList, ArrayList<Integer> arrayList2, IOperateTransferInfoCallback iOperateTransferInfoCallback);
 
-    void deleteGroupFile(long j2, String str, int i2, IDeleteGroupFileCallback iDeleteGroupFileCallback);
+    void deleteGroupFile(long groupCode, String fileUid, int bizId, IDeleteGroupFileCallback cb);
 
     void deleteTransferInfo(Contact contact, ArrayList<Long> arrayList, IOperateTransferInfoCallback iOperateTransferInfoCallback);
 

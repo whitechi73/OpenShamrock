@@ -52,7 +52,7 @@ internal object PrimitiveListener {
         ) return
         val msgType = pb[1, 2, 1].asInt
         var subType = 0
-        if (pb.has(1, 2, 3)) {
+        if (pb.has(1, 2, 3) && pb.has(1, 2, 2)) {
             subType = pb[1, 2, 2].asInt
         }
         val msgTime = pb[1, 2, 6].asLong

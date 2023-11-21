@@ -24,7 +24,7 @@ android {
         minSdk = 24
         targetSdk = 33
         versionCode = (System.currentTimeMillis() / 1000).toInt()
-        versionName = "1.0.5-dev" + gitCommitHash()
+        versionName = "1.0.6-dev" + gitCommitHash()
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -66,6 +66,7 @@ android {
         create("app") {
             dimension = "mode"
             ndk {
+                println("Full architecture and full compilation.")
                 abiFilters.add("arm64-v8a")
                 abiFilters.add("x86_64")
             }
@@ -73,12 +74,14 @@ android {
         create("arm64") {
             dimension = "mode"
             ndk {
+                println("Full compilation of arm64 architecture")
                 abiFilters.add("arm64-v8a")
             }
         }
         create("x64") {
             dimension = "mode"
             ndk {
+                println("Full compilation of x64 architecture")
                 abiFilters.add("x86_64")
             }
         }
