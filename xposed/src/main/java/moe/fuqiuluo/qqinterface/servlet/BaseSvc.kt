@@ -11,6 +11,7 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
 import moe.fuqiuluo.proto.protobufOf
 import moe.fuqiuluo.shamrock.utils.PlatformUtils
@@ -37,9 +38,9 @@ internal abstract class BaseSvc {
         }
 
         suspend fun sendOidbAW(cmd: String, cmdId: Int, serviceId: Int, data: ByteArray, trpc: Boolean = false, timeout: Long = 5000L): ByteArray? {
+            val seq = MsfCore.getNextSeq()
             return withTimeoutOrNull(timeout) {
-                suspendCoroutine { continuation ->
-                    val seq = MsfCore.getNextSeq()
+                suspendCancellableCoroutine { continuation ->
                     GlobalScope.launch(Dispatchers.Default) {
                         DynamicReceiver.register(IPCRequest(cmd, seq) {
                             val buffer = it.getByteArrayExtra("buffer")!!
@@ -49,13 +50,16 @@ internal abstract class BaseSvc {
                     if (trpc) sendTrpcOidb(cmd, cmdId, serviceId, data, seq)
                     else sendOidb(cmd, cmdId, serviceId, data, seq)
                 }
+            }.also {
+                if (it == null)
+                    DynamicReceiver.unregister(seq)
             }?.copyOf()
         }
 
         suspend fun sendBufferAW(cmd: String, isPb: Boolean, data: ByteArray, timeout: Long = 5000L): ByteArray? {
+            val seq = MsfCore.getNextSeq()
             return withTimeoutOrNull<ByteArray?>(timeout) {
-                suspendCoroutine { continuation ->
-                    val seq = MsfCore.getNextSeq()
+                suspendCancellableCoroutine { continuation ->
                     GlobalScope.launch(Dispatchers.Default) {
                         DynamicReceiver.register(IPCRequest(cmd, seq) {
                             val buffer = it.getByteArrayExtra("buffer")!!
@@ -64,6 +68,9 @@ internal abstract class BaseSvc {
                         sendBuffer(cmd, isPb, data, seq)
                     }
                 }
+            }.also {
+                if (it == null)
+                    DynamicReceiver.unregister(seq)
             }?.copyOf()
         }
 

@@ -20,13 +20,10 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonObject
 import moe.fuqiuluo.shamrock.helper.ParamsException
 import io.ktor.http.HttpMethod
-import io.ktor.http.decodeURLPart
 import io.ktor.http.parseUrlEncodedParameters
 import io.ktor.server.request.httpMethod
 import io.ktor.server.routing.route
 import kotlinx.serialization.json.JsonElement
-import moe.fuqiuluo.shamrock.helper.Level
-import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.remote.entries.CommonResult
 import moe.fuqiuluo.shamrock.remote.entries.EmptyObject
 import moe.fuqiuluo.shamrock.remote.entries.Status
@@ -38,9 +35,9 @@ import moe.fuqiuluo.shamrock.remote.entries.Status
 annotation class ShamrockDsl
 
 
-private val isJsonKey = AttributeKey<Boolean>("isJson")
-private val jsonKey = AttributeKey<JsonObject>("paramsJson")
-private val partsKey = AttributeKey<Parameters>("paramsParts")
+private val keyIsJson = AttributeKey<Boolean>("isJson")
+private val keyJsonObject = AttributeKey<JsonObject>("paramsJson")
+private val keyParts = AttributeKey<Parameters>("paramsParts")
 
 suspend fun ApplicationCall.fetch(key: String): String {
     val isPost = request.httpMethod == HttpMethod.Post
@@ -94,23 +91,23 @@ fun ApplicationCall.isJsonData(): Boolean {
 }
 
 suspend fun ApplicationCall.fetchPostOrNull(key: String): String? {
-    if (attributes.contains(jsonKey)) {
-        return attributes[jsonKey][key].asStringOrNull
+    if (attributes.contains(keyJsonObject)) {
+        return attributes[keyJsonObject][key].asStringOrNull
     }
-    if (attributes.contains(partsKey)) {
-        return attributes[partsKey][key]
+    if (attributes.contains(keyParts)) {
+        return attributes[keyParts][key]
     }
     return kotlin.runCatching {
         if (isJsonData()) {
             Json.parseToJsonElement(receiveText()).jsonObject.also {
-                attributes.put(jsonKey, it)
-                attributes.put(isJsonKey, true)
+                attributes.put(keyJsonObject, it)
+                attributes.put(keyIsJson, true)
             }[key].asStringOrNull
         } else if (
             ContentType.Application.FormUrlEncoded == request.contentType()
         ) {
             receiveParameters().also {
-                attributes.put(partsKey, it)
+                attributes.put(keyParts, it)
             }[key]
         } else {
             receiveTextAsUnknown(key)
@@ -124,13 +121,13 @@ private suspend fun ApplicationCall.receiveTextAsUnknown(key: String): String? {
     return receiveText().let { text ->
         if (text.startsWith("{") && text.endsWith("}")) {
             Json.parseToJsonElement(text).jsonObject.also {
-                attributes.put(jsonKey, it)
-                attributes.put(isJsonKey, true)
+                attributes.put(keyJsonObject, it)
+                attributes.put(keyIsJson, true)
             }[key].asStringOrNull
         } else {
             text.parseUrlEncodedParameters().also {
-                attributes.put(partsKey, it)
-                attributes.put(isJsonKey, false)
+                attributes.put(keyParts, it)
+                attributes.put(keyIsJson, false)
             }[key]
         }
     } // receiveText
@@ -170,17 +167,17 @@ suspend fun PipelineContext<Unit, ApplicationCall>.fetchPostOrThrow(key: String)
 }
 
 fun PipelineContext<Unit, ApplicationCall>.isJsonData(): Boolean {
-    return ContentType.Application.Json == call.request.contentType() || call.attributes[isJsonKey]
+    return ContentType.Application.Json == call.request.contentType() || (keyIsJson in call.attributes && call.attributes[keyIsJson])
 }
 
 suspend fun PipelineContext<Unit, ApplicationCall>.isJsonString(key: String): Boolean {
     if (!isJsonData()) return true
-    val data = if (call.attributes.contains(jsonKey)) {
-        call.attributes[jsonKey]
+    val data = if (keyJsonObject in call.attributes) {
+        call.attributes[keyJsonObject]
     } else {
         Json.parseToJsonElement(call.receiveText()).jsonObject.also {
-            call.attributes.put(jsonKey, it)
-            call.attributes.put(isJsonKey, true)
+            call.attributes.put(keyJsonObject, it)
+            call.attributes.put(keyIsJson, true)
         }
     }
     return data[key] is JsonPrimitive
@@ -188,11 +185,11 @@ suspend fun PipelineContext<Unit, ApplicationCall>.isJsonString(key: String): Bo
 
 suspend fun PipelineContext<Unit, ApplicationCall>.isJsonObject(key: String): Boolean {
     if (!isJsonData()) return false
-    val data = if (call.attributes.contains(jsonKey)) {
-        call.attributes[jsonKey]
+    val data = if (call.attributes.contains(keyJsonObject)) {
+        call.attributes[keyJsonObject]
     } else {
         Json.parseToJsonElement(call.receiveText()).jsonObject.also {
-            call.attributes.put(jsonKey, it)
+            call.attributes.put(keyJsonObject, it)
         }
     }
     return data[key] is JsonObject
@@ -200,56 +197,68 @@ suspend fun PipelineContext<Unit, ApplicationCall>.isJsonObject(key: String): Bo
 
 suspend fun PipelineContext<Unit, ApplicationCall>.isJsonArray(key: String): Boolean {
     if (!isJsonData()) return false
-    val data = if (call.attributes.contains(jsonKey)) {
-        call.attributes[jsonKey]
+    val data = if (call.attributes.contains(keyJsonObject)) {
+        call.attributes[keyJsonObject]
     } else {
         Json.parseToJsonElement(call.receiveText()).jsonObject.also {
-            call.attributes.put(jsonKey, it)
+            call.attributes.put(keyJsonObject, it)
         }
     }
     return data[key] is JsonArray
 }
 
 suspend fun PipelineContext<Unit, ApplicationCall>.fetchPostJsonString(key: String): String {
-    val data = if (call.attributes.contains(jsonKey)) {
-        call.attributes[jsonKey]
+    val data = if (call.attributes.contains(keyJsonObject)) {
+        call.attributes[keyJsonObject]
     } else {
         Json.parseToJsonElement(call.receiveText()).jsonObject.also {
-            call.attributes.put(jsonKey, it)
+            call.attributes.put(keyJsonObject, it)
         }
     }
     return data[key].asString
 }
 
 suspend fun PipelineContext<Unit, ApplicationCall>.fetchPostJsonElement(key: String): JsonElement {
-    val data = if (call.attributes.contains(jsonKey)) {
-        call.attributes[jsonKey]
+    val data = if (call.attributes.contains(keyJsonObject)) {
+        call.attributes[keyJsonObject]
     } else {
         Json.parseToJsonElement(call.receiveText()).jsonObject.also {
-            call.attributes.put(jsonKey, it)
+            call.attributes.put(keyJsonObject, it)
         }
     }
     return data[key]!!
 }
 
 suspend fun PipelineContext<Unit, ApplicationCall>.fetchPostJsonObject(key: String): JsonObject {
-    val data = if (call.attributes.contains(jsonKey)) {
-        call.attributes[jsonKey]
+    val data = if (call.attributes.contains(keyJsonObject)) {
+        call.attributes[keyJsonObject]
     } else {
         Json.parseToJsonElement(call.receiveText()).jsonObject.also {
-            call.attributes.put(jsonKey, it)
+            call.attributes.put(keyJsonObject, it)
         }
     }
     return data[key].asJsonObject
 }
 
-suspend fun PipelineContext<Unit, ApplicationCall>.fetchPostJsonArray(key: String): JsonArray {
-    val data = if (call.attributes.contains(jsonKey)) {
-        call.attributes[jsonKey]
+suspend fun PipelineContext<Unit, ApplicationCall>.fetchPostJsonObjectOrNull(key: String): JsonObject? {
+    val data = if (call.attributes.contains(keyJsonObject)) {
+        call.attributes[keyJsonObject]
     } else {
         Json.parseToJsonElement(call.receiveText()).jsonObject.also {
-            call.attributes.put(jsonKey, it)
-            call.attributes.put(isJsonKey, true)
+            call.attributes.put(keyJsonObject, it)
+        }
+    }
+    return data[key].asJsonObjectOrNull
+}
+
+
+suspend fun PipelineContext<Unit, ApplicationCall>.fetchPostJsonArray(key: String): JsonArray {
+    val data = if (call.attributes.contains(keyJsonObject)) {
+        call.attributes[keyJsonObject]
+    } else {
+        Json.parseToJsonElement(call.receiveText()).jsonObject.also {
+            call.attributes.put(keyJsonObject, it)
+            call.attributes.put(keyIsJson, true)
         }
     }
     return data[key].asJsonArray

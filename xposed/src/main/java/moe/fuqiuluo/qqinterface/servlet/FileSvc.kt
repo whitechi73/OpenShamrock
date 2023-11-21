@@ -1,7 +1,12 @@
 package moe.fuqiuluo.qqinterface.servlet
 
 import com.tencent.mobileqq.pb.ByteStringMicro
+import com.tencent.qqnt.kernel.nativeinterface.DeleteGroupFileResult
+import com.tencent.qqnt.kernel.nativeinterface.GroupFileCommonResult
+import com.tencent.qqnt.kernel.nativeinterface.IDeleteGroupFileCallback
 import io.ktor.util.Deflate
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import moe.fuqiuluo.proto.protobufOf
@@ -12,8 +17,11 @@ import moe.fuqiuluo.shamrock.tools.EMPTY_BYTE_ARRAY
 import moe.fuqiuluo.shamrock.tools.slice
 import moe.fuqiuluo.shamrock.tools.toHexString
 import moe.fuqiuluo.shamrock.utils.DeflateTools
+import moe.fuqiuluo.shamrock.xposed.helper.NTServiceFetcher
 import tencent.im.oidb.cmd0x6d8.oidb_0x6d8
 import tencent.im.oidb.oidb_sso
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 internal object FileSvc: BaseSvc() {
     fun createFileFolder(groupId: String, folderName: String) {
@@ -38,8 +46,23 @@ internal object FileSvc: BaseSvc() {
     }
 
     fun deleteGroupFile(groupId: String, bizId: Int, fileUid: String) {
+        /*
+        val kernelService = NTServiceFetcher.kernelService
+        val sessionService = kernelService.wrapperSession
+        val richMediaService = sessionService.richMediaService
+
+        val result = withTimeoutOrNull(3000L) {
+            suspendCancellableCoroutine {
+                richMediaService.deleteGroupFile(groupId.toLong(), fileUid, bizId) { code, _, result ->
+                    it.resume(code to result.result)
+                }
+            }
+        }
+
+        return if (result == null) Result.failure(RuntimeException("delete group file timeout")) else Result.success(result)*/
+        // 调用QQ内部实现会导致闪退！
         sendOidb("OidbSvc.0x6d6_3", 1750, 3, protobufOf(
-            4 to mapOf(
+             4 to mapOf(
                 1 to groupId.toLong(),
                 2 to 3,
                 3 to bizId,
