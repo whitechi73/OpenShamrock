@@ -86,7 +86,7 @@ internal object SendMessage: IActionHandler() {
         }
         return ok(MessageResult(
             msgId = result.second,
-            time = result.first * 0.001
+            time = (result.first * 0.001).toLong()
         ), echo = echo)
     }
 
@@ -103,7 +103,7 @@ internal object SendMessage: IActionHandler() {
         }
         return ok(MessageResult(
             msgId = result.second,
-            time = result.first * 0.001
+            time = (result.first * 0.001).toLong()
         ), echo)
     }
 

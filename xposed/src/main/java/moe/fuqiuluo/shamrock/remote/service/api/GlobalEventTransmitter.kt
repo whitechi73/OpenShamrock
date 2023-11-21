@@ -240,7 +240,7 @@ internal object GlobalEventTransmitter: BaseSvc() {
                 type = noticeType,
                 subType = noticeSubType,
                 operatorId = operation,
-                userId = operation,
+                userId = target,
                 senderId = operation,
                 target = target,
                 groupId = groupCode
