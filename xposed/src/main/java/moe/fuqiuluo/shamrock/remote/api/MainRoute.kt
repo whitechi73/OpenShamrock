@@ -17,10 +17,12 @@ import moe.fuqiuluo.shamrock.remote.config.ECHO_KEY
 import moe.fuqiuluo.shamrock.remote.entries.EmptyObject
 import moe.fuqiuluo.shamrock.remote.entries.IndexData
 import moe.fuqiuluo.shamrock.remote.entries.Status
+import moe.fuqiuluo.shamrock.tools.EmptyJsonObject
 import moe.fuqiuluo.shamrock.tools.fetchOrNull
 import moe.fuqiuluo.shamrock.tools.fetchOrThrow
 import moe.fuqiuluo.shamrock.tools.fetchPostJsonElement
 import moe.fuqiuluo.shamrock.tools.fetchPostJsonObject
+import moe.fuqiuluo.shamrock.tools.fetchPostJsonObjectOrNull
 import moe.fuqiuluo.shamrock.tools.isJsonArray
 import moe.fuqiuluo.shamrock.tools.isJsonObject
 import moe.fuqiuluo.shamrock.tools.isJsonString
@@ -55,7 +57,7 @@ fun Routing.echoVersion() {
             }
             call.attributes.put(ECHO_KEY, echo)
 
-            val params = fetchPostJsonObject("params")
+            val params = fetchPostJsonObjectOrNull("params") ?: EmptyJsonObject
 
             val handler = ActionManager[action]
             if (handler == null) {
