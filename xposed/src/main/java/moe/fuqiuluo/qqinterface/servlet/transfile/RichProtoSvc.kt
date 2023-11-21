@@ -63,24 +63,30 @@ internal object RichProtoSvc: BaseSvc() {
     suspend fun getC2CFileDownUrl(
         fileId: String,
         subId: String,
+        retryCnt: Int = 0
     ): String {
-        val uid = ContactHelper.getUidByUinAsync(app.currentUin.toLong())
-        val buffer = sendOidbAW("OidbSvcTrpcTcp.0xe37_1200", 3639, 1200, protobufOf(
+        val buffer = sendOidbAW("OidbSvc.0xe37_1200", 3639, 1200, protobufOf(
             1 to 1200,
             2 to 1 /* QRoute.api(IAudioHelperApi::class.java).genDebugSeq().toInt() */, /* seq */
             14 to mapOf(
-                10 to uid,
+                10 to app.longAccountUin,
                 20 to fileId,
                 30 to 2, /* ver */
                 60 to subId,
                 601 to 0
             ),
-            101 to 3,
+            101 to 3, // uint32_business_id
             102 to 104, /* client_type */
-            200 to 1, /* url_type */
-            99999 to 90200 to 1
-        ).toByteArray(), trpc = true)
+            200 to 1, /* uint32_flag_support_mediaplatform */
+            99999 to mapOf(
+                90200 to 1 // uint32_download_url_type
+            )
+        ).toByteArray())
+
         if (buffer == null) {
+            if (retryCnt < 3) {
+                return getC2CFileDownUrl(fileId, subId, retryCnt + 1)
+            }
             return ""
         } else {
             val body = oidb_sso.OIDBSSOPkg()
