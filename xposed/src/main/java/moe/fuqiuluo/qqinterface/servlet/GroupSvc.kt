@@ -8,6 +8,8 @@ import com.tencent.mobileqq.app.QQAppInterface
 import com.tencent.mobileqq.data.troop.TroopInfo
 import com.tencent.mobileqq.data.troop.TroopMemberInfo
 import com.tencent.mobileqq.pb.ByteStringMicro
+import com.tencent.mobileqq.qroute.QRoute
+import com.tencent.mobileqq.relation.api.IAddFriendTempApi
 import com.tencent.mobileqq.troop.api.ITroopInfoService
 import com.tencent.mobileqq.troop.api.ITroopMemberInfoService
 import com.tencent.protofile.join_group_link.join_group_link
@@ -23,6 +25,9 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeoutOrNull
 import moe.fuqiuluo.proto.ProtoUtils
+import moe.fuqiuluo.proto.asInt
+import moe.fuqiuluo.proto.asList
+import moe.fuqiuluo.proto.asLong
 import moe.fuqiuluo.proto.asUtf8String
 import moe.fuqiuluo.proto.protobufOf
 import moe.fuqiuluo.shamrock.helper.LogCenter
@@ -40,7 +45,10 @@ import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import java.nio.ByteBuffer
 import kotlin.coroutines.resume
-
+import tencent.mobileim.structmsg.`structmsg$ReqSystemMsgNew` as ReqSystemMsgNew
+import tencent.mobileim.structmsg.`structmsg$FlagInfo` as FlagInfo
+import tencent.mobileim.structmsg.`structmsg$RspSystemMsgNew` as RspSystemMsgNew
+import tencent.mobileim.structmsg.`structmsg$StructMsg` as StructMsg
 internal object GroupSvc: BaseSvc() {
     private val RefreshTroopMemberInfoLock by lazy {
         Mutex()
@@ -572,5 +580,89 @@ internal object GroupSvc: BaseSvc() {
         } else {
             Result.failure(Exception("获取群成员信息失败"))
         }
+    }
+
+    // ProfileService.Pb.ReqSystemMsgAction.Group
+    suspend fun requestGroupRequest(msgSeq: Long, uin: Long, gid: Long, msg: String? = "", approve: Boolean? = true, notSee: Boolean? = false): Result<String>{
+//        val app = AppRuntimeFetcher.appRuntime
+//        if (app !is AppInterface)
+//            throw RuntimeException("AppRuntime cannot cast to AppInterface")
+//        val service = QRoute.api(IAddFriendTempApi::class.java)
+//        val action = `structmsg$SystemMsgActionInfo`()
+//        action.type.set(if (approve != false) 11 else 12)
+//        action.group_code.set(gid)
+//        action.msg.set(msg)
+//        val snInfo = `structmsg$AddFrdSNInfo`()
+//        snInfo.uint32_not_see_dynamic.set(if (notSee != false) 1 else 0)
+////        snInfo.uint32_set_sn.set(0)
+//        action.addFrdSNInfo.set(snInfo)
+//        service.sendFriendSystemMsgAction(2, msgSeq * 1000, uin, 1, 2, 30024, 1, action, 0, `structmsg$StructMsg`(), false,
+//            app
+//        )
+        // 实在找不到接口了 发pb吧
+        val buffer = protobufOf(
+            1 to 2,
+            2 to msgSeq,
+            3 to uin,
+            4 to 1,
+            5 to 2,
+            6 to 30024,
+            7 to 1,
+            8 to mapOf(
+                1 to if (approve != false) 11 else 12,
+                2 to gid
+            ),
+            9 to 1000
+        ).toByteArray()
+        val respBuffer = sendBufferAW("ProfileService.Pb.ReqSystemMsgAction.Group", true, buffer)
+            ?: return Result.failure(Exception("操作失败"))
+        val result = ProtoUtils.decodeFromByteArray(respBuffer.slice(4))
+        return if (result.has(1, 1)) {
+            if (result[1, 1].asInt == 0) {
+                Result.success(result[2].asUtf8String)
+            } else {
+                Result.failure(Exception(result[2].asUtf8String))
+            }
+        } else {
+            Result.failure(Exception("操作失败"))
+        }
+    }
+
+    suspend fun requestGroupSystemMsgNew(msgNum: Int, latestFriendSeq: Long, latestGroupSeq: Long): List<StructMsg>? {
+        val req = ReqSystemMsgNew()
+        req.msg_num.set(msgNum)
+        req.latest_friend_seq.set(latestFriendSeq)
+        req.latest_group_seq.set(latestGroupSeq)
+        req.version.set(1000)
+        req.checktype.set(3)
+        val flag = FlagInfo()
+        flag.GrpMsg_Kick_Admin.set(1)
+        flag.GrpMsg_HiddenGrp.set(1)
+        flag.GrpMsg_WordingDown.set(1)
+//        flag.FrdMsg_GetBusiCard.set(1)
+        flag.GrpMsg_GetOfficialAccount.set(1)
+        flag.GrpMsg_GetPayInGroup.set(1)
+        flag.FrdMsg_Discuss2ManyChat.set(1)
+        flag.GrpMsg_NotAllowJoinGrp_InviteNotFrd.set(1)
+        flag.FrdMsg_NeedWaitingMsg.set(1)
+//        flag.FrdMsg_uint32_need_all_unread_msg.set(1)
+        flag.GrpMsg_NeedAutoAdminWording.set(1)
+        flag.GrpMsg_get_transfer_group_msg_flag.set(1)
+        flag.GrpMsg_get_quit_pay_group_msg_flag.set(1)
+        flag.GrpMsg_support_invite_auto_join.set(1)
+        flag.GrpMsg_mask_invite_auto_join.set(1)
+        flag.GrpMsg_GetDisbandedByAdmin.set(1)
+        flag.GrpMsg_GetC2cInviteJoinGroup.set(1)
+        req.flag.set(flag)
+        req.is_get_frd_ribbon.set(false)
+        req.is_get_grp_ribbon.set(false)
+        req.friend_msg_type_flag.set(1)
+        req.uint32_req_msg_type.set(1)
+        req.uint32_need_uid.set(1)
+        val respBuffer = sendBufferAW("ProfileService.Pb.ReqSystemMsgNew.Group", true, req.toByteArray())
+            ?: return ArrayList()
+        val msg = RspSystemMsgNew()
+        msg.mergeFrom(respBuffer.slice(4))
+        return msg.groupmsgs.get()
     }
 }

@@ -40,6 +40,9 @@ internal object ActionManager {
             DeleteGroupFile, GetGroupFileSystemInfo, GetGroupRootFiles, GetGroupSubFiles,
             GetGroupFileUrl, UploadPrivateFile,
 
+            //REQUEST ACTION
+            SetFriendAddRequest, SetGroupAddRequest,
+
             // GUILD
             GetGuildServiceProfile,
 

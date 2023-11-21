@@ -58,6 +58,7 @@ internal data class NoticeEvent(
     @SerialName("target_id") val target: Long = 0,
     @SerialName("file") val file: GroupFileMsg? = null,
     @SerialName("private_file") val privateFile: PrivateFileMsg? = null,
+    @SerialName("flag") val flag: String? = null,
 )
 
 @Serializable

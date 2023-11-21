@@ -10,6 +10,8 @@ import io.ktor.server.request.uri
 import io.ktor.server.response.respond
 import io.ktor.util.AttributeKey
 import kotlinx.serialization.json.JsonElement
+import moe.fuqiuluo.shamrock.helper.Level
+import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.remote.entries.CommonResult
 import moe.fuqiuluo.shamrock.remote.entries.ErrorCatch
 import moe.fuqiuluo.shamrock.remote.entries.Status
@@ -55,6 +57,7 @@ fun Application.statusPages() {
             val echo = if (call.attributes.contains(ECHO_KEY)) {
                 call.attributes[ECHO_KEY]
             } else null
+            LogCenter.log(cause.stackTraceToString(), Level.ERROR)
             call.respond(CommonResult(
                 status = "failed",
                 retcode = Status.InternalHandlerError.code,
