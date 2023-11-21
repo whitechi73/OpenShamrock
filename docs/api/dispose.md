@@ -7,7 +7,7 @@ icon: bowling-ball
 对于 Shamrock 尚未实现的 API，会在标题添加标记 <Badge text="未实现" type="danger" vertical="baseline" />
 :::
 
-## 处理加好友请求 <Badge text="未实现" type="danger" />
+## 处理加好友请求
 
 该接口用于处理加好友请求。
 
@@ -27,7 +27,7 @@ icon: bowling-ball
 
 该接口将返回处理结果，其中 `data` 字段无数据。
 
-## 处理加群请求／邀请 <Badge text="未实现" type="danger" />
+## 处理加群请求／邀请
 
 该接口用于处理加群请求／邀请。
 
