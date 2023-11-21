@@ -170,12 +170,12 @@ suspend fun PipelineContext<Unit, ApplicationCall>.fetchPostOrThrow(key: String)
 }
 
 fun PipelineContext<Unit, ApplicationCall>.isJsonData(): Boolean {
-    return ContentType.Application.Json == call.request.contentType() || call.attributes[isJsonKey]
+    return ContentType.Application.Json == call.request.contentType() || (isJsonKey in call.attributes && call.attributes[isJsonKey])
 }
 
 suspend fun PipelineContext<Unit, ApplicationCall>.isJsonString(key: String): Boolean {
     if (!isJsonData()) return true
-    val data = if (call.attributes.contains(jsonKey)) {
+    val data = if (jsonKey in call.attributes) {
         call.attributes[jsonKey]
     } else {
         Json.parseToJsonElement(call.receiveText()).jsonObject.also {
