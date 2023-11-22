@@ -84,7 +84,10 @@ internal object GetHistoryMsg: IActionHandler() {
                     msgId = MessageHelper.generateMsgIdHash(msg.chatType, msg.msgId),
                     realId = seq,
                     sender = MessageSender(
-                        msg.senderUin, msg.sendNickName, "unknown", 0, msg.senderUid
+                        msg.senderUin, msg.sendNickName
+                            .ifBlank { msg.sendMemberName }
+                            .ifBlank { msg.sendRemarkName }
+                            .ifBlank { msg.peerName }, "unknown", 0, msg.senderUid
                     ),
                     message = MessageConvert.convertMessageRecordToMsgSegment(msg).map {
                         it.toJson()

@@ -13,6 +13,11 @@ import moe.fuqiuluo.shamrock.tools.fetchOrThrow
 import moe.fuqiuluo.shamrock.tools.getOrPost
 
 fun Routing.troopAction() {
+    getOrPost("/get_prohibited_member_list") {
+        val groupId = fetchOrThrow("group_id").toLong()
+        call.respondText(GetProhibitedMemberList(groupId), ContentType.Application.Json)
+    }
+
     getOrPost("/group_touch") {
         val groupId = fetchOrThrow("group_id")
         val userId = fetchOrThrow("user_id")
@@ -21,31 +26,36 @@ fun Routing.troopAction() {
 
     getOrPost("/get_group_honor_info") {
         val groupId = fetchOrThrow("group_id")
-        val refresh = fetchOrNull("refresh")?.toBooleanStrict() ?: false
+        val refresh = fetchOrNull("no_cache")?.toBooleanStrict()
+            ?: fetchOrNull("refresh")?.toBooleanStrict() ?: false
         call.respondText(GetTroopHonor(groupId, refresh), ContentType.Application.Json)
     }
 
     getOrPost("/get_group_member_list") {
         val groupId = fetchOrThrow("group_id")
-        val refresh = fetchOrNull("refresh")?.toBooleanStrict() ?: false
+        val refresh = fetchOrNull("no_cache")?.toBooleanStrict()
+            ?: fetchOrNull("refresh")?.toBooleanStrict() ?: false
         call.respondText(GetTroopMemberList(groupId, refresh), ContentType.Application.Json)
     }
 
     getOrPost("/get_group_member_info") {
         val groupId = fetchOrThrow("group_id")
         val userId = fetchOrThrow("user_id")
-        val refresh = fetchOrNull("no_cache")?.toBooleanStrict() ?: false
+        val refresh = fetchOrNull("no_cache")?.toBooleanStrict()
+            ?: fetchOrNull("refresh")?.toBooleanStrict() ?: false
         call.respondText(GetTroopMemberInfo(groupId, userId, refresh), ContentType.Application.Json)
     }
 
     getOrPost("/get_group_list") {
-        val refresh = fetchOrNull("refresh")?.toBooleanStrict() ?: true
+        val refresh = fetchOrNull("refresh")?.toBooleanStrict()
+            ?: fetchOrNull("refresh")?.toBooleanStrict() ?: true
         call.respondText(GetTroopList(refresh), ContentType.Application.Json)
     }
 
     getOrPost("/get_group_info") {
         val groupId = fetchOrThrow("group_id")
-        val refresh = fetchOrNull("no_cache")?.toBooleanStrict() ?: false
+        val refresh = fetchOrNull("no_cache")?.toBooleanStrict()
+            ?: fetchOrNull("refresh")?.toBooleanStrict() ?: false
         call.respondText(GetTroopInfo(groupId, refresh), ContentType.Application.Json)
     }
 
