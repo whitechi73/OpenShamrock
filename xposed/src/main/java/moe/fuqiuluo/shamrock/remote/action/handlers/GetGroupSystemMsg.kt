@@ -21,9 +21,9 @@ internal object GetGroupSystemMsg: IActionHandler() {
         )
         list?.forEach {
             when(it.msg.group_msg_type.get()) {
-                22, 2 -> {
-                    // invite
-                    msgs.invited += GroupRequest (
+                22, 1 -> {
+                    // join 进群消息
+                    msgs.join += GroupRequest (
                         msgSeq = it.msg_seq.get(),
                         invitorUin = it.msg.action_uin.get(),
                         invitorNick = it.msg.action_uin_nick.get(),
@@ -32,14 +32,14 @@ internal object GetGroupSystemMsg: IActionHandler() {
                         checked = it.msg.msg_decided.get().isNotBlank(),
                         actor = it.msg.actor_uin.get(),
                         requesterUin = it.req_uin.get(),
-                        requesterNick = "",
-                        message = "",
+                        requesterNick = it.msg.req_uin_nick.get(),
+                        message = it.msg.msg_additional.get(),
                         flag = "${it.msg_seq.get()};${it.msg.group_code.get()};${it.req_uin.get()}"
                     )
                 }
-                1 -> {
-                    // add
-                    msgs.join += GroupRequest (
+                2 -> {
+                    // invite 别人邀请我
+                    msgs.invited += GroupRequest (
                         msgSeq = it.msg_seq.get(),
                         invitorUin = null,
                         invitorNick = null,
@@ -47,8 +47,8 @@ internal object GetGroupSystemMsg: IActionHandler() {
                         groupName = it.msg.group_name.get(),
                         checked = it.msg.msg_decided.get().isNotBlank(),
                         actor = it.msg.actor_uin.get(),
-                        requesterUin = it.req_uin.get(),
-                        requesterNick = it.msg.req_uin_nick.get(),
+                        requesterUin = 0,
+                        requesterNick = "",
                         message = it.msg.msg_additional.get(),
                         flag = "${it.msg_seq.get()};${it.msg.group_code.get()};${it.req_uin.get()}"
                     )
