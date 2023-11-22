@@ -27,11 +27,11 @@ fun Routing.requestRouter() {
         val flag = fetchOrThrow("flag")
         val approve = fetchOrNull("approve")?.toBooleanStrict() ?: true
         val remark = fetchOrNull("reason")
-        val subType = fetchOrNull("sub_type")
+        val subType = fetchOrThrow("sub_type")
         val notSeen = fetchOrNull("not_seen")?.toBooleanStrict() ?: false
 
         call.respondText(
-            SetGroupAddRequest(flag, approve, subType ?: "add", remark, notSeen),
+            SetGroupAddRequest(flag, approve, subType, remark, notSeen),
             ContentType.Application.Json
         )
     }

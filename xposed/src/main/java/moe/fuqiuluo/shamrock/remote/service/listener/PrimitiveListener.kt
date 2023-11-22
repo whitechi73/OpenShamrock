@@ -64,6 +64,7 @@ internal object PrimitiveListener {
             34 -> onGroupMemberDecreased(msgTime, pb)
             44 -> onGroupAdminChange(msgTime, pb)
             84 -> onGroupApply(msgTime, pb)
+            87 -> onInviteGroup(msgTime, pb)
             528 -> when(subType) {
                 35 -> onFriendApply(msgTime, pb)
                 // invite
@@ -337,13 +338,12 @@ internal object PrimitiveListener {
                 val applierUid = pb[1, 3, 2, 3].asUtf8String
                 val reason = pb[1, 3, 2, 5].asUtf8String
                 val applier = ContactHelper.getUinByUidAsync(applierUid).toLong()
-                val msg_time = pb[1, 2, 6].asLong
 
-                LogCenter.log("$msg_time 入群申请($groupCode) $applier: \"$reason\"")
+                LogCenter.log("入群申请($groupCode) $applier: \"$reason\"")
                 try {
                     val reqs = requestGroupSystemMsgNew(20, 0, 0)
                     val req = reqs?.first {
-                        it.msg_time.get() == msg_time
+                        it.msg_time.get() == time
                     }
                     val seq = req?.msg_seq?.get()
                     val flag = "$seq;$groupCode;$applierUid"
@@ -363,18 +363,21 @@ internal object PrimitiveListener {
                 val groupCode = pb[1, 3, 2, 2, 3].asULong
                 val applierUid = pb[1, 3, 2, 2, 5].asUtf8String
                 val applier = ContactHelper.getUinByUidAsync(applierUid).toLong()
-                val msg_time = pb[1, 2, 6].asLong
+                if (pb[1, 3, 2, 2, 1].asInt < 3) {
+                    // todo
+                    return
+                }
                 LogCenter.log("邀请入群申请($groupCode): $applier")
                 try {
                     val reqs = requestGroupSystemMsgNew(20, 0, 0)
                     val req = reqs?.first {
-                        it.msg_time.get() == msg_time
+                        it.msg_time.get() == time
                     }
                     val seq = req?.msg_seq?.get()
                     val flag = "$seq;$groupCode;$applierUid"
                     if(!seq?.let {
                             GlobalEventTransmitter.GroupNoticeTransmitter
-                                .transGroupApply(it, applier, "", groupCode, flag,  NoticeSubType.Invite)
+                                .transGroupApply(it, applier, "", groupCode, flag,  NoticeSubType.Add)
                         }!!) {
                         LogCenter.log("邀请入群申请推送失败！", Level.WARN)
                     }
@@ -386,4 +389,29 @@ internal object PrimitiveListener {
             }
         }
     }
+    private suspend fun onInviteGroup(time: Long, pb: ProtoMap) {
+        val groupCode = pb[1, 3, 2, 1].asULong
+        val invitorUid = pb[1, 3, 2, 5].asUtf8String
+        val invitor = ContactHelper.getUinByUidAsync(invitorUid).toLong()
+        val uin = pb[1, 1, 5].asLong
+        LogCenter.log("邀请入群$groupCode 邀请者: \"$invitor\"")
+        try {
+            val reqs = requestGroupSystemMsgNew(20, 0, 0)
+            val req = reqs?.first {
+                it.msg_time.get() == time
+            }
+            val seq = req?.msg_seq?.get()
+            val flag = "$seq;$groupCode;$uin"
+            if(!seq?.let {
+                    GlobalEventTransmitter.GroupNoticeTransmitter
+                        .transGroupApply(it, invitor, "", groupCode, flag, NoticeSubType.Invite)
+                }!!) {
+                LogCenter.log("邀请入群推送失败！", Level.WARN)
+            }
+        } catch (err: Throwable) {
+            LogCenter.log("邀请入群推送失败！", Level.WARN)
+            LogCenter.log(err.stackTraceToString(), Level.ERROR)
+        }
+    }
+
 }

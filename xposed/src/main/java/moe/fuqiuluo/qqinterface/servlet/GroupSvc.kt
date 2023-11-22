@@ -600,7 +600,15 @@ internal object GroupSvc: BaseSvc() {
     }
 
     // ProfileService.Pb.ReqSystemMsgAction.Group
-    suspend fun requestGroupRequest(msgSeq: Long, uin: Long, gid: Long, msg: String? = "", approve: Boolean? = true, notSee: Boolean? = false): Result<String>{
+    suspend fun requestGroupRequest(
+        msgSeq: Long,
+        uin: Long,
+        gid: Long,
+        msg: String? = "",
+        approve: Boolean? = true,
+        notSee: Boolean? = false,
+        subType: String
+    ): Result<String>{
 //        val app = AppRuntimeFetcher.appRuntime
 //        if (app !is AppInterface)
 //            throw RuntimeException("AppRuntime cannot cast to AppInterface")
@@ -617,20 +625,44 @@ internal object GroupSvc: BaseSvc() {
 //            app
 //        )
         // 实在找不到接口了 发pb吧
-        val buffer = protobufOf(
-            1 to 2,
-            2 to msgSeq,
-            3 to uin,
-            4 to 1,
-            5 to 2,
-            6 to 30024,
-            7 to 1,
-            8 to mapOf(
-                1 to if (approve != false) 11 else 12,
-                2 to gid
-            ),
-            9 to 1000
-        ).toByteArray()
+        val buffer: ByteArray
+        when (subType) {
+            "invite" -> {
+                buffer = protobufOf(
+                    1 to 1,
+                    2 to msgSeq,
+                    3 to uin, // self
+                    4 to 1,
+                    5 to 3,
+                    6 to 10016,
+                    7 to 2,
+                    8 to mapOf(
+                        1 to if (approve != false) 11 else 12,
+                        2 to gid
+                    ),
+                    9 to 1000
+                ).toByteArray()
+            }
+            "add" -> {
+                buffer = protobufOf(
+                    1 to 2,
+                    2 to msgSeq,
+                    3 to uin,
+                    4 to 1,
+                    5 to 2,
+                    6 to 30024,
+                    7 to 1,
+                    8 to mapOf(
+                        1 to if (approve != false) 11 else 12,
+                        2 to gid
+                    ),
+                    9 to 1000
+                ).toByteArray()
+            }
+            else -> {
+                return Result.failure(Exception("不支持的sub_type"))
+            }
+        }
         val respBuffer = sendBufferAW("ProfileService.Pb.ReqSystemMsgAction.Group", true, buffer)
             ?: return Result.failure(Exception("操作失败"))
         val result = ProtoUtils.decodeFromByteArray(respBuffer.slice(4))

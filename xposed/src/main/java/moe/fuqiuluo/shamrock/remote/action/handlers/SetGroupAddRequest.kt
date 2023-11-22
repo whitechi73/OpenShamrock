@@ -1,11 +1,9 @@
 package moe.fuqiuluo.shamrock.remote.action.handlers
 
 import kotlinx.serialization.json.JsonElement
-import moe.fuqiuluo.qqinterface.servlet.FriendSvc
 import moe.fuqiuluo.qqinterface.servlet.GroupSvc
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
-import moe.fuqiuluo.shamrock.remote.service.data.push.NoticeSubType
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
 
 internal object SetGroupAddRequest: IActionHandler() {
@@ -22,9 +20,9 @@ internal object SetGroupAddRequest: IActionHandler() {
         val flags = flag.split(";")
         val ts = flags[0].toLong()
         val groupCode = flags[1].toLong()
-        val applier = flags[2].toLong()
+        val uin = flags[2].toLong()
         return try {
-            val result = GroupSvc.requestGroupRequest(ts, applier, groupCode, remark ?: "", approve, notSeen)
+            val result = GroupSvc.requestGroupRequest(ts, uin, groupCode, remark ?: "", approve, notSeen, subType)
             if (result.isSuccess) {
                 ok(result.getOrNull(), echo)
             } else {
