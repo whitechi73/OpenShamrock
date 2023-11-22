@@ -18,7 +18,7 @@ internal object GetProhibitedMemberList: IActionHandler() {
     ): String {
         val result = GroupSvc.getProhibitedMemberList(groupCode)
         if (result.isFailure) {
-            return error(result.exceptionOrNull()?.message ?: "获取禁言列表失败", echo)
+            return error(result.exceptionOrNull()?.message ?: "获取禁言列表失败", echo, arrayResult = true)
         }
         return ok(result.getOrThrow(), echo)
     }
