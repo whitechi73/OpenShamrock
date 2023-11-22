@@ -1,6 +1,7 @@
 @file:OptIn(DelicateCoroutinesApi::class)
 package moe.fuqiuluo.shamrock.remote.service.listener
 
+import android.os.Build
 import moe.fuqiuluo.shamrock.helper.MessageHelper
 import com.tencent.qqnt.kernel.nativeinterface.*
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -16,6 +17,7 @@ import moe.fuqiuluo.shamrock.helper.db.MessageDB
 import moe.fuqiuluo.shamrock.remote.service.api.GlobalEventTransmitter
 import moe.fuqiuluo.shamrock.remote.service.data.push.MessageTempSource
 import moe.fuqiuluo.shamrock.remote.service.data.push.PostType
+import mqq.app.MobileQQ
 import java.util.ArrayList
 import java.util.Collections
 import kotlin.collections.HashMap
