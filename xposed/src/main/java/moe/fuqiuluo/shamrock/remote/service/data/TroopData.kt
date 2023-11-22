@@ -43,3 +43,26 @@ internal data class SimpleTroopMemberInfo(
     @SerialName("unfriendly") val unfriendly: Boolean,
     @SerialName("card_changeable") val cardChangeable: Boolean,
 )
+
+@Serializable
+internal data class GroupRequest(
+    // InvitedRequest
+    @SerialName("request_id") val msgSeq: Long,
+    @SerialName("invitor_uin") val invitorUin: Long?,
+    @SerialName("invitor_nick") val invitorNick: String?,
+    @SerialName("group_id") val groupId: Long,
+    @SerialName("group_name") val groupName: String,
+    @SerialName("checked") val checked: Boolean,
+    @SerialName("actor") val actor: Long,
+    // JoinRequest
+    @SerialName("requester_uin") val requesterUin: Long,
+    @SerialName("requester_nick") val requesterNick: String,
+    @SerialName("message") val message: String,
+    @SerialName("flag") val flag: String,
+)
+
+@Serializable
+internal data class GroupSystemMessage(
+    @SerialName("invited_requests") var invited: List<GroupRequest>,
+    @SerialName("join_requests") var join: List<GroupRequest>,
+)

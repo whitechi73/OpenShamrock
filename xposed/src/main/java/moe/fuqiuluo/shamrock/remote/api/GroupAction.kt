@@ -106,4 +106,8 @@ fun Routing.troopAction() {
         call.respondText(DeleteEssenceMessage(messageId), ContentType.Application.Json)
     }
 
+    getOrPost("/get_group_system_msg") {
+        call.respondText(GetGroupSystemMsg(), ContentType.Application.Json)
+    }
+
 }
