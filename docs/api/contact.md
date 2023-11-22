@@ -528,7 +528,7 @@ icon: address-book
 | id          | int32  | ID       |
 | description | string | 描述     |
 
-## 获取群系统消息 <Badge text="未实现" type="danger" />
+## 获取群系统消息
 
 该接口用于获取群系统消息。
 
@@ -558,6 +558,8 @@ icon: address-book
 | group_name   | string | 群名              |
 | checked      | bool   | 是否已被处理      |
 | actor        | int64  | 处理者, 未处理为0 |
+| requester_uin| int64  | 被邀请者ID        |
+| flag         | string | flag,用于处理请求 |
 
 #### JoinRequest
 
@@ -571,6 +573,7 @@ icon: address-book
 | group_name     | string | 群名              |
 | checked        | bool   | 是否已被处理      |
 | actor          | int64  | 处理者, 未处理为0 |
+| flag           | string | flag,用于处理请求 |
 
 ## 获取精华消息列表 <Badge text="未实现" type="danger" />
 
