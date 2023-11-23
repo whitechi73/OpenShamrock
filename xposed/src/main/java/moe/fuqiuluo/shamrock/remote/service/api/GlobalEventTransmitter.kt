@@ -329,6 +329,7 @@ internal object GlobalEventTransmitter: BaseSvc() {
                 postType = PostType.Notice,
                 type = NoticeType.GroupApply,
                 operatorId = operator,
+                userId = operator,
                 tip = reason,
                 groupId = groupCode,
                 subType = subType,

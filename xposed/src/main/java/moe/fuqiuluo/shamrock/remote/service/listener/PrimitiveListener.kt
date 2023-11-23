@@ -374,7 +374,7 @@ internal object PrimitiveListener {
                         it.msg_time.get() == time
                     }
                     val seq = req?.msg_seq?.get()
-                    val flag = "$seq;$groupCode;$applierUid"
+                    val flag = "$seq;$groupCode;$applier"
                     if(!seq?.let {
                             GlobalEventTransmitter.GroupNoticeTransmitter
                                 .transGroupApply(it, applier, "", groupCode, flag,  NoticeSubType.Add)
