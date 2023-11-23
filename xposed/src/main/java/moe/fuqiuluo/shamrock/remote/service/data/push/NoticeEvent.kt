@@ -80,7 +80,7 @@ internal data class RequestEvent(
     @SerialName("time") val time: Long,
     @SerialName("self_id") val selfId: Long,
     @SerialName("post_type") val postType: PostType,
-    @SerialName("request_type ") val type: RequestType,
+    @SerialName("request_type") val type: RequestType,
     @SerialName("sub_type") val subType: RequestSubType = RequestSubType.None,
     @SerialName("group_id") val groupId: Long = 0,
     @SerialName("user_id") val userId: Long = 0,
