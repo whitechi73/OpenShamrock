@@ -40,11 +40,15 @@ import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.helper.MessageHelper
 import moe.fuqiuluo.shamrock.remote.service.data.EssenceMessage
+import moe.fuqiuluo.shamrock.remote.service.data.GroupAnnouncement
+import moe.fuqiuluo.shamrock.remote.service.data.GroupAnnouncementMessage
+import moe.fuqiuluo.shamrock.remote.service.data.GroupAnnouncementMessageImage
 import moe.fuqiuluo.shamrock.tools.EmptyJsonArray
 import moe.fuqiuluo.shamrock.tools.GlobalClient
 import moe.fuqiuluo.shamrock.tools.asInt
 import moe.fuqiuluo.shamrock.tools.asJsonArrayOrNull
 import moe.fuqiuluo.shamrock.tools.asJsonObject
+import moe.fuqiuluo.shamrock.tools.asJsonObjectOrNull
 import moe.fuqiuluo.shamrock.tools.asLong
 import moe.fuqiuluo.shamrock.tools.asString
 import moe.fuqiuluo.shamrock.tools.asStringOrNull
@@ -751,7 +755,6 @@ internal object GroupSvc: BaseSvc() {
             header("Cookie", cookie)
         }
         val body = Json.decodeFromStream<JsonElement>(response.body())
-        LogCenter.log(body.toString(), Level.WARN)
         if (body.jsonObject["retcode"].asInt == 0) {
             val data = body.jsonObject["data"].asJsonObject
             val list = data["msg_list"].asJsonArrayOrNull
@@ -780,6 +783,39 @@ internal object GroupSvc: BaseSvc() {
         } else {
             return Result.failure(Exception(body.jsonObject["retmsg"].asStringOrNull))
         }
+    }
 
+    @OptIn(ExperimentalSerializationApi::class)
+    suspend fun getGroupAnnouncements(groupId: Long): Result<List<GroupAnnouncement>>{
+        val cookie = TicketSvc.getCookie("qun.qq.com")
+        val bkn = TicketSvc.getBkn(TicketSvc.getRealSkey(TicketSvc.getUin()))
+        val url = "https://web.qun.qq.com/cgi-bin/announce/get_t_list?bkn=${bkn}&qid=${groupId}&ft=23&s=-1&n=20"
+        val response = GlobalClient.get(url) {
+            header("Cookie", cookie)
+        }
+        val body = Json.decodeFromStream<JsonElement>(response.body())
+        if (body.jsonObject["ec"].asInt == 0) {
+            val list = body.jsonObject["feeds"].asJsonArrayOrNull
+                ?: return Result.success(ArrayList())
+            return Result.success(list.map {
+                val obj = it.jsonObject
+                GroupAnnouncement(
+                    senderId = obj["u"].asLong,
+                    publishTime = obj["pubt"].asLong,
+                    message = GroupAnnouncementMessage(
+                        text = obj["msg"].asJsonObject["text"].asString,
+                        images = obj["msg"].asJsonObject["pics"].asJsonArrayOrNull?.map {
+                            GroupAnnouncementMessageImage(
+                                id = it.jsonObject["id"].asString,
+                                width = it.jsonObject["w"].asString,
+                                height = it.jsonObject["h"].asString,
+                            )
+                        } ?: ArrayList()
+                    )
+                )
+            })
+        } else {
+            return Result.failure(Exception(body.jsonObject["em"].asStringOrNull))
+        }
     }
 }

@@ -128,4 +128,9 @@ fun Routing.troopAction() {
         call.respondText(GetGroupSystemMsg(), ContentType.Application.Json)
     }
 
+    getOrPost("/_get_group_notice") {
+        val groupId = fetchOrThrow("group_id").toLong()
+        call.respondText(GetGroupNotice(groupId), ContentType.Application.Json)
+    }
+
 }

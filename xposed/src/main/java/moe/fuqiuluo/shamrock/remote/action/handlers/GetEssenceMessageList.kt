@@ -28,6 +28,6 @@ internal object GetEssenceMessageList: IActionHandler() {
 
     }
 
-    override val alias: Array<String> = arrayOf("delete_essence_message")
-    override fun path(): String = "delete_essence_msg"
+    override val alias: Array<String> = arrayOf("get_essence_message_list")
+    override fun path(): String = "get_essence_msg_list"
 }
