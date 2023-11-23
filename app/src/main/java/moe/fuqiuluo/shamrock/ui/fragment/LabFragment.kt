@@ -1,5 +1,6 @@
 package moe.fuqiuluo.shamrock.ui.fragment
 
+import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.absolutePadding
@@ -22,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import moe.fuqiuluo.shamrock.R
 import moe.fuqiuluo.shamrock.ui.app.AppRuntime
+import moe.fuqiuluo.shamrock.ui.app.Level
 import moe.fuqiuluo.shamrock.ui.app.ShamrockConfig
 import moe.fuqiuluo.shamrock.ui.theme.GlobalColor
 import moe.fuqiuluo.shamrock.ui.theme.LocalString
@@ -90,7 +92,7 @@ fun LabFragment() {
             modifier = Modifier.padding(top = 12.dp),
             painter = painterResource(id = R.drawable.round_logo_dev_24),
             title = "实验功能"
-        ) {
+        ) { color ->
             Column {
                 Divider(
                     modifier = Modifier,
@@ -101,7 +103,7 @@ fun LabFragment() {
                 Function(
                     title = "自动清理QQ垃圾",
                     desc = "也许会导致奇怪的问题（无效）。",
-                    descColor = it,
+                    descColor = color,
                     isSwitch = ShamrockConfig.isAutoClean(ctx)
                 ) {
                     ShamrockConfig.setAutoClean(ctx, it)
@@ -112,7 +114,7 @@ fun LabFragment() {
                 Function(
                     title = "拦截QQ无用收包",
                     desc = "测试阶段，可能导致网络异常或掉线。",
-                    descColor = it,
+                    descColor = color,
                     isSwitch = ShamrockConfig.isInjectPacket(ctx)
                 ) {
                     ShamrockConfig.setInjectPacket(ctx, it)
@@ -123,7 +125,7 @@ fun LabFragment() {
                 Function(
                     title = "自动唤醒QQ",
                     desc = "QQ进程死亡时重新打开QQ进程，前提本进程存活。",
-                    descColor = it,
+                    descColor = color,
                     isSwitch = ShamrockConfig.enableAutoStart(ctx)
                 ) {
                     ShamrockConfig.setAutoStart(ctx, it)
@@ -133,12 +135,30 @@ fun LabFragment() {
                 Function(
                     title = "开启Shell接口",
                     desc = "可能导致设备被入侵，请勿随意开启。",
-                    descColor = it,
+                    descColor = color,
                     isSwitch = ShamrockConfig.allowShell(ctx)
                 ) {
                     ShamrockConfig.setShellStatus(ctx, it)
                     return@Function true
                 }
+
+                kotlin.runCatching {
+                    ctx.getSharedPreferences("shared_config", Context.MODE_WORLD_READABLE)
+                }.onSuccess {
+                    Function(
+                        title = "免死金牌",
+                        desc = "由系统复活QQ和Shamrock，需要重新启动系统。",
+                        descColor = color,
+                        isSwitch = it.getBoolean("persistent", false)
+                    ) { v ->
+                        it.edit().putBoolean("persistent", v).apply()
+                        scope.toast(ctx, "重启系统生效哦！")
+                        return@Function true
+                    }
+                }.onFailure {
+                    AppRuntime.log("无法启用免死金牌选项，当前Lsposed模块未激活或者不支持NewSharedPreferences。", Level.WARN)
+                }
+
             }
 
         }

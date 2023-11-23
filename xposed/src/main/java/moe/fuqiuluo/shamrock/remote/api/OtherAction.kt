@@ -4,6 +4,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.content.PartData
 import io.ktor.http.content.forEachPart
 import io.ktor.http.content.streamProvider
+import io.ktor.server.application.Application
 import io.ktor.server.application.call
 import io.ktor.server.request.receiveMultipart
 import io.ktor.server.response.respondText
@@ -27,6 +28,7 @@ import moe.fuqiuluo.shamrock.tools.fetchOrThrow
 import moe.fuqiuluo.shamrock.tools.fetchPostJsonArray
 import moe.fuqiuluo.shamrock.tools.getOrPost
 import moe.fuqiuluo.shamrock.tools.isJsonArray
+import moe.fuqiuluo.shamrock.tools.json
 import moe.fuqiuluo.shamrock.tools.respond
 import moe.fuqiuluo.shamrock.utils.FileUtils
 import moe.fuqiuluo.shamrock.utils.MD5
@@ -39,7 +41,7 @@ fun Routing.otherAction() {
         post("/shell") {
             val runtime = Runtime.getRuntime()
             val dir = fetchOrThrow("dir")
-            val out = StringBuilder()
+            val out = hashMapOf<String, Any>()
             withTimeoutOrNull(5000L) {
                 if (isJsonArray("cmd")) {
                     val cmd = fetchPostJsonArray("cmd").map {
@@ -59,17 +61,15 @@ fun Routing.otherAction() {
                     respond(false, Status.IAmTired, "执行超时")
                 } else {
                     it.inputStream.use {
-                        out.append("stdout:\n")
-                        out.append(it.readBytes().toString(Charsets.UTF_8))
+                        out["out"] = it.readBytes().toString(Charsets.UTF_8)
                     }
                     it.errorStream.use {
-                        out.append("\nstderr:\n")
-                        out.append(it.readBytes().toString(Charsets.UTF_8))
+                        out["err"] = it.readBytes().toString(Charsets.UTF_8)
                     }
                 }
             }
 
-            call.respondText(out.toString())
+            call.respondText(out.json.toString(), ContentType.Application.Json)
         }
     }
 

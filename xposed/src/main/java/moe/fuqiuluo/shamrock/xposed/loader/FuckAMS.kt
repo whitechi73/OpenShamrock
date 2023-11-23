@@ -3,6 +3,8 @@ package moe.fuqiuluo.shamrock.xposed.loader
 
 import android.content.pm.ApplicationInfo
 import android.os.Build
+import com.arthenica.ffmpegkit.BuildConfig
+import de.robv.android.xposed.XSharedPreferences
 import de.robv.android.xposed.XposedBridge
 import de.robv.android.xposed.XposedHelpers
 import moe.fuqiuluo.shamrock.tools.hookMethod
@@ -16,6 +18,7 @@ internal object FuckAMS {
     private lateinit var KeepThread: Thread
 
     private lateinit var METHOD_IS_KILLED: Method
+    private var allowPersistent: Boolean = false
 
     fun injectAMS(loader: ClassLoader) {
         kotlin.runCatching {
@@ -24,15 +27,24 @@ internal object FuckAMS {
                 increaseAdj(it.result)
             }
         }.onFailure {
-            XposedBridge.log("Plan A failed: ${it.message}")
+            XposedBridge.log("[Shamrock] Plan A failed: ${it.message}")
         }
+
+        val pref = XSharedPreferences("moe.fuqiuluo.shamrock", "shared_config")
+        if (pref.file.canRead()) {
+            allowPersistent = pref.getBoolean("persistent", false)
+            XposedBridge.log("[Shamrock] allowPersistent = $allowPersistent")
+        } else {
+            XposedBridge.log("[Shamrock] unable to load XSharedPreferences")
+        }
+
         kotlin.runCatching {
             val ProcessList = XposedHelpers.findClass("com.android.server.am.ProcessList", loader)
             ProcessList.hookMethod("newProcessRecordLocked").after {
                 increaseAdj(it.result)
             }
         }.onFailure {
-            XposedBridge.log("Plan B failed: ${it.message}")
+            XposedBridge.log("[Shamrock] Plan B failed: ${it.message}")
         }
     }
 
@@ -75,14 +87,14 @@ internal object FuckAMS {
             if (!it.isAccessible) it.isAccessible = true
         }.get(record) as ApplicationInfo
         if(applicationInfo.processName in KeepPackage) {
-            XposedBridge.log("Process is keeping: $record")
+            XposedBridge.log("[Shamrock] Process is keeping: $record")
             KeepRecords.add(record)
             keepByAdj(record)
             // Error
-            //if (noDied.exists()) {
-            //    XposedBridge.log("Open NoDied Mode!!!")
-            //    keepByPersistent(record)
-            //}
+            if (allowPersistent) {
+                XposedBridge.log("[Shamrock] Open NoDied Mode!!!")
+                keepByPersistent(record)
+            }
             checkThread()
         }
     }
