@@ -7,9 +7,17 @@ icon: layer-group
 对于 Shamrock 未实现的消息类型，会在标题添加标记 <Badge text="未实现" type="danger" vertical="baseline" />
 :::
 
-## 合并转发 <Badge text="未实现" type="danger" />
+## 合并转发
 
-## 合并转发(节点) <Badge text="未实现" type="danger" />
+| 字段 | 类型   | 收  | 发  | 必填 | 说明      |
+| ---- | ------ | --- | --- | ---- | --------- |
+| id | string | ✓   | ✓   | 是   | 合并转发resid |
+
+## 合并转发(节点)
+
+| 字段 | 类型   | 收  | 发  | 必填 | 说明      |
+| ---- | ------ | --- | --- | ---- | --------- |
+| id | int64 | ✓   | ✓   | 是   | 消息ID |
 
 ## XML 消息 <Badge text="未实现" type="danger" />
 

@@ -27,9 +27,9 @@ icon: database
 | 类型             | 说明     |
 | ---------------- | -------- |
 | message          | 收到消息 |
-| ~~message_sent~~ | 发送消息 |
+| message_sent | 发送消息 |
 | notice           | 通知     |
-| ~~request~~      | 请求     |
+| request      | 请求     |
 
 ### MessageType
 

@@ -12,7 +12,7 @@ icon: bullhorn
 包含在通用数据中的字段不会在下面的表格中重复出现。
 :::
 
-## 加好友请求 <Badge text="未实现" type="danger" />
+## 加好友请求
 
 当 `request_type` 为 `friend` 时，表示收到了加好友请求。
 
@@ -31,7 +31,7 @@ Shamrock 提供了快速处理的功能，可以在收到请求时快速处理�
 | approve | bool   | 是否同意 |
 | remark  | string | 备注     |
 
-## 加群请求／邀请 <Badge text="未实现" type="danger" />
+## 加群请求／邀请
 
 当 `request_type` 为 `group` 时，表示收到了加群请求／邀请。
 

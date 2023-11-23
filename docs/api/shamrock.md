@@ -137,6 +137,21 @@ User-Agent=YOUR_UA[\r\n]Referer=https://www.baidu.com
 | start  | int32 | 否   | 开始的行             |        |
 | recent | bool  | 否   | 是否只显示最近的日志 | false  |
 
+## 远程Shell执行
+
+该接口默认关闭，需要在实验室设置手动打开！注意，该接口可能导致您的隐私数据泄露，请勿公开在未知的网络，或者泄露您的token。
+
+### 请求类型
+
+`POST`
+
+### 参数
+
+| 字段   | 类型    | 必须 | 说明                 | 默认值 |
+| ------ | ------- | ---- | -------------------- | ------ |
+| cmd  | array 或 string | 是   | 命令内容             |        |
+| dir | string  | 是   | 当前所处的目录 |   |
+
 ## 关闭Shamrock
 
 ### API 端点
