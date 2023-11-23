@@ -5,6 +5,7 @@ import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 
+import com.tencent.qphone.base.remote.SimpleAccount;
 import com.tencent.qphone.base.remote.ToServiceMsg;
 
 import mqq.app.api.IRuntimeService;
@@ -71,6 +72,10 @@ public abstract class AppRuntime {
 
     public <T extends IRuntimeService> T getRuntimeServiceIPCSync(@NonNull Class<T> cls, String str) {
         throw new UnsupportedOperationException();
+    }
+
+    public void switchAccount(SimpleAccount simpleAccount, String process) {
+
     }
     public String getAccount() {
         return "";

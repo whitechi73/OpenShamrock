@@ -18,6 +18,7 @@ internal object ActionManager {
         arrayOf(
             // Framework Info
             TestHandler, GetLatestEvents, GetSupportedActions, GetStatus, GetVersionInfo, GetSelfInfo, GetLoginInfo,
+            SwitchAccount,
 
             // UserActions
             GetProfileCard, GetFriendList, SendLike, GetUid, GetUinByUid, ScanQRCode, SetProfileCard,

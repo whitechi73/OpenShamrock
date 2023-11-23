@@ -12,6 +12,11 @@ import moe.fuqiuluo.shamrock.tools.*
 import moe.fuqiuluo.shamrock.utils.PlatformUtils
 
 fun Routing.userAction() {
+    getOrPost("/switch_account") {
+        val userId = fetchOrThrow("user_id")
+        call.respondText(SwitchAccount(userId), ContentType.Application.Json)
+    }
+
     getOrPost("/set_group_leave") {
         val group = fetchOrThrow("group_id")
         call.respondText(LeaveTroop(group), ContentType.Application.Json)

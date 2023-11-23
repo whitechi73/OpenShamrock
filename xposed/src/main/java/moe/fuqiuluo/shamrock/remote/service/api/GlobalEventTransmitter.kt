@@ -104,7 +104,7 @@ internal object GlobalEventTransmitter: BaseSvc() {
             var nickName = record.sendNickName
             if (nickName.isNullOrBlank()) {
                 CardSvc.getProfileCard(record.senderUin.toString()).onSuccess {
-                    nickName = it.strNick ?: ""
+                    nickName = it.strNick ?: record.peerName
                 }
             }
             transMessageEvent(record,
