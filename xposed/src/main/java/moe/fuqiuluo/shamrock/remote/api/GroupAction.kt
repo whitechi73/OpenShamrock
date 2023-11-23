@@ -8,6 +8,7 @@ import io.ktor.server.routing.Routing
 import moe.fuqiuluo.shamrock.remote.action.ActionManager
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.handlers.*
+import moe.fuqiuluo.shamrock.tools.fetch
 import moe.fuqiuluo.shamrock.tools.fetchOrNull
 import moe.fuqiuluo.shamrock.tools.fetchOrThrow
 import moe.fuqiuluo.shamrock.tools.getOrPost
@@ -114,6 +115,13 @@ fun Routing.troopAction() {
     getOrPost("/delete_essence_msg") {
         val messageId = fetchOrThrow("message_id").toInt()
         call.respondText(DeleteEssenceMessage(messageId), ContentType.Application.Json)
+    }
+
+    getOrPost("/get_essence_msg_list") {
+        val groupId = fetchOrThrow("group_id").toLong()
+        val page = fetchOrNull("page")?.toIntOrNull() ?: 0
+        val pageSize = fetchOrNull("page_size")?.toIntOrNull() ?: 20
+        call.respondText(GetEssenceMessageList(groupId, page, pageSize), ContentType.Application.Json)
     }
 
     getOrPost("/get_group_system_msg") {

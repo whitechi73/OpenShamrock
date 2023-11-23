@@ -31,3 +31,16 @@ internal data class MessageSender(
     @SerialName("age") val age: Int,
     @SerialName("uid") val uid: String,
 )
+
+@Serializable
+internal data class EssenceMessage(
+    @SerialName("sender_id") val senderId: Long,
+    @SerialName("sender_nick") val senderNick: String,
+    @SerialName("sender_time") val senderTime: Long,
+    @SerialName("operator_id") val operatorId: Long,
+    @SerialName("operator_nick") val operatorNick: String,
+    @SerialName("operator_time") val operatorTime: Long,
+    @SerialName("message_id") var messageId: Int,
+    @SerialName("message_seq") val messageSeq: Int,
+    @SerialName("message_content") val messageContent: JsonElement,
+)

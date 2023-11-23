@@ -13,7 +13,11 @@ import com.tencent.mobileqq.troop.api.ITroopMemberInfoService
 import com.tencent.protofile.join_group_link.join_group_link
 import com.tencent.qphone.base.remote.ToServiceMsg
 import com.tencent.qqnt.kernel.nativeinterface.MemberInfo
+import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
 import friendlist.stUinInfo
+import io.ktor.client.call.body
+import io.ktor.client.request.get
+import io.ktor.client.request.header
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
@@ -22,12 +26,28 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.decodeFromStream
+import kotlinx.serialization.json.jsonObject
 import moe.fuqiuluo.proto.ProtoUtils
 import moe.fuqiuluo.proto.asInt
 import moe.fuqiuluo.proto.asUtf8String
 import moe.fuqiuluo.proto.protobufOf
 import moe.fuqiuluo.qqinterface.servlet.entries.ProhibitedMemberInfo
+import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
+import moe.fuqiuluo.shamrock.helper.MessageHelper
+import moe.fuqiuluo.shamrock.remote.service.data.EssenceMessage
+import moe.fuqiuluo.shamrock.tools.EmptyJsonArray
+import moe.fuqiuluo.shamrock.tools.GlobalClient
+import moe.fuqiuluo.shamrock.tools.asInt
+import moe.fuqiuluo.shamrock.tools.asJsonArrayOrNull
+import moe.fuqiuluo.shamrock.tools.asJsonObject
+import moe.fuqiuluo.shamrock.tools.asLong
+import moe.fuqiuluo.shamrock.tools.asString
+import moe.fuqiuluo.shamrock.tools.asStringOrNull
 import moe.fuqiuluo.shamrock.tools.ifNullOrEmpty
 import moe.fuqiuluo.shamrock.tools.putBuf32Long
 import moe.fuqiuluo.shamrock.tools.slice
@@ -718,5 +738,48 @@ internal object GroupSvc: BaseSvc() {
             msg.mergeFrom(respBuffer.slice(4))
             return msg.groupmsgs.get()
         }
+    }
+
+
+    @OptIn(ExperimentalSerializationApi::class)
+    suspend fun getEssenceMessageList(groupId: Long, page: Int = 0, pageSize: Int = 20): Result<List<EssenceMessage>>{
+//        GlobalClient.get()
+        val cookie = TicketSvc.getCookie("qun.qq.com")
+        val bkn = TicketSvc.getBkn(TicketSvc.getRealSkey(TicketSvc.getUin()))
+        val url = "https://qun.qq.com/cgi-bin/group_digest/digest_list?bkn=${bkn}&group_code=${groupId}&page_start=${page}&page_limit=${pageSize}"
+        val response = GlobalClient.get(url) {
+            header("Cookie", cookie)
+        }
+        val body = Json.decodeFromStream<JsonElement>(response.body())
+        LogCenter.log(body.toString(), Level.WARN)
+        if (body.jsonObject["retcode"].asInt == 0) {
+            val data = body.jsonObject["data"].asJsonObject
+            val list = data["msg_list"].asJsonArrayOrNull
+                ?: // is_end
+                return Result.success(ArrayList())
+            return Result.success(list.map {
+                val obj = it.jsonObject
+                val msgSeq = obj["msg_seq"].asInt
+                val msg = EssenceMessage(
+                    senderId = obj["sender_uin"].asString.toLong(),
+                    senderNick = obj["sender_nick"].asString,
+                    senderTime = obj["sender_time"].asLong,
+                    operatorId = obj["add_digest_uin"].asString.toLong(),
+                    operatorNick = obj["add_digest_nick"].asString,
+                    operatorTime = obj["add_digest_time"].asLong,
+                    messageId = 0,
+                    messageSeq = msgSeq,
+                    messageContent = obj["msg_content"] ?: EmptyJsonArray
+                )
+                val mapping = MessageHelper.getMsgMappingBySeq(MsgConstant.KCHATTYPEGROUP, msgSeq)
+                if (mapping != null) {
+                    msg.messageId = mapping.msgHashId
+                }
+                msg
+            })
+        } else {
+            return Result.failure(Exception(body.jsonObject["retmsg"].asStringOrNull))
+        }
+
     }
 }

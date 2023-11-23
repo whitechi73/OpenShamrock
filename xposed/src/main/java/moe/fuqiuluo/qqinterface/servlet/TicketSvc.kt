@@ -74,8 +74,13 @@ internal object TicketSvc: BaseSvc() {
     }
 
     suspend fun getCSRF(uin: String, domain: String): String {
+        // 是不是要用Skey？
+        return getBkn(getPSKey(uin, domain) ?: "")
+    }
+    
+    fun getBkn(arg: String): String {
         var v: Long = 5381
-        for (element in getPSKey(uin, domain) ?: "") {
+        for (element in arg) {
             v += (v shl 5 and 2147483647L) + element.code.toLong()
         }
         return (v and 2147483647L).toString()
