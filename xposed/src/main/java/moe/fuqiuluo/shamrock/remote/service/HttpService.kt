@@ -54,6 +54,12 @@ internal object HttpService: HttpTransmitServlet() {
             GlobalEventTransmitter.onNoticeEvent { event ->
                 pushTo(event)
             }
+
+        })
+        submitFlowJob(GlobalScope.launch {
+            GlobalEventTransmitter.onRequestEvent {
+                pushTo(it)
+            }
         })
         LogCenter.log("HttpService: 初始化服务", Level.WARN)
     }

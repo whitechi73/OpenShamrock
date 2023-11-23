@@ -39,6 +39,11 @@ internal class WebSocketService(host: String, port: Int): WebSocketTransmitServl
                 pushTo(event)
             }
         })
+        submitFlowJob(GlobalScope.launch {
+            GlobalEventTransmitter.onRequestEvent { event ->
+                pushTo(event)
+            }
+        })
         LogCenter.log("WebSocketService: 初始化服务", Level.WARN)
     }
 

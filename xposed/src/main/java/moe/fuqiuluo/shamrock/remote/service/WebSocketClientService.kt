@@ -33,6 +33,11 @@ internal class WebSocketClientService(
                 pushTo(event)
             }
         })
+        submitFlowJob(GlobalScope.launch {
+            GlobalEventTransmitter.onRequestEvent() { event ->
+                pushTo(event)
+            }
+        })
         LogCenter.log("WebSocketClientService: 初始化服务", Level.WARN)
     }
 

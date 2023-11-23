@@ -2,6 +2,7 @@ package moe.fuqiuluo.shamrock.remote.action.handlers
 
 import kotlinx.serialization.json.JsonElement
 import moe.fuqiuluo.qqinterface.servlet.GroupSvc
+import moe.fuqiuluo.qqinterface.servlet.transfile.RichProtoSvc
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.shamrock.remote.service.data.GroupRequest
@@ -10,11 +11,11 @@ import moe.fuqiuluo.shamrock.tools.EmptyJsonString
 
 internal object GetGroupSystemMsg: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
-        return invoke(session.echo)
+        return invoke(echo = session.echo)
     }
 
     suspend operator fun invoke(echo: JsonElement = EmptyJsonString): String {
-        val list = GroupSvc.requestGroupSystemMsgNew(20, 0, 0)
+        val list = GroupSvc.requestGroupSystemMsgNew(20)
         val msgs = GroupSystemMessage(
             invited = mutableListOf(),
             join = mutableListOf()

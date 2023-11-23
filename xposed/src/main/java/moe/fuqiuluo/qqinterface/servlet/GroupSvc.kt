@@ -677,7 +677,7 @@ internal object GroupSvc: BaseSvc() {
         }
     }
 
-    suspend fun requestGroupSystemMsgNew(msgNum: Int, latestFriendSeq: Long, latestGroupSeq: Long): List<StructMsg>? {
+    suspend fun requestGroupSystemMsgNew(msgNum: Int, latestFriendSeq: Long = 0, latestGroupSeq: Long = 0, retryCnt: Int = 3): List<StructMsg>? {
         val req = ReqSystemMsgNew()
         req.msg_num.set(msgNum)
         req.latest_friend_seq.set(latestFriendSeq)
@@ -709,9 +709,14 @@ internal object GroupSvc: BaseSvc() {
         req.uint32_req_msg_type.set(1)
         req.uint32_need_uid.set(1)
         val respBuffer = sendBufferAW("ProfileService.Pb.ReqSystemMsgNew.Group", true, req.toByteArray())
-            ?: return ArrayList()
-        val msg = RspSystemMsgNew()
-        msg.mergeFrom(respBuffer.slice(4))
-        return msg.groupmsgs.get()
+        return if (respBuffer == null && retryCnt >= 0) {
+            requestGroupSystemMsgNew(msgNum, latestFriendSeq, latestGroupSeq, retryCnt - 1)
+        } else if (respBuffer == null) {
+            ArrayList()
+        } else {
+            val msg = RspSystemMsgNew()
+            msg.mergeFrom(respBuffer.slice(4))
+            return msg.groupmsgs.get()
+        }
     }
 }

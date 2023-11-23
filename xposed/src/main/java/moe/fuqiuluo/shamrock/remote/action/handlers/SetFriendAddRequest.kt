@@ -16,12 +16,21 @@ internal object SetFriendAddRequest: IActionHandler() {
         return invoke(flag, approve, remark, notSeen, session.echo)
     }
 
-    operator fun invoke(flag: String, approve: Boolean? = true, remark: String? = "", notSeen: Boolean? = false, echo: JsonElement = EmptyJsonString): String {
+    suspend operator fun invoke(flag: String, approve: Boolean? = true, remark: String? = "", notSeen: Boolean? = false, echo: JsonElement = EmptyJsonString): String {
         val flags = flag.split(";")
-        val ts = flags[0].toLong()
+        var ts = flags[0].toLong()
 //        val src = flags[1].toInt()
 //        val subSrc = flags[2].toInt()
         val applier = flags[3].toLong()
+        if (ts.toString().length < 13) {
+            // time but not seq, query seq again
+            val reqs = FriendSvc.requestFriendSystemMsgNew(20, 0, 0, 1)
+            val req = reqs?.first {
+                it.msg_time.get() == ts
+            }
+            // 好友请求seq貌似就是time*1000，查不到直接*1000
+            ts = req?.msg_seq?.get() ?: (ts * 1000)
+        }
         return try {
             FriendSvc.requestFriendRequest(ts, applier, remark ?: "", approve, notSeen)
             ok("成功", echo)

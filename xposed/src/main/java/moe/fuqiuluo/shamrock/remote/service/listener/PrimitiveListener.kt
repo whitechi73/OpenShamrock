@@ -29,6 +29,7 @@ import moe.fuqiuluo.shamrock.tools.slice
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.remote.service.api.GlobalEventTransmitter
+import moe.fuqiuluo.shamrock.remote.service.data.push.RequestSubType
 import moe.fuqiuluo.shamrock.tools.readBuf32Long
 import moe.fuqiuluo.shamrock.tools.toHexString
 import moe.fuqiuluo.shamrock.xposed.helper.PacketHandler
@@ -118,19 +119,21 @@ internal object PrimitiveListener {
         if (applier == 0L) {
             applier = pb[4, 3, 8].asLong
         }
-        val msg_time = pb[1, 3, 2, 1, 9].asLong
         val src = pb[1, 3, 2, 1, 7].asInt
         val subSrc = pb[1, 3, 2, 1, 8].asInt
-        val reqs = requestFriendSystemMsgNew(20, 0, 0)
-        val req = reqs?.first {
-            it.msg_time.get() == msg_time
+        val flag: String = try {
+            val reqs = requestFriendSystemMsgNew(20, 0, 0)
+            val req = reqs?.first {
+                it.msg_time.get() == msgTime
+            }
+            val seq = req?.msg_seq?.get()
+            "$seq;$src;$subSrc;$applier"
+        } catch (err: Throwable) {
+            "$msgTime;$src;$subSrc;$applier"
         }
-        val seq = req?.msg_seq?.get()
-        val flag = "$seq;$src;$subSrc;$applier"
-
         LogCenter.log("来自$applier 的好友申请：$msg ($source)")
-        if(!GlobalEventTransmitter.PrivateNoticeTransmitter
-                .transFriendApply(msgTime, applier, msg, flag)) {
+        if(!GlobalEventTransmitter.RequestTransmitter
+                .transFriendApp(msgTime, applier, msg, flag)) {
             LogCenter.log("好友申请推送失败！", Level.WARN)
         }
     }
@@ -340,24 +343,20 @@ internal object PrimitiveListener {
                 val applier = ContactHelper.getUinByUidAsync(applierUid).toLong()
 
                 LogCenter.log("入群申请($groupCode) $applier: \"$reason\"")
-                try {
-                    val reqs = requestGroupSystemMsgNew(20, 0, 0)
+                val flag = try {
+                    val reqs = requestGroupSystemMsgNew(10, 0, 0)
                     val req = reqs?.first {
                         it.msg_time.get() == time
                     }
                     val seq = req?.msg_seq?.get()
-                    val flag = "$seq;$groupCode;$applierUid"
-                    if(!seq?.let {
-                            GlobalEventTransmitter.GroupNoticeTransmitter
-                                .transGroupApply(it, applier, reason, groupCode, flag, NoticeSubType.Add)
-                        }!!) {
-                        LogCenter.log("入群申请推送失败！", Level.WARN)
-                    }
+                    "$seq;$groupCode;$applierUid"
                 } catch (err: Throwable) {
-                    LogCenter.log("入群申请推送失败！", Level.WARN)
-                    LogCenter.log(err.stackTraceToString(), Level.ERROR)
+                    "$time;$groupCode;$applierUid"
                 }
-
+                if(!GlobalEventTransmitter.RequestTransmitter
+                            .transGroupApply(time, applier, reason, groupCode, flag, RequestSubType.Add)) {
+                    LogCenter.log("入群申请推送失败！", Level.WARN)
+                }
             }
             528 -> {
                 val groupCode = pb[1, 3, 2, 2, 3].asULong
@@ -368,23 +367,19 @@ internal object PrimitiveListener {
                     return
                 }
                 LogCenter.log("邀请入群申请($groupCode): $applier")
-                try {
-                    val reqs = requestGroupSystemMsgNew(20, 0, 0)
+                val flag = try {
+                    val reqs = requestGroupSystemMsgNew(10, 0, 0)
                     val req = reqs?.first {
                         it.msg_time.get() == time
                     }
                     val seq = req?.msg_seq?.get()
-                    val flag = "$seq;$groupCode;$applier"
-                    if(!seq?.let {
-                            GlobalEventTransmitter.GroupNoticeTransmitter
-                                .transGroupApply(it, applier, "", groupCode, flag,  NoticeSubType.Add)
-                        }!!) {
-                        LogCenter.log("邀请入群申请推送失败！", Level.WARN)
-                    }
-
+                    "$seq;$groupCode;$applier"
                 } catch (err: Throwable) {
+                    "$time;$groupCode;$applierUid"
+                }
+                if(GlobalEventTransmitter.RequestTransmitter
+                            .transGroupApply(time, applier, "", groupCode, flag,  RequestSubType.Add)) {
                     LogCenter.log("邀请入群申请推送失败！", Level.WARN)
-                    LogCenter.log(err.stackTraceToString(), Level.ERROR)
                 }
             }
         }
@@ -395,22 +390,19 @@ internal object PrimitiveListener {
         val invitor = ContactHelper.getUinByUidAsync(invitorUid).toLong()
         val uin = pb[1, 1, 5].asLong
         LogCenter.log("邀请入群$groupCode 邀请者: \"$invitor\"")
-        try {
-            val reqs = requestGroupSystemMsgNew(20, 0, 0)
+        val flag = try {
+            val reqs = requestGroupSystemMsgNew(10, 0, 0)
             val req = reqs?.first {
                 it.msg_time.get() == time
             }
             val seq = req?.msg_seq?.get()
-            val flag = "$seq;$groupCode;$uin"
-            if(!seq?.let {
-                    GlobalEventTransmitter.GroupNoticeTransmitter
-                        .transGroupApply(it, invitor, "", groupCode, flag, NoticeSubType.Invite)
-                }!!) {
-                LogCenter.log("邀请入群推送失败！", Level.WARN)
-            }
+            "$seq;$groupCode;$uin"
         } catch (err: Throwable) {
+            "$time;$groupCode;$uin"
+        }
+        if(GlobalEventTransmitter.RequestTransmitter
+                    .transGroupApply(time, invitor, "", groupCode, flag, RequestSubType.Invite)) {
             LogCenter.log("邀请入群推送失败！", Level.WARN)
-            LogCenter.log(err.stackTraceToString(), Level.ERROR)
         }
     }
 

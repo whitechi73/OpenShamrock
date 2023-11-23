@@ -33,6 +33,7 @@ internal enum class MsgType {
 internal enum class PostType {
     @SerialName("meta_event") Meta,
     @SerialName("notice") Notice,
+    @SerialName("request") Request,
     @SerialName("message") Msg,
     @SerialName("message_sent") MsgSent,
 }
