@@ -3,6 +3,7 @@ package moe.fuqiuluo.shamrock.remote.action.handlers
 import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
+import moe.fuqiuluo.shamrock.tools.jsonArray
 
 internal object SendPrivateMessage: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
@@ -20,12 +21,21 @@ internal object SendPrivateMessage: IActionHandler() {
                 echo = session.echo,
                 fromId = groupId ?: userId
             )
-        } else {
+        } else if (session.isArray("message")) {
             val message = session.getArray("message")
             SendMessage(
                 chatType = chatTYpe,
                 peerId = userId,
                 message = message,
+                echo = session.echo,
+                fromId = groupId ?: userId
+            )
+        } else {
+            val message = session.getObject("message")
+            SendMessage(
+                chatType = chatTYpe,
+                peerId = userId,
+                message = listOf( message ).jsonArray,
                 echo = session.echo,
                 fromId = groupId ?: userId
             )

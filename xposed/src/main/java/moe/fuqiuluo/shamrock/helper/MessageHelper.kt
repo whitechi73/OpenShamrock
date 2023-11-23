@@ -193,6 +193,8 @@ internal object MessageHelper {
                             hasActionMsg = true
                         }
                     }
+                } else {
+                    LogCenter.log("不支持的消息类型: ${msg["type"].asString}", Level.ERROR)
                 }
             } catch (e: Throwable) {
                 LogCenter.log(e.stackTraceToString(), Level.ERROR)

@@ -14,6 +14,7 @@ import moe.fuqiuluo.shamrock.tools.json
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
+import moe.fuqiuluo.shamrock.tools.jsonArray
 
 internal object SendMessage: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
@@ -47,9 +48,12 @@ internal object SendMessage: IActionHandler() {
                 val autoEscape = session.getBooleanOrDefault("auto_escape", false)
                 val message = session.getString("message")
                 invoke(chatType, peerId, message, autoEscape, echo = session.echo, fromId = fromId)
-            } else {
+            } else if (session.isArray("message")) {
                 val message = session.getArray("message")
                 invoke(chatType, peerId, message, session.echo, fromId = fromId)
+            } else {
+                val message = session.getObject("message")
+                invoke(chatType, peerId, listOf( message ).jsonArray, session.echo, fromId = fromId)
             }
         } catch (e: ParamsException) {
             return noParam(e.message!!, session.echo)

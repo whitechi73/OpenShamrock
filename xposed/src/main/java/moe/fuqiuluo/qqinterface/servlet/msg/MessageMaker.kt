@@ -634,24 +634,26 @@ internal object MessageMaker {
     }
 
     private suspend fun createImageElem(chatType: Int, msgId: Long, peerId: String, data: JsonObject): Result<MsgElement> {
-        data.checkAndThrow("file")
         val isOriginal = data["original"].asBooleanOrNull ?: true
         val isFlash = data["flash"].asBooleanOrNull ?: false
-        val file = data["file"].asString.let {
-            val md5 = it.replace(regex = "[{}\\-]".toRegex(), replacement = "").split(".")[0].lowercase()
-            var tmpPicFile = if (md5.length == 32) {
+        val filePath = data["file"].asStringOrNull
+        val url = data["url"].asStringOrNull
+        var file: File? = null
+        if (filePath != null) {
+            val md5 = filePath.replace(regex = "[{}\\-]".toRegex(), replacement = "").split(".")[0].lowercase()
+            file = if (md5.length == 32) {
                 FileUtils.getFile(md5)
             } else {
-                FileUtils.parseAndSave(it)
+                FileUtils.parseAndSave(filePath)
             }
-            if (!tmpPicFile.exists() && data.containsKey("url")) {
-                tmpPicFile = FileUtils.parseAndSave(data["url"].asString)
-            }
-            return@let tmpPicFile
         }
-        if (!file.exists()) {
+        if ((file == null || !file.exists()) && url != null) {
+            file = FileUtils.parseAndSave(url)
+        }
+        if (file?.exists() == false) {
             throw LogicException("Image(${file.name}) file is not exists, please check your filename.")
         }
+        requireNotNull(file)
 
         Transfer with when (chatType) {
             MsgConstant.KCHATTYPEGROUP -> Troop(peerId)
