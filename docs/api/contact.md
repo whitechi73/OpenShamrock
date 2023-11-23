@@ -576,7 +576,7 @@ icon: address-book
 | actor          | int64  | 处理者, 未处理为0 |
 | flag           | string | flag,用于处理请求 |
 
-## 获取精华消息列表 <Badge text="未实现" type="danger" />
+## 获取精华消息列表
 
 该接口用于获取精华消息列表。
 
@@ -602,7 +602,9 @@ icon: address-book
 | operator_id   | int64    | 操作者QQ 号  |
 | operator_nick | string   | 操作者昵称   |
 | operator_time | int64    | 精华设置时间 |
-| message_id    | int32    | 消息ID       |
+| message_id    | int32    | 消息ID，可能为0表示找不到消息映射       |
+| message_seq   | int32    | 消息seq      |
+
 
 ## QQ是否在黑名单内
 
