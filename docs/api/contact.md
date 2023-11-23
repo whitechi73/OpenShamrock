@@ -37,6 +37,7 @@ icon: address-book
 | nickname | string | 昵称  |
 | age      | int32  | 年龄  |
 | sex      | string | 性别  |
+| ext      | object | 扩展字段（一堆垃圾）  |
 
 @tab 响应示例
 
