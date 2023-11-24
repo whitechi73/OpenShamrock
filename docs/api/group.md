@@ -215,7 +215,7 @@ icon: user-group
 
 该接口将返回处理结果，其中 `data` 字段无数据。
 
-## 发送群公告 <Badge text="未实现" type="danger" />
+## 发送群公告
 
 该接口用于发送群公告。
 
@@ -229,13 +229,13 @@ icon: user-group
 | -------- | -------- | ------ | ---------------- |
 | group_id | int64    |        | 群号             |
 | content  | string   |        | 公告内容         |
-| image`   | string   |        | 图片路径（可选） |
+| image   | string   |        | 图片（可选），支持base64、http(s)和本地路径 |
 
 ### 响应
 
 该接口将返回处理结果，其中 `data` 字段无数据。
 
-## 获取群公告 <Badge text="未实现" type="danger" />
+## 获取群公告
 
 该接口用于获取群公告。
 
@@ -272,7 +272,7 @@ data 的响应内容为 json 数组，每个元素内容如下：
 | ------ | ------ | -------- |
 | height | string | 图片高度 |
 | width  | string | 图片宽度 |
-| id     | string | 图片ID   |
+| id     | string | 图片ID，可用`https://gdynamic.qpic.cn/gdynamic/{id}/628`获取  |
 
 ## 群组踢人
 
