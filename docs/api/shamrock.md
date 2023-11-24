@@ -42,10 +42,14 @@ icon: feather-alt
 ## 让Shamrock下载文件到缓存目录
 
 用法二选一：
+
 1.仅发送url，由Shamrock自己访问该url来下载文件
+
 2.仅发送文件base64，Shamrock解码后直接转存为文件
 
+
 url和base64至少一个不能为空
+
 同时发送url和base64时，使用url
 
 ### API 端点
