@@ -36,6 +36,7 @@ import kotlin.concurrent.timer
 
 internal abstract class WebSocketClientServlet(
     url: String,
+    private val heartbeatInterval: Long,
     wsHeaders: Map<String, String>
 ) : BaseTransmitServlet, WebSocketClient(URI(url), wsHeaders) {
     private val sendLock = Mutex()
@@ -105,17 +106,17 @@ internal abstract class WebSocketClientServlet(
     }
 
     private fun startHeartbeatTimer() {
+        if (heartbeatInterval <= 0) return
         timer(
             name = "heartbeat",
             initialDelay = 0,
-            period = 1000L * 15,
+            period = heartbeatInterval,
         ) {
             if (isClosed || isClosing || !isOpen) {
                 cancel()
                 return@timer
             }
             val runtime = AppRuntimeFetcher.appRuntime
-            val curUin = runtime.currentAccountUin
             send(
                 GlobalJson.encodeToString(
                     PushMetaEvent(
@@ -125,7 +126,7 @@ internal abstract class WebSocketClientServlet(
                         type = MetaEventType.Heartbeat,
                         subType = MetaSubType.Connect,
                         status = BotStatus(
-                            Self("qq", curUin.toLong()),
+                            Self("qq", runtime.longAccountUin),
                             runtime.isLogin,
                             status = "正常",
                             good = true
@@ -151,7 +152,7 @@ internal abstract class WebSocketClientServlet(
                     status = BotStatus(
                         Self("qq", curUin.toLong()), runtime.isLogin, status = "正常", good = true
                     ),
-                    interval = 15000
+                    interval = heartbeatInterval
                 )
             )
         }

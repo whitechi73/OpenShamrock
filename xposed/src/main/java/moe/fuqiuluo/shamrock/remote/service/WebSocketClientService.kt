@@ -14,8 +14,9 @@ import moe.fuqiuluo.shamrock.remote.service.api.GlobalEventTransmitter
 
 internal class WebSocketClientService(
     override val address: String,
+    heartbeatInterval: Long,
     wsHeaders: Map<String, String>
-) : WebSocketClientServlet(address, wsHeaders) {
+) : WebSocketClientServlet(address, heartbeatInterval, wsHeaders) {
     private val eventJobList = mutableSetOf<Job>()
 
     override fun submitFlowJob(job: Job) {

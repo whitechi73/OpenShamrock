@@ -18,6 +18,7 @@ data class ConnectionConfig(
     @SerialName("address") val address: String? = null,
     @SerialName("port") var port: Int? = null,
     @SerialName("token") val token: String? = null,
+    @SerialName("heartbeat_interval") var heartbeatInterval: Long? = null,
 )
 
 @Serializable

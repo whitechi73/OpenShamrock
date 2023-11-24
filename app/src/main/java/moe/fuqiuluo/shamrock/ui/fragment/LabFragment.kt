@@ -158,7 +158,6 @@ fun LabFragment() {
                 }.onFailure {
                     AppRuntime.log("无法启用免死金牌选项，当前Lsposed模块未激活或者不支持NewSharedPreferences。", Level.WARN)
                 }
-
             }
 
         }

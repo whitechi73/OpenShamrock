@@ -61,7 +61,7 @@ internal class InitRemoteService : IAction {
                         wsHeaders["authorization"] = "bearer $token"
                     }
                     LogCenter.log("尝试链接WebSocketClient(url = ${conn.address})",Level.WARN)
-                    startWebSocketClient(conn.address, wsHeaders)
+                    startWebSocketClient(conn.address, conn.heartbeatInterval ?: 15000, wsHeaders)
                 }
             }
         }
@@ -80,7 +80,7 @@ internal class InitRemoteService : IAction {
                     return@launch
                 }
                 require(config.port in 0 .. 65536) { "WebSocketServer端口不合法" }
-                val server = WebSocketService(config.address, config.port!!)
+                val server = WebSocketService(config.address, config.port!!, config.heartbeatInterval ?: (15 * 1000))
                 server.isReuseAddr = true
                 server.start()
             } catch (e: Throwable) {
@@ -89,11 +89,15 @@ internal class InitRemoteService : IAction {
         }
     }
 
-    private fun startWebSocketClient(url: String, wsHeaders: HashMap<String, String>) {
+    private fun startWebSocketClient(
+        url: String,
+        interval: Long,
+        wsHeaders: HashMap<String, String>
+    ) {
         GlobalScope.launch {
             try {
                 if (url.startsWith("ws://") || url.startsWith("wss://")) {
-                    val wsClient = WebSocketClientService(url, wsHeaders)
+                    val wsClient = WebSocketClientService(url, interval, wsHeaders)
                     wsClient.connect()
                     timer(initialDelay = 5000L, period = 5000L) {
                         if (wsClient.isClosed || wsClient.isClosing) {
