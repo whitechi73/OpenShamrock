@@ -17,11 +17,13 @@ icon: comment
 
 ### 参数
 
-| 字段        | 类型   | 必须 | 说明             |
-| ----------- | ------ | ---- | ---------------- |
-| user_id     | int64  | 是   | QQ 号            |
-| message     | string | 是   | 消息内容         |
-| auto_escape | bool   | 否   | 是否解析 CQ 码。 |
+| 字段        | 类型                          | 必须 | 说明             |
+| ----------- | ----------------------------- | ---- | ---------------- |
+| user_id     | int64                         | 是   | QQ 号            |
+| message     | `string` / `object` / `array` | 是   | 消息内容         |
+| auto_escape | bool                          | 否   | 是否解析 CQ 码。 |
+
+message格式可为[消息段](../message/format.md#%E6%B6%88%E6%81%AF%E6%AE%B5)object，或[消息段组合](../message/format.md#%E7%BB%84%E5%90%88)array
 
 ### 响应
 
@@ -40,11 +42,13 @@ icon: comment
 
 ### 参数
 
-| 字段        | 类型   | 必须 | 说明             |
-| ----------- | ------ | ---- | ---------------- |
-| group_id    | int64  | 是   | 群号             |
-| message     | string | 是   | 消息内容         |
-| auto_escape | bool   | 否   | 是否解析 CQ 码。 |
+| 字段        | 类型                          | 必须 | 说明             |
+| ----------- | ----------------------------- | ---- | ---------------- |
+| group_id    | int64                         | 是   | 群号             |
+| message     | `string` / `object` / `array` | 是   | 消息内容         |
+| auto_escape | bool                          | 否   | 是否解析 CQ 码。 |
+
+message格式同`/send_private_msg`
 
 ### 响应
 
@@ -63,14 +67,16 @@ icon: comment
 
 ### 参数
 
-| 字段         | 类型   | 必须 | 说明             |
-| ------------ | ------ | ---- | ---------------- |
-| message_type | string | 是   | 消息类型         |
-| user_id      | int64  | 是   | QQ 号            |
-| group_id     | int64  | 是   | 群号             |
-| discuss_id   | int64  | 是   | 讨论组号         |
-| message      | string | 是   | 消息内容         |
-| auto_escape  | bool   | 否   | 是否解析 CQ 码。 |
+| 字段         | 类型                          | 必须 | 说明             |
+| ------------ | ----------------------------- | ---- | ---------------- |
+| message_type | string                        | 是   | 消息类型         |
+| user_id      | int64                         | 是   | QQ 号            |
+| group_id     | int64                         | 是   | 群号             |
+| discuss_id   | int64                         | 是   | 讨论组号         |
+| message      | `string` / `object` / `array` | 是   | 消息内容         |
+| auto_escape  | bool                          | 否   | 是否解析 CQ 码。 |
+
+message格式同`/send_private_msg`
 
 ::: warning 注意
 当前发送消息的 API 暂不支持发送讨论组消息。
