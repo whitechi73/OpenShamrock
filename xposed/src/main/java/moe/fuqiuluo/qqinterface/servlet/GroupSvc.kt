@@ -16,16 +16,17 @@ import com.tencent.qqnt.kernel.nativeinterface.MemberInfo
 import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
 import friendlist.stUinInfo
 import io.ktor.client.call.body
-import io.ktor.client.plugins.onUpload
+import io.ktor.client.request.forms.MultiPartFormDataContent
 import io.ktor.client.request.forms.formData
 import io.ktor.client.request.forms.submitForm
-import io.ktor.client.request.forms.submitFormWithBinaryData
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.http.ContentType
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
+import io.ktor.http.contentType
 import io.ktor.http.headers
 import io.ktor.http.parameters
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -46,7 +47,6 @@ import moe.fuqiuluo.proto.asInt
 import moe.fuqiuluo.proto.asUtf8String
 import moe.fuqiuluo.proto.protobufOf
 import moe.fuqiuluo.qqinterface.servlet.entries.ProhibitedMemberInfo
-import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.helper.MessageHelper
 import moe.fuqiuluo.shamrock.remote.service.data.EssenceMessage
@@ -831,28 +831,37 @@ internal object GroupSvc: BaseSvc() {
 
     @OptIn(ExperimentalSerializationApi::class)
     suspend fun uploadImageTroopNotice(image: String): Result<GroupAnnouncementMessageImage> {
-        // 图片上传有问题
         val file = FileUtils.parseAndSave(image)
         val cookie = TicketSvc.getCookie("qun.qq.com")
         val bkn = TicketSvc.getBkn(TicketSvc.getRealSkey(TicketSvc.getUin()))
-        val response = GlobalClient.submitFormWithBinaryData(
-            url = "https://web.qun.qq.com/cgi-bin/announce/upload_img",
-            formData = formData {
-                append("filename", "001.png")
-                append("source", "troopNotice")
-                append("bkn", bkn)
-                append("m", "0")
-                append("pic_up", file.readBytes(), Headers.build {
-                    append(HttpHeaders.ContentType, "image/png")
-                    append(HttpHeaders.ContentDisposition, "filename=\"001.png\"")
-                })
-            },
-            block = {
-                headers {
-                    header("Cookie", cookie)
-                }
+        val response = GlobalClient.post("https://web.qun.qq.com/cgi-bin/announce/upload_img") {
+            headers {
+                header("Cookie", cookie)
             }
-        )
+            contentType(ContentType.MultiPart.FormData)
+            setBody(MultiPartFormDataContent(
+                // 黑人问号 ktor默认formdata传的tx不认。默认是name=bkn，非要写成name="bkn"才认？
+                formData {
+                    append("filename", "001.png", Headers.build {
+                        append(HttpHeaders.ContentDisposition, "name=\"filename\"")
+                    })
+                    append("source", "troopNotice", Headers.build {
+                        append(HttpHeaders.ContentDisposition, "name=\"source\"")
+                    })
+                    append("bkn", bkn, Headers.build {
+                        append(HttpHeaders.ContentDisposition, "name=\"bkn\"")
+                    })
+                    append("m", "0", Headers.build {
+                        append(HttpHeaders.ContentDisposition, "name=\"m\"")
+                    })
+                    append("pic_up", file.readBytes(), Headers.build {
+                        append(HttpHeaders.ContentType, "image/png")
+                        append(HttpHeaders.ContentDisposition, "name=\"pic_up\" filename=\"001.png\"")
+
+                    })
+                }
+            ))
+        }
         val body = Json.decodeFromStream<JsonElement>(response.body())
         if (body.jsonObject["ec"].asInt == 0) {
             var idJsonStr = body.jsonObject["id"].asStringOrNull
