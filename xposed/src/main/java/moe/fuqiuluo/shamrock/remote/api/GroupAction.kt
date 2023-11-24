@@ -133,4 +133,11 @@ fun Routing.troopAction() {
         call.respondText(GetGroupNotice(groupId), ContentType.Application.Json)
     }
 
+    getOrPost("/_send_group_notice") {
+        val groupId = fetchOrThrow("group_id").toLong()
+        val text = fetchOrThrow("text")
+        val image = fetchOrNull("image")
+        call.respondText(SendGroupNotice(groupId, text, image), ContentType.Application.Json)
+    }
+
 }

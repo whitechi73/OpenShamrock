@@ -16,8 +16,18 @@ import com.tencent.qqnt.kernel.nativeinterface.MemberInfo
 import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
 import friendlist.stUinInfo
 import io.ktor.client.call.body
+import io.ktor.client.plugins.onUpload
+import io.ktor.client.request.forms.formData
+import io.ktor.client.request.forms.submitForm
+import io.ktor.client.request.forms.submitFormWithBinaryData
 import io.ktor.client.request.get
 import io.ktor.client.request.header
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.http.Headers
+import io.ktor.http.HttpHeaders
+import io.ktor.http.headers
+import io.ktor.http.parameters
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
@@ -48,13 +58,13 @@ import moe.fuqiuluo.shamrock.tools.GlobalClient
 import moe.fuqiuluo.shamrock.tools.asInt
 import moe.fuqiuluo.shamrock.tools.asJsonArrayOrNull
 import moe.fuqiuluo.shamrock.tools.asJsonObject
-import moe.fuqiuluo.shamrock.tools.asJsonObjectOrNull
 import moe.fuqiuluo.shamrock.tools.asLong
 import moe.fuqiuluo.shamrock.tools.asString
 import moe.fuqiuluo.shamrock.tools.asStringOrNull
 import moe.fuqiuluo.shamrock.tools.ifNullOrEmpty
 import moe.fuqiuluo.shamrock.tools.putBuf32Long
 import moe.fuqiuluo.shamrock.tools.slice
+import moe.fuqiuluo.shamrock.utils.FileUtils
 import moe.fuqiuluo.shamrock.xposed.helper.AppRuntimeFetcher
 import moe.fuqiuluo.shamrock.xposed.helper.NTServiceFetcher
 import tencent.im.oidb.cmd0x899.oidb_0x899
@@ -816,6 +826,84 @@ internal object GroupSvc: BaseSvc() {
             })
         } else {
             return Result.failure(Exception(body.jsonObject["em"].asStringOrNull))
+        }
+    }
+
+    @OptIn(ExperimentalSerializationApi::class)
+    suspend fun uploadImageTroopNotice(image: String): Result<GroupAnnouncementMessageImage> {
+        // 图片上传有问题
+        val file = FileUtils.parseAndSave(image)
+        val cookie = TicketSvc.getCookie("qun.qq.com")
+        val bkn = TicketSvc.getBkn(TicketSvc.getRealSkey(TicketSvc.getUin()))
+        val response = GlobalClient.submitFormWithBinaryData(
+            url = "https://web.qun.qq.com/cgi-bin/announce/upload_img",
+            formData = formData {
+                append("filename", "001.png")
+                append("source", "troopNotice")
+                append("bkn", bkn)
+                append("m", "0")
+                append("pic_up", file.readBytes(), Headers.build {
+                    append(HttpHeaders.ContentType, "image/png")
+                    append(HttpHeaders.ContentDisposition, "filename=\"001.png\"")
+                })
+            },
+            block = {
+                headers {
+                    header("Cookie", cookie)
+                }
+            }
+        )
+        val body = Json.decodeFromStream<JsonElement>(response.body())
+        if (body.jsonObject["ec"].asInt == 0) {
+            var idJsonStr = body.jsonObject["id"].asStringOrNull
+            return if (idJsonStr != null) {
+                idJsonStr = idJsonStr.replace("&quot;", "\"")
+                val idJson = Json.decodeFromString<JsonElement>(idJsonStr)
+                LogCenter.log(idJson.toString())
+                Result.success(GroupAnnouncementMessageImage(
+                    height = idJson.asJsonObject["h"].asString,
+                    width = idJson.asJsonObject["w"].asString,
+                    id = idJson.asJsonObject["id"].asString,
+                ))
+            } else {
+                Result.failure(Exception("图片上传失败"))
+            }
+        } else {
+            return Result.failure(Exception(body.jsonObject["em"].asStringOrNull))
+        }
+    }
+
+    @OptIn(ExperimentalSerializationApi::class)
+    suspend fun addQunNotice(groupId: Long, text: String, image: GroupAnnouncementMessageImage?) : Result<Boolean> {
+        val cookie = TicketSvc.getCookie("qun.qq.com")
+        val bkn = TicketSvc.getBkn(TicketSvc.getRealSkey(TicketSvc.getUin()))
+        val response = GlobalClient.submitForm(
+            url = "https://web.qun.qq.com/cgi-bin/announce/add_qun_notice",
+            formParameters = parameters {
+                append("qid", groupId.toString())
+                append("bkn", bkn)
+                append("text", text)
+                append("pinned", "0")
+                append("type", "1")
+                // todo allow custom settings
+                append("settings", "{\"is_show_edit_card:\"1,\"tip_window_type\":1,\"confirm_required\":1}")
+                if (null != image) {
+                    append("pic", image.id)
+                    append("imgWidth", image.width)
+                    append("imgHeight", image.height)
+                }
+            },
+            block = {
+                headers {
+                    header("Cookie", cookie)
+                }
+            }
+        )
+        val body = Json.decodeFromStream<JsonElement>(response.body())
+        return if (body.jsonObject["ec"].asInt == 0) {
+            Result.success(true)
+        } else {
+            Result.failure(Exception(body.jsonObject["em"].asStringOrNull))
         }
     }
 }

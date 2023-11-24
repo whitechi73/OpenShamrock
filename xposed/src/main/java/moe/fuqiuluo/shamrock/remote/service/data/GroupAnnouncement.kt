@@ -22,3 +22,4 @@ internal data class GroupAnnouncementMessageImage (
     @SerialName("width") val width: String,
     @SerialName("id") val id: String,
 )
+
