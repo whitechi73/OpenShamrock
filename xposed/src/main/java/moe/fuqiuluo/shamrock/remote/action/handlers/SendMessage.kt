@@ -75,7 +75,14 @@ internal object SendMessage: IActionHandler() {
         //    return logic("contact is not found", echo = echo)
         //}
         val result = if (autoEscape) {
-            MsgSvc.sendToAio(chatType, peerId, arrayListOf(message).json, fromId = fromId)
+            MsgSvc.sendToAio(chatType, peerId, listOf(
+                mapOf(
+                    "type" to "text",
+                    "data" to mapOf(
+                        "text" to message
+                    )
+                )
+            ).json, fromId = fromId)
         } else {
             val msg = MessageHelper.decodeCQCode(message)
             if (msg.isEmpty()) {

@@ -193,8 +193,8 @@ internal class ActionSession {
         return params[key].asBoolean
     }
 
-    fun <T: Boolean?> getBooleanOrDefault(key: String, default: T? = null): T {
-        return (params[key].asBooleanOrNull as? T) ?: default as T
+    fun getBooleanOrDefault(key: String, default: Boolean? = null): Boolean {
+        return params[key].asBooleanOrNull ?: default as Boolean
     }
 
     fun getObject(key: String): JsonObject {
