@@ -336,7 +336,6 @@ internal object PrimitiveListener {
         val targetUid = pb[1, 3, 2, 3].asUtf8String
         val type = pb[1, 3, 2, 4].asInt
         val operation = ContactHelper.getUinByUidAsync(pb[1, 3, 2, 5].asUtf8String).toLong()
-        // 131 passive | 130 active | 3 kick_self
 
         val target = ContactHelper.getUinByUidAsync(targetUid).toLong()
         val subtype =  when(type) {
@@ -344,7 +343,6 @@ internal object PrimitiveListener {
             131 -> NoticeSubType.Kick
             3 -> NoticeSubType.KickMe
             else -> {
-
                 NoticeSubType.Kick
             }
         }

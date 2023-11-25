@@ -5,12 +5,15 @@ import android.graphics.BitmapFactory
 import android.media.MediaMetadataRetriever
 import com.tencent.mobileqq.qroute.QRoute
 import com.tencent.qqnt.kernel.nativeinterface.FileElement
+import com.tencent.qqnt.kernel.nativeinterface.FileTransNotifyInfo
 import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
 import com.tencent.qqnt.kernel.nativeinterface.MsgElement
 import com.tencent.qqnt.msg.api.IMsgService
 import com.tencent.qqnt.msg.api.IMsgUtilApi
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
@@ -19,11 +22,13 @@ import moe.fuqiuluo.shamrock.helper.MessageHelper
 import moe.fuqiuluo.shamrock.helper.TransfileHelper
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
+import moe.fuqiuluo.shamrock.remote.service.api.RichMediaUploadHandler
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
 import moe.fuqiuluo.shamrock.utils.FileUtils
 import moe.fuqiuluo.shamrock.utils.MD5
 import java.io.File
 import java.io.FileOutputStream
+import kotlin.coroutines.resume
 
 internal object UploadGroupFile : IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
@@ -94,16 +99,36 @@ internal object UploadGroupFile : IActionHandler() {
         msgElement.elementType = MsgConstant.KELEMTYPEFILE
         msgElement.fileElement = fileElement
 
+        // 根据文件大小调整超时时间
         val msgIdPair = MessageHelper.generateMsgId(MsgConstant.KCHATTYPEGROUP)
-        val msgService = QRoute.api(IMsgService::class.java)
-        msgService.sendMsgWithMsgId(
-            MessageHelper.generateContact(MsgConstant.KCHATTYPEGROUP, groupId), msgIdPair.second, arrayListOf(msgElement)
-        ) { code, reason ->
-            LogCenter.log("群文件消息发送异常(code = $code, reason = $reason)")
-        }
+        val info = (withTimeoutOrNull((srcFile.length() / (300 * 1024)) * 1000 + 5000) {
+            val msgService = QRoute.api(IMsgService::class.java)
+            val contact = MessageHelper.generateContact(MsgConstant.KCHATTYPEGROUP, groupId)
+            suspendCancellableCoroutine<FileTransNotifyInfo?> {
+                msgService.sendMsgWithMsgId(
+                    contact, msgIdPair.second, arrayListOf(msgElement)
+                ) { code, reason ->
+                    LogCenter.log("群文件消息发送异常(code = $code, reason = $reason)")
+                    it.resume(null)
+                }
+                RichMediaUploadHandler.registerListener(msgIdPair.second) {
+                    it.resume(this)
+                    return@registerListener true
+                }
+            }
+        } ?: return error("上传文件失败", echo)).also {
+            if (it.commonFileInfo == null) {
+                return error(it.fileErrMsg ?: "上传文件失败", echo)
+            }
+        }.commonFileInfo
 
         return ok(data = FileUploadResult(
-            msgHash = msgIdPair.first
+            msgHash = msgIdPair.first,
+            bizid = info.bizType ?: 0,
+            md5 = info.md5,
+            sha = info.sha,
+            sha3 = info.sha3,
+            fileId = info.uuid
         ), echo = echo)
     }
 
@@ -114,5 +139,10 @@ internal object UploadGroupFile : IActionHandler() {
     @Serializable
     data class FileUploadResult(
         @SerialName("msg_id") val msgHash: Int,
+        @SerialName("bizid") val bizid: Int,
+        @SerialName("md5") val md5: String,
+        @SerialName("sha") val sha: String,
+        @SerialName("sha3") val sha3: String,
+        @SerialName("file_id") val fileId: String
     )
 }
