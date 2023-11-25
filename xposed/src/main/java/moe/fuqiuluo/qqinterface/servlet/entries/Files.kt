@@ -27,6 +27,10 @@ data class FileInfo(
     @SerialName("download_times") val downloadTimes: Int,
     @SerialName("uploader") val uploadUin: Long,
     @SerialName("upload_name") val uploadNick: String,
+    @SerialName("sha") val sha: String,
+    @SerialName("sha3") val sha3: String,
+    @SerialName("md5") val md5: String,
+
 )
 
 @Serializable

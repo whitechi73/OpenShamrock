@@ -166,7 +166,11 @@ internal object FileSvc: BaseSvc() {
                                 modifyTime = fileInfo.uint32_modify_time.get(),
                                 downloadTimes = fileInfo.uint32_download_times.get(),
                                 uploadUin = fileInfo.uint64_uploader_uin.get(),
-                                uploadNick = fileInfo.str_uploader_name.get()
+                                uploadNick = fileInfo.str_uploader_name.get(),
+                                md5 = fileInfo.bytes_md5.get().toByteArray().toHexString(),
+                                sha = fileInfo.bytes_sha.get().toByteArray().toHexString(),
+                                // 根本没有
+                                sha3 = fileInfo.bytes_sha3.get().toByteArray().toHexString(),
                             ))
                         }
                         else if (file.uint32_type.get() == oidb_0x6d8.GetFileListRspBody.TYPE_FOLDER) {
