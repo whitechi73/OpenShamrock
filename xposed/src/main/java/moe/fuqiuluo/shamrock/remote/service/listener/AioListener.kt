@@ -178,7 +178,7 @@ internal object AioListener: IKernelMsgListener {
                         .updateMsgSeqByMsgHash(msgHash, record.msgSeq.toInt())
                 }
 
-                if (!ShamrockConfig.enableSelfMsg())
+                if (!ShamrockConfig.enableSelfMsg() || record.senderUin != TicketSvc.getLongUin())
                     return@launch
 
                 val rawMsg = record.elements.toCQCode(record.chatType, record.peerUin.toString())
