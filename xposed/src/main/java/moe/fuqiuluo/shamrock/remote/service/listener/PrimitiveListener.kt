@@ -82,9 +82,11 @@ internal object PrimitiveListener {
                 12 -> onGroupBan(msgTime, pb)
                 16 -> onGroupTitleChange(msgTime, pb)
                 17 -> {
-                    onGroupRecall(msgTime, pb)
-                    // invite
-                    onGroupMemIncreased(msgTime, pb)
+                    try {
+                        onGroupRecall(msgTime, pb)
+                        // invite
+                        onGroupMemIncreased(msgTime, pb)
+                    } finally { }
                 }
                 20 -> onGroupPoke(msgTime, pb)
                 21 -> onEssenceMessage(msgTime, pb)
@@ -337,15 +339,20 @@ internal object PrimitiveListener {
         // 131 passive | 130 active | 3 kick_self
 
         val target = ContactHelper.getUinByUidAsync(targetUid).toLong()
-        LogCenter.log("群成员减少($groupCode): $target, type = $type")
+        val subtype =  when(type) {
+            130 -> NoticeSubType.Leave
+            131 -> NoticeSubType.Kick
+            3 -> NoticeSubType.KickMe
+            else -> {
+
+                NoticeSubType.Kick
+            }
+        }
+
+        LogCenter.log("群成员减少($groupCode): $target, type = $subtype ($type)")
 
         if(!GlobalEventTransmitter.GroupNoticeTransmitter
-                .transGroupMemberNumChanged(time, target, groupCode, operation, NoticeType.GroupMemDecrease, when(type) {
-                    130 -> NoticeSubType.Kick
-                    131 -> NoticeSubType.Leave
-                    3 -> NoticeSubType.KickMe
-                    else -> NoticeSubType.Kick
-                })) {
+                .transGroupMemberNumChanged(time, target, groupCode, operation, NoticeType.GroupMemDecrease, subtype)) {
             LogCenter.log("群成员减少推送失败！", Level.WARN)
         }
     }
