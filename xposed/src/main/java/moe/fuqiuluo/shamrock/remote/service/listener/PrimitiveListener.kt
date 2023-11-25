@@ -1,7 +1,6 @@
 @file:OptIn(DelicateCoroutinesApi::class)
 package moe.fuqiuluo.shamrock.remote.service.listener
 
-import com.arthenica.smartexception.ThrowableWrapper
 import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
 import kotlinx.coroutines.DelicateCoroutinesApi
 import moe.fuqiuluo.shamrock.helper.ContactHelper
@@ -11,6 +10,8 @@ import kotlinx.io.core.ByteReadPacket
 import kotlinx.io.core.discardExact
 import kotlinx.io.core.readBytes
 import kotlinx.io.core.readUInt
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
 import moe.fuqiuluo.proto.ProtoByteString
 import moe.fuqiuluo.proto.ProtoMap
 import moe.fuqiuluo.proto.asInt
@@ -21,6 +22,7 @@ import moe.fuqiuluo.proto.asByteArray
 import moe.fuqiuluo.proto.asList
 import moe.fuqiuluo.proto.asULong
 import moe.fuqiuluo.qqinterface.servlet.FriendSvc.requestFriendSystemMsgNew
+import moe.fuqiuluo.qqinterface.servlet.GroupSvc
 import moe.fuqiuluo.qqinterface.servlet.GroupSvc.requestGroupSystemMsgNew
 import moe.fuqiuluo.shamrock.helper.MessageHelper
 import moe.fuqiuluo.shamrock.remote.service.data.push.NoticeSubType
@@ -30,6 +32,8 @@ import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.remote.service.api.GlobalEventTransmitter
 import moe.fuqiuluo.shamrock.remote.service.data.push.RequestSubType
+import moe.fuqiuluo.shamrock.tools.asJsonObject
+import moe.fuqiuluo.shamrock.tools.asString
 import moe.fuqiuluo.shamrock.tools.readBuf32Long
 import moe.fuqiuluo.shamrock.tools.toHexString
 import moe.fuqiuluo.shamrock.xposed.helper.PacketHandler
@@ -68,6 +72,7 @@ internal object PrimitiveListener {
             87 -> onInviteGroup(msgTime, pb)
             528 -> when(subType) {
                 35 -> onFriendApply(msgTime, pb)
+                39 -> onCardChange(msgTime, pb)
                 // invite
                 68 -> onGroupApply(msgTime, pb)
                 138 -> onC2CRecall(msgTime, pb)
@@ -75,12 +80,14 @@ internal object PrimitiveListener {
             }
             732 -> when(subType) {
                 12 -> onGroupBan(msgTime, pb)
+                16 -> onGroupTitleChange(msgTime, pb)
                 17 -> {
                     onGroupRecall(msgTime, pb)
                     // invite
                     onGroupMemIncreased(msgTime, pb)
                 }
                 20 -> onGroupPoke(msgTime, pb)
+                21 -> onEssenceMessage(msgTime, pb)
             }
         }
     }
@@ -135,6 +142,85 @@ internal object PrimitiveListener {
         if(!GlobalEventTransmitter.RequestTransmitter
                 .transFriendApp(msgTime, applier, msg, flag)) {
             LogCenter.log("好友申请推送失败！", Level.WARN)
+        }
+    }
+
+
+
+    private suspend fun onCardChange(msgTime: Long, pb: ProtoMap) {
+        val targetId = pb[1, 3, 2, 1, 13, 2].asUtf8String
+        val newCardList = pb[1, 3, 2, 1, 13, 3].asList
+        var newCard = ""
+        newCardList
+            .value
+            .forEach {
+                if(it[1].asInt == 1) {
+                    newCard = it[2].asUtf8String
+                }
+            }
+        val groupId = pb[1, 3, 2, 1, 13, 4].asLong
+        var oldCard = ""
+        LogCenter.log("群组[$groupId]成员$targetId 群名片变动 -> $newCard")
+        val targetQQ = ContactHelper.getUinByUidAsync(targetId).toLong()
+        // oldCard暂时获取不到
+//        GroupSvc.getTroopMemberInfoByUin(groupId.toString(), targetQQ.toString()).onSuccess {
+//            oldCard = it.troopnick
+//        }.onFailure {
+//            LogCenter.log("获取群成员信息失败！", Level.WARN)
+//        }
+        if(!GlobalEventTransmitter.GroupNoticeTransmitter
+                .transCardChange(msgTime, targetQQ, oldCard, newCard, groupId)) {
+            LogCenter.log("群名片变动推送失败！", Level.WARN)
+        }
+    }
+
+    private suspend fun onGroupTitleChange(msgTime: Long, pb: ProtoMap) {
+        val targetUin = pb[1, 3, 2, 5, 5].asLong
+
+        val groupId = pb[1, 3, 2, 4].asLong
+
+        // 恭喜<{\"cmd\":5,\"data\":\"qq\",\"text}\":\"nickname\"}>获得群主授予的<{\"cmd\":1,\"data\":\"https://qun.qq.com/qqweb/m/qun/medal/detail.html?_wv=16777223&bid=2504&gc=gid&isnew=1&medal=302&uin=uin\",\"text\":\"title\",\"url\":\"https://qun.qq.com/qqweb/m/qun/medal/detail.html?_wv=16777223&bid=2504&gc=gid&isnew=1&medal=302&uin=uin\"}>头衔
+        val titleChangeInfo = pb[1, 3, 2, 5, 2].asUtf8String
+        if (titleChangeInfo.indexOf("群主授予") == -1) {
+            return
+        }
+        val titleJson = titleChangeInfo.split("获得群主授予的<")[1].replace(">头衔", "")
+        val titleJsonObj = Json.decodeFromString<JsonElement>(titleJson).asJsonObject
+        val title = titleJsonObj["text"].asString
+
+        LogCenter.log("群组[$groupId]成员$targetUin 获得群头衔 -> $title")
+
+        if(!GlobalEventTransmitter.GroupNoticeTransmitter
+                .transTitleChange(msgTime, targetUin, title, groupId)) {
+            LogCenter.log("群头衔变动推送失败！", Level.WARN)
+        }
+    }
+
+    private suspend fun onEssenceMessage(msgTime: Long, pb: ProtoMap) {
+        val groupId = pb[1, 3, 2, 4].asLong
+        val mesSeq = pb[1, 3, 2, 37].asInt
+        val operatorUin = pb[1, 3, 2, 33, 6].asLong
+        val senderUin = pb[1, 3, 2, 33, 5].asLong
+        var msgId = 0
+        MessageHelper.getMsgMappingBySeq(MsgConstant.KCHATTYPEGROUP, mesSeq).also {
+            if (it != null) {
+                msgId = it.msgHashId
+            }
+        }
+        val type = pb[1, 3, 2, 33, 4].asInt
+        val subType = if (type == 2) {
+            // remove essence
+            LogCenter.log("群组[$groupId]成员$senderUin 的消息$msgId 被$operatorUin 移除精华")
+            NoticeSubType.Delete
+        } else {
+            // add essence
+            LogCenter.log("群组[$groupId]成员$senderUin 的消息$msgId 被$operatorUin 设为精华")
+            NoticeSubType.Add
+        }
+
+        if(!GlobalEventTransmitter.GroupNoticeTransmitter
+                .transEssenceChange(msgTime, senderUin, operatorUin, msgId, groupId, subType)) {
+            LogCenter.log("精华消息变动推送失败！", Level.WARN)
         }
     }
 

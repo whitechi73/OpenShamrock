@@ -10,6 +10,8 @@ internal enum class NoticeType {
     @SerialName("group_decrease") GroupMemDecrease,
     @SerialName("group_increase") GroupMemIncrease,
     @SerialName("group_recall") GroupRecall,
+    @SerialName("group_card") GroupCard,
+    @SerialName("essence") Essence,
     @SerialName("friend_recall") FriendRecall,
     @SerialName("notify") Notify,
     @SerialName("group_upload") GroupUpload,
@@ -40,6 +42,10 @@ internal enum class NoticeSubType {
     @SerialName("kick_me") KickMe,
 
     @SerialName("poke") Poke,
+
+    @SerialName("title") Title,
+    @SerialName("delete") Delete,
+
 }
 
 @Serializable
@@ -70,6 +76,9 @@ internal data class NoticeEvent(
     @SerialName("file") val file: GroupFileMsg? = null,
     @SerialName("private_file") val privateFile: PrivateFileMsg? = null,
     @SerialName("flag") val flag: String? = null,
+    @SerialName("card_new") val cardNew: String? = null,
+    @SerialName("card_old") val cardOld: String? = null,
+    @SerialName("title") val title: String? = null,
 )
 
 /**

@@ -322,6 +322,67 @@ internal object GlobalEventTransmitter: BaseSvc() {
             ))
             return true
         }
+
+        suspend fun transCardChange(
+            time: Long,
+            targetId: Long,
+            oldCard: String,
+            newCard: String,
+            groupId: Long
+        ): Boolean {
+            pushNotice(NoticeEvent(
+                time = time,
+                selfId = app.longAccountUin,
+                postType = PostType.Notice,
+                type = NoticeType.GroupCard,
+                userId = targetId,
+                cardNew = newCard,
+                cardOld = oldCard,
+                groupId = groupId
+            ))
+            return true
+        }
+
+        suspend fun transTitleChange(
+            time: Long,
+            targetId: Long,
+            title: String,
+            groupId: Long
+        ): Boolean {
+            pushNotice(NoticeEvent(
+                time = time,
+                selfId = app.longAccountUin,
+                postType = PostType.Notice,
+                type = NoticeType.Notify,
+                userId = targetId,
+                groupId = groupId,
+                title = title,
+                subType = NoticeSubType.Title
+            ))
+            return true
+        }
+
+        suspend fun transEssenceChange(
+            time: Long,
+            senderUin: Long,
+            operatorUin: Long,
+            msgId: Int,
+            groupId: Long,
+            subType: NoticeSubType
+        ): Boolean {
+            pushNotice(NoticeEvent(
+                time = time,
+                selfId = app.longAccountUin,
+                postType = PostType.Notice,
+                type = NoticeType.Essence,
+                senderId = senderUin,
+                groupId = groupId,
+                operatorId = operatorUin,
+                msgId = msgId,
+                subType = subType
+            ))
+            return true
+        }
     }
 
     /**
