@@ -24,8 +24,8 @@ import java.net.URI
 internal class WebSocketService(
     host: String,
     port: Int,
-    val heartbeatInterval: Long,
-): WebSocketTransmitServlet(host, port) {
+    heartbeatInterval: Long,
+): WebSocketTransmitServlet(host, port, heartbeatInterval) {
     private val eventJobList = mutableSetOf<Job>()
 
     override fun submitFlowJob(job: Job) {
@@ -85,7 +85,6 @@ internal class WebSocketService(
     }
 
     private fun pushMetaLifecycle() {
-        if (heartbeatInterval <= 0) return
         GlobalScope.launch {
             val runtime = AppRuntimeFetcher.appRuntime
             pushTo(PushMetaEvent(

@@ -35,7 +35,8 @@ import kotlin.concurrent.timer
 
 internal abstract class WebSocketTransmitServlet(
     host:String,
-    port: Int
+    port: Int,
+    protected val heartbeatInterval: Long,
 ) : BaseTransmitServlet, WebSocketServer(InetSocketAddress(host, port)) {
     private val sendLock = Mutex()
     protected val eventReceivers: MutableList<WebSocket> = Collections.synchronizedList(mutableListOf<WebSocket>())
@@ -56,20 +57,27 @@ internal abstract class WebSocketTransmitServlet(
     }
 
     init {
-        timer("heartbeat", true, 0, 1000L * 5) {
-            val runtime = AppRuntimeFetcher.appRuntime
-            val curUin = runtime.currentAccountUin
-            broadcastAnyEvent(PushMetaEvent(
-                time = System.currentTimeMillis() / 1000,
-                selfId = app.longAccountUin,
-                postType = PostType.Meta,
-                type = MetaEventType.Heartbeat,
-                subType = MetaSubType.Connect,
-                status = BotStatus(
-                    Self("qq", curUin.toLong()), runtime.isLogin, status = "正常", good = true
-                ),
-                interval = 15000
-            ))
+        if (heartbeatInterval > 0) {
+            timer("heartbeat", true, 0, heartbeatInterval) {
+                val runtime = AppRuntimeFetcher.appRuntime
+                val curUin = runtime.currentAccountUin
+                broadcastAnyEvent(
+                    PushMetaEvent(
+                        time = System.currentTimeMillis() / 1000,
+                        selfId = app.longAccountUin,
+                        postType = PostType.Meta,
+                        type = MetaEventType.Heartbeat,
+                        subType = MetaSubType.Connect,
+                        status = BotStatus(
+                            Self("qq", curUin.toLong()),
+                            runtime.isLogin,
+                            status = "正常",
+                            good = true
+                        ),
+                        interval = heartbeatInterval
+                    )
+                )
+            }
         }
     }
 
@@ -112,7 +120,7 @@ internal abstract class WebSocketTransmitServlet(
     }
 
     override fun onStart() {
-        LogCenter.log("WSServer start running on ws://0.0.0.0:$port!")
+        LogCenter.log("WSServer start running on ws://${getAddress()}!")
         initTransmitter()
     }
 
