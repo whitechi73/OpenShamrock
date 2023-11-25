@@ -27,6 +27,40 @@ icon: file
 | file    | string | 本地文件路径 |
 | name    | string | 文件名称   |
 
+### 响应
+
+::: tabs
+
+@tab 响应字段
+
+| 字段             | 类型         | 说明       |
+| ---------------- | ------------ | ---------- |
+| msg_id         | int32        | 消息id       |
+| bizid       | int32       |      |
+| md5     | string       | MD5     |
+| file_id        | string        | 文件uuid     |
+
+@tab 响应示例
+
+```json
+{
+  "status": "ok",
+  "retcode": 0,
+  "data": {
+    "msg_id": 286479341,
+    "bizid": 102,
+    "md5": "6742327a8b0147eebd6e1d4018626082",
+    "sha": "",
+    "sha3": "",
+    "file_id": "/c65b7c5c-50e0-47c6-951f-4e3377505f7f"
+  },
+  "echo": ""
+}
+```
+
+:::
+
+
 ## 上传群文件
 
 该接口用于上传群文件。
@@ -46,6 +80,39 @@ icon: file
 | group_id | int64  | 群号     |
 | file     | string | 本地文件路径 |
 | name     | string | 文件名称   |
+
+### 响应
+
+::: tabs
+
+@tab 响应字段
+
+| 字段             | 类型         | 说明       |
+| ---------------- | ------------ | ---------- |
+| msg_id         | int32        | 消息id       |
+| bizid       | int32       |      |
+| md5     | string       | MD5     |
+| file_id        | string        | 文件uuid     |
+
+@tab 响应示例
+
+```json
+{
+  "status": "ok",
+  "retcode": 0,
+  "data": {
+    "msg_id": 286479341,
+    "bizid": 102,
+    "md5": "6742327a8b0147eebd6e1d4018626082",
+    "sha": "",
+    "sha3": "",
+    "file_id": "/c65b7c5c-50e0-47c6-951f-4e3377505f7f"
+  },
+  "echo": ""
+}
+```
+
+:::
 
 ::: warning 注意
 参数 `folder`在Shamrock不受支持。 
