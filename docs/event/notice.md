@@ -118,7 +118,7 @@ icon: bell
 | duration    | int64  | 禁言时长(秒)         |
 | sub_type    | string | 子类型(ban/lift_ban) |
 
-## 群成员名片变动 <Badge text="未实现" type="danger" />
+## 群成员名片变动
 
 当 `notice_type` 为 `group_card` 时，表示收到了群成员名片变动事件。
 
@@ -154,7 +154,7 @@ icon: bell
 | size | int64  | 文件大小 |
 | url  | string | 下载链接 |
 
-## 精华消息 <Badge text="未实现" type="danger" />
+## 精华消息
 
 当 `notice_type` 为 `essence` 时，表示收到了精华消息事件。
 
@@ -206,7 +206,7 @@ icon: bell
 | user_id    | int64  | 操作者   |
 | honor_type | string | 荣誉类型 |
 
-## 群头衔变更 <Badge text="未实现" type="danger" />
+## 群头衔变更
 
 当 `notice_type` 为 `notify` 且 `sub_type` 为 `title` 时，表示收到了群头衔变更事件。
 
