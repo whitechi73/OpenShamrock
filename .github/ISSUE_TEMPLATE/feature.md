@@ -7,7 +7,7 @@ labels: enhancement
 
 警告: 在进一步操作之前，请检查下列选项。如果您忽视此模板或者没有提供关键信息，您的 Issue 将直接被关闭
 
-- 确保您使用的是 [最新开发版本](https://github.com/whitechi73/Shamrock/actions/workflows/build-apk.yml) 的 Shamrock.
+- 确保您使用的是 [最新开发版本](https://github.com/whitechi73/OpenShamrock/actions/workflows/build-apk.yml) 的 Shamrock.
 - 确保您的功能请求尚未在 Issues 列表中提出.
 - 确保您的功能请求是与 Shamrock 相关的，且可以实现.
 

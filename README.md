@@ -10,7 +10,7 @@
 ![][onebot-12]
 [![][license]](LICENSE)
 
-[下载][download-link] | [部署][deploy-link] | [接口][api-link] | [文档][docs-link] | [加群][group-link]
+[下载][download-link] | [部署][deploy-link] | [接口][api-link] | [文档][docs-link]
 
 </div>
 
@@ -29,8 +29,6 @@
 - 一键移植：本项目基于 go-cqhttp 的文档进行开发实现。
 - 平行部署：可多平台部署，未来将会支持 Docker 部署的教程。  
 
-> 若您追求小而轻便的Bot服务, [Chronocat](https://chronocat.vercel.app/)是您的不二之选。
-
 ## 权限声明
 
 > 如出现未在此处声明的权限，请警惕 Shamrock 是否被修改/植入恶意代码
@@ -45,7 +43,7 @@
 
 ## 贡献说明
 
-<img src="https://github.com/whitechi73/OpenShamrock/assets/98259561/f04d60bc-ec40-41fc-bc15-62c146f1a1f1" width="160px"> **我可爱吗？欢迎你的到来，这里是一个很大的地方，有着无限可能，主要是有你啦！**
+<img src="https://github.com/whitechi73/OpenShamrock/assets/98259561/f04d60bc-ec40-41fc-bc15-62c146f1a1f1" width="160px" alt="Shamrock"> **我可爱吗？欢迎你的到来，这里是一个很大的地方，有着无限可能，主要是有你啦！**
 
 ## 开源协议
 
@@ -96,9 +94,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 [docs-link]: https://whitechi73.github.io/OpenShamrock/
 
-[group-link]: https://whitechi73.github.io/OpenShamrock/group.html
-
-[hook-system]: https://github.com/whitechi73/OpenShamrock/wiki/perm_hook_android
+[hook-system]: https://github.com/whitechi73/OpenShamrock/blob/master/xposed/src/main/java/moe/fuqiuluo/shamrock/xposed/loader/FuckAMS.kt
 
 [voice-support]: https://whitechi73.github.io/OpenShamrock/advanced/voice.html
 
