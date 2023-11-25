@@ -169,6 +169,9 @@ icon: file
 | download_times | int32  | 下载次数         |
 | uploader       | int64  | 上传者ID        |
 | uploader_name  | string | 上传者名字        |
+| md5            | string | md5        |
+| sha            | string | sha        |
+| sha3           | string | sha3 可能获取不到        |
 
 #### Folder
 
