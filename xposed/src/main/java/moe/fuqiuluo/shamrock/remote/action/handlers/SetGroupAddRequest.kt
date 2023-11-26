@@ -11,7 +11,7 @@ import moe.fuqiuluo.shamrock.tools.EmptyJsonString
 internal object SetGroupAddRequest: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val flag = session.getString("flag")
-        val approve = session.getBoolean("approve")
+        val approve = session.getBooleanOrDefault("approve", true)
         val remark = session.getStringOrNull("reason")
         val notSeen = session.getBooleanOrDefault("not_seen", false)
         val subType = session.getString("sub_type")
@@ -52,4 +52,6 @@ internal object SetGroupAddRequest: IActionHandler() {
     }
 
     override fun path(): String = "set_group_add_request"
+
+    override val requiredParams: Array<String> = arrayOf("flag", "sub_type")
 }

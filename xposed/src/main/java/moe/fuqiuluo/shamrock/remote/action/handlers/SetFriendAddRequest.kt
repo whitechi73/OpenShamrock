@@ -10,7 +10,7 @@ import moe.fuqiuluo.shamrock.tools.EmptyJsonString
 internal object SetFriendAddRequest: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val flag = session.getString("flag")
-        val approve = session.getBoolean("approve")
+        val approve = session.getBooleanOrDefault("approve", true)
         val remark = session.getStringOrNull("remark")
         val notSeen = session.getBooleanOrDefault("notSeen", false)
         return invoke(flag, approve, remark, notSeen, session.echo)
@@ -42,4 +42,6 @@ internal object SetFriendAddRequest: IActionHandler() {
     }
 
     override fun path(): String = "set_friend_add_request"
+
+    override val requiredParams: Array<String> = arrayOf("flag")
 }
