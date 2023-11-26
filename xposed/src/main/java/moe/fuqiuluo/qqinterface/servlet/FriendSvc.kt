@@ -13,11 +13,9 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
-import moe.fuqiuluo.qqinterface.servlet.BaseSvc
 import moe.fuqiuluo.shamrock.tools.slice
 import moe.fuqiuluo.shamrock.xposed.helper.AppRuntimeFetcher
 import mqq.app.AppRuntime
-import mqq.app.MobileQQ
 import tencent.mobileim.structmsg.`structmsg$FlagInfo`
 import tencent.mobileim.structmsg.`structmsg$ReqSystemMsgNew`
 import tencent.mobileim.structmsg.`structmsg$RspSystemMsgNew`
@@ -59,6 +57,9 @@ internal object FriendSvc: BaseSvc() {
     }
 
     suspend fun requestFriendSystemMsgNew(msgNum: Int, latestFriendSeq: Long = 0, latestGroupSeq: Long = 0, retryCnt: Int = 3): List<StructMsg>? {
+        if (retryCnt < 0) {
+            return ArrayList()
+        }
         val req = `structmsg$ReqSystemMsgNew`()
         req.msg_num.set(msgNum)
         req.latest_friend_seq.set(latestFriendSeq)
@@ -90,14 +91,17 @@ internal object FriendSvc: BaseSvc() {
         req.uint32_req_msg_type.set(1)
         req.uint32_need_uid.set(1)
         val respBuffer = sendBufferAW("ProfileService.Pb.ReqSystemMsgNew.Friend", true, req.toByteArray())
-        return if (respBuffer == null && retryCnt >= 0) {
-            requestFriendSystemMsgNew(msgNum, latestFriendSeq, latestGroupSeq, retryCnt - 1)
-        } else if (respBuffer == null) {
+        return if (respBuffer == null) {
             ArrayList()
         } else {
-            val msg = `structmsg$RspSystemMsgNew`()
-            msg.mergeFrom(respBuffer.slice(4))
-            return msg.friendmsgs.get()
+            try {
+                val msg = `structmsg$RspSystemMsgNew`()
+                msg.mergeFrom(respBuffer.slice(4))
+                return msg.friendmsgs.get()
+            } catch (err: Throwable) {
+                requestFriendSystemMsgNew(msgNum, latestFriendSeq, latestGroupSeq, retryCnt - 1)
+            }
+
         }
     }
 

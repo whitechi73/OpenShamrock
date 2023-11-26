@@ -1,8 +1,9 @@
 package moe.fuqiuluo.shamrock.remote.action.handlers
 
 import kotlinx.serialization.json.JsonElement
-import moe.fuqiuluo.qqinterface.servlet.FriendSvc
 import moe.fuqiuluo.qqinterface.servlet.GroupSvc
+import moe.fuqiuluo.shamrock.helper.Level
+import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
@@ -12,7 +13,7 @@ internal object SetGroupAddRequest: IActionHandler() {
         val flag = session.getString("flag")
         val approve = session.getBoolean("approve")
         val remark = session.getStringOrNull("reason")
-        val notSeen = session.getBoolean("notSeen")
+        val notSeen = session.getBoolean("not_seen")
         val subType = session.getString("sub_type")
         return invoke(flag, approve, subType, remark, notSeen, session.echo)
     }
@@ -20,13 +21,20 @@ internal object SetGroupAddRequest: IActionHandler() {
     suspend operator fun invoke(flag: String, approve: Boolean? = true, subType: String, remark: String? = "", notSeen: Boolean? = false, echo: JsonElement = EmptyJsonString): String {
         val flags = flag.split(";")
         var ts = flags[0].toLong()
-        if (ts.toString().length < 13) {
-            // time but not seq, query seq again
-            val reqs = GroupSvc.requestGroupSystemMsgNew(20)
-            val req = reqs?.first {
-                it.msg_time.get() == ts
+        try {
+            if (ts.toString().length < 13) {
+                // time but not seq, query seq again
+                var reqs = GroupSvc.requestGroupSystemMsgNew(20, 1)
+                val riskReqs = GroupSvc.requestGroupSystemMsgNew(20, 2)
+                reqs = reqs + riskReqs
+                val req = reqs.first {
+                    it.msg_time.get() == ts
+                }
+                ts = req.msg_seq?.get() ?: return error("失败：未找到该请求", echo)
             }
-            ts = req?.msg_seq?.get() ?: return error("失败：未找到该请求", echo)
+        } catch (err: Throwable) {
+            LogCenter.log(err.stackTraceToString(), Level.WARN)
+            return error("查找请求失败：${err.message}", echo)
         }
         val groupCode = flags[1].toLong()
         val uin = flags[2].toLong()
@@ -35,7 +43,7 @@ internal object SetGroupAddRequest: IActionHandler() {
             if (result.isSuccess) {
                 ok(result.getOrNull(), echo)
             } else {
-                logic(result.getOrNull() ?: "", echo)
+                logic(result.exceptionOrNull()?.message ?: "", echo)
             }
         } catch (err: Throwable) {
             err.printStackTrace()

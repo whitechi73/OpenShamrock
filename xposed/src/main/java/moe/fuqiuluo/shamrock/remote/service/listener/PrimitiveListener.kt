@@ -402,14 +402,16 @@ internal object PrimitiveListener {
 
                 LogCenter.log("入群申请($groupCode) $applier: \"$reason\"")
                 val flag = try {
-                    val reqs = requestGroupSystemMsgNew(10, 0, 0)
-                    val req = reqs?.first {
+                    var reqs = requestGroupSystemMsgNew(10, 1)
+                    val riskReqs = requestGroupSystemMsgNew(10, 2)
+                    reqs = reqs + riskReqs
+                    val req = reqs.first {
                         it.msg_time.get() == time
                     }
-                    val seq = req?.msg_seq?.get()
-                    "$seq;$groupCode;$applierUid"
+                    val seq = req.msg_seq?.get()
+                    "$seq;$groupCode;$applier"
                 } catch (err: Throwable) {
-                    "$time;$groupCode;$applierUid"
+                    "$time;$groupCode;$applier"
                 }
                 if(!GlobalEventTransmitter.RequestTransmitter
                             .transGroupApply(time, applier, reason, groupCode, flag, RequestSubType.Add)) {
@@ -426,11 +428,13 @@ internal object PrimitiveListener {
                 }
                 LogCenter.log("邀请入群申请($groupCode): $applier")
                 val flag = try {
-                    val reqs = requestGroupSystemMsgNew(10, 0, 0)
-                    val req = reqs?.first {
+                    var reqs = requestGroupSystemMsgNew(10, 1)
+                    val riskReqs = requestGroupSystemMsgNew(10, 2)
+                    reqs = reqs + riskReqs
+                    val req = reqs.first {
                         it.msg_time.get() == time
                     }
-                    val seq = req?.msg_seq?.get()
+                    val seq = req.msg_seq?.get()
                     "$seq;$groupCode;$applier"
                 } catch (err: Throwable) {
                     "$time;$groupCode;$applierUid"
@@ -449,11 +453,13 @@ internal object PrimitiveListener {
         val uin = pb[1, 1, 5].asLong
         LogCenter.log("邀请入群$groupCode 邀请者: \"$invitor\"")
         val flag = try {
-            val reqs = requestGroupSystemMsgNew(10, 0, 0)
-            val req = reqs?.first {
+            var reqs = requestGroupSystemMsgNew(10, 1)
+            val riskReqs = requestGroupSystemMsgNew(10, 2)
+            reqs = reqs + riskReqs
+            val req = reqs.first {
                 it.msg_time.get() == time
             }
-            val seq = req?.msg_seq?.get()
+            val seq = req.msg_seq?.get()
             "$seq;$groupCode;$uin"
         } catch (err: Throwable) {
             "$time;$groupCode;$uin"

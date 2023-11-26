@@ -643,21 +643,6 @@ internal object GroupSvc: BaseSvc() {
         notSee: Boolean? = false,
         subType: String
     ): Result<String>{
-//        val app = AppRuntimeFetcher.appRuntime
-//        if (app !is AppInterface)
-//            throw RuntimeException("AppRuntime cannot cast to AppInterface")
-//        val service = QRoute.api(IAddFriendTempApi::class.java)
-//        val action = `structmsg$SystemMsgActionInfo`()
-//        action.type.set(if (approve != false) 11 else 12)
-//        action.group_code.set(gid)
-//        action.msg.set(msg)
-//        val snInfo = `structmsg$AddFrdSNInfo`()
-//        snInfo.uint32_not_see_dynamic.set(if (notSee != false) 1 else 0)
-////        snInfo.uint32_set_sn.set(0)
-//        action.addFrdSNInfo.set(snInfo)
-//        service.sendFriendSystemMsgAction(2, msgSeq * 1000, uin, 1, 2, 30024, 1, action, 0, `structmsg$StructMsg`(), false,
-//            app
-//        )
         // 实在找不到接口了 发pb吧
         val buffer: ByteArray
         when (subType) {
@@ -688,7 +673,9 @@ internal object GroupSvc: BaseSvc() {
                     7 to 1,
                     8 to mapOf(
                         1 to if (approve != false) 11 else 12,
-                        2 to gid
+                        2 to gid,
+                        50 to msg,
+                        53 to if (notSee != false) 1 else 0
                     ),
                     9 to 1000
                 ).toByteArray()
@@ -704,14 +691,17 @@ internal object GroupSvc: BaseSvc() {
             if (result[1, 1].asInt == 0) {
                 Result.success(result[2].asUtf8String)
             } else {
-                Result.failure(Exception(result[2].asUtf8String))
+                Result.failure(Exception(result[1, 2].asUtf8String))
             }
         } else {
             Result.failure(Exception("操作失败"))
         }
     }
 
-    suspend fun requestGroupSystemMsgNew(msgNum: Int, latestFriendSeq: Long = 0, latestGroupSeq: Long = 0, retryCnt: Int = 3): List<StructMsg>? {
+    suspend fun requestGroupSystemMsgNew(msgNum: Int, reqMsgType: Int = 1, latestFriendSeq: Long = 0, latestGroupSeq: Long = 0, retryCnt: Int = 5): List<StructMsg> {
+        if (retryCnt < 0) {
+            return ArrayList()
+        }
         val req = ReqSystemMsgNew()
         req.msg_num.set(msgNum)
         req.latest_friend_seq.set(latestFriendSeq)
@@ -740,17 +730,19 @@ internal object GroupSvc: BaseSvc() {
         req.is_get_frd_ribbon.set(false)
         req.is_get_grp_ribbon.set(false)
         req.friend_msg_type_flag.set(1)
-        req.uint32_req_msg_type.set(1)
+        req.uint32_req_msg_type.set(reqMsgType)
         req.uint32_need_uid.set(1)
         val respBuffer = sendBufferAW("ProfileService.Pb.ReqSystemMsgNew.Group", true, req.toByteArray())
-        return if (respBuffer == null && retryCnt >= 0) {
-            requestGroupSystemMsgNew(msgNum, latestFriendSeq, latestGroupSeq, retryCnt - 1)
-        } else if (respBuffer == null) {
+        return if (respBuffer == null) {
             ArrayList()
         } else {
-            val msg = RspSystemMsgNew()
-            msg.mergeFrom(respBuffer.slice(4))
-            return msg.groupmsgs.get()
+            try {
+                val msg = RspSystemMsgNew()
+                msg.mergeFrom(respBuffer.slice(4))
+                return msg.groupmsgs.get().orEmpty()
+            } catch (err: Throwable) {
+                requestGroupSystemMsgNew(msgNum, reqMsgType, latestFriendSeq, latestGroupSeq, retryCnt - 1)
+            }
         }
     }
 
