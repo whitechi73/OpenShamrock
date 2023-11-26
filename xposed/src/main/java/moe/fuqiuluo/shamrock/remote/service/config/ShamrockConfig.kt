@@ -33,16 +33,17 @@ internal object ShamrockConfig {
         val mmkv = MMKVFetcher.mmkvWithId("shamrock_config")
         mmkv.apply {
             putBoolean(  "tablet",     intent.getBooleanExtra("tablet", false))                 // 强制平板模式
-            putInt(      "port",       intent.getIntExtra("port", 5700))                         // 主动HTTP端口
+            putInt(      "port",       intent.getIntExtra("port", 5700))                        // 主动HTTP端口
             putBoolean(  "ws",         intent.getBooleanExtra("ws", false))                     // 主动WS开关
             putBoolean(  "http",       intent.getBooleanExtra("http", false))                   // HTTP回调开关
-            putString(   "http_addr",  intent.getStringExtra("http_addr"))                                  // WebHook回调地址
+            putString(   "http_addr",  intent.getStringExtra("http_addr"))                                // WebHook回调地址
             putBoolean(  "ws_client",  intent.getBooleanExtra("ws_client", false))              // 被动WS开关
             putBoolean(  "use_cqcode", intent.getBooleanExtra("use_cqcode", false))             // 使用CQ码
             putBoolean(  "inject_packet",    intent.getBooleanExtra("inject_packet", false))    // 拦截无用包
-            putBoolean(  "debug",    intent.getBooleanExtra("debug", false))    // 调试模式
+            putBoolean(  "debug",      intent.getBooleanExtra("debug", false))                  // 调试模式
 
             Config.defaultToken = intent.getStringExtra("token")
+            Config.antiTrace = intent.getBooleanExtra("anti_qq_trace", true)
 
             val wsPort = intent.getIntExtra("ws_port", 5800)
             Config.activeWebSocket = if (Config.activeWebSocket == null) ConnectionConfig(
@@ -58,16 +59,16 @@ internal object ShamrockConfig {
                 ConnectionConfig(address = it)
             }?.toMutableList()
 
-            putString(   "key_store",      intent.getStringExtra("key_store"))  // 证书路径
-            putString(   "ssl_pwd",      intent.getStringExtra("ssl_pwd"))  // 证书密码
-            putString(   "ssl_private_pwd",      intent.getStringExtra("ssl_private_pwd"))  // 证书私钥密码
-            putString(   "ssl_alias",      intent.getStringExtra("ssl_alias"))  // 证书别名
-            putInt(      "ssl_port",    intent.getIntExtra("ssl_port", 5701))                         // 主动HTTP端口
+            putString(  "key_store",   intent.getStringExtra("key_store"))                                // 证书路径
+            putString(  "ssl_pwd",     intent.getStringExtra("ssl_pwd"))                                  // 证书密码
+            putString(  "ssl_private_pwd",   intent.getStringExtra("ssl_private_pwd"))                    // 证书私钥密码
+            putString(  "ssl_alias",   intent.getStringExtra("ssl_alias"))                                // 证书别名
+            putInt(     "ssl_port",    intent.getIntExtra("ssl_port", 5701))                    // 主动HTTP端口
 
-            putBoolean("auto_clear", intent.getBooleanExtra("auto_clear", false)) // 自动清理
+            putBoolean("auto_clear",   intent.getBooleanExtra("auto_clear", false))             // 自动清理
 
-            putBoolean("enable_self_msg", intent.getBooleanExtra("enable_self_msg", false)) // 推送自己发的消息
-            putBoolean("shell", intent.getBooleanExtra("shell", false)) // 开启Shell接口
+            putBoolean("enable_self_msg",    intent.getBooleanExtra("enable_self_msg", false))  // 推送自己发的消息
+            putBoolean("shell",        intent.getBooleanExtra("shell", false))                  // 开启Shell接口
 
             putBoolean("isInit", true)
         }

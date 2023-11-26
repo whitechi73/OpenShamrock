@@ -5,6 +5,8 @@ import de.robv.android.xposed.IXposedHookLoadPackage
 import de.robv.android.xposed.XposedBridge
 import de.robv.android.xposed.callbacks.XC_LoadPackage
 import de.robv.android.xposed.XposedBridge.log
+import moe.fuqiuluo.shamrock.helper.Level
+import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.utils.MMKVFetcher
 import moe.fuqiuluo.shamrock.xposed.loader.ActionLoader
 import moe.fuqiuluo.shamrock.xposed.loader.FuckAMS
@@ -12,6 +14,7 @@ import moe.fuqiuluo.shamrock.xposed.loader.LuoClassloader
 import moe.fuqiuluo.shamrock.tools.FuzzySearchClass
 import moe.fuqiuluo.shamrock.tools.afterHook
 import moe.fuqiuluo.shamrock.utils.PlatformUtils
+import moe.fuqiuluo.shamrock.xposed.loader.NativeLoader
 import mqq.app.MobileQQ
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
@@ -26,6 +29,12 @@ internal class XposedEntry: IXposedHookLoadPackage {
     companion object {
         @JvmStatic
         var sec_static_stage_inited = false
+        @JvmStatic
+        var sec_static_nativehook_inited = false
+
+        external fun injected(): Boolean
+
+        external fun hasEnv(): Boolean
     }
 
     private var firstStageInit = false
@@ -108,7 +117,6 @@ internal class XposedEntry: IXposedHookLoadPackage {
         if (sec_static_stage_inited) return
 
         val classLoader = ctx.classLoader.also { requireNotNull(it) }
-
         LuoClassloader.hostClassLoader = classLoader
 
         if(injectClassloader(XposedEntry::class.java.classLoader)) {
@@ -116,12 +124,7 @@ internal class XposedEntry: IXposedHookLoadPackage {
                 System.setProperty("qxbot_flag", "1")
             } else return
 
-            log("Process Name = " + MobileQQ.getMobileQQ().qqProcessName.apply {
-                // if (!contains("msf", ignoreCase = true)) return // 非MSF进程 退出
-                //if (contains("peak")) {
-                //    PlatformUtils.killProcess(ctx, this)
-                //}
-            })
+            log("Process Name = " + MobileQQ.getMobileQQ().qqProcessName)
 
             PlatformUtils.isTim()
 

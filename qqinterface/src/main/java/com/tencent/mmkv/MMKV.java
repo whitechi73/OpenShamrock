@@ -33,7 +33,7 @@ public class MMKV implements SharedPreferences, SharedPreferences.Editor {
         return null;
     }
 
-    public SharedPreferences.Editor putBoolean(String str, boolean z) {
+    public SharedPreferences.Editor putBoolean(String s, boolean z) {
         return this;
     }
 

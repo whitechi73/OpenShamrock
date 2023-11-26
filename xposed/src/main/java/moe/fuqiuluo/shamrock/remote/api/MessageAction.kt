@@ -33,20 +33,22 @@ fun Routing.messageAction() {
         post {
             val groupId = fetchPostOrNull("group_id")
             val messages = fetchPostJsonArray("messages")
-            call.respondText(SendGroupForwardMsg(messages, groupId ?: ""), ContentType.Application.Json)
+            call.respondText(SendForwardMessage(MsgConstant.KCHATTYPEGROUP, groupId ?: "", messages), ContentType.Application.Json)
         }
         get {
             respond(false, Status.InternalHandlerError, "Not support GET method")
         }
     }
-    post("/send_group_forward_msg") {
 
-    }
-
-    post("/send_private_forward_msg") {
-        val userId = fetchPostOrNull("user_id")
-        val messages = fetchPostJsonArray("messages")
-        call.respondText(SendPrivateForwardMsg(messages, userId ?: ""), ContentType.Application.Json)
+    route("/send_private_forward_msg") {
+        post {
+            val userId = fetchPostOrNull("user_id")
+            val messages = fetchPostJsonArray("messages")
+            call.respondText(SendForwardMessage(MsgConstant.KCHATTYPEC2C, userId ?: "", messages), ContentType.Application.Json)
+        }
+        get {
+            respond(false, Status.InternalHandlerError, "Not support GET method")
+        }
     }
 
     getOrPost("/get_forward_msg") {

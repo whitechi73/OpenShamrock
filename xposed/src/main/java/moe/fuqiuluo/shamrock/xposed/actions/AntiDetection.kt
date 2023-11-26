@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.content.pm.VersionedPackage
 import android.os.Build
-import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XC_MethodReplacement
 import de.robv.android.xposed.XposedBridge
 import de.robv.android.xposed.XposedHelpers
@@ -13,8 +12,9 @@ import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.remote.service.config.ShamrockConfig
 import moe.fuqiuluo.shamrock.tools.hookMethod
+import moe.fuqiuluo.shamrock.xposed.XposedEntry
 import moe.fuqiuluo.shamrock.xposed.loader.LuoClassloader
-import mqq.app.MobileQQ
+import moe.fuqiuluo.shamrock.xposed.loader.NativeLoader
 
 /**
  * 反检测
@@ -22,6 +22,7 @@ import mqq.app.MobileQQ
 class AntiDetection: IAction {
     override fun invoke(ctx: Context) {
         antiFindPackage(ctx)
+        antiNativeDetection()
         if (ShamrockConfig.isAntiTrace())
             antiTrace()
         antiMemoryWalking()
@@ -36,6 +37,23 @@ class AntiDetection: IAction {
             if (it.className.isModuleStack()) return true
         }
         return false
+    }
+
+    private fun antiNativeDetection() {
+        try {
+            //System.loadLibrary("clover")
+            NativeLoader.load("clover")
+            val env = XposedEntry.hasEnv()
+            val injected = XposedEntry.injected()
+            if (!env || !injected) {
+                LogCenter.log("[Shamrock] Shamrock反检测启动失败(env=$env, injected=$injected)", Level.ERROR)
+            } else {
+                XposedEntry.sec_static_nativehook_inited = true
+                LogCenter.log("[Shamrock] Shamrock反检测启动成功", Level.INFO)
+            }
+        } catch (e: Throwable) {
+            LogCenter.log("[Shamrock] Shamrock反检测启动失败，请检查LSPosed版本使用大于100: ${e.message}", Level.ERROR)
+        }
     }
 
     private fun antiFindPackage(context: Context) {

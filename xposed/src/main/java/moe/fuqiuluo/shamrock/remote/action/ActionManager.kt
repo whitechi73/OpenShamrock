@@ -34,8 +34,8 @@ internal object ActionManager {
             GetGroupSystemMsg, GetProhibitedMemberList, GetEssenceMessageList, GetGroupNotice, SendGroupNotice,
 
             // MSG ACTIONS
-            SendMessage, DeleteMessage, GetMsg, GetForwardMsg, SendGroupForwardMsg, SendGroupMessage, SendPrivateMessage,
-            ClearMsgs, GetHistoryMsg, GetGroupMsgHistory, SendPrivateForwardMsg,
+            SendMessage, DeleteMessage, GetMsg, GetForwardMsg, SendPrivateForwardMessage, SendGroupMessage, SendPrivateMessage,
+            ClearMsgs, GetHistoryMsg, GetGroupMsgHistory, SendGroupForwardMessage,
 
             // RESOURCE ACTION
             GetRecord, GetImage, UploadGroupFile, CreateGroupFileFolder, DeleteGroupFolder,

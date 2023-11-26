@@ -7,7 +7,6 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import moe.fuqiuluo.shamrock.remote.service.api.WebSocketClientServlet
-import moe.fuqiuluo.shamrock.remote.service.data.push.*
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.remote.service.api.GlobalEventTransmitter
@@ -35,7 +34,7 @@ internal class WebSocketClientService(
             }
         })
         submitFlowJob(GlobalScope.launch {
-            GlobalEventTransmitter.onRequestEvent() { event ->
+            GlobalEventTransmitter.onRequestEvent { event ->
                 pushTo(event)
             }
         })
