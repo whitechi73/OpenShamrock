@@ -74,7 +74,7 @@ internal object MessageHelper {
         val nonMsg: Boolean = message.isEmpty()
         return if (!nonMsg) {
             val service = QRoute.api(IMsgService::class.java)
-            if(callback is MsgSvc.MessageCallback) {
+            if (callback is MsgSvc.MessageCallback) {
                 callback.msgHash = uniseq.first
             }
 
@@ -107,7 +107,7 @@ internal object MessageHelper {
         val nonMsg: Boolean = message.isEmpty()
         return if (!nonMsg) {
             val service = QRoute.api(IMsgService::class.java)
-            if(callback is MsgSvc.MessageCallback) {
+            if (callback is MsgSvc.MessageCallback) {
                 callback.msgHash = uniseq.first
             }
 
@@ -132,7 +132,7 @@ internal object MessageHelper {
         val nonMsg: Boolean = message.isEmpty()
         return if (!nonMsg) {
             val service = QRoute.api(IMsgService::class.java)
-            if(callback is MsgSvc.MessageCallback) {
+            if (callback is MsgSvc.MessageCallback) {
                 callback.msgHash = uniseq.first
             }
 
@@ -156,7 +156,7 @@ internal object MessageHelper {
     }
 
     fun obtainMessageTypeByDetailType(detailType: String): Int {
-        return when(detailType) {
+        return when (detailType) {
             "troop", "group" -> MsgConstant.KCHATTYPEGROUP
             "private" -> MsgConstant.KCHATTYPEC2C
             "less" -> MsgConstant.KCHATTYPETEMPC2CFROMUNKNOWN
@@ -166,7 +166,7 @@ internal object MessageHelper {
     }
 
     fun obtainDetailTypeByMsgType(msgType: Int): String {
-        return when(msgType) {
+        return when (msgType) {
             MsgConstant.KCHATTYPEGROUP -> "group"
             MsgConstant.KCHATTYPEC2C -> "private"
             MsgConstant.KCHATTYPEGUILD -> "guild"
@@ -180,9 +180,9 @@ internal object MessageHelper {
         var hasActionMsg = false
         messageList.forEach {
             val msg = it.jsonObject
-            try {
-                val maker = MessageMaker[msg["type"].asString]
-                if (maker != null) {
+            val maker = MessageMaker[msg["type"].asString]
+            if (maker != null) {
+                try {
                     val data = msg["data"].asJsonObjectOrNull ?: EmptyJsonObject
                     maker(chatType, msgId, targetUin, data).onSuccess { msgElem ->
                         msgList.add(msgElem)
@@ -193,18 +193,19 @@ internal object MessageHelper {
                             hasActionMsg = true
                         }
                     }
-                } else {
-                    LogCenter.log("不支持的消息类型: ${msg["type"].asString}", Level.ERROR)
+                } catch (e: Throwable) {
+                    LogCenter.log(e.stackTraceToString(), Level.ERROR)
                 }
-            } catch (e: Throwable) {
-                LogCenter.log(e.stackTraceToString(), Level.ERROR)
+            } else {
+                LogCenter.log("不支持的消息类型: ${msg["type"].asString}", Level.ERROR)
+                return false to arrayListOf()
             }
         }
         return hasActionMsg to msgList
     }
 
     fun generateMsgIdHash(chatType: Int, msgId: Long): Int {
-        val key =  when (chatType) {
+        val key = when (chatType) {
             MsgConstant.KCHATTYPEGROUP -> "grp$msgId"
             MsgConstant.KCHATTYPEC2C -> "c2c$msgId"
             MsgConstant.KCHATTYPETEMPC2CFROMGROUP -> "tmpgrp$msgId"

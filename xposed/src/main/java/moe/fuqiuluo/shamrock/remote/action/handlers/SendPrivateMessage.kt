@@ -9,12 +9,12 @@ internal object SendPrivateMessage: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val userId = session.getString("user_id")
         val groupId = session.getStringOrNull("group_id")
-        val chatTYpe = if (groupId == null) MsgConstant.KCHATTYPEC2C else MsgConstant.KCHATTYPETEMPC2CFROMGROUP
+        val chatType = if (groupId == null) MsgConstant.KCHATTYPEC2C else MsgConstant.KCHATTYPETEMPC2CFROMGROUP
         return if (session.isString("message")) {
             val autoEscape = session.getBooleanOrDefault("auto_escape", false)
             val message = session.getString("message")
             SendMessage.invoke(
-                chatType = chatTYpe,
+                chatType = chatType,
                 peerId = userId,
                 message = message,
                 autoEscape = autoEscape,
@@ -24,7 +24,7 @@ internal object SendPrivateMessage: IActionHandler() {
         } else if (session.isArray("message")) {
             val message = session.getArray("message")
             SendMessage(
-                chatType = chatTYpe,
+                chatType = chatType,
                 peerId = userId,
                 message = message,
                 echo = session.echo,
@@ -33,7 +33,7 @@ internal object SendPrivateMessage: IActionHandler() {
         } else {
             val message = session.getObject("message")
             SendMessage(
-                chatType = chatTYpe,
+                chatType = chatType,
                 peerId = userId,
                 message = listOf( message ).jsonArray,
                 echo = session.echo,

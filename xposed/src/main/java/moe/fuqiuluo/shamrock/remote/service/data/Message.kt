@@ -9,6 +9,11 @@ internal data class MessageResult(
     @SerialName("message_id") val msgId: Int,
     @SerialName("time") val time: Long
 )
+@Serializable
+internal data class ForwardMessageResult(
+    @SerialName("message_id") val msgId: Int,
+    @SerialName("forward_id") val forwardId: String
+)
 
 @Serializable
 internal data class MessageDetail(
