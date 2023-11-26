@@ -13,7 +13,7 @@ internal object SetGroupAddRequest: IActionHandler() {
         val flag = session.getString("flag")
         val approve = session.getBoolean("approve")
         val remark = session.getStringOrNull("reason")
-        val notSeen = session.getBoolean("not_seen")
+        val notSeen = session.getBooleanOrDefault("not_seen", false)
         val subType = session.getString("sub_type")
         return invoke(flag, approve, subType, remark, notSeen, session.echo)
     }

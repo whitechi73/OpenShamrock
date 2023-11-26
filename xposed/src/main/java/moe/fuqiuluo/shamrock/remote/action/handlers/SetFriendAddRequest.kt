@@ -12,7 +12,7 @@ internal object SetFriendAddRequest: IActionHandler() {
         val flag = session.getString("flag")
         val approve = session.getBoolean("approve")
         val remark = session.getStringOrNull("remark")
-        val notSeen = session.getBoolean("notSeen")
+        val notSeen = session.getBooleanOrDefault("notSeen", false)
         return invoke(flag, approve, remark, notSeen, session.echo)
     }
 
