@@ -1,7 +1,6 @@
 package moe.fuqiuluo.shamrock.ui.fragment
 
 import android.content.Context
-import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.absolutePadding
 import androidx.compose.foundation.layout.fillMaxSize
@@ -82,6 +81,17 @@ fun LabFragment() {
                     isSwitch = ShamrockConfig.isDebug(ctx)
                 ) {
                     ShamrockConfig.setDebug(ctx, it)
+                    ShamrockConfig.pushUpdate(ctx)
+                    return@Function true
+                }
+
+                Function(
+                    title = "防止调用栈检测",
+                    desc = "防止QQ进行堆栈跟踪检测，需要重新启动QQ。",
+                    descColor = it,
+                    isSwitch = ShamrockConfig.isAntiTrace(ctx)
+                ) {
+                    ShamrockConfig.setAntiTrace(ctx, it)
                     ShamrockConfig.pushUpdate(ctx)
                     return@Function true
                 }
