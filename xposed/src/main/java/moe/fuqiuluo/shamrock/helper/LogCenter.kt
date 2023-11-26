@@ -51,8 +51,29 @@ internal object LogCenter {
 
     private val format = SimpleDateFormat("[HH:mm:ss] ")
 
-    fun log(string: String, level: Level = Level.INFO, toast: Boolean = false) =
-        log({ string }, level, toast)
+    fun log(string: String, level: Level = Level.INFO, toast: Boolean = false) {
+        if (!ShamrockConfig.isDebug() && level == Level.DEBUG) {
+            return
+        }
+
+        if (toast) {
+            MobileQQ.getContext().toast(string)
+        }
+        // 把日志广播到主进程
+        GlobalScope.launch(Dispatchers.Default) {
+            DataRequester.request("send_message", bodyBuilder = {
+                put("string", string)
+                put("level", level.id)
+            })
+        }
+
+        if (!LogFile.exists()) {
+            LogFile.createNewFile()
+        }
+        val format = "%s%s %s\n".format(format.format(Date()), level.name, string)
+
+        LogFile.appendText(format)
+    }
 
     fun log(
         string: () -> String,

@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import de.robv.android.xposed.XposedBridge
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
+import moe.fuqiuluo.shamrock.xposed.XposedEntry
 import mqq.app.MobileQQ
 import java.io.File
 
@@ -22,7 +23,7 @@ internal object NativeLoader {
     @SuppressLint("UnsafeDynamicallyLoadedCode")
     fun load(name: String) {
         try {
-            if (name == "shamrock") {
+            if (name == "shamrock" || name == "clover") {
                 val context = MobileQQ.getContext()
                 val packageManager = context.packageManager
                 val applicationInfo = packageManager.getApplicationInfo("moe.fuqiuluo.shamrock.hided", 0)
