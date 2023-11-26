@@ -16,8 +16,6 @@ internal object NativeLoader {
             return externalLibPath.resolve("libffmpegkit.so").exists()
         }
 
-    private var isInitShamrock = false
-
     /**
      * 使目标进程可以使用来自模块的库
      */

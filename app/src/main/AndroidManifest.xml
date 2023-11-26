@@ -18,6 +18,8 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Shamrock"
         android:zygotePreloadName="@string/app_name"
+        android:multiArch="true"
+        android:extractNativeLibs="false"
         tools:targetApi="31">
         <activity
             android:name=".MainActivity"
