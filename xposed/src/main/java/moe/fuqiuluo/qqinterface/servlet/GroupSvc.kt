@@ -318,7 +318,7 @@ internal object GroupSvc: BaseSvc() {
 
     fun getOwner(groupId: String): Long {
         val groupInfo = getGroupInfo(groupId)
-        return groupInfo.troopowneruin.toLong()
+        return groupInfo.troopowneruin?.toLong() ?: 0
     }
 
     fun isOwner(groupId: String): Boolean {
