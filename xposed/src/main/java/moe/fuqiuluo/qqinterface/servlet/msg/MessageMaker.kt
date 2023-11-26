@@ -96,8 +96,20 @@ internal object MessageMaker {
         "touch" to MessageMaker::createTouchElem,
         "weather" to MessageMaker::createWeatherElem,
         "json" to MessageMaker::createJsonElem,
+        //"node" to MessageMaker::createNodeElem,
         //"multi_msg" to MessageMaker::createLongMsgStruct,
     )
+
+//    private suspend fun createNodeElem(
+//        chatType: Int,
+//        msgId: Long,
+//        peerId: String,
+//        data: JsonObject
+//    ): Result<MsgElement> {
+//        data.checkAndThrow("data")
+//        SendForwardMessage(MsgConstant.KCHATTYPEC2C, TicketSvc.getUin(), data["content"].asJsonArray)
+//
+//    }
 
     private suspend fun createJsonElem(
         chatType: Int,
