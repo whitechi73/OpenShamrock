@@ -120,6 +120,7 @@ private fun AppMainView() {
     val coreVersion = remember { mutableStateOf(getShamrockVersion(context)) }
     val coreName = remember { mutableStateOf("Xposed") }
     val voiceSwitch = remember { mutableStateOf(false) }
+    @Suppress("LocalVariableName") val LocalString = LocalString
 
     if (!AppRuntime.isInit) {
         AppRuntime.state = remember {
@@ -140,7 +141,7 @@ private fun AppMainView() {
                 mutableStateOf("2854200454")
             }
             it.nick = remember {
-                mutableStateOf("测试昵称")
+                mutableStateOf(LocalString.testName)
             }
         }
 
@@ -150,13 +151,12 @@ private fun AppMainView() {
     }
 
     val ctx = LocalContext.current
-    @Suppress("LocalVariableName") val LocalString = LocalString
     LaunchedEffect(isFined.value) {
         if (isFined.value) {
-            AppRuntime.log("日志框架激活成功，开放操作许可。")
+            AppRuntime.log(LocalString.logCentralLoadSuccessfully)
             Toast.makeText(ctx, LocalString.frameworkYes, Toast.LENGTH_SHORT).show()
         } else {
-            AppRuntime.log("日志框架处于未激活状态，请检查。")
+            AppRuntime.log(LocalString.logCentralLoadFailed)
             Toast.makeText(ctx, LocalString.frameworkNo, Toast.LENGTH_SHORT).show()
         }
     }

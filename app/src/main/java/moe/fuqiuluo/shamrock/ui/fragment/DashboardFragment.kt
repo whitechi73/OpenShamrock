@@ -50,6 +50,7 @@ import moe.fuqiuluo.shamrock.ui.app.AppRuntime
 import moe.fuqiuluo.shamrock.ui.app.Level
 import moe.fuqiuluo.shamrock.ui.app.ShamrockConfig
 import moe.fuqiuluo.shamrock.ui.theme.GlobalColor
+import moe.fuqiuluo.shamrock.ui.theme.LocalString
 import moe.fuqiuluo.shamrock.ui.theme.ThemeColor
 import moe.fuqiuluo.shamrock.ui.tools.InputDialog
 
@@ -70,7 +71,7 @@ fun DashboardFragment(
         AccountCard(nick, uin)
         InformationCard(ctx)
         APIInfoCard(ctx)
-        FunctionCard(scope, ctx, "功能设置")
+        FunctionCard(scope, ctx, LocalString.functionSetting)
         SSLCard(ctx)
     }
 }
@@ -80,7 +81,7 @@ private fun SSLCard(ctx: Context) {
     ActionBox(
         modifier = Modifier.padding(top = 12.dp),
         painter = painterResource(id = R.drawable.baseline_security_24),
-        title = "SSL配置"
+        title = LocalString.sslSetting
     ) {
         Column {
             Divider(

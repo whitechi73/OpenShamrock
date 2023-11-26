@@ -69,6 +69,24 @@ private open class Chūnibyō: Default() {
                 "执明起，至除免于灾祸。\n" +
                 "元冥浩浩，非凡不可动之。"
         labWarning = "寒酥降矣，梅熟日久，莫不可测。"
+        logTitle = "无极"
+        testName = "未名之人"
+        logCentralLoadSuccessfully = "无极开，天地始纷争。"
+        logCentralLoadFailed = "无极闭，天地始归宁。"
+        functionSetting = "天地法则"
+        sslSetting = "天行御令"
+        warnTitle = "仙人指路"
+        b2Mode = "通仙之路"
+        b2ModeDesc = "凡人勿近"
+        restartToast = "复关喏哉！"
+        showDebugLog = "窥探天机"
+        showDebugLogDesc = "迷失自我，走火入魔"
+        antiTrace = "鬼影迷踪"
+        antiTraceDesc = "唐门绝学，已有取死之道"
+        injectPacket = "遮匿无用之禀"
+        injectPacketDesc = "试于试之，逆则魂飞魄散"
+        persistentText = "丹书铁券"
+        persistentTextDesc = ""
     }
 }
 
@@ -84,7 +102,24 @@ private open class Default: VarString(
             "同时声明本项目仅用于学习与交流，请于24小时内删除。\n" +
             "同时开源贡献者均享受免责条例。",
     labWarning = "实验室功能，可能会导致出乎意料的BUG!",
-    "日志"
+    logTitle = "日志",
+    testName = "测试昵称",
+    logCentralLoadSuccessfully = "日志框架激活成功，开放操作许可。",
+    logCentralLoadFailed = "日志框架处于未激活状态，请检查。",
+    functionSetting = "功能设置",
+    sslSetting = "SSL配置",
+    warnTitle = "温馨提示",
+    b2Mode = "中二病模式",
+    b2ModeDesc = "也许会导致奇怪的问题，大抵就是你看不懂罢了。",
+    restartToast = "重启生效哦！",
+    showDebugLog = "显示调试日志",
+    showDebugLogDesc = "会导致日志刷屏。",
+    antiTrace = "防止调用栈检测",
+    antiTraceDesc = "防止QQ进行堆栈跟踪检测，需要重新启动QQ。",
+    injectPacket = "拦截QQ无用收包",
+    injectPacketDesc = "测试阶段，可能导致网络异常或掉线。",
+    persistentText = "免死金牌",
+    persistentTextDesc = "由天地之起也，须复动之。"
 )
 
 open class VarString(
@@ -99,5 +134,32 @@ open class VarString(
 
     var labWarning: String,
 
-    var logTitle: String
+    var logTitle: String,
+
+    var testName: String,
+
+    var logCentralLoadSuccessfully: String,
+    var logCentralLoadFailed: String,
+
+    var functionSetting: String,
+    var sslSetting: String,
+
+    var warnTitle: String,
+
+    var b2Mode: String,
+    var b2ModeDesc: String,
+
+    var restartToast: String,
+
+    var showDebugLog: String,
+    var showDebugLogDesc: String,
+
+    var antiTrace: String,
+    var antiTraceDesc: String,
+
+    var injectPacket: String,
+    var injectPacketDesc: String,
+
+    var persistentText: String,
+    var persistentTextDesc: String
 )
