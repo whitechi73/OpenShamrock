@@ -19,6 +19,7 @@ static std::vector<std::string> qemu_detect_props = {
 };
 
 int (*backup_system_property_get)(const char *name, char *value);
+FILE* (*backup_fopen)(const char *filename, const char *mode);
 
 int fake_system_property_get(const char *name, char *value) {
     for (auto &prop: qemu_detect_props) {
@@ -67,16 +68,22 @@ int fake_system_property_get(const char *name, char *value) {
     return backup_system_property_get(name, value);
 }
 
-void on_library_loaded(const char *name, void *handle) {
-    auto libraryName = std::string(name);
-    if (libraryName.ends_with("libc.so") || libraryName.ends_with("libfekit.so")) {
-        void *target = dlsym(handle, "__system_property_get");
-        if (target != nullptr) {
-            hook_function(target, (void *)fake_system_property_get, (void **) &backup_system_property_get);
-        } else {
-            LOGE("[Shamrock] failed to hook __system_property_get");
-        }
+FILE* fake_fopen(const char *filename, const char *mode) {
+    if (strstr(filename, "qemu_pipe")) {
+        LOGI("[Shamrock] bypass qemu detection");
+        return nullptr;
     }
+
+    if (strstr(filename, "libhoudini.so")) {
+        LOGI("[Shamrock] bypass emu detection");
+        return nullptr;
+    }
+
+    return backup_fopen(filename, mode);
+}
+
+void on_library_loaded(const char *name, void *handle) {
+
 }
 
 extern "C" [[gnu::visibility("default")]] [[gnu::used]]
@@ -100,6 +107,10 @@ extern "C" [[gnu::visibility("default")]] [[gnu::used]]
 NativeOnModuleLoaded native_init(const NativeAPIEntries *entries) {
     hook_function = entries->hook_func;
     LOGI("[Shamrock] LSPosed NativeModule Init: %p", hook_function);
+
+    hook_function((void*) __system_property_get, (void *)fake_system_property_get, (void **) &backup_system_property_get);
+    hook_function((void*) fopen, (void*) fake_fopen, (void**) &backup_fopen);
+
     return on_library_loaded;
 }
 
