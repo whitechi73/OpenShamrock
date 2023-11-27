@@ -86,7 +86,7 @@ private open class Chūnibyō: Default() {
         injectPacket = "遮匿无用之禀"
         injectPacketDesc = "试于试之，逆则魂飞魄散"
         persistentText = "丹书铁券"
-        persistentTextDesc = ""
+        persistentTextDesc = "由天地之起也，须复动之。"
     }
 }
 
@@ -119,7 +119,7 @@ private open class Default: VarString(
     injectPacket = "拦截QQ无用收包",
     injectPacketDesc = "测试阶段，可能导致网络异常或掉线。",
     persistentText = "免死金牌",
-    persistentTextDesc = "由天地之起也，须复动之。"
+    persistentTextDesc = "由系统复活QQ和Shamrock，需要重新启动系统。"
 )
 
 open class VarString(
