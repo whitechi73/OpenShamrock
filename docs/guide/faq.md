@@ -10,9 +10,14 @@ icon: question-circle
 
 ### 反检测
 
-使用**隐藏应用列表**对QQ隐藏Shamrock，否则您可能遭到封禁。
+Shamrock内部已经做了对应处理，无需再进行任何操作。
+
+::: warning 注意
+禁止使用隐藏应用列表等其他方法对QQ隐藏Shamrock，否则会出现 框架未激活 等异常。
+:::
 
 ### 模拟器部署成功后电脑无法访问？
+
 部分模拟器采用的是NAT网络，请使用
 ```shell
 adb forward xxx
@@ -22,7 +27,12 @@ adb forward xxx
 > 执行这个命令前，请注意adb是安卓调试桥工具包内的东西，请确保你的环境中有这个玩意，否则请前往谷歌官网或者刷机论坛之类的地方获取。
 
 ### 修改了配置文件，但没有生效？
+
 Shamrock的部分配置需要重新启动QQ（请确保100%杀死QQ），然后在保证Shamrock存活的情况下启动QQ，Shamrock的WebSocket相关的所有配置都需要重新启动生效。
+
+::: warning 注意
+如果启用了 实验功能->免死金牌 在更新配置或更新模块后需重启系统，否则更新可能不会生效。
+:::
 
 ### 某些事件/消息/操作不支持？
 
@@ -52,10 +62,6 @@ QQ修复了登录响应超时的问题，经测试(逍遥,夜神,MuMu)模拟器�
 
 目前依旧在计划中，主要是不太会docker。
 
-### 作为签名服务器时，无缝支持其它框架吗？
-
-支持的，目前已支持的框架是icqq和gocq。
-
 ### 一定要保证Shamrock主APP在后台运行吗？
 
 不需要，因为OneBot服务运行在QQ主进程中，无需Shamrock主进程运行(当然第一次使用Shamrock，请启动Shamrock，推送配置要求Shamrock和QQ都在运行)。
@@ -65,5 +71,6 @@ QQ修复了登录响应超时的问题，经测试(逍遥,夜神,MuMu)模拟器�
 目前允许在中国移动云手机(Magisk)和红手指云手机(Lspatch)使用Shamrock，其它平台未测试。
 
 ### Shamrock的日志怎么导出？
+
 Shamrock的日志文件，按照时间和进程名称，保存在/sdcard/Android/data/com.tencent.mobileqq/Tencent/Shamrock文件夹内，请查看，提交issue时可以使用他们，注意请不要提交超过50kb的日志文件。
 
