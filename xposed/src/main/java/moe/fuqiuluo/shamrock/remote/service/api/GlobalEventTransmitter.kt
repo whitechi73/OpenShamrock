@@ -395,7 +395,7 @@ internal object GlobalEventTransmitter: BaseSvc() {
      * 私聊通知 通知器
      */
     object PrivateNoticeTransmitter {
-        suspend fun transPrivatePoke(msgTime: Long, operation: Long, target: Long): Boolean {
+        suspend fun transPrivatePoke(msgTime: Long, operation: Long, target: Long, action: String?, suffix: String?, actionImg: String?): Boolean {
             pushNotice(NoticeEvent(
                 time = msgTime,
                 selfId = app.longAccountUin,
@@ -405,7 +405,12 @@ internal object GlobalEventTransmitter: BaseSvc() {
                 operatorId = operation,
                 userId = operation,
                 senderId = operation,
-                target = target
+                target = target,
+                pokeDetail = PokeDetail(
+                    actionImg = actionImg,
+                    action = action,
+                    suffix = suffix
+                )
             ))
             return true
         }

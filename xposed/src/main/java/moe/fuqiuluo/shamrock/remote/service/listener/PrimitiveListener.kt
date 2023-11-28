@@ -96,6 +96,9 @@ internal object PrimitiveListener {
 
         lateinit var target: String
         lateinit var operation: String
+        var suffix: String? = null
+        var actionImg: String? = null
+        var action: String? = null
         detail[7]
             .asList
             .value
@@ -104,12 +107,17 @@ internal object PrimitiveListener {
                 when(it[1].asUtf8String) {
                     "uin_str1" -> operation = value
                     "uin_str2" -> target = value
+                    "action_str" -> action = value
+                    "alt_str1" -> action = value
+                    "suffix_str" -> suffix = value
+                    "action_img_url" -> actionImg = value
                 }
             }
-        LogCenter.log("私聊戳一戳: $operation -> $target")
+
+        LogCenter.log("私聊戳一戳: $operation $action $target $suffix")
 
         if(!GlobalEventTransmitter.PrivateNoticeTransmitter
-            .transPrivatePoke(msgTime, operation.toLong(), target.toLong())) {
+            .transPrivatePoke(msgTime, operation.toLong(), target.toLong(), action, suffix, actionImg)) {
             LogCenter.log("私聊戳一戳推送失败！", Level.WARN)
         }
     }
