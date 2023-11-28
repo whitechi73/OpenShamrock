@@ -298,7 +298,7 @@ internal object GlobalEventTransmitter: BaseSvc() {
                 type = NoticeType.GroupBan,
                 subType = if (duration == 0) NoticeSubType.LiftBan else NoticeSubType.Ban,
                 operatorId = operation,
-                userId = operation,
+                userId = target,
                 senderId = operation,
                 target = target,
                 groupId = groupCode,
