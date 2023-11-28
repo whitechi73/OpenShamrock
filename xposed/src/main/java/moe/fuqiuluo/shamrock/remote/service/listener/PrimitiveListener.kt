@@ -243,6 +243,9 @@ internal object PrimitiveListener {
 
         lateinit var target: String
         lateinit var operation: String
+        var action: String? = null
+        var suffix: String? = null
+        var actionImg: String? = null
         detail[26][7]
             .asList
             .value
@@ -251,12 +254,16 @@ internal object PrimitiveListener {
             when(it[1].asUtf8String) {
                 "uin_str1" -> operation = value
                 "uin_str2" -> target = value
+                "action_str" -> action = value
+                "alt_str1" -> action = value
+                "suffix_str" -> suffix = value
+                "action_img_url" -> actionImg = value
             }
         }
-        LogCenter.log("群戳一戳($groupCode): $operation -> $target")
+        LogCenter.log("群戳一戳($groupCode): $operation $action $target $suffix")
 
         if(!GlobalEventTransmitter.GroupNoticeTransmitter
-            .transGroupPoke(time, operation.toLong(), target.toLong(), groupCode)) {
+            .transGroupPoke(time, operation.toLong(), target.toLong(), action, suffix, actionImg, groupCode)) {
             LogCenter.log("群戳一戳推送失败！", Level.WARN)
         }
     }

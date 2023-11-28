@@ -19,6 +19,7 @@ import moe.fuqiuluo.shamrock.remote.service.data.push.MessageTempSource
 import moe.fuqiuluo.shamrock.remote.service.data.push.NoticeEvent
 import moe.fuqiuluo.shamrock.remote.service.data.push.NoticeSubType
 import moe.fuqiuluo.shamrock.remote.service.data.push.NoticeType
+import moe.fuqiuluo.shamrock.remote.service.data.push.PokeDetail
 import moe.fuqiuluo.shamrock.remote.service.data.push.PrivateFileMsg
 import moe.fuqiuluo.shamrock.remote.service.data.push.RequestEvent
 import moe.fuqiuluo.shamrock.remote.service.data.push.RequestSubType
@@ -221,7 +222,7 @@ internal object GlobalEventTransmitter: BaseSvc() {
      * 群聊通知 通知器
      */
     object GroupNoticeTransmitter {
-        suspend fun transGroupPoke(time: Long, operation: Long, target: Long, groupCode: Long): Boolean {
+        suspend fun transGroupPoke(time: Long, operation: Long, target: Long, action: String?, suffix: String?, actionImg: String?, groupCode: Long): Boolean {
             pushNotice(NoticeEvent(
                 time = time,
                 selfId = app.longAccountUin,
@@ -231,7 +232,12 @@ internal object GlobalEventTransmitter: BaseSvc() {
                 operatorId = operation,
                 userId = operation,
                 groupId = groupCode,
-                target = target
+                target = target,
+                pokeDetail = PokeDetail(
+                    action = action,
+                    suffix = suffix,
+                    actionImg = actionImg
+                )
             ))
             return true
         }
