@@ -185,6 +185,16 @@ icon: bell
 | sender_id | int64 | 好友 QQ (仅私聊) |
 | group_id  | int64 | 群号(仅群聊)     |
 | target_id | int64 | 被戳者 QQ        |
+| poke_detail | PokeDetail | 戳一戳的详细信息  |
+
+#### PokeDetail
+
+| 字段     | 类型   | 说明  |
+| -------- | ------ | ----- |
+| action  | string  | 操作名称，如“戳了戳” |
+| suffix | string | 后缀，未设置则未空  |
+| action_img_url      | string | 操作图标  |
+
 
 ## 群红包运气王 <Badge text="未实现" type="danger" />
 
