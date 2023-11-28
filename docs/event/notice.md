@@ -113,8 +113,8 @@ icon: bell
 | 字段        | 类型   | 说明                 |
 | ----------- | ------ | -------------------- |
 | group_id    | int64  | 群号                 |
-| user_id     | int64  | 操作者 QQ            |
-| operator_id | int64  | 被禁言成员 QQ        |
+| user_id     | int64  | 被禁言成员 QQ         |
+| operator_id | int64  | 操作者 QQ        |
 | duration    | int64  | 禁言时长(秒)         |
 | sub_type    | string | 子类型(ban/lift_ban) |
 
