@@ -70,6 +70,8 @@ import tencent.im.oidb.cmd0xdc2.oidb_cmd0xdc2
 import tencent.im.oidb.oidb_sso
 import java.io.File
 import kotlin.math.roundToInt
+import kotlin.random.Random
+import kotlin.random.nextInt
 
 internal typealias IMaker = suspend (Int, Long, String, JsonObject) -> Result<MsgElement>
 
@@ -96,6 +98,7 @@ internal object MessageMaker {
         "touch" to MessageMaker::createTouchElem,
         "weather" to MessageMaker::createWeatherElem,
         "json" to MessageMaker::createJsonElem,
+        "new_dice" to MessageMaker::createNewDiceElem,
         //"node" to MessageMaker::createNodeElem,
         //"multi_msg" to MessageMaker::createLongMsgStruct,
     )
@@ -110,6 +113,24 @@ internal object MessageMaker {
 //        SendForwardMessage(MsgConstant.KCHATTYPEC2C, TicketSvc.getUin(), data["content"].asJsonArray)
 //
 //    }
+
+    private suspend fun createNewDiceElem(chatType: Int, msgId: Long, peerId: String, data: JsonObject): Result<MsgElement> {
+        val elem = MsgElement()
+        elem.elementType = MsgConstant.KELEMTYPEFACE
+        val face = FaceElement()
+        face.faceIndex = 358
+        face.faceText = "/骰子"
+        face.faceType = 3
+        face.packId = "1"
+        face.stickerId = "33"
+        face.sourceType = 1
+        face.stickerType = 2
+        face.resultId = ""
+        face.surpriseId = ""
+        face.randomType = 1
+        elem.faceElement = face
+        return Result.success(elem)
+    }
 
     private suspend fun createJsonElem(
         chatType: Int,

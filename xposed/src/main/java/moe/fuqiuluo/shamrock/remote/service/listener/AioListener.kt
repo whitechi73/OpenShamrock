@@ -119,6 +119,10 @@ internal object AioListener: IKernelMsgListener {
         }
     }
 
+    override fun onMsgRecall(chatType: Int, peerId: String, msgId: Long) {
+        LogCenter.log("onMsgRecall($chatType, $peerId, $msgId)")
+    }
+
     override fun onAddSendMsg(record: MsgRecord) {
         if (record.chatType == MsgConstant.KCHATTYPEGUILD) return // TODO: 频道消息暂不处理
         if (record.peerUin == TicketSvc.getLongUin()) return // 发给自己的消息不处理
@@ -181,6 +185,7 @@ internal object AioListener: IKernelMsgListener {
 
                 val rawMsg = record.elements.toCQCode(record.chatType, record.peerUin.toString())
                 if (rawMsg.isEmpty()) return@launch
+                LogCenter.log("自发消息(target = ${record.peerUin}, id = $msgHash, msg = $rawMsg)")
 
                 when (record.chatType) {
                     MsgConstant.KCHATTYPEGROUP -> {
@@ -439,10 +444,6 @@ internal object AioListener: IKernelMsgListener {
 
     override fun onMsgQRCodeStatusChanged(i2: Int) {
 
-    }
-
-    override fun onMsgRecall(chatType: Int, peerId: String?, msgId: Long) {
-        LogCenter.log("onMsgRecall($chatType, $peerId, $msgId)")
     }
 
     override fun onMsgSecurityNotify(msgRecord: MsgRecord?) {

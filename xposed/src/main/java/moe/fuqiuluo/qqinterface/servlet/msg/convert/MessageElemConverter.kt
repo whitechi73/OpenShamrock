@@ -55,6 +55,15 @@ internal sealed class MessageElemConverter: IMessageConvert {
                     )
                 )
             }
+            if (face.faceIndex == 358) {
+                if (face.sourceType == 1) return MessageSegment("new_dice")
+                return MessageSegment(
+                    type = "new_dice",
+                    data = hashMapOf(
+                        "id" to face.resultId.ifEmpty { "0" }.toInt()
+                    )
+                )
+            }
             return MessageSegment(
                 type = "face",
                 data = hashMapOf(

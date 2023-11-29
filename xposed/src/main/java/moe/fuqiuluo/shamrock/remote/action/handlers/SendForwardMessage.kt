@@ -6,6 +6,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
 import moe.fuqiuluo.qqinterface.servlet.MsgSvc
 import moe.fuqiuluo.qqinterface.servlet.TicketSvc
 import moe.fuqiuluo.qqinterface.servlet.msg.convert.toSegments
@@ -93,7 +94,7 @@ internal object SendForwardMessage : IActionHandler() {
                         if (data["content"] is JsonArray) {
                             data["content"].asJsonArray.forEach { msg ->
                                 if (msg.asJsonObject["type"].asStringOrNull == "node") {
-                                    LogCenter.log("合并转发消息不支持嵌套", Level.ERROR)
+                                    LogCenter.log("合并转发消息不支持嵌套", Level.WARN)
                                     return@map ForwardMsgNode.EmptyNode
                                 }
                             }
@@ -135,7 +136,9 @@ internal object SendForwardMessage : IActionHandler() {
                         msgId = MessageHelper.sendMessageWithMsgId(MsgConstant.KCHATTYPEC2C,
                             selfUin,
                             node.content!!.let { msg ->
-                                if (msg is JsonArray) msg else MessageHelper.decodeCQCode(msg.asString)
+                                if (msg is JsonArray) msg
+                                else if (msg is JsonObject) listOf(msg).jsonArray
+                                else MessageHelper.decodeCQCode(msg.asString)
                             },
                             { code, why ->
                                 if (code != 0) {
@@ -143,6 +146,10 @@ internal object SendForwardMessage : IActionHandler() {
                                 }
                                 it.resume(node.name to msgId)
                             }).first
+                    }.invokeOnCompletion {
+                        it?.let {
+                            LogCenter.log("合并转发消息节点消息发送失败：${it.stackTraceToString()}", Level.ERROR)
+                        }
                     }
                 }
             }

@@ -99,6 +99,8 @@ void decode_cqcode(const std::string& code, std::vector<std::unordered_map<std::
                         replace_string(cache, "&#93;", "]");
                         replace_string(cache, "&#44;", ",");
                         kv.emplace(key_tmp, cache);
+                    } else {
+                        kv.emplace("_type", cache);
                     }
                     dest.push_back(kv);
                     kv.clear();
