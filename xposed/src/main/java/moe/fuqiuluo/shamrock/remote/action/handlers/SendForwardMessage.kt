@@ -90,18 +90,19 @@ internal object SendForwardMessage : IActionHandler() {
                 if (it.asJsonObject["type"].asStringOrNull != "node") return@map ForwardMsgNode.EmptyNode // 过滤非node类型消息段
                 it.asJsonObject["data"].asJsonObject.let { data ->
                     if (data.containsKey("content")) {
-                        data["content"].asJsonArray.forEach { msg ->
-                            if (msg.asJsonObject["type"].asStringOrNull == "node") {
-                                LogCenter.log("合并转发消息不支持嵌套", Level.ERROR)
-                                return@map ForwardMsgNode.EmptyNode
+                        if (data["content"] is JsonArray) {
+                            data["content"].asJsonArray.forEach { msg ->
+                                if (msg.asJsonObject["type"].asStringOrNull == "node") {
+                                    LogCenter.log("合并转发消息不支持嵌套", Level.ERROR)
+                                    return@map ForwardMsgNode.EmptyNode
+                                }
                             }
                         }
                         ForwardMsgNode.MessageNode(
                             name = data["name"].asStringOrNull ?: "",
                             content = data["content"]
                         )
-                    }
-                    else ForwardMsgNode.MessageIdNode(data["id"].asInt)
+                    } else ForwardMsgNode.MessageIdNode(data["id"].asInt)
                 }
             }.map {
                 if (it is ForwardMsgNode.MessageIdNode) {
@@ -131,7 +132,9 @@ internal object SendForwardMessage : IActionHandler() {
                 suspendCoroutine {
                     GlobalScope.launch {
                         var msgId: Long = 0
-                        msgId = MessageHelper.sendMessageWithMsgId(MsgConstant.KCHATTYPEC2C, selfUin, node.content!!.let { msg ->
+                        msgId = MessageHelper.sendMessageWithMsgId(MsgConstant.KCHATTYPEC2C,
+                            selfUin,
+                            node.content!!.let { msg ->
                                 if (msg is JsonArray) msg else MessageHelper.decodeCQCode(msg.asString)
                             },
                             { code, why ->
@@ -154,9 +157,10 @@ internal object SendForwardMessage : IActionHandler() {
 
             return ok(
                 ForwardMessageResult(
-                msgId = uniseq.first,
-                forwardId = ""
-            ), echo = echo)
+                    msgId = uniseq.first,
+                    forwardId = ""
+                ), echo = echo
+            )
         }.onFailure {
             return error("error: $it", echo)
         }

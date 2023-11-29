@@ -76,9 +76,17 @@ internal data class NoticeEvent(
     @SerialName("file") val file: GroupFileMsg? = null,
     @SerialName("private_file") val privateFile: PrivateFileMsg? = null,
     @SerialName("flag") val flag: String? = null,
+
+    // 群名片
     @SerialName("card_new") val cardNew: String? = null,
     @SerialName("card_old") val cardOld: String? = null,
+
+    // 群头衔
     @SerialName("title") val title: String? = null,
+
+    // 戳一戳
+    @SerialName("poke_detail") val pokeDetail: PokeDetail? = null,
+
 )
 
 /**
@@ -115,4 +123,12 @@ internal data class PrivateFileMsg(
     @SerialName("sub_id") val subId: String,
     val url: String,
     val expire: Long,
+)
+
+@Serializable
+internal data class PokeDetail (
+    val action: String? = "戳了戳",
+    val suffix: String? = "",
+    @SerialName("action_img_url")
+    val actionImg: String? = "https://tianquan.gtimg.cn/nudgeaction/item/0/expression.jpg",
 )
