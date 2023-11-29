@@ -14,7 +14,7 @@ icon: bell
 
 ## 私聊消息撤回
 
-当 `notice_type` 为 `private_recall` 时，表示收到了私聊消息撤回事件。
+当 `notice_type` 为 `friend_recall` 时，表示收到了私聊消息撤回事件。
 
 | 字段        | 类型  | 说明         |
 | ----------- | ----- | ------------ |
