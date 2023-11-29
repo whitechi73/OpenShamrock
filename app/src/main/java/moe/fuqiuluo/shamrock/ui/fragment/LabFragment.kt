@@ -192,7 +192,11 @@ fun LabFragment() {
                     descColor = it,
                     isSwitch = AppRuntime.state.supportVoice.value
                 ) {
+                    if(AppRuntime.state.supportVoice.value) {
+                        scope.toast(ctx, "关闭请手动删除文件。")
+                    } else {
                         scope.toast(ctx, "请按照Github提示手动操作。")
+                    }
                     return@Function false
                 }
             }

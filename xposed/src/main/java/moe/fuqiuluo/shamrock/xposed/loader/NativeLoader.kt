@@ -29,7 +29,12 @@ internal object NativeLoader {
                 val applicationInfo = packageManager.getApplicationInfo("moe.fuqiuluo.shamrock.hided", 0)
                 val file = File(applicationInfo.nativeLibraryDir)
                 LogCenter.log("LoadLibrary(name = $name)")
-                System.load(file.resolve("lib$name.so").absolutePath)
+                System.load(file.resolve("lib$name.so").also {
+                    if (!it.exists()) {
+                        LogCenter.log("LoadLibrary(name = $name) failed, file not exists.", level = Level.ERROR)
+                        return
+                    }
+                }.absolutePath)
             } else {
                 val sourceFile = externalLibPath.resolve("lib$name.so")
                 val soFile = MobileQQ.getContext().filesDir.parentFile!!.resolve("txlib").resolve("lib$name.so")

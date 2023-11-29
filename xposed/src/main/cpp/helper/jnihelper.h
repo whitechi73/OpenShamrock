@@ -5,13 +5,9 @@
 #include "android/log.h"
 
 namespace JNIHelper {
-    static JavaVM *global_jvm = nullptr;
+    JNIEnv *getJNIEnv(JavaVM * jvm, int *attach);
 
-    void initJavaVM(JavaVM *jvm);
-
-    JNIEnv *getJNIEnv(int *attach);
-
-    jint delJNIEnv();
+    jint delJNIEnv(JavaVM * jvm);
 }
 
 
