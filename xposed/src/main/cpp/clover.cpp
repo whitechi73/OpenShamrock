@@ -84,6 +84,8 @@ int fake_system_property_get(const char *name, char *value) {
     return backup_system_property_get(name, value);
 }
 
+
+
 FILE* fake_fopen(const char *filename, const char *mode) {
     if (strstr(filename, "qemu_pipe")) {
         LOGI("[Shamrock] bypass qemu detection");
@@ -107,8 +109,15 @@ NativeOnModuleLoaded native_init(const NativeAPIEntries *entries) {
     hook_function = entries->hook_func;
     LOGI("[Shamrock] LSPosed NativeModule Init: %p", hook_function);
 
+    return on_library_loaded;
+}
+
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_moe_fuqiuluo_shamrock_xposed_actions_AntiDetection_antiNativeDetections(JNIEnv *env,
+                                                                             jobject thiz) {
+    if (hook_function == nullptr) return false;
     hook_function((void*) __system_property_get, (void *)fake_system_property_get, (void **) &backup_system_property_get);
     hook_function((void*) fopen, (void*) fake_fopen, (void**) &backup_fopen);
-
-    return on_library_loaded;
+    return true;
 }

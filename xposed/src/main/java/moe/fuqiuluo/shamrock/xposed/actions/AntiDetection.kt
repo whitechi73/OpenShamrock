@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.content.pm.VersionedPackage
 import android.os.Build
 import de.robv.android.xposed.XC_MethodReplacement
+import de.robv.android.xposed.XSharedPreferences
 import de.robv.android.xposed.XposedBridge
 import de.robv.android.xposed.XposedHelpers
 import moe.fuqiuluo.shamrock.helper.Level
@@ -13,6 +14,7 @@ import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.remote.service.config.ShamrockConfig
 import moe.fuqiuluo.shamrock.tools.hookMethod
 import moe.fuqiuluo.shamrock.xposed.XposedEntry
+import moe.fuqiuluo.shamrock.xposed.loader.FuckAMS
 import moe.fuqiuluo.shamrock.xposed.loader.LuoClassloader
 import moe.fuqiuluo.shamrock.xposed.loader.NativeLoader
 
@@ -20,6 +22,8 @@ import moe.fuqiuluo.shamrock.xposed.loader.NativeLoader
  * 反检测
  */
 class AntiDetection: IAction {
+    external fun antiNativeDetections(): Boolean
+
     override fun invoke(ctx: Context) {
         antiFindPackage(ctx)
         antiNativeDetection()
@@ -49,7 +53,15 @@ class AntiDetection: IAction {
                 LogCenter.log("[Shamrock] Shamrock反检测启动失败(env=$env, injected=$injected)", Level.ERROR)
             } else {
                 XposedEntry.sec_static_nativehook_inited = true
-                LogCenter.log("[Shamrock] Shamrock反检测启动成功", Level.INFO)
+                val pref = XSharedPreferences("moe.fuqiuluo.shamrock", "shared_config")
+                if (pref.file.canRead()) {
+                    if (pref.getBoolean("super_anti", false)) {
+                        antiNativeDetections()
+                        LogCenter.log("[Shamrock] Shamrock反检测启动成功", Level.INFO)
+                    }
+                } else {
+                    LogCenter.log("[Shamrock] unable to load XSharedPreferences", Level.WARN)
+                }
             }
         } catch (e: Throwable) {
             LogCenter.log("[Shamrock] Shamrock反检测启动失败，请检查LSPosed版本使用大于100: ${e.message}", Level.ERROR)

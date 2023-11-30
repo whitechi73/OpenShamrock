@@ -112,6 +112,7 @@ private open class Default: VarString(
     b2Mode = "中二病模式",
     b2ModeDesc = "也许会导致奇怪的问题，大抵就是你看不懂罢了。",
     restartToast = "重启生效哦！",
+    restartSysToast = "重启系统生效哦！",
     showDebugLog = "显示调试日志",
     showDebugLogDesc = "会导致日志刷屏。",
     antiTrace = "防止调用栈检测",
@@ -150,6 +151,7 @@ open class VarString(
     var b2ModeDesc: String,
 
     var restartToast: String,
+    var restartSysToast: String,
 
     var showDebugLog: String,
     var showDebugLogDesc: String,

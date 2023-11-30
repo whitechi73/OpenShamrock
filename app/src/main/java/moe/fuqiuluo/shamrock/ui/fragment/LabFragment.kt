@@ -164,11 +164,22 @@ fun LabFragment() {
                         isSwitch = it.getBoolean("persistent", false)
                     ) { v ->
                         it.edit().putBoolean("persistent", v).apply()
+                        scope.toast(ctx, LocalString.restartSysToast)
+                        return@Function true
+                    }
+
+                    Function(
+                        title = "反检测加强",
+                        desc = "可能导致某些设备频繁闪退",
+                        descColor = color,
+                        isSwitch = it.getBoolean("super_anti", false)
+                    ) { v ->
+                        it.edit().putBoolean("super_anti", v).apply()
                         scope.toast(ctx, LocalString.restartToast)
                         return@Function true
                     }
                 }.onFailure {
-                    AppRuntime.log("无法启用免死金牌选项，当前Lsposed模块未激活或者不支持NewSharedPreferences。", Level.WARN)
+                    AppRuntime.log("无法启用附加选项，LSPosed模块未激活或者不支持XSharedPreferences", Level.WARN)
                 }
             }
 
