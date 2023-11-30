@@ -56,8 +56,7 @@ class AntiDetection: IAction {
                 val pref = XSharedPreferences("moe.fuqiuluo.shamrock", "shared_config")
                 if (pref.file.canRead()) {
                     if (pref.getBoolean("super_anti", false)) {
-                        antiNativeDetections()
-                        LogCenter.log("[Shamrock] Shamrock反检测启动成功", Level.INFO)
+                        LogCenter.log("[Shamrock] Shamrock反检测启动成功: ${antiNativeDetections()}", Level.INFO)
                     }
                 } else {
                     LogCenter.log("[Shamrock] unable to load XSharedPreferences", Level.WARN)
