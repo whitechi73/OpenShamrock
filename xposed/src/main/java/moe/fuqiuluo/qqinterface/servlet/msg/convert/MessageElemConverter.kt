@@ -55,21 +55,42 @@ internal sealed class MessageElemConverter: IMessageConvert {
                     )
                 )
             }
-            if (face.faceIndex == 358) {
-                if (face.sourceType == 1) return MessageSegment("new_dice")
-                return MessageSegment(
-                    type = "new_dice",
+
+
+            when (face.faceIndex) {
+                114 -> {
+                    return MessageSegment(
+                        type = "basketball",
+                        data = hashMapOf(
+                            "id" to face.resultId.ifEmpty { "0" }.toInt(),
+                        )
+                    )
+                }
+                358 -> {
+                    if (face.sourceType == 1) return MessageSegment("new_dice")
+                    return MessageSegment(
+                        type = "new_dice",
+                        data = hashMapOf(
+                            "id" to face.resultId.ifEmpty { "0" }.toInt()
+                        )
+                    )
+                }
+                359 -> {
+                    if (face.resultId.isEmpty()) return MessageSegment("new_rps")
+                    return MessageSegment(
+                        type = "new_rps",
+                        data = hashMapOf(
+                            "id" to face.resultId.ifEmpty { "0" }.toInt()
+                        )
+                    )
+                }
+                else -> return MessageSegment(
+                    type = "face",
                     data = hashMapOf(
-                        "id" to face.resultId.ifEmpty { "0" }.toInt()
+                        "id" to face.faceIndex
                     )
                 )
             }
-            return MessageSegment(
-                type = "face",
-                data = hashMapOf(
-                    "id" to face.faceIndex
-                )
-            )
         }
     }
 

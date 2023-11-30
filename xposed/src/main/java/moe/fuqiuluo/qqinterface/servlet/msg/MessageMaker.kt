@@ -99,6 +99,8 @@ internal object MessageMaker {
         "weather" to MessageMaker::createWeatherElem,
         "json" to MessageMaker::createJsonElem,
         "new_dice" to MessageMaker::createNewDiceElem,
+        "new_rps" to MessageMaker::createNewRpsElem,
+        "basketball" to MessageMaker::createBasketballElem,
         //"node" to MessageMaker::createNodeElem,
         //"multi_msg" to MessageMaker::createLongMsgStruct,
     )
@@ -113,6 +115,55 @@ internal object MessageMaker {
 //        SendForwardMessage(MsgConstant.KCHATTYPEC2C, TicketSvc.getUin(), data["content"].asJsonArray)
 //
 //    }
+    /**\
+     *         msgElement.setFaceElement(new FaceElement());
+     *         msgElement.getFaceElement().setFaceIndex(114);
+     *         msgElement.getFaceElement().setFaceText("/篮球");
+     *         msgElement.getFaceElement().setFaceType(3);
+     *         msgElement.getFaceElement().setPackId("1");
+     *         msgElement.getFaceElement().setStickerId("13");
+     *         msgElement.getFaceElement().setRandomType(1);
+     *         msgElement.getFaceElement().setImageType(1);
+     *         msgElement.getFaceElement().setStickerType(2);
+     *         msgElement.getFaceElement().setSourceType(1);
+     *         msgElement.getFaceElement().setSurpriseId("");
+     *         msgElement.getFaceElement().setResultId(String.valueOf(new Random().nextInt(5) + 1));
+     */
+    private suspend fun createBasketballElem(chatType: Int, msgId: Long, peerId: String, data: JsonObject): Result<MsgElement> {
+        val elem = MsgElement()
+        elem.elementType = MsgConstant.KELEMTYPEFACE
+        val face = FaceElement()
+        face.faceIndex = 114
+        face.faceText = "/篮球"
+        face.faceType = 3
+        face.packId = "1"
+        face.stickerId = "13"
+        face.sourceType = 1
+        face.stickerType = 2
+        face.resultId = Random.nextInt(1 .. 5).toString()
+        face.surpriseId = ""
+        face.randomType = 1
+        elem.faceElement = face
+        return Result.success(elem)
+    }
+
+    private suspend fun createNewRpsElem(chatType: Int, msgId: Long, peerId: String, data: JsonObject): Result<MsgElement> {
+        val elem = MsgElement()
+        elem.elementType = MsgConstant.KELEMTYPEFACE
+        val face = FaceElement()
+        face.faceIndex = 359
+        face.faceText = "/包剪锤"
+        face.faceType = 3
+        face.packId = "1"
+        face.stickerId = "34"
+        face.sourceType = 1
+        face.stickerType = 2
+        face.resultId = ""
+        face.surpriseId = ""
+        face.randomType = 1
+        elem.faceElement = face
+        return Result.success(elem)
+    }
 
     private suspend fun createNewDiceElem(chatType: Int, msgId: Long, peerId: String, data: JsonObject): Result<MsgElement> {
         val elem = MsgElement()
