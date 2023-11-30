@@ -13,7 +13,7 @@ import moe.fuqiuluo.shamrock.tools.EmptyJsonString
 internal object SendGroupNotice: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val groupId = session.getLong("group_id")
-        val text = session.getString("text")
+        val text = session.getString("content")
         val image = session.getStringOrNull("image")
         return invoke(groupId, text, image, session.echo)
     }
@@ -31,6 +31,8 @@ internal object SendGroupNotice: IActionHandler() {
         return logic(announcements.exceptionOrNull()?.message ?: "", echo)
 
     }
+
+    override val requiredParams: Array<String> = arrayOf("group_id", "content")
 
     override val alias: Array<String> = arrayOf("send_group_notice")
     override fun path(): String = "_send_group_notice"
