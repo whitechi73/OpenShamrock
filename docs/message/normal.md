@@ -19,13 +19,15 @@ icon: comment-dots
 将在未来实现 `qq` 字段为 `online` 和 `admin` 时的功能。
 :::
 
-### CQ 码
+::: tabs
+
+@tab CQ 码
 
 ```
 [CQ:at,qq=123456]
 ```
 
-### 消息段
+@tab 消息段
 
 ```json
 {
@@ -35,6 +37,8 @@ icon: comment-dots
   }
 }
 ```
+
+:::
 
 ## 表情
 
@@ -48,13 +52,15 @@ icon: comment-dots
 表情 ID 可以在 [这里](https://github.com/richardchien/coolq-http-api/wiki/%E8%A1%A8%E6%83%85-CQ-%E7%A0%81-ID-%E8%A1%A8) 查看。
 :::
 
-### CQ 码
+::: tabs
+
+@tab CQ 码
 
 ```
 [CQ:face,id=1]
 ```
 
-### 消息段
+@tab 消息段
 
 ```json
 {
@@ -65,6 +71,8 @@ icon: comment-dots
 }
 ```
 
+:::
+
 ## 回复
 
 ### 参数
@@ -73,13 +81,15 @@ icon: comment-dots
 | ---- | ---- | --- | --- | ---- | ------- |
 | id   | int  | ✓   | ✓   | 是   | 消息 ID |
 
-### CQ 码
+:::tabs
+
+@tab CQ 码
 
 ```
 [CQ:reply,id=1]
 ```
 
-### 消息段
+@tab 消息段
 
 ```json
 {
@@ -89,3 +99,5 @@ icon: comment-dots
   }
 }
 ```
+
+:::

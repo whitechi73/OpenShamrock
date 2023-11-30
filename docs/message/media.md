@@ -52,7 +52,7 @@ icon: compact-disc
 | url   | string | ✓   | ✓   | 否   | 语音链接地址   |
 | magic | bool   | ×   | ✓   | 否   | 是否为魔法语音 |
 
-:::tabs
+::: tabs
 
 @tab CQ 码
 
@@ -85,13 +85,16 @@ icon: compact-disc
 | ---- | ------ | --- | --- | ---- | ------------ |
 | file | string | ×   | ✓   | 是   | 视频文件地址 |
 
-### CQ 码
+
+::: tabs
+
+@tab CQ 码
 
 ```
 [CQ:video,file=file:///sdcard/Movies/shamrock.mp4]
 ```
 
-### 消息段
+@tab 消息段
 
 ```json
 {
@@ -101,3 +104,5 @@ icon: compact-disc
   }
 }
 ```
+
+:::

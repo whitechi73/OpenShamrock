@@ -11,13 +11,15 @@ icon: paper-plane
 | -------- | ---- | --- | --- | ---- | --------------------- |
 | id       | int  | ✓   | x   | 是   | 点数 ID             |
 
-### CQ 码
+::: tabs
+
+@tab CQ 码
 
 ```
 [CQ:new_dice,id=1]
 ```
 
-### 消息段
+@tab 消息段
 
 ```json
 {
@@ -28,15 +30,19 @@ icon: paper-plane
 }
 ```
 
+:::
+
 ## 骰子 (NTQQ废弃)
 
-### CQ 码
+::: tabs
+
+@tab CQ 码
 
 ```
 [CQ:dice]
 ```
 
-### 消息段
+@tab 消息段
 
 ```json
 {
@@ -46,15 +52,19 @@ icon: paper-plane
 }
 ```
 
+:::
+
 ### 剪刀石头布 (NTQQ废弃)
 
-### CQ 码
+::: tabs
+
+@tab CQ 码
 
 ```
 [CQ:rps]
 ```
 
-### 消息段
+@tab 消息段
 
 ```json
 {
@@ -63,6 +73,8 @@ icon: paper-plane
   }
 }
 ```
+
+:::
 
 ## 戳一戳
 
@@ -78,13 +90,15 @@ Shamrock 对于戳一戳的定义与 `go-cqhttp` 不同。
 | id       | int  | ✓   | ✓   | 是   | 戳一戳 ID             |
 | strength | int  | ✓   | ✓   | 否   | 戳一戳强度(1-5 默认1) |
 
-### CQ 码
+::: tabs
+
+@tab CQ 码
 
 ```
 [CQ:poke,type=1,id=10000]
 ```
 
-### 消息段
+@tab 消息段
 
 ```json
 {
@@ -97,6 +111,8 @@ Shamrock 对于戳一戳的定义与 `go-cqhttp` 不同。
 }
 ```
 
+:::
+
 ## 戳一戳(双击头像)
 
 ### 参数
@@ -105,13 +121,15 @@ Shamrock 对于戳一戳的定义与 `go-cqhttp` 不同。
 | ---- | ---- | --- | --- | ---- | ---- |
 | id   | int  | ✓   | ✓   | 是   | QQ号 |
 
-### CQ 码
+::: tabs
+
+@tab CQ 码
 
 ```
 [CQ:touch,id=123456]
 ```
 
-### 消息段
+@tab 消息段
 
 ```json
 {
@@ -122,6 +140,8 @@ Shamrock 对于戳一戳的定义与 `go-cqhttp` 不同。
 }
 ```
 
+:::
+
 ## 音乐
 
 ### 参数
@@ -131,13 +151,15 @@ Shamrock 对于戳一戳的定义与 `go-cqhttp` 不同。
 | type | string | ✓   | ✓   | 是   | 音乐类型(`qq`/`163`) |
 | id   | int    | ✓   | ✓   | 是   | 音乐 ID              |
 
-### CQ 码
+::: tabs
+
+@tab CQ 码
 
 ```
 [CQ:music,type=qq,id=123456]
 ```
 
-### 消息段
+@tab 消息段
 
 ```json
 {
@@ -148,6 +170,8 @@ Shamrock 对于戳一戳的定义与 `go-cqhttp` 不同。
   }
 }
 ```
+
+:::
 
 ## 音乐(自定义)
 
@@ -162,13 +186,15 @@ Shamrock 对于戳一戳的定义与 `go-cqhttp` 不同。
 | singer | string | ✓   | ✓   | 是   | 歌手                           |
 | image  | string | ✓   | ✓   | 否   | 封面图片链接                   |
 
-### CQ 码
+::: tabs
+
+@tab CQ 码
 
 ```
 [CQ:music,type=custom,url=https://example.com,audio=https://example.com/music.mp3,title=Music,singer=Music,image=https://example.com/image.jpg]
 ```
 
-### 消息段
+@tab 消息段
 
 ```json
 {
@@ -184,6 +210,8 @@ Shamrock 对于戳一戳的定义与 `go-cqhttp` 不同。
 }
 ```
 
+:::
+
 ## 天气
 
 ### 参数
@@ -193,13 +221,15 @@ Shamrock 对于戳一戳的定义与 `go-cqhttp` 不同。
 | city | string | ✓   | ✓   | 否   | 城市名称 |
 | code | string | ✓   | ✓   | 否   | 城市代码 |
 
-### CQ 码
+::: tabs
+
+@tab CQ 码
 
 ```
 [CQ:weather,city=上海]
 ```
 
-### 消息段
+@tab 消息段
 
 ```json
 {
@@ -209,6 +239,8 @@ Shamrock 对于戳一戳的定义与 `go-cqhttp` 不同。
   }
 }
 ```
+
+:::
 
 ## 位置
 
@@ -221,13 +253,15 @@ Shamrock 对于戳一戳的定义与 `go-cqhttp` 不同。
 | title   | string | ✓   | ×   | 否   | 标题 |
 | content | string | ✓   | ×   | 否   | 内容 |
 
-### CQ 码
+::: tabs
+
+@tab CQ 码
 
 ```
 [CQ:location,lat=39.915168,lon=116.403875]
 ```
 
-### 消息段
+@tab 消息段
 
 ```json
 {
@@ -238,6 +272,8 @@ Shamrock 对于戳一戳的定义与 `go-cqhttp` 不同。
   }
 }
 ```
+
+:::
 
 ## 链接分享
 
@@ -251,13 +287,15 @@ Shamrock 对于戳一戳的定义与 `go-cqhttp` 不同。
 | image   | string | ✓   | ×   | 否   | 图片链接 |
 | file    | string | ✓   | ×   | 否   | 文件链接 |
 
-### CQ 码
+::: tabs
+
+@tab CQ 码
 
 ```
 [CQ:share,url=https://example.com,title=Example,content=Example,image=https://example.com/image.jpg,file=https://example.com/file.zip]
 ```
 
-### 消息段
+@tab 消息段
 
 ```json
 {
@@ -272,6 +310,8 @@ Shamrock 对于戳一戳的定义与 `go-cqhttp` 不同。
 }
 ```
 
+:::
+
 ## 礼物
 
 ### 参数
@@ -281,13 +321,15 @@ Shamrock 对于戳一戳的定义与 `go-cqhttp` 不同。
 | qq   | int  | ✓   | ✓   | 是   | QQ 号   |
 | id   | int  | ✓   | ✓   | 是   | 礼物 ID |
 
-### CQ 码
+::: tabs
+
+@tab CQ 码
 
 ```
 [CQ:gift,qq=123456,id=10000]
 ```
 
-### 消息段
+@tab 消息段
 
 ```json
 {
@@ -298,3 +340,5 @@ Shamrock 对于戳一戳的定义与 `go-cqhttp` 不同。
   }
 }
 ```
+
+:::
