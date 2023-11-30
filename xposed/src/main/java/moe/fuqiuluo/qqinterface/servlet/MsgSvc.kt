@@ -16,10 +16,8 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlinx.coroutines.time.withTimeoutOrNull
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.JsonArray
-import moe.fuqiuluo.proto.protobufOf
 import moe.fuqiuluo.shamrock.helper.ContactHelper
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
@@ -174,22 +172,36 @@ internal object MsgSvc: BaseSvc() {
         chatType: Int,
         peedId: String,
         message: JsonArray,
-        fromId: String = peedId
-    ): Pair<Long, Int> {
+        fromId: String = peedId,
+        retryCnt: Int = 3
+    ): Result<Pair<Long, Int>> {
         //LogCenter.log(message.toString(), Level.ERROR)
         //callback.msgHash = result.second 什么垃圾代码，万一cb比你快，你不就寄了？
 
         // 主动临时消息
-        when(chatType) {
+        when (chatType) {
             MsgConstant.KCHATTYPETEMPC2CFROMGROUP -> {
                 prepareTempChatFromGroup(fromId, peedId).onFailure {
                     LogCenter.log("主动临时消息，创建临时会话失败。", Level.ERROR)
-                    return -1L to 0
+                    return Result.failure(Exception("主动临时消息，创建临时会话失败。"))
                 }
             }
         }
-
-        return MessageHelper.sendMessageWithoutMsgId(chatType, peedId, message, MessageCallback(peedId, 0), fromId)
+        val result =  MessageHelper.sendMessageWithoutMsgId(
+            chatType,
+            peedId,
+            message,
+            fromId,
+            MessageCallback(peedId, 0)
+        )
+        return if (result.isFailure && retryCnt > 0) {
+            // 可能网络问题出现红色感叹号，重试
+            // 例如 rich media transfer failed
+            delay(100)
+            sendToAio(chatType, peedId, message, fromId, retryCnt - 1)
+        } else {
+            result
+        }
     }
 
     suspend fun getMultiMsg(resId: String): Result<List<MsgRecord>> {

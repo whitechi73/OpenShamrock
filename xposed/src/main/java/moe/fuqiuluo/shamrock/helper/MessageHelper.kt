@@ -6,6 +6,10 @@ import com.tencent.qqnt.kernel.nativeinterface.IOperateCallback
 import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
 import com.tencent.qqnt.kernel.nativeinterface.MsgElement
 import com.tencent.qqnt.msg.api.IMsgService
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
@@ -20,6 +24,8 @@ import moe.fuqiuluo.shamrock.tools.asJsonObjectOrNull
 import moe.fuqiuluo.shamrock.tools.asString
 import moe.fuqiuluo.shamrock.tools.json
 import moe.fuqiuluo.shamrock.tools.jsonArray
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 import kotlin.math.abs
 
 internal object MessageHelper {
@@ -36,31 +42,62 @@ internal object MessageHelper {
         }.second.filter {
             it.elementType != -1
         } as ArrayList<MsgElement>
-        return sendMessageWithoutMsgId(chatType, peerId, msg, callback, fromId)
+        return sendMessageWithoutMsgId(chatType, peerId, msg, fromId, callback)
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     suspend fun sendMessageWithoutMsgId(
         chatType: Int,
         peerId: String,
         message: JsonArray,
-        callback: IOperateCallback,
-        fromId: String = peerId
-    ): Pair<Long, Int> {
+        fromId: String = peerId,
+        callback: IOperateCallback
+    ): Result<Pair<Long, Int>> {
         val uniseq = generateMsgId(chatType)
         val msg = messageArrayToMessageElements(chatType, uniseq.second, peerId, message).also {
             if (it.second.isEmpty() && !it.first) error("消息合成失败，请查看日志或者检查输入。")
         }.second.filter {
             it.elementType != -1
         } as ArrayList<MsgElement>
-        return sendMessageWithoutMsgId(chatType, peerId, msg, callback, fromId)
+        val totalSize = msg.filter {
+            it.elementType == MsgConstant.KELEMTYPEPIC ||
+                    it.elementType == MsgConstant.KELEMTYPEPTT ||
+                    it.elementType == MsgConstant.KELEMTYPEVIDEO
+        }.map {
+            (it.picElement?.fileSize ?: 0) + (it.pttElement?.fileSize
+                ?: 0) + (it.videoElement?.fileSize ?: 0)
+        }.reduceOrNull { a, b -> a + b } ?: 0
+
+        val estimateTime =  (totalSize / (300 * 1024)) * 1000 + 5000
+        lateinit var sendResultPair: Pair<Long, Int>
+        val sendRet = withTimeoutOrNull<Pair<Int, String>>(estimateTime) {
+            suspendCoroutine {
+                GlobalScope.launch {
+                    sendResultPair = sendMessageWithoutMsgId(
+                        chatType,
+                        peerId,
+                        msg,
+                        fromId
+                    ) { code, message ->
+                        callback.onResult(code, message)
+                        it.resume(code to message)
+                    }
+                }
+            }
+        }
+        if (sendRet?.first != 0) {
+            return Result.failure(Exception(sendRet?.second ?: "发送消息超时"))
+        }
+        return Result.success(sendResultPair)
+//        return sendMessageWithoutMsgId(chatType, peerId, msg, fromId, callback)
     }
 
     suspend fun sendMessageWithoutMsgId(
         chatType: Int,
         peerId: String,
         message: ArrayList<MsgElement>,
-        callback: IOperateCallback,
-        fromId: String = peerId
+        fromId: String = peerId,
+        callback: IOperateCallback
     ): Pair<Long, Int> {
         return sendMessageWithoutMsgId(generateContact(chatType, peerId, fromId), message, callback)
     }

@@ -92,12 +92,16 @@ internal object SendMessage: IActionHandler() {
                 MsgSvc.sendToAio(chatType, peerId, msg, fromId = fromId)
             }
         }
-        if (result.first <= 0) {
+        if (result.isFailure) {
+            return logic(result.exceptionOrNull()?.message ?: "", echo)
+        }
+        val pair = result.getOrNull() ?: Pair(0L, 0)
+        if (pair.first <= 0) {
             return logic("send message failed", echo = echo)
         }
         return ok(MessageResult(
-            msgId = result.second,
-            time = (result.first * 0.001).toLong()
+            msgId = pair.second,
+            time = (pair.first * 0.001).toLong()
         ), echo = echo)
     }
 
@@ -109,12 +113,16 @@ internal object SendMessage: IActionHandler() {
         //    return logic("contact is not found", echo = echo)
         //}
         val result = MsgSvc.sendToAio(chatType, peerId, message, fromId = fromId)
-        if (result.first <= 0) {
+        if (result.isFailure) {
+            return logic(result.exceptionOrNull()?.message ?: "", echo)
+        }
+        val pair = result.getOrNull() ?: Pair(0L, 0)
+        if (pair.first <= 0) {
             return logic("send message failed", echo = echo)
         }
         return ok(MessageResult(
-            msgId = result.second,
-            time = (result.first * 0.001).toLong()
+            msgId = pair.second,
+            time = (pair.first * 0.001).toLong()
         ), echo)
     }
 
