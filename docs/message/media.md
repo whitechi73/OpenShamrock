@@ -21,13 +21,15 @@ icon: compact-disc
 | file | string | ✓   | ✓   | 是   | 图片文件地址 |
 | url  | string | ✓   | ✓   | 否   | 图片链接地址 |
 
-### CQ 码
+::: tabs
+
+@tab CQ 码
 
 ```
 [CQ:image,file=file:///sdcard/Pictures/shamrock.png]
 ```
 
-### 消息段
+@tab 消息段
 
 ```json
 {
@@ -37,6 +39,8 @@ icon: compact-disc
   }
 }
 ```
+
+:::
 
 ## 语音
 
@@ -48,13 +52,15 @@ icon: compact-disc
 | url   | string | ✓   | ✓   | 否   | 语音链接地址   |
 | magic | bool   | ×   | ✓   | 否   | 是否为魔法语音 |
 
-### CQ 码
+:::tabs
+
+@tab CQ 码
 
 ```
 [CQ:record,file=file:///sdcard/Music/shamrock.mp3]
 ```
 
-### 消息段
+@tab 消息段
 
 ```json
 {
@@ -64,6 +70,8 @@ icon: compact-disc
   }
 }
 ```
+
+:::
 
 ::: warning 注意
 发送语音消息需要安装语音引擎，可以在 [这里](../advanced/voice.md) 查看。

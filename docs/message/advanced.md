@@ -23,19 +23,24 @@ icon: layer-group
 
 ## JSON 消息
 
+
 ### 参数
+
+
 
 | 字段 | 类型   | 收  | 发  | 必填 | 说明      |
 | ---- | ------ | --- | --- | ---- | --------- |
 | data | string | ✓   | ✓   | 是   | JSON 数据 |
 
-### CQ 码
+::: tabs
+
+@tab CQ 码
 
 ```
 [CQ:json,data={"app":"com.tencent.structmsg","config":{"autosize":true,"ctime":1621234567,"forward":true,"token":"shamrock"},"desc":"这是一条 JSON 消息"...}]
 ```
 
-### 消息段
+@tab 消息段
 
 ```json
 {
@@ -45,5 +50,7 @@ icon: layer-group
   }
 }
 ```
+
+:::
 
 ## 文本转语音 <Badge text="未实现" type="danger" />
