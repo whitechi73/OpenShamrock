@@ -86,10 +86,9 @@ internal object MessageHelper {
             }
         }
         if (sendRet?.first != 0) {
-            return Result.failure(Exception(sendRet?.second ?: "发送消息超时"))
+            return Result.failure(SendMsgException(sendRet?.second ?: "发送消息超时"))
         }
         return Result.success(sendResultPair)
-//        return sendMessageWithoutMsgId(chatType, peerId, msg, fromId, callback)
     }
 
     suspend fun sendMessageWithoutMsgId(

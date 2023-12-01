@@ -22,6 +22,9 @@ import com.tencent.qqnt.kernel.nativeinterface.ReplyElement
 import com.tencent.qqnt.kernel.nativeinterface.RichMediaFilePathInfo
 import com.tencent.qqnt.kernel.nativeinterface.TextElement
 import com.tencent.qqnt.kernel.nativeinterface.VideoElement
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import moe.fuqiuluo.qqinterface.servlet.CardSvc
@@ -191,7 +194,20 @@ internal object MessageMaker {
     ): Result<MsgElement> {
         data.checkAndThrow("data")
         val jsonStr = data["data"].let {
-            if (it is JsonObject) it.asJsonObject.toString() else it.asString
+            if (it is JsonObject) it.asJsonObject.toString() else {
+                val str = it.asStringOrNull ?: ""
+                // 检查字符串是否是合法json，不然qq会闪退
+                try {
+                    val element = Json.decodeFromString<JsonElement>(str)
+                    if (element !is JsonObject) {
+                        return Result.failure(Exception("不合法的JSON字符串"))
+                    }
+                } catch (err: Throwable) {
+                    LogCenter.log(err.stackTraceToString(), Level.ERROR)
+                    return Result.failure(Exception("不合法的JSON字符串"))
+                }
+                str
+            }
         }
         val element = MsgElement()
         element.elementType = MsgConstant.KELEMTYPEARKSTRUCT

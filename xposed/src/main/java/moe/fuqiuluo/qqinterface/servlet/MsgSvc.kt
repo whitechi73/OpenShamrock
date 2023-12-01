@@ -22,6 +22,7 @@ import moe.fuqiuluo.shamrock.helper.ContactHelper
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.helper.MessageHelper
+import moe.fuqiuluo.shamrock.helper.SendMsgException
 import moe.fuqiuluo.shamrock.tools.EMPTY_BYTE_ARRAY
 import moe.fuqiuluo.shamrock.xposed.helper.NTServiceFetcher
 import moe.fuqiuluo.shamrock.xposed.helper.msgService
@@ -194,8 +195,10 @@ internal object MsgSvc: BaseSvc() {
             fromId,
             MessageCallback(peedId, 0)
         )
-        return if (result.isFailure && retryCnt > 0) {
-            // 可能网络问题出现红色感叹号，重试
+        return if (result.isFailure
+            && result.exceptionOrNull()?.javaClass == SendMsgException::class.java
+            && retryCnt > 0) {
+            // 发送失败，可能网络问题出现红色感叹号，重试
             // 例如 rich media transfer failed
             delay(100)
             sendToAio(chatType, peedId, message, fromId, retryCnt - 1)

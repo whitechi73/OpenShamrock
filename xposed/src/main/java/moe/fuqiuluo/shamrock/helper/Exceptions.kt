@@ -12,3 +12,4 @@ internal class LogicException(why: String) : InternalMessageMakerError(why)
 
 internal object ErrorTokenException : InternalMessageMakerError("access_token error")
 
+internal class SendMsgException(why: String) : InternalMessageMakerError(why)

@@ -8,8 +8,10 @@ import moe.fuqiuluo.qqinterface.servlet.ark.ArkMsgSvc
 import moe.fuqiuluo.shamrock.tools.GlobalClient
 import moe.fuqiuluo.shamrock.tools.asInt
 import moe.fuqiuluo.shamrock.tools.asJsonArray
+import moe.fuqiuluo.shamrock.tools.asJsonArrayOrNull
 import moe.fuqiuluo.shamrock.tools.asJsonObject
 import moe.fuqiuluo.shamrock.tools.asString
+import moe.fuqiuluo.shamrock.tools.asStringOrNull
 import moe.fuqiuluo.shamrock.utils.MD5
 
 internal object MusicHelper {
@@ -53,12 +55,26 @@ internal object MusicHelper {
                 val trackInfo = data["track_info"].asJsonObject
                 val mid = trackInfo["mid"].asString
                 val previewMid = trackInfo["album"].asJsonObject["mid"].asString
+                val singerMid = trackInfo["singer"].asJsonArrayOrNull?.let {
+                    it[0].asJsonObject["mid"].asStringOrNull
+                } ?: ""
                 val name = trackInfo["name"].asString
                 val title = trackInfo["title"].asString
                 val singerName = trackInfo["singer"].asJsonArray.first().asJsonObject["name"].asString
+                val vs = trackInfo["vs"].asJsonArrayOrNull?.let {
+                    it[0].asStringOrNull
+                } ?: ""
                 val code = MD5.getMd5Hex("${mid}q;z(&l~sdf2!nK".toByteArray()).substring(0 .. 4).uppercase()
                 val playUrl = "http://c6.y.qq.com/rsc/fcgi-bin/fcg_pyq_play.fcg?songid=&songmid=$mid&songtype=1&fromtag=50&uin=&code=$code"
-                val previewUrl = "http://y.gtimg.cn/music/photo_new/T002R180x180M000$previewMid.jpg"
+                val previewUrl = if (vs.isNotEmpty()) {
+                    "http://y.gtimg.cn/music/photo_new/T062R150x150M000$vs}.jpg"
+                } else if (previewMid.isNotEmpty()) {
+                    "http://y.gtimg.cn/music/photo_new/T002R150x150M000$previewMid.jpg"
+                } else if (singerMid.isNotEmpty()){
+                    "http://y.gtimg.cn/music/photo_new/T001R150x150M000$singerMid.jpg"
+                } else {
+                    ""
+                }
                 val jumpUrl = "https://i.y.qq.com/v8/playsong.html?platform=11&appshare=android_qq&appversion=10030010&hosteuin=oKnlNenz7i-s7c**&songmid=${mid}&type=0&appsongtype=1&_wv=1&source=qq&ADTAG=qfshare"
                 ArkMsgSvc.tryShareMusic(
                     chatType,
