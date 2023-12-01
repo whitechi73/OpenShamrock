@@ -33,16 +33,21 @@ internal class InitRemoteService : IAction {
 
         if (!PlatformUtils.isMqqPackage()) return
 
+
         if (ShamrockConfig.allowWebHook()) {
             HttpService.initTransmitter()
         }
 
+        val runtime = AppRuntimeFetcher.appRuntime
+        if (!runtime.isLogin) {
+            LogCenter.log("未登录，不启动任何WebSocket服务，登录完成后，请重新启动QQ。", Level.WARN)
+            return
+        }
         if (ShamrockConfig.openWebSocket()) {
             startWebSocketServer()
         }
 
         if (ShamrockConfig.openWebSocketClient()) {
-            val runtime = AppRuntimeFetcher.appRuntime
             val curUin = runtime.currentAccountUin
             val defaultToken = ShamrockConfig.getToken()
             ShamrockConfig.getWebSocketClientAddress().forEach { conn ->
