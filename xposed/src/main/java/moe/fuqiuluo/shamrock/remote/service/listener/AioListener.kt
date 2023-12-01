@@ -358,7 +358,7 @@ internal object AioListener: IKernelMsgListener {
     }
 
     override fun onRichMediaUploadComplete(notifyInfo: FileTransNotifyInfo) {
-        //LogCenter.log("onRichMediaUploadComplete($notifyInfo)", Level.DEBUG)
+        LogCenter.log("onRichMediaUploadComplete($notifyInfo)", Level.DEBUG)
         RichMediaUploadHandler.notify(notifyInfo)
     }
 
@@ -396,6 +396,14 @@ internal object AioListener: IKernelMsgListener {
 
     override fun onGroupTransferInfoUpdate(groupFileListResult: GroupFileListResult?) {
         LogCenter.log("onGroupTransferInfoUpdate: " + groupFileListResult.toString(), Level.DEBUG)
+    }
+
+    override fun onGuildInteractiveUpdate(guildInteractiveNotificationItem: GuildInteractiveNotificationItem?) {
+
+    }
+
+    override fun onGuildNotificationAbstractUpdate(guildNotificationAbstractInfo: GuildNotificationAbstractInfo?) {
+
     }
 
     override fun onHitCsRelatedEmojiResult(downloadRelateEmojiResultInfo: DownloadRelateEmojiResultInfo?) {

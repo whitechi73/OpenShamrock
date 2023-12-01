@@ -42,6 +42,10 @@ public interface IKernelMsgListener {
 
     void onGroupTransferInfoUpdate(GroupFileListResult groupFileListResult);
 
+    void onGuildInteractiveUpdate(GuildInteractiveNotificationItem guildInteractiveNotificationItem);
+
+    void onGuildNotificationAbstractUpdate(GuildNotificationAbstractInfo guildNotificationAbstractInfo);
+
     void onHitCsRelatedEmojiResult(DownloadRelateEmojiResultInfo downloadRelateEmojiResultInfo);
 
     void onHitEmojiKeywordResult(HitRelatedEmojiWordsResult hitRelatedEmojiWordsResult);
