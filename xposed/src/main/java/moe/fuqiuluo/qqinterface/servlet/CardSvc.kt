@@ -109,7 +109,7 @@ internal object CardSvc: BaseSvc() {
         val dataService = app
             .getRuntimeService(IProfileDataService::class.java, "all")
         val card = refreshCardLock.withLock {
-            suspendCancellableCoroutine<Card?> {
+            suspendCancellableCoroutine {
                 app.addObserver(object: ProfileCardObserver() {
                     override fun onGetProfileCard(success: Boolean, obj: Any) {
                         app.removeObserver(this)
