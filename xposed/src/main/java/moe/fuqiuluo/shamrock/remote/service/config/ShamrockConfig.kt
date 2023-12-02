@@ -4,6 +4,8 @@ import android.content.Intent
 import com.tencent.mmkv.MMKV
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
+import moe.fuqiuluo.shamrock.helper.Level
+import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.tools.GlobalJson5
 import moe.fuqiuluo.shamrock.utils.MMKVFetcher
 import mqq.app.MobileQQ
@@ -15,10 +17,14 @@ internal object ShamrockConfig {
             if (it.exists()) it.delete()
             it.mkdirs()
         }
-    private val Config: ServiceConfig by lazy {
-        GlobalJson5.decodeFromString(ConfigDir.resolve("config.json").also {
+    private val Config = kotlin.runCatching {
+        GlobalJson5.decodeFromString<ServiceConfig>(ConfigDir.resolve("config.json").also {
             if (!it.exists()) it.writeText("{}")
         }.readText())
+    }.onFailure {
+        LogCenter.log("您的配置文件出现错误: ${it.stackTraceToString()}", Level.ERROR)
+    }.getOrElse {
+        ServiceConfig()
     }
 
     fun isInit(): Boolean {
