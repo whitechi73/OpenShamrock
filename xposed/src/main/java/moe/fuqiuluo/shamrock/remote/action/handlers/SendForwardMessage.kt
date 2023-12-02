@@ -2,8 +2,6 @@ package moe.fuqiuluo.shamrock.remote.action.handlers
 
 import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
 import com.tencent.qqnt.kernel.nativeinterface.MultiMsgInfo
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
@@ -19,8 +17,6 @@ import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.shamrock.remote.service.data.ForwardMessageResult
 import moe.fuqiuluo.shamrock.tools.*
 import moe.fuqiuluo.shamrock.xposed.helper.NTServiceFetcher
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 sealed interface ForwardMsgNode {
     class MessageIdNode(
@@ -87,7 +83,7 @@ internal object SendForwardMessage : IActionHandler() {
             val msgService = sessionService.msgService
             val selfUin = TicketSvc.getUin()
 
-            val msgs = message.map {
+            val nodes = message.map {
                 if (it.asJsonObject["type"].asStringOrNull != "node") return@map ForwardMsgNode.EmptyNode // 过滤非node类型消息段
                 it.asJsonObject["data"].asJsonObject.let { data ->
                     if (data.containsKey("content")) {
@@ -113,10 +109,7 @@ internal object SendForwardMessage : IActionHandler() {
                     } else {
                         val record = recordResult.getOrThrow()
                         ForwardMsgNode.MessageNode(
-                            name = record.sendMemberName
-                                .ifBlank { record.sendNickName }
-                                .ifBlank { record.sendRemarkName }
-                                .ifBlank { record.peerName },
+                            name = record.peerName,
                             content = record.toSegments().map { segment ->
                                 segment.toJson()
                             }.json
@@ -127,31 +120,18 @@ internal object SendForwardMessage : IActionHandler() {
                 }
             }.filter {
                 it.content != null
-            }
-
-            val multiNodes = msgs.map { node ->
-                suspendCoroutine {
-                    GlobalScope.launch {
-                        var msgId: Long = 0
-                        msgId = MessageHelper.sendMessageWithMsgId(MsgConstant.KCHATTYPEC2C,
-                            selfUin,
-                            node.content!!.let { msg ->
-                                if (msg is JsonArray) msg
-                                else if (msg is JsonObject) listOf(msg).jsonArray
-                                else MessageHelper.decodeCQCode(msg.asString)
-                            },
-                            { code, why ->
-                                if (code != 0) {
-                                    error("合并转发消息节点消息发送失败：$code($why)")
-                                }
-                                it.resume(node.name to msgId)
-                            }).first
-                    }.invokeOnCompletion {
-                        it?.let {
-                            LogCenter.log("合并转发消息节点消息发送失败：${it.stackTraceToString()}", Level.ERROR)
-                        }
+            }.map { node ->
+                val result = MessageHelper.sendMessageNoCb(MsgConstant.KCHATTYPEC2C, selfUin, node.content.let { msg ->
+                    when (msg) {
+                        is JsonArray -> msg
+                        is JsonObject -> listOf(msg).jsonArray
+                        else -> MessageHelper.decodeCQCode(msg.asString)
                     }
+                })
+                if (result.first != 0) {
+                    LogCenter.log("合并转发消息节点消息发送失败", Level.WARN)
                 }
+                return@map result.second
             }
 
             val from = MessageHelper.generateContact(MsgConstant.KCHATTYPEC2C, selfUin)
@@ -159,7 +139,7 @@ internal object SendForwardMessage : IActionHandler() {
 
             val uniseq = MessageHelper.generateMsgId(chatType)
             msgService.multiForwardMsg(ArrayList<MultiMsgInfo>().apply {
-                multiNodes.forEach { add(MultiMsgInfo(it.second, it.first)) }
+                nodes.forEach { add(MultiMsgInfo(it, "Anno")) }
             }.also { it.reverse() }, from, to, MsgSvc.MessageCallback(peerId, uniseq.first))
 
             return ok(

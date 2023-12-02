@@ -184,6 +184,32 @@ internal object MessageHelper {
         }
     }
 
+    suspend fun sendMessageNoCb(
+        chatType: Int,
+        peerId: String,
+        message: JsonArray,
+        fromId: String = peerId
+    ): Pair<Int, Long> {
+        val uniseq = generateMsgId(chatType)
+        val msg = messageArrayToMessageElements(chatType, uniseq.second, peerId, message).also {
+            if (it.second.isEmpty() && !it.first) error("消息合成失败，请查看日志或者检查输入。")
+        }.second.filter {
+            it.elementType != -1
+        } as ArrayList<MsgElement>
+        val contact = generateContact(chatType, peerId, fromId)
+        val nonMsg: Boolean = message.isEmpty()
+        return if (!nonMsg) {
+            val service = QRoute.api(IMsgService::class.java)
+            return suspendCoroutine {
+                service.sendMsg(contact, uniseq.second, msg) { code, why ->
+                    it.resume(code to uniseq.second)
+                }
+            }
+        } else {
+            -1 to uniseq.second
+        }
+    }
+
     suspend fun generateContact(chatType: Int, id: String, subId: String = ""): Contact {
         val peerId = if (MsgConstant.KCHATTYPEC2C == chatType || MsgConstant.KCHATTYPETEMPC2CFROMGROUP == chatType) {
             ContactHelper.getUidByUinAsync(id.toLong())
