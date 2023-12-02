@@ -166,7 +166,7 @@ internal object PrimitiveListener {
         val groupId = pb[1, 3, 2, 1, 13, 4].asLong
         var oldCard = ""
         val targetQQ = ContactHelper.getUinByUidAsync(targetId).toLong()
-        LogCenter.log("群组[$groupId]成员$targetId 群名片变动 -> $newCard")
+        LogCenter.log("群组[$groupId]成员$targetQQ 群名片变动 -> $newCard")
         // oldCard暂时获取不到
 //        GroupSvc.getTroopMemberInfoByUin(groupId.toString(), targetQQ.toString()).onSuccess {
 //            oldCard = it.troopnick
@@ -181,12 +181,20 @@ internal object PrimitiveListener {
     }
 
     private suspend fun onGroupTitleChange(msgTime: Long, pb: ProtoMap) {
-        val targetUin = pb[1, 3, 2, 5, 5].asLong
+        val groupCode = pb[1, 1, 1].asULong
 
-        val groupId = pb[1, 3, 2, 4].asLong
+        val readPacket = ByteReadPacket(pb[1, 3, 2].asByteArray)
+        val detail = if (readPacket.readBuf32Long() == groupCode) {
+            readPacket.discardExact(1)
+            ProtoUtils.decodeFromByteArray(readPacket.readBytes(readPacket.readShort().toInt()))
+        } else pb[1, 3, 2]
+
+        val targetUin = detail[5, 5].asLong
+
+        val groupId = detail[4].asLong
 
         // 恭喜<{\"cmd\":5,\"data\":\"qq\",\"text}\":\"nickname\"}>获得群主授予的<{\"cmd\":1,\"data\":\"https://qun.qq.com/qqweb/m/qun/medal/detail.html?_wv=16777223&bid=2504&gc=gid&isnew=1&medal=302&uin=uin\",\"text\":\"title\",\"url\":\"https://qun.qq.com/qqweb/m/qun/medal/detail.html?_wv=16777223&bid=2504&gc=gid&isnew=1&medal=302&uin=uin\"}>头衔
-        val titleChangeInfo = pb[1, 3, 2, 5, 2].asUtf8String
+        val titleChangeInfo = detail[5, 2].asUtf8String
         if (titleChangeInfo.indexOf("群主授予") == -1) {
             return
         }
