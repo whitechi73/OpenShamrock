@@ -82,7 +82,7 @@ internal object PrimitiveListener {
                 12 -> onGroupBan(msgTime, pb)
                 16 -> onGroupTitleChange(msgTime, pb)
                 17 -> onGroupRecall(msgTime, pb)
-                20 -> onGroupPoke(msgTime, pb)
+                20 -> onGroupPokeAndGroupSign(msgTime, pb)
                 21 -> onEssenceMessage(msgTime, pb)
             }
         }
@@ -188,6 +188,7 @@ internal object PrimitiveListener {
             readPacket.discardExact(1)
             ProtoUtils.decodeFromByteArray(readPacket.readBytes(readPacket.readShort().toInt()))
         } else pb[1, 3, 2]
+        readPacket.release()
 
         val targetUin = detail[5, 5].asLong
 
@@ -219,6 +220,7 @@ internal object PrimitiveListener {
             readPacket.discardExact(1)
             ProtoUtils.decodeFromByteArray(readPacket.readBytes(readPacket.readShort().toInt()))
         } else pb[1, 3, 2]
+        readPacket.release()
 
         val groupId = detail[4].asLong
         val mesSeq = detail[37].asInt
@@ -254,24 +256,14 @@ internal object PrimitiveListener {
     }
 
 
-    private suspend fun onGroupPoke(time: Long, pb: ProtoMap) {
-        val groupCode1 = pb[1, 1, 1].asULong
-
-        var groupCode: Long = groupCode1
+    private suspend fun onGroupPokeAndGroupSign(time: Long, pb: ProtoMap) {
+        val groupCode = pb[1, 1, 1].asULong
 
         val readPacket = ByteReadPacket(pb[1, 3, 2].asByteArray)
-        val groupCode2 = readPacket.readBuf32Long()
-
-        var detail = if (groupCode2 == groupCode1) {
-            groupCode = groupCode2
+        val detail = if (readPacket.readBuf32Long() == groupCode) {
             readPacket.discardExact(1)
             ProtoUtils.decodeFromByteArray(readPacket.readBytes(readPacket.readShort().toInt()))
         } else pb[1, 3, 2]
-        if (detail !is ProtoMap) {
-            groupCode = groupCode2
-            readPacket.discardExact(1)
-            detail = ProtoUtils.decodeFromByteArray(readPacket.readBytes(readPacket.readShort().toInt()))
-        }
         readPacket.release()
 
         lateinit var target: String
@@ -279,6 +271,7 @@ internal object PrimitiveListener {
         var action: String? = null
         var suffix: String? = null
         var actionImg: String? = null
+        var rankImg: String? = null
         detail[26][7]
             .asList
             .value
@@ -287,18 +280,42 @@ internal object PrimitiveListener {
                 when (it[1].asUtf8String) {
                     "uin_str1" -> operation = value
                     "uin_str2" -> target = value
+                    // "nick_str1" -> operation_nick = value
+                    // "nick_str2" -> operation_nick = value
                     "action_str" -> action = value
                     "alt_str1" -> action = value
                     "suffix_str" -> suffix = value
                     "action_img_url" -> actionImg = value
+
+                    "mqq_uin" -> target = value
+                    // "mqq_nick" -> operation_nick = value
+                    "user_sign" ->  action = value
+                    "rank_img" -> rankImg = value
+                    // "sign_word" ->  我也要打卡
                 }
             }
-        LogCenter.log("群戳一戳($groupCode): $operation $action $target $suffix")
+        when (detail[26][2].asInt) {
+            1061 -> {
+                LogCenter.log("群戳一戳($groupCode): $operation $action $target $suffix")
+                if (!GlobalEventTransmitter.GroupNoticeTransmitter
+                        .transGroupPoke(time, operation.toLong(), target.toLong(), action, suffix, actionImg, groupCode)
+                ) {
+                    LogCenter.log("群戳一戳推送失败！", Level.WARN)
+                }
+            }
 
-        if (!GlobalEventTransmitter.GroupNoticeTransmitter
-                .transGroupPoke(time, operation.toLong(), target.toLong(), action, suffix, actionImg, groupCode)
-        ) {
-            LogCenter.log("群戳一戳推送失败！", Level.WARN)
+            1068 -> {
+                LogCenter.log("群打卡($groupCode): $action $target")
+                if (!GlobalEventTransmitter.GroupNoticeTransmitter
+                        .transGroupSign(time, target.toLong(), action, rankImg, groupCode)
+                ) {
+                    LogCenter.log("群打卡推送失败！", Level.WARN)
+                }
+            }
+
+            else -> {
+                LogCenter.log("onGroupPokeAndGroupSign unknown type ${detail[2].asInt}", Level.WARN)
+            }
         }
     }
 

@@ -29,7 +29,7 @@ import moe.fuqiuluo.shamrock.tools.jsonArray
 import moe.fuqiuluo.shamrock.tools.respond
 
 fun Routing.messageAction() {
-    route("/send_group_forward_msg") {
+    route("/send_group_forward_(msg|message)".toRegex()) {
         post {
             val groupId = fetchPostOrNull("group_id")
             val messages = fetchPostJsonArray("messages")
@@ -40,11 +40,23 @@ fun Routing.messageAction() {
         }
     }
 
-    route("/send_private_forward_msg") {
+    route("/send_private_forward_(msg|message)".toRegex()) {
         post {
             val userId = fetchPostOrNull("user_id")
             val messages = fetchPostJsonArray("messages")
             call.respondText(SendForwardMessage(MsgConstant.KCHATTYPEC2C, userId ?: "", messages), ContentType.Application.Json)
+        }
+        get {
+            respond(false, Status.InternalHandlerError, "Not support GET method")
+        }
+    }
+
+    route("/send_forward_(msg|message)".toRegex()) {
+        post {
+            val userId = fetchPostOrNull("user_id")
+            val groupId = fetchPostOrNull("group_id")
+            val messages = fetchPostJsonArray("messages")
+            call.respondText(SendForwardMessage(MsgConstant.KCHATTYPEC2C, userId ?: groupId?: "", messages), ContentType.Application.Json)
         }
         get {
             respond(false, Status.InternalHandlerError, "Not support GET method")

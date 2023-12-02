@@ -42,6 +42,8 @@ internal enum class NoticeSubType {
     @SerialName("kick_me") KickMe,
 
     @SerialName("poke") Poke,
+    @SerialName("sign") Sign,
+
 
     @SerialName("title") Title,
     @SerialName("delete") Delete,
@@ -87,6 +89,9 @@ internal data class NoticeEvent(
     // 戳一戳
     @SerialName("poke_detail") val pokeDetail: PokeDetail? = null,
 
+    // 群打卡
+    @SerialName("sign_detail") val signDetail: SignDetail? = null,
+
 )
 
 /**
@@ -131,4 +136,11 @@ internal data class PokeDetail (
     val suffix: String? = "",
     @SerialName("action_img_url")
     val actionImg: String? = "https://tianquan.gtimg.cn/nudgeaction/item/0/expression.jpg",
+)
+
+@Serializable
+internal data class SignDetail (
+    val action: String? = "今日第1个打卡",
+    @SerialName("rank_img")
+    val rankImg: String? = "",
 )

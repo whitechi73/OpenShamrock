@@ -627,10 +627,16 @@ internal object MessageMaker {
             else -> {
                 val info = GroupSvc.getTroopMemberInfoByUin(peerId, qq, true).onFailure {
                     LogCenter.log("无法获取群成员信息: $qq", Level.ERROR)
-                }.getOrThrow()
-                at.content = "@${info.troopnick
-                    .ifNullOrEmpty(info.friendnick)
-                    .ifNullOrEmpty(qq)}"
+                }.getOrNull()
+                if (info != null) {
+                    at.content = "@${
+                        info.troopnick
+                            .ifNullOrEmpty(info.friendnick)
+                            .ifNullOrEmpty(qq)
+                    }"
+                } else {
+                    at.content = "@${data["name"].asStringOrNull.ifNullOrEmpty(qq)}"
+                }
                 at.atType = MsgConstant.ATTYPEONE
                 at.atNtUid = ContactHelper.getUidByUinAsync(qq.toLong())
             }

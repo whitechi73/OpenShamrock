@@ -331,7 +331,7 @@ internal sealed class MessageElemConverter: IMessageConvert {
                 MsgConstant.GRAYTIPELEMENTSUBTYPEXMLMSG -> {
                     val notify = tip.xmlElement
                     when(notify.busiId) {
-                        /* 群戳一戳 */1061L -> {}
+                        /* 群戳一戳 */1061L, /* 群打卡 */1068L -> {}
                         else -> LogCenter.log("不支持的灰条类型(XML): ${notify.busiId}", Level.WARN)
                     }
                 }
