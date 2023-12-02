@@ -81,10 +81,10 @@ internal object GlobalEventTransmitter: BaseSvc() {
                     sender = Sender(
                         userId = record.senderUin,
                         nickname = record.sendNickName
-                            .ifBlank { record.sendMemberName }
+                            .ifBlank { record.peerName }
                             .ifBlank { record.sendRemarkName }
-                            .ifBlank { record.peerName },
-                        card = record.sendMemberName,
+                            .ifBlank { record.sendMemberName },
+                        card = record.sendMemberName.ifBlank { record.sendNickName },
                         role = when (record.senderUin) {
                             GroupSvc.getOwner(record.peerUin.toString()) -> MemberRole.Owner
                             in GroupSvc.getAdminList(record.peerUin.toString()) -> MemberRole.Admin
