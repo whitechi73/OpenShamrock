@@ -1,6 +1,7 @@
 package moe.fuqiuluo.shamrock.remote.service.config
 
 import android.content.Intent
+import com.tencent.mmkv.MMKV
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import moe.fuqiuluo.shamrock.tools.GlobalJson5
@@ -65,7 +66,7 @@ internal object ShamrockConfig {
             putString(  "ssl_alias",   intent.getStringExtra("ssl_alias"))                                // 证书别名
             putInt(     "ssl_port",    intent.getIntExtra("ssl_port", 5701))                    // 主动HTTP端口
 
-            putBoolean("auto_clear",   intent.getBooleanExtra("auto_clear", false))             // 自动清理
+            putBoolean("alive_reply",   intent.getBooleanExtra("alive_reply", false))             // 自回复测试
 
             putBoolean("enable_self_msg",    intent.getBooleanExtra("enable_self_msg", false))  // 推送自己发的消息
             putBoolean("shell",        intent.getBooleanExtra("shell", false))                  // 开启Shell接口
@@ -73,6 +74,13 @@ internal object ShamrockConfig {
             putBoolean("isInit", true)
         }
         updateConfig()
+    }
+
+    private val mmkv: MMKV
+        get() = MMKVFetcher.mmkvWithId("shamrock_config")
+
+    fun aliveReply(): Boolean {
+        return mmkv.getBoolean("alive_reply", false)
     }
 
     fun allowTempSession(): Boolean {
@@ -88,12 +96,10 @@ internal object ShamrockConfig {
     }
 
     fun enableSelfMsg(): Boolean {
-        val mmkv = MMKVFetcher.mmkvWithId("shamrock_config")
         return mmkv.getBoolean("enable_self_msg", false)
     }
 
     fun openWebSocketClient(): Boolean {
-        val mmkv = MMKVFetcher.mmkvWithId("shamrock_config")
         return mmkv.getBoolean("ws_client", false)
     }
 
@@ -102,7 +108,6 @@ internal object ShamrockConfig {
     }
 
     fun openWebSocket(): Boolean {
-        val mmkv = MMKVFetcher.mmkvWithId("shamrock_config")
         return mmkv.getBoolean("ws", false)
     }
 
@@ -115,37 +120,30 @@ internal object ShamrockConfig {
     }
 
     fun useCQ(): Boolean {
-        val mmkv = MMKVFetcher.mmkvWithId("shamrock_config")
         return mmkv.getBoolean("use_cqcode", false)
     }
 
     fun allowWebHook(): Boolean {
-        val mmkv = MMKVFetcher.mmkvWithId("shamrock_config")
         return mmkv.getBoolean("http", false)
     }
 
     fun getWebHookAddress(): String {
-        val mmkv = MMKVFetcher.mmkvWithId("shamrock_config")
         return mmkv.getString("http_addr", "") ?: ""
     }
 
     fun forceTablet(): Boolean {
-        val mmkv = MMKVFetcher.mmkvWithId("shamrock_config")
         return mmkv.getBoolean("tablet", true)
     }
 
     fun getPort(): Int {
-        val mmkv = MMKVFetcher.mmkvWithId("shamrock_config")
         return mmkv.getInt("port", 5700)
     }
 
     fun isInjectPacket(): Boolean {
-        val mmkv = MMKVFetcher.mmkvWithId("shamrock_config")
         return mmkv.getBoolean("inject_packet", false)
     }
 
     fun isDebug(): Boolean {
-        val mmkv = MMKVFetcher.mmkvWithId("shamrock_config")
         return mmkv.getBoolean("debug", false)
     }
 
@@ -154,7 +152,6 @@ internal object ShamrockConfig {
     }
 
     fun getKeyStorePath(): File? {
-        val mmkv = MMKVFetcher.mmkvWithId("shamrock_config")
         mmkv.getString("key_store", null)?.let {
             return File(it)
         }
@@ -162,52 +159,42 @@ internal object ShamrockConfig {
     }
 
     fun sslPwd(): CharArray? {
-        val mmkv = MMKVFetcher.mmkvWithId("shamrock_config")
         return mmkv.getString("ssl_pwd", null)?.toCharArray()
     }
 
     fun sslPrivatePwd(): String? {
-        val mmkv = MMKVFetcher.mmkvWithId("shamrock_config")
         return mmkv.getString("ssl_private_pwd", null)
     }
 
     fun sslAlias(): String? {
-        val mmkv = MMKVFetcher.mmkvWithId("shamrock_config")
         return mmkv.getString("ssl_alias", null)
     }
 
     fun getSslPort(): Int {
-        val mmkv = MMKVFetcher.mmkvWithId("shamrock_config")
         return mmkv.getInt("ssl_port", getPort())
     }
 
     fun isDev(): Boolean {
-        val mmkv = MMKVFetcher.mmkvWithId("shamrock_config")
         return mmkv.getBoolean("dev", false)
     }
 
     operator fun set(key: String, value: String) {
-        val mmkv = MMKVFetcher.mmkvWithId("shamrock_config")
         mmkv.putString(key, value)
     }
 
     operator fun set(key: String, value: Boolean) {
-        val mmkv = MMKVFetcher.mmkvWithId("shamrock_config")
         mmkv.putBoolean(key, value)
     }
 
     operator fun set(key: String, value: Int) {
-        val mmkv = MMKVFetcher.mmkvWithId("shamrock_config")
         mmkv.putInt(key, value)
     }
 
     operator fun set(key: String, value: Long) {
-        val mmkv = MMKVFetcher.mmkvWithId("shamrock_config")
         mmkv.putLong(key, value)
     }
 
     operator fun set(key: String, value: Float) {
-        val mmkv = MMKVFetcher.mmkvWithId("shamrock_config")
         mmkv.putFloat(key, value)
     }
 
@@ -216,7 +203,6 @@ internal object ShamrockConfig {
     }
 
     fun allowShell(): Boolean {
-        val mmkv = MMKVFetcher.mmkvWithId("shamrock_config")
         return mmkv.getBoolean("shell", false)
     }
 }
