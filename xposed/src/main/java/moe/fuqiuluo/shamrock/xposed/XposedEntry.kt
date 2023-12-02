@@ -5,16 +5,13 @@ import de.robv.android.xposed.IXposedHookLoadPackage
 import de.robv.android.xposed.XposedBridge
 import de.robv.android.xposed.callbacks.XC_LoadPackage
 import de.robv.android.xposed.XposedBridge.log
-import moe.fuqiuluo.shamrock.helper.Level
-import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.utils.MMKVFetcher
 import moe.fuqiuluo.shamrock.xposed.loader.ActionLoader
-import moe.fuqiuluo.shamrock.xposed.loader.FuckAMS
+import moe.fuqiuluo.shamrock.xposed.loader.KeepAlive
 import moe.fuqiuluo.shamrock.xposed.loader.LuoClassloader
 import moe.fuqiuluo.shamrock.tools.FuzzySearchClass
 import moe.fuqiuluo.shamrock.tools.afterHook
 import moe.fuqiuluo.shamrock.utils.PlatformUtils
-import moe.fuqiuluo.shamrock.xposed.loader.NativeLoader
 import mqq.app.MobileQQ
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
@@ -42,7 +39,7 @@ internal class XposedEntry: IXposedHookLoadPackage {
     override fun handleLoadPackage(param: XC_LoadPackage.LoadPackageParam) {
         when (param.packageName) {
             PACKAGE_NAME_QQ -> entryMQQ(param.classLoader)
-            "android" -> FuckAMS.injectAMS(param.classLoader)
+            "android" -> KeepAlive(param.classLoader)
             PACKAGE_NAME_TIM -> entryTim(param.classLoader)
         }
     }
