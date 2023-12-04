@@ -1,4 +1,7 @@
 import com.android.build.api.dsl.ApplicationExtension
+import java.time.LocalDate
+import java.io.BufferedReader
+import java.io.InputStreamReader
 
 fun gitCommitHash(): String {
     val builder = ProcessBuilder("git", "rev-parse", "--short", "HEAD")
@@ -6,6 +9,27 @@ fun gitCommitHash(): String {
     val reader = process.inputReader()
     val hash = reader.readText().trim()
     return if (hash.isNotEmpty()) ".$hash" else ""
+}
+
+fun getCurrentMonthTimestamp(): Long {
+    val currentDate = LocalDate.now()
+    val startOfMonth = currentDate.withDayOfMonth(1)
+    val startOfMonthTimestamp = startOfMonth.toEpochDay() * 24 * 60 * 60
+    val currentTimestamp = System.currentTimeMillis() / 1000
+    return (currentTimestamp - startOfMonthTimestamp) / (30 * 24 * 60 * 60)
+}
+
+fun commitCount(): String {
+    val process = Runtime.getRuntime().exec("git rev-list --count HEAD")
+    val reader = BufferedReader(InputStreamReader(process.inputStream))
+    val commitCount = reader.readLine()?.toIntOrNull() ?: 0
+    reader.close()
+    process.waitFor()
+    return (commitCount + 1).toString()
+}
+
+fun currentVersionCode(): Int{
+    return (getCurrentMonthTimestamp()).toInt() + (commitCount()).toInt()
 }
 
 plugins {
@@ -24,7 +48,7 @@ android {
         minSdk = 24
         targetSdk = 33
         versionCode = (System.currentTimeMillis() / 1000).toInt()
-        versionName = "1.0.7-dev" + gitCommitHash()
+        versionName = "1.0.7(" + currentVersionCode() + ")-dev" + gitCommitHash()
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
