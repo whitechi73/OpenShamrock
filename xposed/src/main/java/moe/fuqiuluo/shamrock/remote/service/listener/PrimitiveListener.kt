@@ -257,14 +257,21 @@ internal object PrimitiveListener {
 
 
     private suspend fun onGroupPokeAndGroupSign(time: Long, pb: ProtoMap) {
-        val groupCode = pb[1, 1, 1].asULong
+        var groupCode = pb[1, 1, 1].asULong
 
-        val readPacket = ByteReadPacket(pb[1, 3, 2].asByteArray)
-        val detail = if (readPacket.readBuf32Long() == groupCode) {
-            readPacket.discardExact(1)
-            ProtoUtils.decodeFromByteArray(readPacket.readBytes(readPacket.readShort().toInt()))
-        } else pb[1, 3, 2]
-        readPacket.release()
+        // ntqq
+        var detail = pb[1, 3, 2]
+        if (detail !is ProtoMap) {
+            try {
+                val readPacket = ByteReadPacket(detail.asByteArray)
+                groupCode = readPacket.readBuf32Long()
+                readPacket.discardExact(1)
+                detail = ProtoUtils.decodeFromByteArray(readPacket.readBytes(readPacket.readShort().toInt()))
+                readPacket.release()
+            } catch (e: Exception) {
+                LogCenter.log("onGroupPokeAndGroupSign error: ${e.stackTraceToString()}", Level.WARN)
+            }
+        }
 
         lateinit var target: String
         lateinit var operation: String
@@ -289,7 +296,7 @@ internal object PrimitiveListener {
 
                     "mqq_uin" -> target = value
                     // "mqq_nick" -> operation_nick = value
-                    "user_sign" ->  action = value
+                    "user_sign" -> action = value
                     "rank_img" -> rankImg = value
                     // "sign_word" ->  我也要打卡
                 }
