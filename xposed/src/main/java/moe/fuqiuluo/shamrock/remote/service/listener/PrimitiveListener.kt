@@ -282,14 +282,11 @@ internal object PrimitiveListener {
 
 
     private suspend fun onGroupPokeAndGroupSign(time: Long, pb: ProtoMap) {
-        var groupCode = pb[1, 1, 1].asULong
-
-        // ntqq
         var detail = pb[1, 3, 2]
         if (detail !is ProtoMap) {
             try {
                 val readPacket = ByteReadPacket(detail.asByteArray)
-                groupCode = readPacket.readBuf32Long()
+                readPacket.discardExact(4)
                 readPacket.discardExact(1)
                 detail = ProtoUtils.decodeFromByteArray(readPacket.readBytes(readPacket.readShort().toInt()))
                 readPacket.release()
@@ -297,13 +294,13 @@ internal object PrimitiveListener {
                 LogCenter.log("onGroupPokeAndGroupSign error: ${e.stackTraceToString()}", Level.WARN)
             }
         }
-
         lateinit var target: String
         lateinit var operation: String
         var action: String? = null
         var suffix: String? = null
         var actionImg: String? = null
         var rankImg: String? = null
+        val groupCode = detail[4].asULong
         detail[26][7]
             .asList
             .value
