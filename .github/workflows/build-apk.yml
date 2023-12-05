@@ -51,10 +51,10 @@ jobs:
 
       - name: Set Shamrock Version
         run: |
-          apk_file=${{ env.APK_FILE_ALL }}
-          apk_dump=$(aapt dump badging "$apk_file")
-          version_name=$(sed -n "s/.*versionName='\([^']*\)'.*/\1/p" <<< "$apk_dump")
-          echo "SHAMROCK_VERSION=$version_name" >> $GITHUB_ENV
+         apk_file=${{ env.APK_FILE_ALL }}
+         apk_dump=$(aapt dump badging "$apk_file")
+         version_name=$(sed -n "s/.*versionName='\([^']*\)'.*/\1/p" <<< "$apk_dump" | sed 's/(\([^)]*\))/.\1-/g')
+         echo "SHAMROCK_VERSION=$version_name" >> $GITHUB_ENV
 
       - name: Show Artifacts SHA256
         run: |
