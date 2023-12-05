@@ -18,6 +18,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-java@v3
         with:
           distribution: "temurin"
@@ -53,7 +55,7 @@ jobs:
         run: |
          apk_file=${{ env.APK_FILE_ALL }}
          apk_dump=$(aapt dump badging "$apk_file")
-         version_name=$(sed -n "s/.*versionName='\([^']*\)'.*/\1/p" <<< "$apk_dump" | sed 's/(\([^)]*\))/.\1-/g')
+         version_name=$(sed -n "s/.*versionName='\([^']*\)'.*/\1/p" <<< "$apk_dump" | sed 's/(\([^)]*\))/.\1/g')
          echo "SHAMROCK_VERSION=$version_name" >> $GITHUB_ENV
 
       - name: Show Artifacts SHA256
