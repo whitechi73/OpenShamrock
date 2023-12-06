@@ -536,7 +536,7 @@ internal object PrimitiveListener {
                 } catch (err: Throwable) {
                     "$time;$groupCode;$applierUid"
                 }
-                if (GlobalEventTransmitter.RequestTransmitter
+                if (!GlobalEventTransmitter.RequestTransmitter
                         .transGroupApply(time, applier, "", groupCode, flag, RequestSubType.Add)
                 ) {
                     LogCenter.log("邀请入群申请推送失败！", Level.WARN)
@@ -563,7 +563,7 @@ internal object PrimitiveListener {
         } catch (err: Throwable) {
             "$time;$groupCode;$uin"
         }
-        if (GlobalEventTransmitter.RequestTransmitter
+        if (!GlobalEventTransmitter.RequestTransmitter
                 .transGroupApply(time, invitor, "", groupCode, flag, RequestSubType.Invite)
         ) {
             LogCenter.log("邀请入群推送失败！", Level.WARN)
