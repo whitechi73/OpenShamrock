@@ -274,7 +274,7 @@ internal object MessageMaker {
         element.elementType = MsgConstant.KELEMTYPEREPLY
         val reply = ReplyElement()
 
-        val msgHash = data["id"].asString.toInt()
+        val msgHash = data["id"].asInt
         val mapping = MessageHelper.getMsgMappingByHash(msgHash)
             ?: return Result.failure(Exception("不存在该消息映射，无法回复消息"))
 
