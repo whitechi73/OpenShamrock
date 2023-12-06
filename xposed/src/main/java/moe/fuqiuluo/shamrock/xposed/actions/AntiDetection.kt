@@ -7,14 +7,12 @@ import android.content.pm.VersionedPackage
 import android.os.Build
 import de.robv.android.xposed.XC_MethodReplacement
 import de.robv.android.xposed.XSharedPreferences
-import de.robv.android.xposed.XposedBridge
 import de.robv.android.xposed.XposedHelpers
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.remote.service.config.ShamrockConfig
 import moe.fuqiuluo.shamrock.tools.hookMethod
 import moe.fuqiuluo.shamrock.xposed.XposedEntry
-import moe.fuqiuluo.shamrock.xposed.loader.FuckAMS
 import moe.fuqiuluo.shamrock.xposed.loader.LuoClassloader
 import moe.fuqiuluo.shamrock.xposed.loader.NativeLoader
 
@@ -68,6 +66,8 @@ class AntiDetection: IAction {
     }
 
     private fun antiFindPackage(context: Context) {
+        if (isAntiFindPackage) return
+
         val packageManager = context.packageManager
         val applicationInfo = packageManager.getApplicationInfo("moe.fuqiuluo.shamrock", 0)
         val packageInfo = packageManager.getPackageInfo("moe.fuqiuluo.shamrock", 0)
@@ -76,7 +76,7 @@ class AntiDetection: IAction {
             val packageName = it.args[0] as String
             if(packageName == "moe.fuqiuluo.shamrock") {
                 LogCenter.log("AntiDetection: 检测到对Shamrock的检测，欺骗PackageManager(GA)", Level.WARN)
-                it.throwable = PackageManager.NameNotFoundException()
+                it.throwable = PackageManager.NameNotFoundException("Hided")
             } else if (packageName == "moe.fuqiuluo.shamrock.hided") {
                 it.result = applicationInfo
             }
@@ -102,6 +102,8 @@ class AntiDetection: IAction {
                 }
             }
         }
+
+        isAntiFindPackage = true
     }
 
     private fun antiMemoryWalking() {
@@ -206,5 +208,10 @@ class AntiDetection: IAction {
                 !it.isModuleStack()
             }.toTypedArray()
         }
+    }
+
+    companion object {
+        @JvmStatic
+        var isAntiFindPackage = false
     }
 }

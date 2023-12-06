@@ -123,22 +123,22 @@ fun LabFragment() {
                 }
 
                 Function(
-                    title = "自动唤醒QQ",
-                    desc = "QQ进程死亡时重新打开QQ进程，前提本进程存活。",
-                    descColor = color,
-                    isSwitch = ShamrockConfig.enableAutoStart(ctx)
-                ) {
-                    ShamrockConfig.setAutoStart(ctx, it)
-                    return@Function true
-                }
-
-                Function(
                     title = "开启Shell接口",
                     desc = "可能导致设备被入侵，请勿随意开启。",
                     descColor = color,
                     isSwitch = ShamrockConfig.allowShell(ctx)
                 ) {
                     ShamrockConfig.setShellStatus(ctx, it)
+                    return@Function true
+                }
+
+                Function(
+                    title = "自动唤醒QQ",
+                    desc = "QQ进程死亡时重新打开QQ进程，前提本进程存活。",
+                    descColor = color,
+                    isSwitch = ShamrockConfig.enableAutoStart(ctx)
+                ) {
+                    ShamrockConfig.setAutoStart(ctx, it)
                     return@Function true
                 }
 
@@ -152,6 +152,17 @@ fun LabFragment() {
                         isSwitch = it.getBoolean("persistent", false)
                     ) { v ->
                         it.edit().putBoolean("persistent", v).apply()
+                        scope.toast(ctx, LocalString.restartSysToast)
+                        return@Function true
+                    }
+
+                    Function(
+                        title = "禁用Doze模式",
+                        desc = "禁止系统进入节能模式。",
+                        descColor = color,
+                        isSwitch = it.getBoolean("hook_doze", false)
+                    ) { value ->
+                        it.edit().putBoolean("hook_doze", value).apply()
                         scope.toast(ctx, LocalString.restartSysToast)
                         return@Function true
                     }

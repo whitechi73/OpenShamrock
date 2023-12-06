@@ -2,11 +2,7 @@ package moe.fuqiuluo.shamrock.remote.action.handlers
 
 import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
 import com.tencent.qqnt.kernel.nativeinterface.MultiMsgInfo
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.serialization.json.JsonArray
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.*
 import moe.fuqiuluo.qqinterface.servlet.MsgSvc
 import moe.fuqiuluo.qqinterface.servlet.TicketSvc
 import moe.fuqiuluo.qqinterface.servlet.msg.convert.toSegments
@@ -19,21 +15,6 @@ import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.shamrock.remote.service.data.ForwardMessageResult
 import moe.fuqiuluo.shamrock.tools.*
 import moe.fuqiuluo.shamrock.xposed.helper.NTServiceFetcher
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
-
-sealed interface ForwardMsgNode {
-    class MessageIdNode(
-        val id: Int
-    ) : ForwardMsgNode
-
-    open class MessageNode(
-        val name: String,
-        val content: JsonElement?
-    ) : ForwardMsgNode
-
-    object EmptyNode : MessageNode("", null)
-}
 
 internal object SendForwardMessage : IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
@@ -78,7 +59,7 @@ internal object SendForwardMessage : IActionHandler() {
     suspend operator fun invoke(
         chatType: Int,
         peerId: String,
-        message: JsonArray,
+        messages: JsonArray,
         echo: JsonElement = EmptyJsonString
     ): String {
         kotlin.runCatching {
@@ -87,79 +68,91 @@ internal object SendForwardMessage : IActionHandler() {
             val msgService = sessionService.msgService
             val selfUin = TicketSvc.getUin()
 
-            val msgs = message.map {
-                if (it.asJsonObject["type"].asStringOrNull != "node") return@map ForwardMsgNode.EmptyNode // 过滤非node类型消息段
-                it.asJsonObject["data"].asJsonObject.let { data ->
-                    if (data.containsKey("content")) {
-                        if (data["content"] is JsonArray) {
-                            data["content"].asJsonArray.forEach { msg ->
-                                if (msg.asJsonObject["type"].asStringOrNull == "node") {
-                                    LogCenter.log("合并转发消息不支持嵌套", Level.WARN)
-                                    return@map ForwardMsgNode.EmptyNode
-                                }
-                            }
-                        }
-                        ForwardMsgNode.MessageNode(
-                            name = data["name"].asStringOrNull ?: "",
-                            content = data["content"]
-                        )
-                    } else ForwardMsgNode.MessageIdNode(data["id"].asInt)
+            val multiNodes = messages.map {
+                if (it.asJsonObject["type"].asStringOrNull != "node") {
+                    LogCenter.log("包含非node类型节点", Level.WARN)
+                    return@map null
                 }
-            }.map {
-                if (it is ForwardMsgNode.MessageIdNode) {
-                    val recordResult = MsgSvc.getMsg(it.id)
-                    if (!recordResult.isFailure) {
-                        ForwardMsgNode.EmptyNode
-                    } else {
-                        val record = recordResult.getOrThrow()
-                        ForwardMsgNode.MessageNode(
-                            name = record.sendMemberName
-                                .ifBlank { record.sendNickName }
-                                .ifBlank { record.sendRemarkName }
-                                .ifBlank { record.peerName },
-                            content = record.toSegments().map { segment ->
+                if (it.asJsonObject["data"] !is JsonObject) {
+                    LogCenter.log("data字段错误", Level.WARN)
+                    return@map null
+                }
+                it.asJsonObject["data"].asJsonObject.let { data ->
+                    if (data.containsKey("id")) {
+                        val record = MsgSvc.getMsg(data["id"].asInt).getOrNull()
+                        if (record == null) {
+                            LogCenter.log("合并转发消息节点消息获取失败：${data["id"]}", Level.WARN)
+                            return@map null
+                        } else {
+                            record.peerName to record.toSegments().map { segment ->
                                 segment.toJson()
                             }.json
-                        )
-                    }
-                } else {
-                    it as ForwardMsgNode.MessageNode
-                }
-            }.filter {
-                it.content != null
-            }
-
-            val multiNodes = msgs.map { node ->
-                suspendCoroutine {
-                    GlobalScope.launch {
-                        var msgId: Long = 0
-                        msgId = MessageHelper.sendMessageWithMsgId(MsgConstant.KCHATTYPEC2C,
-                            selfUin,
-                            node.content!!.let { msg ->
-                                if (msg is JsonArray) msg
-                                else if (msg is JsonObject) listOf(msg).jsonArray
-                                else MessageHelper.decodeCQCode(msg.asString)
-                            },
-                            { code, why ->
-                                if (code != 0) {
-                                    error("合并转发消息节点消息发送失败：$code($why)")
-                                }
-                                it.resume(node.name to msgId)
-                            }).first
-                    }.invokeOnCompletion {
-                        it?.let {
-                            LogCenter.log("合并转发消息节点消息发送失败：${it.stackTraceToString()}", Level.ERROR)
                         }
+                    } else if (data.containsKey("content")) {
+                        (data["name"].asStringOrNull ?: "Anno") to when (val raw = data["content"]) {
+                            is JsonObject -> raw.asJsonArray
+                            is JsonArray -> raw.asJsonArray
+                            else -> MessageHelper.decodeCQCode(raw.asString)
+                        }
+                    } else {
+                        LogCenter.log("消息节点缺少id或content字段", Level.WARN)
+                        return@map null
                     }
+                }.let { node ->
+                    val content = node.second.map { msg ->
+                        when (msg.asJsonObject["type"].asStringOrNull ?: "text") {
+                            "at" -> {
+                                buildJsonObject {
+                                    put("type", "text")
+                                    putJsonObject("data") {
+                                        put(
+                                            "text", "@${
+                                                msg.asJsonObject["data"].asJsonObject["name"].asStringOrNull.ifNullOrEmpty(
+                                                    msg.asJsonObject["data"].asJsonObject["qq"].asString
+                                                )
+                                            }"
+                                        )
+                                    }
+                                }
+                            }
+
+                            "voice" -> {
+                                buildJsonObject {
+                                    put("type", "text")
+                                    putJsonObject("data") {
+                                        put("text", "[语音]")
+                                    }
+                                }
+                            }
+
+                            "node" -> {
+                                LogCenter.log("合并转发消息暂时不支持嵌套", Level.WARN)
+                                buildJsonObject {
+                                    put("type", "text")
+                                    putJsonObject("data") {
+                                        put("text", "[合并转发消息]")
+                                    }
+                                }
+                            }
+
+                            else -> msg
+                        }
+                    }.json
+
+                    val result = MessageHelper.sendMessageNoCb(MsgConstant.KCHATTYPEC2C, selfUin, content)
+                    if (result.first != 0) {
+                        LogCenter.log("合并转发消息节点消息发送失败", Level.WARN)
+                    }
+                    result.second to node.first
                 }
-            }
+            }.filterNotNull()
 
             val from = MessageHelper.generateContact(MsgConstant.KCHATTYPEC2C, selfUin)
             val to = MessageHelper.generateContact(chatType, peerId)
 
             val uniseq = MessageHelper.generateMsgId(chatType)
             msgService.multiForwardMsg(ArrayList<MultiMsgInfo>().apply {
-                multiNodes.forEach { add(MultiMsgInfo(it.second, it.first)) }
+                multiNodes.forEach { add(MultiMsgInfo(it.first, it.second)) }
             }.also { it.reverse() }, from, to, MsgSvc.MessageCallback(peerId, uniseq.first))
 
             return ok(
@@ -174,7 +167,7 @@ internal object SendForwardMessage : IActionHandler() {
         return logic("合并转发消息失败(unknown error)", echo)
     }
 
-    override val requiredParams: Array<String> = arrayOf("message")
+    override val requiredParams: Array<String> = arrayOf("messages")
 
     override fun path(): String = "send_forward_msg"
 }

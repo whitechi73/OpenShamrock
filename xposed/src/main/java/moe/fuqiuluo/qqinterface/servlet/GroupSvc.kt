@@ -2,6 +2,7 @@
 
 package moe.fuqiuluo.qqinterface.servlet
 
+import androidx.core.text.HtmlCompat
 import com.tencent.common.app.AppInterface
 import com.tencent.mobileqq.app.BusinessHandlerFactory
 import com.tencent.mobileqq.app.QQAppInterface
@@ -838,12 +839,13 @@ internal object GroupSvc: BaseSvc() {
                     senderId = obj["u"].asLong,
                     publishTime = obj["pubt"].asLong,
                     message = GroupAnnouncementMessage(
-                        text = obj["msg"].asJsonObject["text"].asString,
-                        images = obj["msg"].asJsonObject["pics"].asJsonArrayOrNull?.map {
+//                        text = obj["msg"].asJsonObject["text"].asString,
+                        text = fromHtml(obj["msg"].asJsonObject["text"].asString),
+                        images = obj["msg"].asJsonObject["pics"].asJsonArrayOrNull?.map { pic ->
                             GroupAnnouncementMessageImage(
-                                id = it.jsonObject["id"].asString,
-                                width = it.jsonObject["w"].asString,
-                                height = it.jsonObject["h"].asString,
+                                id = pic.jsonObject["id"].asString,
+                                width = pic.jsonObject["w"].asString,
+                                height = pic.jsonObject["h"].asString,
                             )
                         } ?: ArrayList()
                     )
@@ -852,6 +854,14 @@ internal object GroupSvc: BaseSvc() {
         } else {
             return Result.failure(Exception(body.jsonObject["em"].asStringOrNull))
         }
+    }
+
+    private fun fromHtml(htmlString: String): String {
+        return HtmlCompat
+            // 特殊处理&#10;，目的是替换为换行符，否则会被fromHtml忽略并移除
+            .fromHtml(htmlString.replace("&#10;", "[shamrockplaceholder]"), HtmlCompat.FROM_HTML_MODE_LEGACY)
+            .toString()
+            .replace("[shamrockplaceholder]", "\n")
     }
 
     @OptIn(ExperimentalSerializationApi::class)

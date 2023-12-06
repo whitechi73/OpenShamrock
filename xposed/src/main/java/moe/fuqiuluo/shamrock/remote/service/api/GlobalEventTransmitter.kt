@@ -25,6 +25,7 @@ import moe.fuqiuluo.shamrock.remote.service.data.push.RequestEvent
 import moe.fuqiuluo.shamrock.remote.service.data.push.RequestSubType
 import moe.fuqiuluo.shamrock.remote.service.data.push.RequestType
 import moe.fuqiuluo.shamrock.remote.service.data.push.Sender
+import moe.fuqiuluo.shamrock.remote.service.data.push.SignDetail
 import moe.fuqiuluo.shamrock.tools.ShamrockDsl
 import moe.fuqiuluo.shamrock.tools.json
 import java.util.ArrayList
@@ -81,8 +82,8 @@ internal object GlobalEventTransmitter: BaseSvc() {
                     sender = Sender(
                         userId = record.senderUin,
                         nickname = record.sendNickName
-                            .ifBlank { record.sendMemberName }
                             .ifBlank { record.sendRemarkName }
+                            .ifBlank { record.sendMemberName }
                             .ifBlank { record.peerName },
                         card = record.sendMemberName,
                         role = when (record.senderUin) {
@@ -222,6 +223,24 @@ internal object GlobalEventTransmitter: BaseSvc() {
      * 群聊通知 通知器
      */
     object GroupNoticeTransmitter {
+        suspend fun transGroupSign(time: Long, target: Long, action: String?, rankImg: String?, groupCode: Long): Boolean {
+            pushNotice(NoticeEvent(
+                time = time,
+                selfId = app.longAccountUin,
+                postType = PostType.Notice,
+                type = NoticeType.Notify,
+                subType = NoticeSubType.Sign,
+                userId = target,
+                groupId = groupCode,
+                target = target,
+                signDetail = SignDetail(
+                    rankImg = rankImg,
+                    action = action
+                )
+            ))
+            return true
+        }
+
         suspend fun transGroupPoke(time: Long, operation: Long, target: Long, action: String?, suffix: String?, actionImg: String?, groupCode: Long): Boolean {
             pushNotice(NoticeEvent(
                 time = time,

@@ -3,14 +3,15 @@ package moe.fuqiuluo.shamrock.xposed.loader
 
 import android.content.pm.ApplicationInfo
 import android.os.Build
-import com.arthenica.ffmpegkit.BuildConfig
+import android.os.Process
 import de.robv.android.xposed.XSharedPreferences
 import de.robv.android.xposed.XposedBridge
 import de.robv.android.xposed.XposedHelpers
 import moe.fuqiuluo.shamrock.tools.hookMethod
 import java.lang.reflect.Method
+import kotlin.concurrent.timer
 
-internal object FuckAMS {
+internal object KeepAlive {
     private val KeepPackage = arrayOf(
         "com.tencent.mobileqq", "moe.fuqiuluo.shamrock"
     )
@@ -20,7 +21,46 @@ internal object FuckAMS {
     private lateinit var METHOD_IS_KILLED: Method
     private var allowPersistent: Boolean = false
 
-    fun injectAMS(loader: ClassLoader) {
+    operator fun invoke(loader: ClassLoader) {
+        val pref = XSharedPreferences("moe.fuqiuluo.shamrock", "shared_config")
+        hookAMS(pref, loader)
+        hookDoze(pref, loader)
+    }
+
+    private fun hookDoze(pref: XSharedPreferences, loader: ClassLoader) {
+        if (pref.file.canRead() && pref.getBoolean("hook_doze", false)) {
+            val result = runCatching {
+                val DeviceIdleController = XposedHelpers.findClass("com.android.server.DeviceIdleController", loader)
+                    ?: return@runCatching -1
+                val becomeActiveLocked = XposedHelpers.findMethodBestMatch(DeviceIdleController, "becomeActiveLocked", String::class.java, Integer.TYPE)
+                    ?: return@runCatching -2
+                if (!becomeActiveLocked.isAccessible) {
+                    becomeActiveLocked.isAccessible = true
+                }
+                DeviceIdleController.hookMethod("onStart").after {
+                    XposedBridge.log("[Shamrock] DeviceIdleController onStart")
+                    timer(initialDelay = 120_000L, period = 240_000L) {
+                        XposedBridge.log("[Shamrock] try to wakeup screen")
+                        becomeActiveLocked.invoke(it.thisObject, "screen", Process.myUid())
+                    }
+                }
+                DeviceIdleController.hookMethod("becomeInactiveIfAppropriateLocked").before {
+                    XposedBridge.log("[Shamrock] DeviceIdleController becomeInactiveIfAppropriateLocked")
+                    it.result = Unit
+                }
+                DeviceIdleController.hookMethod("stepIdleStateLocked").before {
+                    XposedBridge.log("[Shamrock] DeviceIdleController stepIdleStateLocked")
+                    it.result = Unit
+                }
+                return@runCatching 0
+            }.getOrElse { -5 }
+            if(result < 0) {
+                XposedBridge.log("[Shamrock] Unable to hookDoze: $result")
+            }
+        }
+    }
+
+    private fun hookAMS(pref: XSharedPreferences, loader: ClassLoader) {
         kotlin.runCatching {
             val ActivityManagerService = XposedHelpers.findClass("com.android.server.am.ActivityManagerService", loader)
             ActivityManagerService.hookMethod("newProcessRecordLocked").after {
@@ -30,7 +70,6 @@ internal object FuckAMS {
             XposedBridge.log("[Shamrock] Plan A failed: ${it.message}")
         }
 
-        val pref = XSharedPreferences("moe.fuqiuluo.shamrock", "shared_config")
         if (pref.file.canRead()) {
             allowPersistent = pref.getBoolean("persistent", false)
             XposedBridge.log("[Shamrock] allowPersistent = $allowPersistent")
