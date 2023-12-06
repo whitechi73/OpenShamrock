@@ -39,10 +39,6 @@ internal object KeepAlive {
                 }
                 DeviceIdleController.hookMethod("onStart").after {
                     XposedBridge.log("[Shamrock] DeviceIdleController onStart")
-                    timer(initialDelay = 120_000L, period = 240_000L) {
-                        XposedBridge.log("[Shamrock] try to wakeup screen")
-                        becomeActiveLocked.invoke(it.thisObject, "screen", Process.myUid())
-                    }
                 }
                 DeviceIdleController.hookMethod("becomeInactiveIfAppropriateLocked").before {
                     XposedBridge.log("[Shamrock] DeviceIdleController becomeInactiveIfAppropriateLocked")
