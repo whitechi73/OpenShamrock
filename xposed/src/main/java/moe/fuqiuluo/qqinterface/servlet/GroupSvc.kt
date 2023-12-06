@@ -47,6 +47,7 @@ import moe.fuqiuluo.proto.asInt
 import moe.fuqiuluo.proto.asUtf8String
 import moe.fuqiuluo.proto.protobufOf
 import moe.fuqiuluo.qqinterface.servlet.entries.ProhibitedMemberInfo
+import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.helper.MessageHelper
 import moe.fuqiuluo.shamrock.remote.service.data.EssenceMessage
@@ -67,11 +68,13 @@ import moe.fuqiuluo.shamrock.tools.slice
 import moe.fuqiuluo.shamrock.utils.FileUtils
 import moe.fuqiuluo.shamrock.xposed.helper.AppRuntimeFetcher
 import moe.fuqiuluo.shamrock.xposed.helper.NTServiceFetcher
+import tencent.im.group.group_member_info
 import tencent.im.oidb.cmd0x899.oidb_0x899
 import tencent.im.oidb.cmd0x89a.oidb_0x89a
 import tencent.im.oidb.cmd0x8a0.oidb_0x8a0
 import tencent.im.oidb.cmd0x8fc.Oidb_0x8fc
 import tencent.im.oidb.oidb_sso
+import tencent.im.troop.honor.troop_honor
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import java.nio.ByteBuffer
@@ -420,6 +423,36 @@ internal object GroupSvc: BaseSvc() {
                 }
             }
         }
+        try {
+            if (info != null && (info.alias == null || info.alias.isBlank())) {
+                val req = group_member_info.ReqBody()
+                req.uint64_group_code.set(groupId.toLong())
+                req.uint64_uin.set(uin.toLong())
+                req.bool_new_client.set(true)
+                req.uint32_client_type.set(1)
+                req.uint32_rich_card_name_ver.set(1)
+                val respBuffer = sendBufferAW("group_member_card.get_group_member_card_info", true, req.toByteArray())
+                if (respBuffer != null) {
+                    val rsp = group_member_info.RspBody()
+                    rsp.mergeFrom(respBuffer.slice(4))
+                    if (rsp.msg_meminfo.str_location.has()) {
+                        info.alias = rsp.msg_meminfo.str_location.get().toStringUtf8()
+                    }
+                    if (rsp.msg_meminfo.uint32_age.has()) {
+                        info.age = rsp.msg_meminfo.uint32_age.get().toByte()
+                    }
+                    if (rsp.msg_meminfo.bytes_group_honor.has()) {
+                        val honorBytes = rsp.msg_meminfo.bytes_group_honor.get().toByteArray()
+                        val honor = troop_honor.GroupUserCardHonor()
+                        honor.mergeFrom(honorBytes)
+                        info.level = honor.level.get()
+                        // 10315: medal_id not real group level
+                    }
+                }
+            }
+        } catch (err: Throwable) {
+            LogCenter.log(err.stackTraceToString(), Level.WARN)
+        }
         return if (info != null) {
             Result.success(info)
         } else {
@@ -526,7 +559,7 @@ internal object GroupSvc: BaseSvc() {
             throw RuntimeException("AppRuntime cannot cast to AppInterface")
         val businessHandler = app.getBusinessHandler(BusinessHandlerFactory.TROOP_MEMBER_LIST_HANDLER)
 
-        // void C(boolean foreRefresh, String groupId, String troopcode, int reqType); // RequestedTroopList/refreshMemberListFromServer
+        // void C(boolean forceRefresh, String groupId, String troopcode, int reqType); // RequestedTroopList/refreshMemberListFromServer
         if (!GroupSvc::METHOD_REQ_TROOP_MEM_LIST.isInitialized) {
             METHOD_REQ_TROOP_MEM_LIST = businessHandler.javaClass.declaredMethods.first {
                 it.parameterCount == 4
