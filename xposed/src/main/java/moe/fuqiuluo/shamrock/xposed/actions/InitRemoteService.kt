@@ -65,10 +65,12 @@ internal class InitRemoteService : IAction {
                     if (token.isNotBlank()) {
                         wsHeaders["authorization"] = "bearer $token"
                     }
-                    LogCenter.log("尝试链接WebSocketClient(url = ${conn.address})",Level.WARN)
+                    LogCenter.log("尝试连接WebSocketClient(url = ${conn.address})",Level.WARN)
                     startWebSocketClient(conn.address, conn.heartbeatInterval ?: 15000, wsHeaders)
                 }
             }
+        } else {
+            LogCenter.log("未启用被动WebSocket，不会加载连接。")
         }
     }
 
