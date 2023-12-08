@@ -20,7 +20,7 @@ internal enum class NoticeType {
 
 @Serializable
 internal enum class RequestType {
-    @SerialName("friend ") Friend,
+    @SerialName("friend") Friend,
     @SerialName("group") Group,
 }
 
