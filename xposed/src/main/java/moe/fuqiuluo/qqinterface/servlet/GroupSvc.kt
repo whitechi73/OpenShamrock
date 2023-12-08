@@ -47,6 +47,7 @@ import moe.fuqiuluo.proto.ProtoUtils
 import moe.fuqiuluo.proto.asInt
 import moe.fuqiuluo.proto.asUtf8String
 import moe.fuqiuluo.proto.protobufOf
+import moe.fuqiuluo.qqinterface.servlet.TicketSvc.getUin
 import moe.fuqiuluo.qqinterface.servlet.entries.ProhibitedMemberInfo
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
@@ -67,13 +68,16 @@ import moe.fuqiuluo.shamrock.tools.ifNullOrEmpty
 import moe.fuqiuluo.shamrock.tools.putBuf32Long
 import moe.fuqiuluo.shamrock.tools.slice
 import moe.fuqiuluo.shamrock.utils.FileUtils
+import moe.fuqiuluo.shamrock.utils.PlatformUtils
 import moe.fuqiuluo.shamrock.xposed.helper.AppRuntimeFetcher
 import moe.fuqiuluo.shamrock.xposed.helper.NTServiceFetcher
+import mqq.app.MobileQQ
 import tencent.im.group.group_member_info
 import tencent.im.oidb.cmd0x899.oidb_0x899
 import tencent.im.oidb.cmd0x89a.oidb_0x89a
 import tencent.im.oidb.cmd0x8a0.oidb_0x8a0
 import tencent.im.oidb.cmd0x8fc.Oidb_0x8fc
+import tencent.im.oidb.cmd0xeb7.oidb_0xeb7
 import tencent.im.oidb.oidb_sso
 import tencent.im.troop.honor.troop_honor
 import java.lang.reflect.Method
@@ -948,6 +952,29 @@ internal object GroupSvc: BaseSvc() {
             Result.success(true)
         } else {
             Result.failure(Exception(body.jsonObject["em"].asStringOrNull))
+        }
+    }
+
+    suspend fun groupSign(groupId: Long): Result<String> {
+        val req = oidb_0xeb7.ReqBody()
+        val signInWriteReq = oidb_0xeb7.StSignInWriteReq()
+        signInWriteReq.groupId.set(groupId.toString())
+        signInWriteReq.uid.set(getUin())
+        var version = PlatformUtils.getClientVersion(MobileQQ.getContext())
+        version = version.replace("android", "").trimStart()
+        signInWriteReq.clientVersion.set(version)
+        req.signInWriteReq.set(signInWriteReq)
+        val buffer = sendOidbAW("OidbSvc.0xeb7", 3767, 1, req.toByteArray())
+        return if (buffer == null) {
+            Result.failure(Exception("操作失败"))
+        } else {
+            val body = oidb_sso.OIDBSSOPkg()
+            body.mergeFrom(buffer.slice(4))
+            val rsp = oidb_0xeb7.RspBody()
+            rsp.mergeFrom(body.bytes_bodybuffer.get().toByteArray())
+            val doneInfo = rsp.signInWriteRsp.doneInfo
+            LogCenter.log(rsp.toString(), Level.DEBUG)
+            Result.success("${doneInfo.leftTitleWrod.get()} ${doneInfo.rightDescWord.get()} ${doneInfo.belowPortraitWords.get().joinToString(" ")}")
         }
     }
 }

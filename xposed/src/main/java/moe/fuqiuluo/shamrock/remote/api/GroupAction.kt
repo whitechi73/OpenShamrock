@@ -140,4 +140,9 @@ fun Routing.troopAction() {
         call.respondText(SendGroupNotice(groupId, text, image), ContentType.Application.Json)
     }
 
+    getOrPost("/send_group_sign") {
+        val groupId = fetchOrThrow("group_id").toLong()
+        call.respondText(SendGroupSign(groupId), ContentType.Application.Json)
+    }
+
 }

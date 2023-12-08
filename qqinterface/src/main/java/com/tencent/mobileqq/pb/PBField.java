@@ -21,6 +21,10 @@ public abstract class PBField<T> {
         return new PBBytesField(byteStringMicro, false);
     }
 
+    public static PBFloatField initFloat(float paramFloat) {
+        return new PBFloatField(paramFloat, false);
+    }
+
     public static PBBoolField initBool(boolean z) {
         return new PBBoolField(z, false);
     }
