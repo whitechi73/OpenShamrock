@@ -197,7 +197,7 @@ icon: user-group
 该 API 没有响应数据
 :::
 
-## 群打卡 <Badge text="未实现" type="danger" />
+## 群打卡
 
 该接口用于群打卡。
 
