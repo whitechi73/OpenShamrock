@@ -48,7 +48,7 @@ icon: user-group
 
 [1] `file` **参数**支持以下几种格式：
 
-- 绝对路径, 例如 `file:///C:\\Users\Richard\Pictures\1.png`, 格式使用 [`file` URI](https://tools.ietf.org/html/rfc8089)
+- 绝对路径, 例如 `file:///sdcard/Pictures/shamrock.png`, 格式使用 [`file` URI](https://tools.ietf.org/html/rfc8089)
 - 网络 URL, 例如 `http://i1.piimg.com/567571/fdd6e7b6d93f1ef0.jpg`
 - Base64 编码, 例如 `base64://iVBORw0KGgoAAAANSUhEUgAAABQAAAAVCAIAAADJt1n/AAAAKElEQVQ4EWPk5+RmIBcwkasRpG9UM4mhNxpgowFGMARGEwnBIEJVAAAdBgBNAZf+QAAAAABJRU5ErkJggg==`
 

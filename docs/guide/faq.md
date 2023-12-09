@@ -72,5 +72,5 @@ QQ修复了登录响应超时的问题，经测试(逍遥,夜神,MuMu)模拟器�
 
 ### Shamrock的日志怎么导出？
 
-Shamrock的日志文件，按照时间和进程名称，保存在/sdcard/Android/data/com.tencent.mobileqq/Tencent/Shamrock文件夹内，请查看，提交issue时可以使用他们，注意请不要提交超过50kb的日志文件。
+Shamrock的日志文件，按照时间和进程名称，保存在/sdcard/Android/data/com.tencent.mobileqq/Tencent/Shamrock/log文件夹内，请查看，提交issue时可以使用它们，注意请不要提交超过50kb的日志文件。
 
