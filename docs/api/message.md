@@ -293,7 +293,23 @@ message格式同`/send_private_msg`
 
 ### 响应
 
-该接口将返回处理结果，其中 `data` 字段无数据。
+> 由于QQ限制，该接口的响应结果暂不具备意义，其中：message_id不匹配、forward_id为空。
+
+| 字段       | 类型  | 说明    |
+| ---------- | ----- | ------- |
+| message_id | int32 | 消息 ID |
+| forward_id | int32 | 转发 ID |
+
+```json
+{
+  "status": "ok",
+  "retcode": 0,
+  "data": {
+    "message_id": 251425915,
+    "forward_id": ""
+  }
+}
+```
 
 ### 示例
 
@@ -316,6 +332,10 @@ message格式同`/send_private_msg`
 ]
 ```
 
+::: warning 注意
+Shamrock 不同于 `go-cqhttp` ，消息节点无法自定义发送者QQ号（设置头像）与昵称。
+:::
+
 自定义消息合并转发：
 
 ```json
@@ -323,7 +343,6 @@ message格式同`/send_private_msg`
 	{
 		"type": "node",
 		"data": {
-			"name": "消息发送者A",
 			"content": [
 				{
 					"type": "text",
@@ -337,7 +356,6 @@ message格式同`/send_private_msg`
 	{
 		"type": "node",
 		"data": {
-			"name": "消息发送者B",
 			"content": "[CQ:image,file=xxxxx]测试消息2"
 		}
 	}
@@ -351,7 +369,6 @@ message格式同`/send_private_msg`
     {
         "type": "node",
         "data": {
-            "name": "自定义发送者",
             "content": "我是自定义消息",
         }
     },
@@ -363,8 +380,6 @@ message格式同`/send_private_msg`
     }
 ]
 ```
-
-> 由于QQ限制，该接口不提供合并转发后的消息ID以及合并转发ID。
 
 ## 发送私聊合并转发
 
@@ -383,4 +398,4 @@ message格式同`/send_private_msg`
 
 ### 响应
 
-该接口将返回处理结果，其中 `data` 字段无数据。
+同 [/send_private_forward_msg](#发送群聊合并转发)

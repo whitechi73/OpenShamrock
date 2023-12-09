@@ -57,11 +57,11 @@ Shamrock必须是`ALL版本`才能在模拟器正常使用
 操作视频参考[PVE下安装BlissOS及Magisk,LSP](https://www.bilibili.com/video/BV1Mj411e7V9)  
 之后可以直接使用OpenShamrock 
 
-### 在那Linux KVM部署
+### 在Linux KVM部署
 参考文章：[KVM上部署Android](https://cloud.tencent.com/developer/article/1484145)
 该文章使用的安卓版本可能较低，请使用安卓9+系统
 
-### ~在WSA上部署~
+### ~~在WSA上部署~~
 WSA拥有自带Magisk的版本，但是QQ在WSA在第二次启动时会闪退，怀疑为热更新问题。
 
 
