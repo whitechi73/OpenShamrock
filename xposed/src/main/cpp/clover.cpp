@@ -101,11 +101,27 @@ FILE* fake_fopen(const char *filename, const char *mode) {
         LOGI("[Shamrock] bypass emu detection");
         return nullptr;
     }
-        if (strstr(filename, "libnoxd.so")) {    //NoxAppPlayer
+    if (strstr(filename, "libnoxd.so")) {    //NoxAppPlayer
         LOGI("[Shamrock] bypass emu detection");
         return nullptr;
     }
-        if (strstr(filename, "libnoxspeedup.so")) {    //NoxAppPlayer
+    if (strstr(filename, "libnoxspeedup.so")) {    //NoxAppPlayer
+        LOGI("[Shamrock] bypass emu detection");
+        return nullptr;
+    }
+    if (strstr(filename, "nox-prop")) {    //NoxAppPlayer (Useless?)
+        LOGI("[Shamrock] bypass emu detection");
+        return nullptr;
+    }
+    if (strstr(filename, "nox-vbox-sf")) {    //NoxAppPlayer (Useless?)
+        LOGI("[Shamrock] bypass emu detection");
+        return nullptr;
+    }
+    if (strstr(filename, "noxd")) {    //NoxAppPlayer (Useless?)
+        LOGI("[Shamrock] bypass emu detection");
+        return nullptr;
+    }
+        if (strstr(filename, "noxspeedup")) {    //NoxAppPlayer (Useless?)
         LOGI("[Shamrock] bypass emu detection");
         return nullptr;
     }
