@@ -71,6 +71,7 @@ int fake_system_property_get(const char *name, char *value) {
                 || strstr(value, "unknown")
                 || strstr(value, "emulator")
                 || strstr(value, "vbox")
+                || strstr(value, "nox") //部分NoxAppPlayer
                 || strstr(value, "genymotion")
                 || strstr(value, "goldfish")) {
                 strcpy(value, "qcom");
@@ -97,6 +98,14 @@ FILE* fake_fopen(const char *filename, const char *mode) {
         return nullptr;
     }
     if (strstr(filename, "libndk.so")) {
+        LOGI("[Shamrock] bypass emu detection");
+        return nullptr;
+    }
+        if (strstr(filename, "libnoxd.so")) {    //NoxAppPlayer
+        LOGI("[Shamrock] bypass emu detection");
+        return nullptr;
+    }
+        if (strstr(filename, "libnoxspeedup.so")) {    //NoxAppPlayer
         LOGI("[Shamrock] bypass emu detection");
         return nullptr;
     }
