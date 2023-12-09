@@ -436,7 +436,7 @@ internal object PrimitiveListener {
     }
 
     private suspend fun onGroupBan(msgTime: Long, pb: ProtoMap) {
-        val groupCode = pb[1, 1, 1].asULong
+        val groupCode = pb[1, 3, 2, 1].asULong
         val operatorUid = pb[1, 3, 2, 4].asUtf8String
         val targetUid = pb[1, 3, 2, 5, 3, 1].asUtf8String
         val duration = pb[1, 3, 2, 5, 3, 2].asInt
