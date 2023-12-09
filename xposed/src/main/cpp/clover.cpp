@@ -71,6 +71,7 @@ int fake_system_property_get(const char *name, char *value) {
                 || strstr(value, "unknown")
                 || strstr(value, "emulator")
                 || strstr(value, "vbox")
+                || strstr(value, "nox") //部分NoxAppPlayer
                 || strstr(value, "genymotion")
                 || strstr(value, "goldfish")) {
                 strcpy(value, "qcom");
@@ -92,14 +93,23 @@ FILE* fake_fopen(const char *filename, const char *mode) {
         return nullptr;
     }
 
-    if (strstr(filename, "libhoudini.so")) {
-        LOGI("[Shamrock] bypass emu detection");
-        return nullptr;
+    const char* emuSpecFile[] = {
+        "libhoudini.so",
+        "libndk.so",
+        "libnoxd.so",    //NoxAppPlayer
+        "libnoxspeedup.so",    //NoxAppPlayer
+        "nox-prop",    //NoxAppPlayer (MayUseless?)
+        "nox-vbox-sf",    //NoxAppPlayer (MayUseless?)
+        "noxd",    //NoxAppPlayer (MayUseless?)
+        "noxspeedup",    //NoxAppPlayer (MayUseless?)
+    };
+    for (const char* keyword : emuSpecFile) {
+        if (strstr(filename, keyword)) {
+            LOGI("[Shamrock] bypass emu detection");
+            return nullptr;
+        }
     }
-    if (strstr(filename, "libndk.so")) {
-        LOGI("[Shamrock] bypass emu detection");
-        return nullptr;
-    }
+
     if (strstr(filename, "libdobby.so")) {
         LOGI("[Shamrock] bypass dobby detection");
         return nullptr;
