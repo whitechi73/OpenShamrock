@@ -96,7 +96,14 @@ FILE* fake_fopen(const char *filename, const char *mode) {
         LOGI("[Shamrock] bypass emu detection");
         return nullptr;
     }
-
+    if (strstr(filename, "libndk.so")) {
+        LOGI("[Shamrock] bypass emu detection");
+        return nullptr;
+    }
+    if (strstr(filename, "libdobby.so")) {
+        LOGI("[Shamrock] bypass dobby detection");
+        return nullptr;
+    }
     return backup_fopen(filename, mode);
 }
 
