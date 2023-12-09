@@ -452,17 +452,19 @@ internal object PrimitiveListener {
     }
 
     private suspend fun onGroupRecall(time: Long, pb: ProtoMap) {
-        val groupCode = pb[1, 1, 1].asULong
-        val readPacket = ByteReadPacket(pb[1, 3, 2].asByteArray)
-        try {
-            /**
-             * 真是不理解这个傻呗设计，有些群是正常的Protobuf，有些群要去掉7字节
-             */
-            val detail = if (readPacket.readBuf32Long() == groupCode) {
-                readPacket.discardExact(1)
-                ProtoUtils.decodeFromByteArray(readPacket.readBytes(readPacket.readShort().toInt()))
-            } else pb[1, 3, 2]
-
+            var detail = pb[1, 3, 2]
+            if (detail !is ProtoMap) {
+                try {
+                    val readPacket = ByteReadPacket(detail.asByteArray)
+                    readPacket.discardExact(4)
+                    readPacket.discardExact(1)
+                    detail = ProtoUtils.decodeFromByteArray(readPacket.readBytes(readPacket.readShort().toInt()))
+                    readPacket.release()
+                } catch (e: Exception) {
+                    LogCenter.log("onGroupRecall error: ${e.stackTraceToString()}", Level.WARN)
+                }
+            }
+            val groupCode = detail[4].asULong
             val operatorUid = detail[11, 1].asUtf8String
             val targetUid = detail[11, 3, 6].asUtf8String
             val msgSeq = detail[11, 3, 1].asLong
@@ -482,9 +484,6 @@ internal object PrimitiveListener {
             ) {
                 LogCenter.log("群消息撤回推送失败！", Level.WARN)
             }
-        } finally {
-            readPacket.release()
-        }
     }
 
     private suspend fun onGroupApply(time: Long, pb: ProtoMap) {
