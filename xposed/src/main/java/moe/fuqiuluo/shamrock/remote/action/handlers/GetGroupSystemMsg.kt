@@ -61,7 +61,5 @@ internal object GetGroupSystemMsg: IActionHandler() {
         return ok(msgs, echo = echo)
     }
 
-    override val requiredParams: Array<String> = arrayOf("group_id", "folder_id")
-
-    override fun path(): String  = "get_group_files_by_folder"
+    override fun path(): String  = "get_group_system_msg"
 }

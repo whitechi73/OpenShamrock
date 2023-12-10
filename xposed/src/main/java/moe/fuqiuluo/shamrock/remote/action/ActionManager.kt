@@ -23,7 +23,7 @@ internal object ActionManager {
             // UserActions
             GetProfileCard, GetFriendList, SendLike, GetUid, GetUinByUid, ScanQRCode, SetProfileCard,
             GetCookies, GetCSRF, GetCredentials, RestartMe, CleanCache, GetModelShow, SetModelShow,
-            GetModelShowList, GetOnlineClients, GetStrangerInfo, IsBlackListUin, GetHttpCookies,
+            GetModelShowList, GetOnlineClients, GetStrangerInfo, IsBlackListUin, GetHttpCookies, GetFriendSystemMsg,
 
             // GroupInfo
             GetTroopList, GetTroopInfo, GetTroopList, GetTroopMemberInfo, GetTroopMemberList,
@@ -42,7 +42,7 @@ internal object ActionManager {
             DeleteGroupFile, GetGroupFileSystemInfo, GetGroupRootFiles, GetGroupSubFiles,
             GetGroupFileUrl, UploadPrivateFile,
 
-            //REQUEST ACTION
+            // REQUEST ACTION
             SetFriendAddRequest, SetGroupAddRequest,
 
             // GUILD

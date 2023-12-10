@@ -8,6 +8,7 @@ import io.ktor.server.response.respondText
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.get
 import moe.fuqiuluo.shamrock.remote.action.handlers.GetFriendList
+import moe.fuqiuluo.shamrock.remote.action.handlers.GetFriendSystemMsg
 import moe.fuqiuluo.shamrock.remote.action.handlers.GetStrangerInfo
 import moe.fuqiuluo.shamrock.remote.action.handlers.IsBlackListUin
 import moe.fuqiuluo.shamrock.tools.fetchGetOrThrow
@@ -30,4 +31,9 @@ fun Routing.friendAction() {
         val uin = fetchOrThrow("user_id")
         call.respondText(IsBlackListUin(uin), ContentType.Application.Json)
     }
+
+    getOrPost("/get_friend_system_msg") {
+        call.respondText(GetFriendSystemMsg(), ContentType.Application.Json)
+    }
+
 }

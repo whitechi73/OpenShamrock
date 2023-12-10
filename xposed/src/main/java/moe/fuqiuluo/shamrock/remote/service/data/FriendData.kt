@@ -16,3 +16,22 @@ internal data class FriendEntry(
     @SerialName("term_type") val termType: Int,
 )
 
+
+@Serializable
+internal data class FriendRequest(
+    @SerialName("request_id") val seq: Long = 0,
+    @SerialName("requester_uin") val userId: Long = 0,
+    @SerialName("requester_nick") val name: String?,
+    val source: String?,
+    @SerialName("sub_id") val subId: Int?,
+    @SerialName("sub_src_id") val subSrcId: Int?,
+    @SerialName("message") val msg: String?,
+    @SerialName("source_group_name") val sourceGroupName: String?,
+    @SerialName("source_group_id") val sourceGroupCode: Long?,
+    val flag: String,
+    val sex: String?,
+    val age: Int?,
+    @SerialName("msg_detail") val msgDetail: String?,
+    val status: String?,
+
+)
