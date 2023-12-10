@@ -576,6 +576,76 @@ icon: address-book
 | actor          | int64  | 处理者, 未处理为0 |
 | flag           | string | flag,用于处理请求 |
 
+## 获取好友系统消息
+
+该接口用于获取好友系统消息。
+
+### API 端点
+
+`/get_friend_system_msg`
+
+### 响应
+
+该接口返回的 `data` 数据为数组，每个元素为一个好友请求的系统信息，具体如下。
+
+::: tabs
+
+@tab 响应字段
+
+| 字段             | 类型   | 说明     |
+| ---------------- | ------ | -------- |
+| request_id          | int64  | 请求id    |
+| requester_uin        | int64 | 请求者QQ号     |
+| requester_nick | string | 请求者昵称   |
+| source      | string | 来源     |
+| message              | string  | 附加消息     |
+| source_group_name           | string  | 来源群名称，仅当从群添加好友时存在     |
+| source_group_id         | int64  | 来源群号，仅当从群添加好友时存在  |
+| sex         | string | 请求者性别     |
+| age         | string | 请求者年龄     |
+| msg_detail         | string | 处理结果     |
+| status         | string | 可选值：`已同意`、`已拒绝`，为空则表示尚未处理     |
+| flag        | string | flag,用于处理请求 |
+
+@tab 响应示例
+
+```json
+{
+  "status": "ok",
+  "retcode": 0,
+  "data": [
+    {
+        "request_id": 1702011024000000,
+        "requester_uin": 1234567890,
+        "requester_nick": "流月e",
+        "source": "QQ群-群名称",
+        "message": "我是流月e",
+        "source_group_name": "群名称",
+        "source_group_id": 1234567890,
+        "flag": "1702011024000000;3004;3;1234567890",
+        "sex": "female",
+        "age": 23,
+        "msg_detail": "",
+        "status": ""
+    },
+    {
+        "request_id": 1702010997000000,
+        "requester_uin": 1234567891,
+        "requester_nick": "是铃音啦",
+        "source": "QQ群",
+        "message": "",
+        "source_group_name": "",
+        "source_group_id": 0,
+        "flag": "1702010997000000;6;1;1234567891",
+        "sex": "male",
+        "age": 0,
+        "msg_detail": "",
+        "status": ""
+    }
+  ]
+}
+```
+
 ## 获取精华消息列表
 
 该接口用于获取精华消息列表。
