@@ -25,7 +25,9 @@ internal object GetTroopMemberList : IActionHandler() {
         val memberList = GroupSvc.getGroupMemberList(groupId, refresh).onFailure {
             return error(it.message ?: "unknown error", echo, arrayResult = true)
         }.getOrThrow()
-
+        val prohibitedMemberList = GroupSvc.getProhibitedMemberList(groupId.toLong())
+            .getOrDefault(arrayListOf())
+            .associate { it.memberUin to it.shutuptimestap.toLong() }
         return ok(arrayListOf<SimpleTroopMemberInfo>().apply {
             memberList.forEach { info ->
                 if (info.memberuin != "0") {
@@ -60,7 +62,8 @@ internal object GetTroopMemberList : IActionHandler() {
                             title = info.mUniqueTitle ?: "",
                             titleExpireTime = info.mUniqueTitleExpire,
                             cardChangeable = GroupSvc.isAdmin(groupId),
-                            age = 0
+                            age = 0,
+                            shutUpTimestamp = prohibitedMemberList[info.memberuin.toLong()] ?: 0L
                         )
                     )
                 }

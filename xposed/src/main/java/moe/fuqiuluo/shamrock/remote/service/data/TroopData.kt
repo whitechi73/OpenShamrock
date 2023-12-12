@@ -3,6 +3,7 @@ package moe.fuqiuluo.shamrock.remote.service.data
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import moe.fuqiuluo.shamrock.remote.service.data.push.MemberRole
+import java.sql.Timestamp
 
 @Serializable
 internal data class SimpleTroopInfo(
@@ -43,6 +44,7 @@ internal data class SimpleTroopMemberInfo(
     @SerialName("role") val role: MemberRole,
     @SerialName("unfriendly") val unfriendly: Boolean,
     @SerialName("card_changeable") val cardChangeable: Boolean,
+    @SerialName("shut_up_timestamp") val shutUpTimestamp: Long?,
 )
 
 @Serializable
