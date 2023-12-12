@@ -67,10 +67,10 @@ internal object AioListener : IKernelMsgListener {
                 MessageHelper.sendMessageWithoutMsgId(record.chatType, record.peerUin.toString(), "pong", { _, _ -> })
             }
 
-            if (record.senderUin == TicketSvc.getLongUin() && !ShamrockConfig.enableSyncMsg()) {
-                // 不允许推送同步消息
-                return
-            }
+
+            val postType = if (record.senderUin == TicketSvc.getLongUin() && ShamrockConfig.enableSyncMsgAsSentMsg()) {
+                PostType.MsgSent
+            } else PostType.Msg
 
             //if (rawMsg.contains("forward")) {
             //    LogCenter.log(record.extInfoForUI.decodeToString(), Level.WARN)
@@ -85,8 +85,8 @@ internal object AioListener : IKernelMsgListener {
                     }
 
                     if(!GlobalEventTransmitter.MessageTransmitter.transGroupMessage(
-                            record, record.elements, rawMsg, msgHash
-                        )) {
+                            record, record.elements, rawMsg, msgHash, postType
+                    )) {
                         LogCenter.log("群消息推送失败 -> 推送目标可能不存在", Level.WARN)
                     }
                 }
@@ -98,8 +98,8 @@ internal object AioListener : IKernelMsgListener {
                     }
 
                     if(!GlobalEventTransmitter.MessageTransmitter.transPrivateMessage(
-                            record, record.elements, rawMsg, msgHash
-                        )) {
+                            record, record.elements, rawMsg, msgHash, postType
+                    )) {
                         LogCenter.log("私聊消息推送失败 -> MessageTransmitter", Level.WARN)
                     }
                 }
@@ -114,7 +114,7 @@ internal object AioListener : IKernelMsgListener {
                     }
 
                     if(!GlobalEventTransmitter.MessageTransmitter.transPrivateMessage(
-                            record, record.elements, rawMsg, msgHash, tempSource = MessageTempSource.Group
+                            record, record.elements, rawMsg, msgHash, tempSource = MessageTempSource.Group, postType = postType
                         )) {
                         LogCenter.log("私聊临时消息推送失败 -> MessageTransmitter", Level.WARN)
                     }
@@ -188,8 +188,7 @@ internal object AioListener : IKernelMsgListener {
                 if (!ShamrockConfig.enableSelfMsg()
                     || record.senderUin != TicketSvc.getLongUin()
                     || record.peerUin == TicketSvc.getLongUin()
-                )
-                    return@launch
+                ) return@launch
 
                 val rawMsg = record.elements.toCQCode(record.chatType, record.peerUin.toString())
                 if (rawMsg.isEmpty()) return@launch

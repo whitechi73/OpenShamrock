@@ -59,7 +59,7 @@ internal object GlobalEventTransmitter: BaseSvc() {
             elements: ArrayList<MsgElement>,
             rawMsg: String,
             msgHash: Int,
-            postType: PostType = PostType.Msg
+            postType: PostType
         ): Boolean {
             val uin = app.longAccountUin
             transMessageEvent(record,
@@ -107,7 +107,7 @@ internal object GlobalEventTransmitter: BaseSvc() {
             elements: ArrayList<MsgElement>,
             rawMsg: String,
             msgHash: Int,
-            postType: PostType = PostType.Msg,
+            postType: PostType,
             tempSource: MessageTempSource = MessageTempSource.Unknown
         ): Boolean {
             val botUin = app.longAccountUin
