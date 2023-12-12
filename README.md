@@ -94,7 +94,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 [docs-link]: https://whitechi73.github.io/OpenShamrock/
 
-[hook-system]: https://github.com/whitechi73/OpenShamrock/blob/master/xposed/src/main/java/moe/fuqiuluo/shamrock/xposed/loader/FuckAMS.kt
+[hook-system]: https://github.com/whitechi73/OpenShamrock/blob/master/xposed/src/main/java/moe/fuqiuluo/shamrock/xposed/loader/KeepAlive.kt
 
 [voice-support]: https://whitechi73.github.io/OpenShamrock/advanced/voice.html
 
