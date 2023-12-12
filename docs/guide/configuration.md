@@ -73,6 +73,22 @@ Shamrock 提供了一个图形化的配置界面，可进行简单的配置操�
 
 > 记得把注释删掉哦？JSON5貌似也没有完全支持呢？该配置文件采用Json5标准！
 
+## WebSocket认证方法
+
+在HTTP Upgrade请求头中添加access_token或ticket或Authorization头
+
+例：
+
+```
+GET / HTTP/1.1
+Host: 192.168.3.4
+Upgrade: websocket
+Connection: upgrade
+Sec-WebSocket-Key: wwwwwwwwwwwwwwwwwwwwww==
+Sec-WebSocket-Version: 13
+Authorization: aaaa1111
+```
+
 ## 数据目录
 
 大部分 Shamrock 的数据/缓存保存在 `Shamrock 主目录`  
