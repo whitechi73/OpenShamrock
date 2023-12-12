@@ -3,7 +3,6 @@ package moe.fuqiuluo.shamrock.remote.service.data
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import moe.fuqiuluo.shamrock.remote.service.data.push.MemberRole
-import java.sql.Timestamp
 
 @Serializable
 internal data class SimpleTroopInfo(

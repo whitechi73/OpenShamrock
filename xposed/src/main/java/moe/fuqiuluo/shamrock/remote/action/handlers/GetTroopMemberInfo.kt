@@ -59,7 +59,8 @@ internal object GetTroopMemberInfo : IActionHandler() {
                 title = info.mUniqueTitle ?: "",
                 titleExpireTime = info.mUniqueTitleExpire,
                 cardChangeable = GroupSvc.isAdmin(groupId),
-                age = info.age.toInt()
+                age = info.age.toInt(),
+                shutUpTimestamp = 0L
             ), echo
         )
     }
