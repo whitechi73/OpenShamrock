@@ -1,12 +1,5 @@
 import com.android.build.api.dsl.ApplicationExtension
-
-fun gitCommitHash(): String {
-    val builder = ProcessBuilder("git", "rev-parse", "--short", "HEAD")
-    val process = builder.start()
-    val reader = process.inputReader()
-    val hash = reader.readText().trim()
-    return if (hash.isNotEmpty()) ".$hash" else ""
-}
+import java.io.ByteArrayOutputStream
 
 plugins {
     id("com.android.application")
@@ -17,19 +10,20 @@ plugins {
 android {
     namespace = "moe.fuqiuluo.shamrock"
     ndkVersion = "25.1.8937393"
-    compileSdk = 33
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "moe.fuqiuluo.shamrock"
-        minSdk = 24
-        targetSdk = 33
-        versionCode = (System.currentTimeMillis() / 1000).toInt()
-        versionName = "1.0.7-dev" + gitCommitHash()
+        minSdk = 27
+        targetSdk = 34
+        versionCode = getVersionCode()
+        versionName = "1.0.7" + ".r${getGitCommitCount()}." + getVersionName()
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
         }
+        @Suppress("UnstableApiUsage")
         externalNativeBuild {
             cmake {
                 cppFlags += ""
@@ -50,8 +44,7 @@ android {
     android.applicationVariants.all {
         outputs.map { it as com.android.build.gradle.internal.api.BaseVariantOutputImpl }
             .forEach {
-                val abi = it.outputFileName.split("-")[1].split(".apk")[0]
-                val abiName = when (abi) {
+                val abiName = when (val abi = it.outputFileName.split("-")[1].split(".apk")[0]) {
                     "app" -> "all"
                     "x64" -> "x86_64"
                     else -> abi
@@ -154,8 +147,37 @@ fun configureAppSigningConfigsForRelease(project: Project) {
             release {
                 signingConfig = signingConfigs.findByName("release")
             }
+            debug {
+                signingConfig = signingConfigs.findByName("release")
+            }
         }
     }
+}
+
+fun getGitCommitCount(): Int {
+    val out = ByteArrayOutputStream()
+    exec {
+        commandLine("git", "rev-list", "--count", "HEAD")
+        standardOutput = out
+    }
+    return out.toString().trim().toInt()
+}
+
+fun getGitCommitHash(): String {
+    val out = ByteArrayOutputStream()
+    exec {
+        commandLine("git", "rev-parse", "--short", "HEAD")
+        standardOutput = out
+    }
+    return out.toString().trim()
+}
+
+fun getVersionCode(): Int {
+    return (System.currentTimeMillis() / 1000L).toInt()
+}
+
+fun getVersionName(): String {
+    return getGitCommitHash()
 }
 
 dependencies {
