@@ -67,103 +67,60 @@ internal object AioListener : IKernelMsgListener {
                 MessageHelper.sendMessageWithoutMsgId(record.chatType, record.peerUin.toString(), "pong", { _, _ -> })
             }
 
+            if (record.senderUin == TicketSvc.getLongUin() && !ShamrockConfig.enableSyncMsg()) {
+                // 不允许推送同步消息
+                return
+            }
+
             //if (rawMsg.contains("forward")) {
             //    LogCenter.log(record.extInfoForUI.decodeToString(), Level.WARN)
             //}
-            if (record.senderUin != TicketSvc.getLongUin()
-                || record.peerUin == TicketSvc.getLongUin()
-            ) {
-                when (record.chatType) {
-                    MsgConstant.KCHATTYPEGROUP -> {
-                        LogCenter.log("群消息(group = ${record.peerName}(${record.peerUin}), uin = ${record.senderUin}, id = $msgHash|${record.msgSeq}, msg = $rawMsg)")
-                        ShamrockConfig.getGroupMsgRule()?.let { rule ->
-                            if (!rule.black.isNullOrEmpty() && rule.black.contains(record.senderUin)) return
-                            if (!rule.white.isNullOrEmpty() && !rule.white.contains(record.senderUin)) return
-                        }
 
-                        if (!GlobalEventTransmitter.MessageTransmitter.transGroupMessage(
-                                record, record.elements, rawMsg, msgHash
-                            )
-                        ) {
-                            LogCenter.log("群消息推送失败 -> MessageTransmitter", Level.WARN)
-                        }
+            when (record.chatType) {
+                MsgConstant.KCHATTYPEGROUP -> {
+                    LogCenter.log("群消息(group = ${record.peerName}(${record.peerUin}), uin = ${record.senderUin}, id = $msgHash|${record.msgSeq}, msg = $rawMsg)")
+                    ShamrockConfig.getGroupMsgRule()?.let { rule ->
+                        if (!rule.black.isNullOrEmpty() && rule.black.contains(record.senderUin)) return
+                        if (!rule.white.isNullOrEmpty() && !rule.white.contains(record.senderUin)) return
                     }
 
-                    MsgConstant.KCHATTYPEC2C -> {
-                        LogCenter.log("私聊消息(private = ${record.senderUin}, id = [$msgHash | ${record.msgId} | ${record.msgSeq}], msg = $rawMsg)")
-                        ShamrockConfig.getPrivateRule()?.let { rule ->
-                            if (!rule.black.isNullOrEmpty() && rule.black.contains(record.senderUin)) return
-                            if (!rule.white.isNullOrEmpty() && !rule.white.contains(record.senderUin)) return
-                        }
-
-                        if (!GlobalEventTransmitter.MessageTransmitter.transPrivateMessage(
-                                record, record.elements, rawMsg, msgHash
-                            )
-                        ) {
-                            LogCenter.log("私聊消息推送失败 -> MessageTransmitter", Level.WARN)
-                        }
+                    if(!GlobalEventTransmitter.MessageTransmitter.transGroupMessage(
+                            record, record.elements, rawMsg, msgHash
+                        )) {
+                        LogCenter.log("群消息推送失败 -> 推送目标可能不存在", Level.WARN)
                     }
-
-                    MsgConstant.KCHATTYPETEMPC2CFROMGROUP -> {
-                        if (!ShamrockConfig.allowTempSession()) return
-
-                        LogCenter.log("私聊临时消息(private = ${record.senderUin}, id = $msgHash, msg = $rawMsg)")
-                        ShamrockConfig.getPrivateRule()?.let { rule ->
-                            if (!rule.black.isNullOrEmpty() && rule.black.contains(record.senderUin)) return
-                            if (!rule.white.isNullOrEmpty() && !rule.white.contains(record.senderUin)) return
-                        }
-
-                        if (!GlobalEventTransmitter.MessageTransmitter.transPrivateMessage(
-                                record, record.elements, rawMsg, msgHash, tempSource = MessageTempSource.Group
-                            )
-                        ) {
-                            LogCenter.log("私聊临时消息推送失败 -> MessageTransmitter", Level.WARN)
-                        }
-                    }
-
-                    else -> LogCenter.log("不支持PUSH事件: ${record.chatType}")
                 }
-            } else {
-                if (ShamrockConfig.enableSelfMsg())
-                    LogCenter.log("自发消息(target = ${record.peerUin}, id = $msgHash, msg = $rawMsg)")
-
-                when (record.chatType) {
-                    MsgConstant.KCHATTYPEGROUP -> {
-                        if (!GlobalEventTransmitter.MessageTransmitter
-                                .transGroupMessage(record, record.elements, rawMsg, msgHash, PostType.MsgSent)
-                        ) {
-                            LogCenter.log("自发群消息推送失败 -> MessageTransmitter", Level.WARN)
-                        }
+                MsgConstant.KCHATTYPEC2C -> {
+                    LogCenter.log("私聊消息(private = ${record.senderUin}, id = [$msgHash | ${record.msgId} | ${record.msgSeq}], msg = $rawMsg)")
+                    ShamrockConfig.getPrivateRule()?.let { rule ->
+                        if (!rule.black.isNullOrEmpty() && rule.black.contains(record.senderUin)) return
+                        if (!rule.white.isNullOrEmpty() && !rule.white.contains(record.senderUin)) return
                     }
 
-                    MsgConstant.KCHATTYPEC2C -> {
-                        if (!GlobalEventTransmitter.MessageTransmitter
-                                .transPrivateMessage(record, record.elements, rawMsg, msgHash, PostType.MsgSent)
-                        ) {
-                            LogCenter.log("自发私聊消息推送失败 -> MessageTransmitter", Level.WARN)
-                        }
+                    if(!GlobalEventTransmitter.MessageTransmitter.transPrivateMessage(
+                            record, record.elements, rawMsg, msgHash
+                        )) {
+                        LogCenter.log("私聊消息推送失败 -> MessageTransmitter", Level.WARN)
                     }
-
-                    MsgConstant.KCHATTYPETEMPC2CFROMGROUP -> {
-                        if (!ShamrockConfig.allowTempSession()) return
-                        if (!GlobalEventTransmitter.MessageTransmitter
-                                .transPrivateMessage(
-                                    record,
-                                    record.elements,
-                                    rawMsg,
-                                    msgHash,
-                                    PostType.MsgSent,
-                                    MessageTempSource.Group
-                                )
-                        ) {
-                            LogCenter.log("自发私聊临时消息推送失败 -> MessageTransmitter", Level.WARN)
-                        }
-                    }
-
-                    else -> LogCenter.log("不支持SELF PUSH事件: ${record.chatType}")
                 }
+
+                MsgConstant.KCHATTYPETEMPC2CFROMGROUP -> {
+                    if (!ShamrockConfig.allowTempSession()) return
+
+                    LogCenter.log("私聊临时消息(private = ${record.senderUin}, id = $msgHash, msg = $rawMsg)")
+                    ShamrockConfig.getPrivateRule()?.let { rule ->
+                        if (!rule.black.isNullOrEmpty() && rule.black.contains(record.senderUin)) return
+                        if (!rule.white.isNullOrEmpty() && !rule.white.contains(record.senderUin)) return
+                    }
+
+                    if(!GlobalEventTransmitter.MessageTransmitter.transPrivateMessage(
+                            record, record.elements, rawMsg, msgHash, tempSource = MessageTempSource.Group
+                        )) {
+                        LogCenter.log("私聊临时消息推送失败 -> MessageTransmitter", Level.WARN)
+                    }
+                }
+                else -> LogCenter.log("不支持PUSH事件: ${record.chatType}")
             }
-
         } catch (e: Throwable) {
             LogCenter.log(e.stackTraceToString(), Level.WARN)
         }

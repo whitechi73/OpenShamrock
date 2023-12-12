@@ -265,6 +265,17 @@ fun LabFragment() {
                 )
 
                 Function(
+                    title = "同步消息推送",
+                    desc = "推送来自同号异设备消息，未做特殊处理请勿打开。",
+                    descColor = it,
+                    isSwitch = ShamrockConfig.enableSyncMsg(ctx)
+                ) {
+                    ShamrockConfig.setEnableSyncMsg(ctx, it)
+                    ShamrockConfig.pushUpdate(ctx)
+                    return@Function true
+                }
+
+                Function(
                     title = "自发消息推送",
                     desc = "推送Bot发送的消息，未做特殊处理请勿打开。",
                     descColor = it,
