@@ -23,6 +23,7 @@ import moe.fuqiuluo.proto.asList
 import moe.fuqiuluo.proto.asULong
 import moe.fuqiuluo.qqinterface.servlet.FriendSvc.requestFriendSystemMsgNew
 import moe.fuqiuluo.qqinterface.servlet.GroupSvc.requestGroupSystemMsgNew
+import moe.fuqiuluo.qqinterface.servlet.TicketSvc.getLongUin
 import moe.fuqiuluo.shamrock.helper.MessageHelper
 import moe.fuqiuluo.shamrock.remote.service.data.push.NoticeSubType
 import moe.fuqiuluo.shamrock.remote.service.data.push.NoticeType
@@ -496,16 +497,18 @@ internal object PrimitiveListener {
                 val applierUid = pb[1, 3, 2, 3].asUtf8String
                 val reason = pb[1, 3, 2, 5].asUtf8String
                 val applier = ContactHelper.getUinByUidAsync(applierUid).toLong()
-
+                if (applier == getLongUin()) {
+                    return
+                }
                 LogCenter.log("入群申请($groupCode) $applier: \"$reason\"")
                 val flag = try {
                     var reqs = requestGroupSystemMsgNew(10, 1)
-                    val riskReqs = requestGroupSystemMsgNew(10, 2)
+                    val riskReqs = requestGroupSystemMsgNew(5, 2)
                     reqs = reqs + riskReqs
-                    val req = reqs.first {
+                    val req = reqs.firstOrNull() {
                         it.msg_time.get() == time
                     }
-                    val seq = req.msg_seq?.get()
+                    val seq = req?.msg_seq?.get() ?: time
                     "$seq;$groupCode;$applier"
                 } catch (err: Throwable) {
                     "$time;$groupCode;$applier"
@@ -521,6 +524,9 @@ internal object PrimitiveListener {
                 val groupCode = pb[1, 3, 2, 2, 3].asULong
                 val applierUid = pb[1, 3, 2, 2, 5].asUtf8String
                 val applier = ContactHelper.getUinByUidAsync(applierUid).toLong()
+                if (applier == getLongUin()) {
+                    return
+                }
                 if (pb[1, 3, 2, 2, 1].asInt < 3) {
                     // todo
                     return
@@ -528,15 +534,15 @@ internal object PrimitiveListener {
                 LogCenter.log("邀请入群申请($groupCode): $applier")
                 val flag = try {
                     var reqs = requestGroupSystemMsgNew(10, 1)
-                    val riskReqs = requestGroupSystemMsgNew(10, 2)
+                    val riskReqs = requestGroupSystemMsgNew(5, 2)
                     reqs = reqs + riskReqs
-                    val req = reqs.first {
+                    val req = reqs.firstOrNull() {
                         it.msg_time.get() == time
                     }
-                    val seq = req.msg_seq?.get()
+                    val seq = req?.msg_seq?.get() ?: time
                     "$seq;$groupCode;$applier"
                 } catch (err: Throwable) {
-                    "$time;$groupCode;$applierUid"
+                    "$time;$groupCode;$applier"
                 }
                 if (!GlobalEventTransmitter.RequestTransmitter
                         .transGroupApply(time, applier, "", groupCode, flag, RequestSubType.Add)
@@ -557,10 +563,10 @@ internal object PrimitiveListener {
             var reqs = requestGroupSystemMsgNew(10, 1)
             val riskReqs = requestGroupSystemMsgNew(10, 2)
             reqs = reqs + riskReqs
-            val req = reqs.first {
+            val req = reqs.firstOrNull() {
                 it.msg_time.get() == time
             }
-            val seq = req.msg_seq?.get()
+            val seq = req?.msg_seq?.get() ?: time
             "$seq;$groupCode;$uin"
         } catch (err: Throwable) {
             "$time;$groupCode;$uin"

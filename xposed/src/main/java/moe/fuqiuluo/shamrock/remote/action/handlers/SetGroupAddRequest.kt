@@ -27,10 +27,10 @@ internal object SetGroupAddRequest: IActionHandler() {
                 var reqs = GroupSvc.requestGroupSystemMsgNew(20, 1)
                 val riskReqs = GroupSvc.requestGroupSystemMsgNew(20, 2)
                 reqs = reqs + riskReqs
-                val req = reqs.first {
+                val req = reqs.firstOrNull {
                     it.msg_time.get() == ts
                 }
-                ts = req.msg_seq?.get() ?: return error("失败：未找到该请求", echo)
+                ts = req?.msg_seq?.get() ?: return error("失败：未找到该请求", echo)
             }
         } catch (err: Throwable) {
             LogCenter.log(err.stackTraceToString(), Level.WARN)

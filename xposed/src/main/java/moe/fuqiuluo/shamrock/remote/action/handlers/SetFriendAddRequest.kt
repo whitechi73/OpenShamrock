@@ -25,7 +25,7 @@ internal object SetFriendAddRequest: IActionHandler() {
         if (ts.toString().length < 13) {
             // time but not seq, query seq again
             val reqs = FriendSvc.requestFriendSystemMsgNew(20, 0, 0, 1)
-            val req = reqs?.first {
+            val req = reqs?.firstOrNull {
                 it.msg_time.get() == ts
             }
             // 好友请求seq貌似就是time*1000，查不到直接*1000
