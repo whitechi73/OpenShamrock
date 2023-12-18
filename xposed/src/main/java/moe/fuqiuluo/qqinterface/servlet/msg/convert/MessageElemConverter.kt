@@ -412,6 +412,22 @@ internal sealed class MessageElemConverter: IMessageConvert {
         }
     }
 
+    object MarkdownConverter: MessageElemConverter() {
+        override suspend fun convert(
+            chatType: Int,
+            peerId: String,
+            element: MsgElement
+        ): MessageSegment {
+            val markdown = element.markdownElement
+            return MessageSegment(
+                type = "markdown",
+                data = mapOf(
+                    "content" to markdown.content
+                )
+            )
+        }
+    }
+
     protected fun unknownChatType(chatType: Int) {
         throw UnsupportedOperationException("Not supported chat type: $chatType")
     }

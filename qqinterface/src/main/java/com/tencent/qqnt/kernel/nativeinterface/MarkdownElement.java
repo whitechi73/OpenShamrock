@@ -18,7 +18,6 @@ public final class MarkdownElement {
     }
 
     public MarkdownElement(String str) {
-        this.content = "";
         this.content = str;
     }
 }
