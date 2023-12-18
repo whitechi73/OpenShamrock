@@ -15,7 +15,7 @@ private suspend fun ApplicationCall.checkToken() {
         ?: fetchOrNull("ticket")
         ?: fetchOrNull("access_token")
         ?: throw ErrorTokenException
-    if (accessToken.startsWith("Bearer ")) {
+    if (accessToken.startsWith("Bearer ", ignoreCase = true)) {
         accessToken = accessToken.substring(7)
     }
     if (token != accessToken) {

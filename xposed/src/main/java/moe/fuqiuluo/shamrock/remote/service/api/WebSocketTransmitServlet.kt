@@ -78,6 +78,8 @@ internal abstract class WebSocketTransmitServlet(
                     )
                 )
             }
+        } else {
+            LogCenter.log("主动WebSocket心跳间隔为0，不启动心跳", Level.WARN)
         }
     }
 

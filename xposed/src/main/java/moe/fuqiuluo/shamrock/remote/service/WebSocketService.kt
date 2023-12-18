@@ -66,7 +66,7 @@ internal class WebSocketService(
                 .ifNullOrEmpty(handshake.getFieldValue("ticket"))
                 .ifNullOrEmpty(handshake.getFieldValue("Authorization"))
                 ?: throw ErrorTokenException
-            if (accessToken.startsWith("Bearer ")) {
+            if (accessToken.startsWith("Bearer ", ignoreCase = true)) {
                 accessToken = accessToken.substring(7)
             }
             val tokenList = token.split(",", "|", "，")
