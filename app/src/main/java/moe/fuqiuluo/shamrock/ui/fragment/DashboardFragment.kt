@@ -278,9 +278,7 @@ private fun APIInfoCard(
                 text = authToken,
                 hint = "请填写鉴权token",
                 error = "输入的参数不合法",
-                checker = {
-                    it.length in 0 .. 36
-                },
+                checker = { true },
                 confirm = {
                     ShamrockConfig.setToken(ctx, authToken.value)
                     AppRuntime.log("设置鉴权Token为[${authToken.value}]。")
