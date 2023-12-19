@@ -120,6 +120,7 @@ internal abstract class WebSocketClientServlet(
                 return@timer
             }
             val runtime = AppRuntimeFetcher.appRuntime
+            LogCenter.log("WebSocketClient心跳: ${app.longAccountUin}", Level.DEBUG)
             send(
                 GlobalJson.encodeToString(
                     PushMetaEvent(

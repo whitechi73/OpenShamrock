@@ -61,6 +61,7 @@ internal abstract class WebSocketTransmitServlet(
             timer("heartbeat", true, 0, heartbeatInterval) {
                 val runtime = AppRuntimeFetcher.appRuntime
                 val curUin = runtime.currentAccountUin
+                LogCenter.log("WebSocket心跳: $curUin", Level.DEBUG)
                 broadcastAnyEvent(
                     PushMetaEvent(
                         time = System.currentTimeMillis() / 1000,
