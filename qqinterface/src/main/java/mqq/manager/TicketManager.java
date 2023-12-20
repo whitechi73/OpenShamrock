@@ -3,6 +3,7 @@ package mqq.manager;
 import android.content.Context;
 
 import oicq.wlogin_sdk.request.Ticket;
+import oicq.wlogin_sdk.request.WtTicketPromise;
 
 public interface TicketManager extends Manager {
     String getA2(String uin);
@@ -14,6 +15,8 @@ public interface TicketManager extends Manager {
     String getOpenSdkKey(String uin, int i2);
 
     String getPskey(String uin, String domain);
+
+    Ticket getPskey(String str, long j2, String[] strArr, WtTicketPromise wtTicketPromise);
 
     String getPt4Token(String uin, String domain);
 

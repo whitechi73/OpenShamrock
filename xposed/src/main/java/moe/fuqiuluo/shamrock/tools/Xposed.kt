@@ -196,3 +196,46 @@ internal fun Any.toInnerValuesString(): String {
     builder.append("=======================>\n")
     return builder.toString()
 }
+
+internal fun Any.toInnerValuesString(clz: Class<*>): String {
+    val builder = StringBuilder()
+    builder.append(clz.canonicalName)
+    builder.append("========>\n")
+    clz.declaredFields.forEach {
+        if (!Modifier.isStatic(it.modifiers)) {
+            if (!it.isAccessible) {
+                it.isAccessible = true
+            }
+            builder.append(it.name)
+            builder.append(" = ")
+            when (val v = it.get(this)) {
+                null -> builder.append("null")
+                is ByteArray -> builder.append(v.toHexString())
+                is Map<*, *> -> {
+                    builder.append("{\n\t")
+                    v.forEach { key, value ->
+                        builder.append("\t")
+                        builder.append(key)
+                        builder.append(" = ")
+                        builder.append(value)
+                        builder.append("\n")
+                    }
+                    builder.append("}")
+                }
+                is List<*> -> {
+                    builder.append("[\n\t")
+                    v.forEach { value ->
+                        builder.append("\t")
+                        builder.append(value)
+                        builder.append("\n")
+                    }
+                    builder.append("]")
+                }
+                else -> builder.append(v)
+            }
+            builder.append("\n")
+        }
+    }
+    builder.append("=======================>\n")
+    return builder.toString()
+}
