@@ -30,7 +30,7 @@ internal abstract class HttpTransmitServlet : BaseTransmitServlet {
         if (!allowTransmit()) return null
         try {
             if (address.startsWith("http://") || address.startsWith("https://")) {
-                return GlobalClient.post(address) {
+                val response = GlobalClient.post(address) {
                     contentType(ContentType.Application.Json)
                     setBody(body)
 
@@ -43,6 +43,11 @@ internal abstract class HttpTransmitServlet : BaseTransmitServlet {
                     header("X-Impl", "Shamrock")
                     header("X-Client-Role", "Universal")
                     header("Sec-WebSocket-Protocol", "11.Shamrock")
+                }
+                return if (response.status.value == 204) {
+                    null
+                } else {
+                    response
                 }
             } else {
                 LogCenter.log("HTTP推送地址错误: ${address}。", Level.ERROR)

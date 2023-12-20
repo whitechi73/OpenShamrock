@@ -8,6 +8,7 @@ import android.os.Bundle
 import androidx.core.content.ContextCompat.startActivity
 import io.ktor.client.request.get
 import io.ktor.client.request.header
+import io.ktor.client.request.parameter
 import io.ktor.client.request.url
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
@@ -58,7 +59,7 @@ object DashboardInitializer {
                     url("http://127.0.0.1:$servicePort/get_account_info")
                     val token = ShamrockConfig.getToken(context)
                     if (token.isNotBlank()) {
-                        header("Authorization", "Bearer $token")
+                        parameter("token", token)
                     }
                 }.let {
                     if (it.status == HttpStatusCode.OK) {

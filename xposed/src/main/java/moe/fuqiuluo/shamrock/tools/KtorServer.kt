@@ -37,6 +37,8 @@ annotation class ShamrockDsl
 
 private val keyIsJson = AttributeKey<Boolean>("isJson")
 private val keyJsonObject = AttributeKey<JsonObject>("paramsJson")
+private val keyJsonArray = AttributeKey<JsonArray>("paramsJsonArray")
+private val keyJsonElement = AttributeKey<JsonElement>("paramsJsonElement")
 private val keyParts = AttributeKey<Parameters>("paramsParts")
 
 suspend fun ApplicationCall.fetch(key: String): String {
@@ -167,7 +169,9 @@ suspend fun PipelineContext<Unit, ApplicationCall>.fetchPostOrThrow(key: String)
 }
 
 fun PipelineContext<Unit, ApplicationCall>.isJsonData(): Boolean {
-    return ContentType.Application.Json == call.request.contentType() || (keyIsJson in call.attributes && call.attributes[keyIsJson])
+    return ContentType.Application.Json == call.request.contentType()
+            || (keyIsJson in call.attributes && call.attributes[keyIsJson])
+            || (keyJsonElement in call.attributes)
 }
 
 suspend fun PipelineContext<Unit, ApplicationCall>.isJsonString(key: String): Boolean {
@@ -245,12 +249,33 @@ suspend fun PipelineContext<Unit, ApplicationCall>.fetchPostJsonObjectOrNull(key
         call.attributes[keyJsonObject]
     } else {
         Json.parseToJsonElement(call.receiveText()).jsonObject.also {
+            call.attributes.put(keyIsJson, true)
             call.attributes.put(keyJsonObject, it)
         }
     }
     return data[key].asJsonObjectOrNull
 }
 
+suspend fun PipelineContext<Unit, ApplicationCall>.fetchPostJsonElementOrNull(): JsonElement? {
+    return runCatching {
+        if (call.attributes.contains(keyJsonObject)) {
+            call.attributes[keyJsonObject]
+        } else if (call.attributes.contains(keyJsonArray)) {
+            call.attributes[keyJsonArray]
+        } else if (call.attributes.contains(keyJsonElement)) {
+            call.attributes[keyJsonElement]
+        } else {
+            Json.parseToJsonElement(call.receiveText()).also {
+                call.attributes.put(keyJsonElement, it)
+                if (it is JsonObject) {
+                    call.attributes.put(keyJsonObject, it)
+                } else if (it is JsonArray) {
+                    call.attributes.put(keyJsonArray, it)
+                }
+            }
+        }
+    }.getOrNull()
+}
 
 suspend fun PipelineContext<Unit, ApplicationCall>.fetchPostJsonArray(key: String): JsonArray {
     val data = if (call.attributes.contains(keyJsonObject)) {
