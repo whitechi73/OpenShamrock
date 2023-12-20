@@ -23,6 +23,7 @@ import moe.fuqiuluo.shamrock.remote.entries.EmptyObject
 import moe.fuqiuluo.shamrock.remote.entries.IndexData
 import moe.fuqiuluo.shamrock.remote.entries.Status
 import moe.fuqiuluo.shamrock.tools.EmptyJsonObject
+import moe.fuqiuluo.shamrock.tools.EmptyJsonString
 import moe.fuqiuluo.shamrock.tools.asJsonObjectOrNull
 import moe.fuqiuluo.shamrock.tools.asString
 import moe.fuqiuluo.shamrock.tools.fetchOrNull
@@ -50,7 +51,7 @@ data class OldApiResult<T>(
 
 suspend fun PipelineContext<Unit, ApplicationCall>.handleAsJsonObject(data: JsonObject) {
     val action = data["action"].asString
-    val echo = data["echo"]!!
+    val echo = data["echo"] ?: EmptyJsonString
     call.attributes.put(ECHO_KEY, echo)
 
     val params = data["params"].asJsonObjectOrNull ?: EmptyJsonObject
