@@ -23,6 +23,7 @@ object ActionLoader {
         InitRemoteService::class, // 创建HTTP API
         NoBackGround::class, // 反QQ后台模式
         GuidLock::class,
+        ListenShamrockUpdate::class
     )
 
     // 先从APP拉取配置文件，再执行其他操作

@@ -41,10 +41,6 @@ public class ErrMsg implements Cloneable, Parcelable {
         readFromParcel(parcel);
     }
 
-    public Object clone() {
-        return super.clone();
-    }
-
     @Override // android.os.Parcelable
     public int describeContents() {
         return 0;
