@@ -51,6 +51,9 @@ internal object ActionManager {
             // WEATHER
             GetWeatherCityCode, GetWeather,
 
+            // FAV
+            FavAddRichMediaMsg,
+
             // OTHER
             GetDeviceBattery, DownloadFile
         ).forEach {

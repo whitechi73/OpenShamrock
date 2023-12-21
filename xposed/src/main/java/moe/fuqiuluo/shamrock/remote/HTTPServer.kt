@@ -64,6 +64,7 @@ internal object HTTPServer {
             guildAction()
             testAction()
             requestRouter()
+            fav()
             if (ShamrockConfig.isDev()) {
                 qsign()
                 obtainProtocolData()

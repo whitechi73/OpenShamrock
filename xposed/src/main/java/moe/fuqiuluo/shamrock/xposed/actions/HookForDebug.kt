@@ -31,8 +31,11 @@ internal class HookForDebug: IAction {
             .getRuntimeService(IHttpEngineService::class.java, "all")
         httpEngineService.javaClass.hookMethod("sendReq").before {
             if (it.args[0] is HttpNetReq) {
-                LogCenter.log("已记录一个IHttpEngineService请求")
                 val req = it.args[0] as HttpNetReq
+                if (req.mReqProperties["Shamrock"] == "true") {
+                    return@before
+                }
+                LogCenter.log("已记录一个IHttpEngineService请求")
                 if (req.mReqUrl == null || req.mReqUrl.isBlank()) {
                     val host = req.mReqProperties["host"] ?: "collector.weiyun.com"
                     req.mReqUrl = "http://$host"
