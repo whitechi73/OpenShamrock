@@ -33,6 +33,10 @@ internal object FavGetItemList: IActionHandler() {
         pageSize: Int,
         echo: JsonElement = EmptyJsonString
     ): String {
+        if (pageSize <= 1) {
+            return logic("page_size must be greater than 1", echo)
+        }
+
         val result = DeflateTools.ungzip(QFavSvc.getItemList(
             category = category,
             startPos = startPos,
