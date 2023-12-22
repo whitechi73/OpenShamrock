@@ -3,6 +3,8 @@ package moe.fuqiuluo.shamrock.remote.action.handlers
 import android.graphics.BitmapFactory
 import kotlinx.io.core.ByteReadPacket
 import kotlinx.io.core.discardExact
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 import moe.fuqiuluo.proto.ProtoUtils
 import moe.fuqiuluo.proto.asUtf8String
@@ -40,8 +42,14 @@ internal object FavAddImageMsg: IActionHandler() {
                 FileUtils.parseAndSave(it)
             }
         }
+
         val options = BitmapFactory.Options()
         BitmapFactory.decodeFile(image.absolutePath, options)
+        lateinit var picUrl: String
+        lateinit var picId: String
+        lateinit var itemId: String
+        lateinit var md5: String
+
         QFavSvc.applyUpImageMsg(uin, nickName,
             image = image,
             groupName = groupName,
@@ -49,14 +57,12 @@ internal object FavAddImageMsg: IActionHandler() {
             width = options.outWidth,
             height = options.outHeight
         ).onSuccess {
-            return if (it.mHttpCode == 200 && it.mResult == 0) {
+            if (it.mHttpCode == 200 && it.mResult == 0) {
                 val readPacket = ByteReadPacket(DeflateTools.ungzip(it.mRespData))
                 readPacket.discardExact(6)
                 val allLength = readPacket.readInt()
                 val dataLength = readPacket.readInt()
                 val headLength = allLength - dataLength - 16
-                //LogCenter.log("上传图片请求成功: ${DeflateTools.ungzip(it.mRespData).toHexString()}")
-                //LogCenter.log("图片上传响应: allLength=$allLength, dataLength=$dataLength, headLength=$headLength")
                 readPacket.discardExact(2)
                 ByteArray(headLength).also {
                     readPacket.readFully(it, 0, it.size)
@@ -66,55 +72,82 @@ internal object FavAddImageMsg: IActionHandler() {
                 }
                 val pb = ProtoUtils.decodeFromByteArray(data)
                 val resp = pb[2, 20010, 1, 2]
-                val picUrl = resp[1].asUtf8String
-                val picId = resp[11].asUtf8String
-                val md5 = resp[4].asUtf8String
-
-                val sha = CryptTools
-                    .getSHA1("/storage/emulated/0/Android/data/com.tencent.mobileqq/Tencent/QQ_Collection/pic/" + md5.uppercase() + "_0")
-
-                image.inputStream().use {
-                    var offset = 0L
-                    val block = ByteArray(131072)
-                    var rest = image.length()
-                    do {
-                        val length = if (rest <= 131072) rest else 131072L
-                        if(it.read(block, 0, length.toInt()) != -1) {
-                            QFavSvc.sendPicUpBlock(
-                                fileSize = image.length(),
-                                offset = offset,
-                                block = block,
-                                blockSize = length,
-                                pid = picId,
-                                sha = sha
-                            ).onFailure {
-                                return error(it.message ?: it.toString(), echo)
-                            }
-                            offset += length
-                            rest -= length
-                        } else {
-                            rest = -1
-                        }
-                    } while (rest > 0)
-                }
-
-                QFavSvc.addImageMsg(
-                    uin, nickName, groupId, groupName, picUrl, picId, options.outWidth, options.outHeight, image.length(), md5.uppercase()
-                ).onFailure {
-                    return error(it.message ?: it.toString(), echo)
-                }
-
-                ok(picUrl, echo)
+                picUrl = resp[1].asUtf8String
+                picId = resp[11].asUtf8String
+                md5 = resp[4].asUtf8String
             } else {
-                logic(it.mErrDesc, echo)
+                return logic(it.mErrDesc, echo)
             }
         }.onFailure {
             return error(it.message ?: it.toString(), echo)
         }
-        return ok("请求已提交", echo)
+
+        val sha = CryptTools
+            .getSHA1("/storage/emulated/0/Android/data/com.tencent.mobileqq/Tencent/QQ_Collection/pic/" + md5.uppercase() + "_0")
+
+        image.inputStream().use {
+            var offset = 0L
+            val block = ByteArray(131072)
+            var rest = image.length()
+            do {
+                val length = if (rest <= 131072) rest else 131072L
+                if(it.read(block, 0, length.toInt()) != -1) {
+                    QFavSvc.sendPicUpBlock(
+                        fileSize = image.length(),
+                        offset = offset,
+                        block = block,
+                        blockSize = length,
+                        pid = picId,
+                        sha = sha
+                    ).onFailure {
+                        return error(it.message ?: it.toString(), echo)
+                    }
+                    offset += length
+                    rest -= length
+                } else {
+                    rest = -1
+                }
+            } while (rest > 0)
+        }
+
+        QFavSvc.addImageMsg(
+            uin, nickName, groupId, groupName, picUrl, picId, options.outWidth, options.outHeight, image.length(), md5.uppercase()
+        ).onFailure {
+            return error(it.message ?: it.toString(), echo)
+        }.onSuccess {
+            if (it.mHttpCode == 200 && it.mResult == 0) {
+                val readPacket = ByteReadPacket(DeflateTools.ungzip(it.mRespData))
+                readPacket.discardExact(6)
+                val allLength = readPacket.readInt()
+                val dataLength = readPacket.readInt()
+                val headLength = allLength - dataLength - 16
+                readPacket.discardExact(2)
+                ByteArray(headLength).also {
+                    readPacket.readFully(it, 0, it.size)
+                }
+                val data = ByteArray(dataLength).also {
+                    readPacket.readFully(it, 0, it.size)
+                }
+                val pb = ProtoUtils.decodeFromByteArray(data)
+                itemId = pb[2, 20009, 1].asUtf8String
+            }
+        }
+
+        return ok(PicInfo(
+            picUrl = picUrl,
+            picId = picId,
+            id = itemId
+        ), echo)
     }
 
     override fun path(): String = "fav.add_image_msg"
 
     override val requiredParams: Array<String> = arrayOf("user_id", "nick", "file")
+
+    @Serializable
+    private data class PicInfo(
+        @SerialName("pic_url") val picUrl: String,
+        @SerialName("pic_id") val picId: String,
+        @SerialName("id") val id: String
+    )
 }

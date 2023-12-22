@@ -1,12 +1,21 @@
 package moe.fuqiuluo.shamrock.remote.action.handlers
 
+import kotlinx.io.core.ByteReadPacket
+import kotlinx.io.core.discardExact
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
+import moe.fuqiuluo.proto.ProtoUtils
+import moe.fuqiuluo.proto.asUtf8String
 import moe.fuqiuluo.qqinterface.servlet.QFavSvc
+import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
+import moe.fuqiuluo.shamrock.tools.toHexString
+import moe.fuqiuluo.shamrock.utils.DeflateTools
 
-internal object FavAddRichMediaMsg: IActionHandler() {
+internal object FavAddTextMsg: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val uin = session.getLong("user_id")
         val nickName = session.getString("nick")
@@ -33,7 +42,23 @@ internal object FavAddRichMediaMsg: IActionHandler() {
             groupId = groupId
         ).onSuccess {
             return if (it.mHttpCode == 200 && it.mResult == 0) {
-                ok("成功", echo)
+                val readPacket = ByteReadPacket(DeflateTools.ungzip(it.mRespData))
+                readPacket.discardExact(6)
+                val allLength = readPacket.readInt()
+                val dataLength = readPacket.readInt()
+                val headLength = allLength - dataLength - 16
+                readPacket.discardExact(2)
+                ByteArray(headLength).also {
+                    readPacket.readFully(it, 0, it.size)
+                }
+                val data = ByteArray(dataLength).also {
+                    readPacket.readFully(it, 0, it.size)
+                }
+                val pb = ProtoUtils.decodeFromByteArray(data)
+
+                ok(data = QFavItem(
+                    pb[2, 20009, 1].asUtf8String
+                ), echo)
             } else {
                 logic(it.mErrDesc, echo)
             }
@@ -41,7 +66,12 @@ internal object FavAddRichMediaMsg: IActionHandler() {
         return ok("请求已提交", echo)
     }
 
-    override fun path(): String = "fav.add_rich_media_msg"
+    override fun path(): String = "fav.add_text_msg"
 
     override val requiredParams: Array<String> = arrayOf("user_id", "nick", "content")
+
+    @Serializable
+    private data class QFavItem(
+        @SerialName("id") val id: String
+    )
 }

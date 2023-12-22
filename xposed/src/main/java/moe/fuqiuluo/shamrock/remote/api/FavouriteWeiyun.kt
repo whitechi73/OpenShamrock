@@ -5,11 +5,8 @@ import io.ktor.server.application.call
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.Routing
 import moe.fuqiuluo.shamrock.remote.action.handlers.FavAddImageMsg
-import moe.fuqiuluo.shamrock.remote.action.handlers.FavAddRichMediaMsg
-import moe.fuqiuluo.shamrock.remote.action.handlers.GetFriendList
-import moe.fuqiuluo.shamrock.remote.action.handlers.GetFriendSystemMsg
-import moe.fuqiuluo.shamrock.remote.action.handlers.GetStrangerInfo
-import moe.fuqiuluo.shamrock.remote.action.handlers.IsBlackListUin
+import moe.fuqiuluo.shamrock.remote.action.handlers.FavAddTextMsg
+import moe.fuqiuluo.shamrock.remote.action.handlers.FavGetItemContent
 import moe.fuqiuluo.shamrock.tools.fetchOrNull
 import moe.fuqiuluo.shamrock.tools.fetchOrThrow
 import moe.fuqiuluo.shamrock.tools.getOrPost
@@ -24,7 +21,7 @@ fun Routing.fav() {
         val content = call.fetchOrThrow("content")
         val groupName = call.fetchOrNull("group_name") ?: ""
         val groupId = call.fetchOrNull("group_id")?.toLong() ?: 0L
-        call.respondText(FavAddRichMediaMsg(uin, nickName, time, content, groupName, groupId), ContentType.Application.Json)
+        call.respondText(FavAddTextMsg(uin, nickName, time, content, groupName, groupId), ContentType.Application.Json)
     }
 
     getOrPost("/fav/add_image_msg") {
@@ -34,5 +31,10 @@ fun Routing.fav() {
         val groupName = call.fetchOrNull("groupName") ?: ""
         val groupId = call.fetchOrNull("group_id")?.toLong() ?: 0L
         call.respondText(FavAddImageMsg(uin, nickName, file, groupName, groupId), ContentType.Application.Json)
+    }
+
+    getOrPost("/fav/get_item_content") {
+        val id = call.fetchOrThrow("id")
+        call.respondText(FavGetItemContent(id), ContentType.Application.Json)
     }
 }

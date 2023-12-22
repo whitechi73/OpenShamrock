@@ -51,6 +51,19 @@ internal object QFavSvc: BaseSvc() {
     private const val MINOR_VERSION = 9
     private var seq = 1
 
+    suspend fun getItemContent(
+        id: String
+    ): Result<NetResp> {
+        val data = protobufMapOf {
+            it[1] = mapOf(
+                20001 to mapOf(
+                    1 to id
+                )
+            )
+        }.toByteArray()
+        return sendWeiyunReq(20001, data)
+    }
+
     suspend fun addImageMsg(
         uin: Long,
         name: String,
@@ -215,12 +228,16 @@ internal object QFavSvc: BaseSvc() {
                          * 4 => pic_list
                          * 5 => file_list
                          */
-                        2 to content
+                        2 to content.textToHtml()
                     )
                 )
             )
         }.toByteArray()
         return sendWeiyunReq(20009, data)
+    }
+
+    private fun String.textToHtml(): String {
+        return replace("\n", "<div><br/></div>")
     }
 
     suspend fun sendPicUpBlock(
@@ -300,7 +317,6 @@ internal object QFavSvc: BaseSvc() {
                 override fun onUpdateProgeress(netReq: NetReq, curr: Long, final: Long) {}
             }
             val pSKey = getWeiYunPSKey()
-            //LogCenter.log(pSKey)
             httpNetReq.mHttpMethod = HttpNetReq.HTTP_POST
             httpNetReq.mSendData = DeflateTools.gzip(packData(packHead(cmd, pSKey), body))
             httpNetReq.mOutStream = outputStream

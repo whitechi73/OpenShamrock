@@ -52,7 +52,7 @@ internal object ActionManager {
             GetWeatherCityCode, GetWeather,
 
             // FAV
-            FavAddRichMediaMsg, FavAddImageMsg,
+            FavAddTextMsg, FavAddImageMsg, FavGetItemContent,
 
             // OTHER
             GetDeviceBattery, DownloadFile
