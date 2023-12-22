@@ -48,6 +48,8 @@ internal object FavGetItemContent: IActionHandler() {
 
     override fun path(): String = "fav.get_item_content"
 
+    override val requiredParams: Array<String> = arrayOf("id")
+
     @Serializable
     private data class ItemContent(
         @SerialName("content") val content: String

@@ -51,6 +51,34 @@ internal object QFavSvc: BaseSvc() {
     private const val MINOR_VERSION = 9
     private var seq = 1
 
+    suspend fun getItemList(
+        category: Int,
+        startPos: Int,
+        pageSize: Int,
+    ): Result<NetResp> {
+        val data = protobufMapOf {
+            it[1] = mapOf(
+                20000 to mapOf(
+                    /**
+                     * "type", "bid", "category", "start_time", "order_type", "start_pos", "page_size", "sync_policy", "req_source"
+                     */
+                    1 to 0,
+                    2 to 0,
+                    3 to category,
+                    //4 to System.currentTimeMillis() - 1000 * 60,
+                    //4 to System.currentTimeMillis(),
+                    4 to 0,
+                    5 to 0,
+                    6 to startPos,
+                    7 to pageSize,
+                    8 to 0,
+                    9 to 0
+                )
+            )
+        }.toByteArray()
+        return sendWeiyunReq(20000, data)
+    }
+
     suspend fun getItemContent(
         id: String
     ): Result<NetResp> {

@@ -7,6 +7,7 @@ import io.ktor.server.routing.Routing
 import moe.fuqiuluo.shamrock.remote.action.handlers.FavAddImageMsg
 import moe.fuqiuluo.shamrock.remote.action.handlers.FavAddTextMsg
 import moe.fuqiuluo.shamrock.remote.action.handlers.FavGetItemContent
+import moe.fuqiuluo.shamrock.remote.action.handlers.FavGetItemList
 import moe.fuqiuluo.shamrock.tools.fetchOrNull
 import moe.fuqiuluo.shamrock.tools.fetchOrThrow
 import moe.fuqiuluo.shamrock.tools.getOrPost
@@ -36,5 +37,12 @@ fun Routing.fav() {
     getOrPost("/fav/get_item_content") {
         val id = call.fetchOrThrow("id")
         call.respondText(FavGetItemContent(id), ContentType.Application.Json)
+    }
+
+    getOrPost("/fav/get_item_list") {
+        val category = call.fetchOrThrow("category").toInt()
+        val startPos = call.fetchOrThrow("start_pos").toInt()
+        val pageSize = call.fetchOrThrow("page_size").toInt()
+        call.respondText(FavGetItemList(category, startPos, pageSize), ContentType.Application.Json)
     }
 }

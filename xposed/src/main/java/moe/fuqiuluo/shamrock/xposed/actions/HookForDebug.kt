@@ -16,6 +16,7 @@ import mqq.app.MobileQQ
 
 internal class HookForDebug: IAction {
     override fun invoke(ctx: Context) {
+        /*
         val httpEngineService = AppRuntimeFetcher.appRuntime
             .getRuntimeService(IHttpEngineService::class.java, "all")
         httpEngineService.javaClass.hookMethod("sendReq").before {
@@ -28,7 +29,7 @@ internal class HookForDebug: IAction {
                 LogCenter.log("请求地址: ${req.mReqUrl}")
                 LogCenter.log("请求: ${req.toInnerValuesString(NetReq::class.java)}")
             }
-        }
+        }*/
 
     }
 }
