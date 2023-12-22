@@ -10,7 +10,7 @@ internal object FavAddRichMediaMsg: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val uin = session.getLong("user_id")
         val nickName = session.getString("nick")
-        val groupName = session.getStringOrNull("groupName") ?: ""
+        val groupName = session.getStringOrNull("group_name") ?: ""
         val groupId = session.getLongOrNull("group_id") ?: 0L
         val time = session.getLongOrNull("time") ?: System.currentTimeMillis()
         val content = session.getString("content")

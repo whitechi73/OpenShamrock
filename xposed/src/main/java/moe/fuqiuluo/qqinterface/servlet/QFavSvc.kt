@@ -1,5 +1,6 @@
 package moe.fuqiuluo.qqinterface.servlet
 
+import android.graphics.BitmapFactory
 import com.tencent.mobileqq.app.QQAppInterface
 import com.tencent.mobileqq.transfile.HttpNetReq
 import com.tencent.mobileqq.transfile.INetEngineListener
@@ -8,18 +9,23 @@ import com.tencent.mobileqq.transfile.NetResp
 import com.tencent.mobileqq.transfile.ServerAddr
 import com.tencent.mobileqq.transfile.api.IHttpEngineService
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.io.core.BytePacketBuilder
+import kotlinx.io.core.readBytes
+import kotlinx.io.core.writeFully
 import moe.fuqiuluo.proto.protobufMapOf
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
-import moe.fuqiuluo.shamrock.tools.EMPTY_BYTE_ARRAY
-import moe.fuqiuluo.shamrock.tools.toInnerValuesString
+import moe.fuqiuluo.shamrock.tools.hex2ByteArray
+import moe.fuqiuluo.shamrock.tools.toHexString
 import moe.fuqiuluo.shamrock.utils.DeflateTools
+import moe.fuqiuluo.shamrock.utils.MD5
 import moe.fuqiuluo.shamrock.xposed.helper.AppRuntimeFetcher
 import mqq.manager.TicketManager
 import oicq.wlogin_sdk.request.Ticket
 import oicq.wlogin_sdk.request.WtTicketPromise
 import oicq.wlogin_sdk.tools.ErrMsg
 import java.io.ByteArrayOutputStream
+import java.io.File
 import java.nio.ByteBuffer
 import kotlin.coroutines.resume
 
@@ -28,18 +34,124 @@ import kotlin.coroutines.resume
  * QQ收藏相关接口
  */
 internal object QFavSvc: BaseSvc() {
-    private val SERVER_LIST = listOf(ServerAddr().also {
+    private val SERVER_LIST_COLLECTOR = listOf(ServerAddr().also {
         it.isIpv6 = false
         it.mIp = "collector.weiyun.com"
         it.port = 80
     })
-    private const val VT = 27
+    private val SERVER_LIST_PICUP = listOf(ServerAddr().also {
+        it.isIpv6 = false
+        it.mIp = "pic.pieceup.qq.com"
+        it.port = 80
+    })
     private const val VERSION = 12820
     private const val APPID = 30244
     private const val SUB_APPID = 538116905
     private const val MAJOR_VERSION = 8
     private const val MINOR_VERSION = 9
     private var seq = 1
+
+    suspend fun addImageMsg(
+        uin: Long,
+        name: String,
+        groupId: Long = 0,
+        groupName: String = "",
+        picUrl: String,
+        pid: String,
+        width: Int, height: Int,
+        size: Long,
+        md5: String,
+    ): Result<NetResp> {
+        val md5Bytes = md5.hex2ByteArray()
+        val data = protobufMapOf {
+            it[1] = mapOf(
+                20009 to mapOf(
+                    1 to mapOf(
+                        1 to 1, // bid
+                        2 to 1, // category
+                        3 to mapOf( // author
+                            1 to if (groupId == 0L) 1 else 2, // type
+                            2 to uin, // num_id
+                            3 to name, // str_id
+                            4 to groupId, // group_id
+                            5 to groupName // group_name
+                        ),
+                        4 to System.currentTimeMillis() - 2000, // create_time
+                        5 to System.currentTimeMillis() - 1000, // sequence
+                        7 to """{"recordAudioOnly":false,"audioOnly":false,"fileOnly":false}""",
+                        9 to 0, // original_app_id
+                        10 to 0 // custom_group_id
+                    ),
+                    2 to mapOf(
+                        1 to "",
+                        3 to "[图片]",
+                        4 to mapOf(
+                            1 to picUrl,
+                            2 to md5Bytes,
+                            3 to md5,
+                            6 to width,
+                            7 to height,
+                            8 to size,
+                            9 to 0,
+                            11 to pid
+                        ),
+                        5 to 1
+                    ),
+                    3 to mapOf(
+                        2 to """<img src="$picUrl" />""",
+                        4 to mapOf(
+                            1 to picUrl,
+                            2 to md5Bytes,
+                            3 to md5,
+                            6 to width,
+                            7 to height,
+                            8 to size,
+                            9 to 0,
+                            11 to pid
+                        )
+                    )
+                )
+            )
+        }.toByteArray()
+        return sendWeiyunReq(20009, data)
+    }
+
+    suspend fun applyUpImageMsg(
+        uin: Long,
+        name: String,
+        groupId: Long = 0,
+        groupName: String = "",
+        width: Int, height: Int,
+        image: File
+    ): Result<NetResp> {
+        if (!image.exists()) {
+            return Result.failure(IllegalArgumentException("image file not exists"))
+        }
+        val md5 = MD5.genFileMd5(image.absolutePath)
+        val data = protobufMapOf {
+            it[1] = mapOf(
+                20010 to mapOf(
+                    1 to mapOf(
+                        2 to md5,
+                        4 to md5.toHexString(),
+                        10 to mapOf( // author
+                            1 to if (groupId == 0L) 1 else 2, // type
+                            2 to uin, // num_id
+                            3 to name, // str_id
+                            4 to groupId, // group_id
+                            5 to groupName // group_name
+                        ),
+                        6 to width, // width
+                        7 to height,
+                        8 to image.length(),
+                        9 to 1, // type
+                        11 to "/storage/emulated/0/DCIM/ShamrockUpload.jpeg" // pic_id
+                    )
+                )
+            )
+        }.toByteArray()
+        return sendWeiyunReq(20010, data)
+    }
 
     suspend fun addRichMediaMsg(
         uin: Long,
@@ -111,7 +223,15 @@ internal object QFavSvc: BaseSvc() {
         return sendWeiyunReq(20009, data)
     }
 
-    suspend fun sendWeiyunReq(cmd: Int, body: ByteArray): Result<NetResp> {
+    suspend fun sendPicUpBlock(
+        fileSize: Long,
+        offset: Long,
+        block: ByteArray,
+        blockSize: Long,
+        sha: ByteArray,
+        pid: String,
+        outputStream: ByteArrayOutputStream = ByteArrayOutputStream(),
+    ): Result<NetResp> {
         return suspendCancellableCoroutine {
             val httpNetReq = HttpNetReq()
             httpNetReq.userData = null
@@ -120,19 +240,73 @@ internal object QFavSvc: BaseSvc() {
                     if (netResp.mHttpCode != 200 && netResp.mResult != 0 && netResp.mErrDesc.isNullOrEmpty()) {
                         netResp.mErrDesc = netResp.mRespProperties["User-ErrMsg"]
                     }
+                    netResp.mRespData = outputStream.toByteArray().copyOf()
+                    it.resume(Result.success(netResp))
+                }
+
+                override fun onUpdateProgeress(netReq: NetReq, curr: Long, final: Long) {}
+            }
+            val vi = (app.getManager(QQAppInterface.TICKET_MANAGER) as TicketManager).getA2(app.currentAccountUin)
+            //LogCenter.log(pSKey)
+            httpNetReq.mHttpMethod = HttpNetReq.HTTP_POST
+            httpNetReq.mSendData = BytePacketBuilder().apply {
+                writeInt(-1412589450)
+                writeInt(10000)
+                writeInt(0)
+                writeInt(sha.size + 16 + blockSize.toInt())
+                writeShort(0)
+                writeShort(sha.size.toShort())
+                writeFully(sha)
+                writeInt(fileSize.toInt())
+                writeInt(offset.toInt())
+                writeInt(blockSize.toInt())
+                writeFully(block)
+            }.build().readBytes()
+            httpNetReq.mOutStream = outputStream
+            httpNetReq.mStartDownOffset = 0L
+            httpNetReq.mReqProperties["Shamrock"] = "true"
+            httpNetReq.mReqProperties["Cookie"] = String.format("uin=%s;vt=%d;vi=%s;pid=%s;appid=%d", app.currentAccountUin, 8, vi, pid, APPID)
+            httpNetReq.mReqProperties["host"] = "pic.pieceup.qq.com"
+            httpNetReq.mReqProperties["Range"] = "bytes=0-"
+            httpNetReq.mReqProperties["Content-Length"] = httpNetReq.mSendData.size.toString()
+            httpNetReq.mReqProperties["Accept-Encoding"] = "gzip"
+            httpNetReq.mReqProperties["Content-Encoding"] = "gzip"
+            httpNetReq.mPrioty = 1
+            httpNetReq.mReqUrl = "https://pic.pieceup.qq.com/"
+            httpNetReq.mServerList = SERVER_LIST_PICUP
+            val service = AppRuntimeFetcher.appRuntime
+                .getRuntimeService(IHttpEngineService::class.java, "qqfav")
+            service.sendReq(httpNetReq)
+        }
+    }
+
+    suspend fun sendWeiyunReq(
+        cmd: Int,
+        body: ByteArray,
+        outputStream: ByteArrayOutputStream = ByteArrayOutputStream(),
+    ): Result<NetResp> {
+        return suspendCancellableCoroutine {
+            val httpNetReq = HttpNetReq()
+            httpNetReq.userData = null
+            httpNetReq.mCallback = object: INetEngineListener {
+                override fun onResp(netResp: NetResp) {
+                    if (netResp.mHttpCode != 200 && netResp.mResult != 0 && netResp.mErrDesc.isNullOrEmpty()) {
+                        netResp.mErrDesc = netResp.mRespProperties["User-ErrMsg"]
+                    }
+                    netResp.mRespData = outputStream.toByteArray().copyOf()
                     it.resume(Result.success(netResp))
                 }
 
                 override fun onUpdateProgeress(netReq: NetReq, curr: Long, final: Long) {}
             }
             val pSKey = getWeiYunPSKey()
-            LogCenter.log(pSKey)
+            //LogCenter.log(pSKey)
             httpNetReq.mHttpMethod = HttpNetReq.HTTP_POST
             httpNetReq.mSendData = DeflateTools.gzip(packData(packHead(cmd, pSKey), body))
-            httpNetReq.mOutStream = ByteArrayOutputStream()
+            httpNetReq.mOutStream = outputStream
             httpNetReq.mStartDownOffset = 0L
             httpNetReq.mReqProperties["Shamrock"] = "true"
-            httpNetReq.mReqProperties["Cookie"] = String.format("uin=%s;vt=%d;vi=%s;appid=%d", app.currentAccountUin, VT, pSKey, APPID)
+            httpNetReq.mReqProperties["Cookie"] = String.format("uin=%s;vt=%d;vi=%s;appid=%d", app.currentAccountUin, 27, pSKey, APPID)
             httpNetReq.mReqProperties["host"] = "collector.weiyun.com"
             httpNetReq.mReqProperties["Range"] = "bytes=0-"
             httpNetReq.mReqProperties["Content-Length"] = httpNetReq.mSendData.size.toString()
@@ -140,7 +314,7 @@ internal object QFavSvc: BaseSvc() {
             httpNetReq.mReqProperties["Content-Encoding"] = "gzip"
             httpNetReq.mPrioty = 1
             httpNetReq.mReqUrl = "https://collector.weiyun.com/collector.fcg"
-            httpNetReq.mServerList = SERVER_LIST
+            httpNetReq.mServerList = SERVER_LIST_COLLECTOR
             val service = AppRuntimeFetcher.appRuntime
                 .getRuntimeService(IHttpEngineService::class.java, "qqfav")
             service.sendReq(httpNetReq)

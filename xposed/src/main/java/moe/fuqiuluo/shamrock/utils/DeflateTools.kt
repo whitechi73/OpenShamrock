@@ -4,8 +4,10 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.util.zip.Deflater
+import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
 import java.util.zip.Inflater
+
 
 object DeflateTools {
     fun uncompress(inputByte: ByteArray?): ByteArray {
@@ -78,5 +80,21 @@ object DeflateTools {
             outputStream.close()
             input.close()
         }
+    }
+
+    fun ungzip(bytes: ByteArray): ByteArray {
+        val out = ByteArrayOutputStream()
+        val `in` = ByteArrayInputStream(bytes)
+        try {
+            val ungzip = GZIPInputStream(`in`)
+            val buffer = ByteArray(256)
+            var n: Int
+            while (ungzip.read(buffer).also { n = it } >= 0) {
+                out.write(buffer, 0, n)
+            }
+        } catch (e: java.lang.Exception) {
+            e.printStackTrace()
+        }
+        return out.toByteArray()
     }
 }

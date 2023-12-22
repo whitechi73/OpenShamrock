@@ -38,6 +38,26 @@ Java_moe_fuqiuluo_shamrock_utils_MD5_genFileMd5Hex(JNIEnv *env, jobject thiz, js
 }
 
 extern "C"
+JNIEXPORT jbyteArray JNICALL
+Java_moe_fuqiuluo_shamrock_utils_MD5_genFileMd5(JNIEnv *env, jobject thiz, jstring file_path) {
+    auto cPathStr = env->GetStringUTFChars(file_path, nullptr);
+    std::filesystem::path filePath(cPathStr);
+    if (!std::filesystem::exists(filePath)) {
+        jclass exClass = env->FindClass("java/io/FileNotFoundException");
+        env->ThrowNew(exClass, "目标文件不存在");
+        env->DeleteLocalRef(exClass);
+        return nullptr;
+    }
+    auto file = std::ifstream(filePath.c_str(), std::ios::binary);
+    MD5 md5;
+    md5.update(file);
+    auto md5Bytes = md5.digest();
+    auto jByteArray = env->NewByteArray(16);
+    env->SetByteArrayRegion(jByteArray, 0, 16, reinterpret_cast<const jbyte*>(md5Bytes));
+    return jByteArray;
+}
+
+extern "C"
 JNIEXPORT jstring JNICALL
 Java_moe_fuqiuluo_shamrock_utils_MD5_getMd5Hex(JNIEnv *env, jobject thiz, jbyteArray bytes) {
     auto len = env->GetArrayLength(bytes);

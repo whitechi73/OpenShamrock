@@ -4,4 +4,6 @@ object MD5 {
     external fun getMd5Hex(bytes: ByteArray): String
 
     external fun genFileMd5Hex(filePath: String): String
+
+    external fun genFileMd5(filePath: String): ByteArray
 }
