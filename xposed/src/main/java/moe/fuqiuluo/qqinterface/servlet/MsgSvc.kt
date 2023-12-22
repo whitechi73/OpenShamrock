@@ -176,9 +176,6 @@ internal object MsgSvc: BaseSvc() {
         fromId: String = peedId,
         retryCnt: Int = 3
     ): Result<Pair<Long, Int>> {
-        //LogCenter.log(message.toString(), Level.ERROR)
-        //callback.msgHash = result.second 什么垃圾代码，万一cb比你快，你不就寄了？
-
         // 主动临时消息
         when (chatType) {
             MsgConstant.KCHATTYPETEMPC2CFROMGROUP -> {
@@ -188,13 +185,7 @@ internal object MsgSvc: BaseSvc() {
                 }
             }
         }
-        val result =  MessageHelper.sendMessageWithoutMsgId(
-            chatType,
-            peedId,
-            message,
-            fromId,
-            MessageCallback(peedId, 0)
-        )
+        val result =  MessageHelper.sendMessageWithoutMsgId(chatType, peedId, message, fromId, MessageCallback(peedId, 0))
         return if (result.isFailure
             && result.exceptionOrNull()?.javaClass == SendMsgException::class.java
             && retryCnt > 0) {
