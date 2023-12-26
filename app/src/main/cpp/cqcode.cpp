@@ -22,6 +22,9 @@ void decode_cqcode(const std::string& code, std::vector<std::unordered_map<std::
             } else {
                 if (!cache.empty()) {
                     std::unordered_map<std::string, std::string> kv;
+                    replace_string(cache, "&amp;", "&");
+                    replace_string(cache, "&#91;", "[");
+                    replace_string(cache, "&#93;", "]");
                     kv.emplace("_type", "text");
                     kv.emplace("text", cache);
                     dest.push_back(kv);
@@ -118,6 +121,9 @@ void decode_cqcode(const std::string& code, std::vector<std::unordered_map<std::
     }
     if (!cache.empty()) {
         std::unordered_map<std::string, std::string> kv;
+        replace_string(cache, "&amp;", "&");
+        replace_string(cache, "&#91;", "[");
+        replace_string(cache, "&#93;", "]");
         kv.emplace("_type", "text");
         kv.emplace("text", cache);
         dest.push_back(kv);
