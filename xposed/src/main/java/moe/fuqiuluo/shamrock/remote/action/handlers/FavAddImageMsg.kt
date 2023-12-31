@@ -131,6 +131,8 @@ internal object FavAddImageMsg: IActionHandler() {
                 val pb = ProtoUtils.decodeFromByteArray(data)
                 itemId = pb[2, 20009, 1].asUtf8String
             }
+
+            System.gc()
         }
 
         return ok(PicInfo(
