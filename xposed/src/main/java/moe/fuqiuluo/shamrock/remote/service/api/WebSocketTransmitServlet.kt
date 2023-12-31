@@ -89,7 +89,13 @@ internal abstract class WebSocketTransmitServlet(
         if (path != "/api") {
             eventReceivers.remove(conn)
         }
-        LogCenter.log({ "WSServer断开(${conn.remoteSocketAddress.address.hostAddress}:${conn.remoteSocketAddress.port}$path): $code,$reason,$remote" }, Level.WARN)
+        runCatching {
+            conn.remoteSocketAddress.address.hostAddress to conn.remoteSocketAddress.port
+        }.onSuccess {
+            LogCenter.log({ "WSServer断开(${it.first}:${it.second}$path): $code,$reason,$remote" }, Level.WARN)
+        }.onFailure {
+            LogCenter.log({ "WSServer断开($path): $code,$reason,$remote" }, Level.WARN)
+        }
     }
 
     override fun onMessage(conn: WebSocket, message: String) {
