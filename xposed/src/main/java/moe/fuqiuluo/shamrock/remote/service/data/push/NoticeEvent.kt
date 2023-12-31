@@ -71,7 +71,7 @@ internal data class NoticeEvent(
     @SerialName("operator_id") val operatorId: Long = 0,
     @SerialName("user_id") val userId: Long = 0,
     @SerialName("sender_id") val senderId: Long = 0,
-    @SerialName("duration") val duration: Int = 0,
+    @SerialName("duration") val duration: Int = -1,
     @SerialName("message_id") val msgId: Int = 0,
     @SerialName("tip_text") val tip: String = "",
     @SerialName("target_id") val target: Long = 0,
