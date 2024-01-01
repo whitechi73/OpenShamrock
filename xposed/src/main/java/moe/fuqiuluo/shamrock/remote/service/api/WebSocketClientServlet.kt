@@ -37,7 +37,7 @@ import kotlin.concurrent.timer
 internal abstract class WebSocketClientServlet(
     url: String,
     private val heartbeatInterval: Long,
-    wsHeaders: Map<String, String>
+    private val wsHeaders: Map<String, String>
 ) : BaseTransmitServlet, WebSocketClient(URI(url), wsHeaders) {
     private val sendLock = Mutex()
 
@@ -85,6 +85,14 @@ internal abstract class WebSocketClientServlet(
     }
 
     override fun onClose(code: Int, reason: String?, remote: Boolean) {
+        if (code == 403) {
+            if (wsHeaders.containsKey("authorization")) {
+                val token = wsHeaders["authorization"]!!.substring(7)
+                LogCenter.log("WebSocketClient连接被拒绝, token: $token 失效", Level.WARN)
+            } else {
+                LogCenter.log("WebSocketClient连接被拒绝, 未设置token", Level.WARN)
+            }
+        }
         LogCenter.log("WebSocketClient onClose: $code, $reason, $remote")
         cancelFlowJobs()
     }
