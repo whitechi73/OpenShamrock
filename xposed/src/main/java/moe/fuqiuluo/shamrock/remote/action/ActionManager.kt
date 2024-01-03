@@ -46,7 +46,7 @@ internal object ActionManager {
             SetFriendAddRequest, SetGroupAddRequest,
 
             // GUILD
-            GetGuildServiceProfile,
+            GetGuildServiceProfile, GetGuildList,
 
             // WEATHER
             GetWeatherCityCode, GetWeather,
