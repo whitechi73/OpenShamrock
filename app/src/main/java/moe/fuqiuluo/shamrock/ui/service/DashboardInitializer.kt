@@ -59,7 +59,8 @@ object DashboardInitializer {
                     url("http://127.0.0.1:$servicePort/get_account_info")
                     val token = ShamrockConfig.getToken(context)
                     if (token.isNotBlank()) {
-                        parameter("token", token)
+                        //header("Authorization", "Bearer $token")
+                        parameter("access_token", token)
                     }
                 }.let {
                     if (it.status == HttpStatusCode.OK) {

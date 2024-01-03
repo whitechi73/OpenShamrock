@@ -20,6 +20,9 @@ private suspend fun ApplicationCall.checkToken() {
         ?: fetchOrNull("access_token")?.let {
             URLDecoder.decode(it)
         }
+        ?: fetchOrNull("token")?.let {
+            URLDecoder.decode(it)
+        }
         ?: throw ErrorTokenException
     if (accessToken.startsWith("Bearer ", ignoreCase = true)) {
         accessToken = accessToken.substring(7)
