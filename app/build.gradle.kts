@@ -62,6 +62,7 @@ android {
                 println("Full architecture and full compilation.")
                 abiFilters.add("arm64-v8a")
                 abiFilters.add("x86_64")
+                abiFilters.add("x86")
             }
         }
         create("arm64") {

@@ -52,6 +52,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
@@ -120,7 +121,7 @@ private fun AppMainView() {
     val coreVersion = remember { mutableStateOf(getShamrockVersion(context)) }
     val coreName = remember { mutableStateOf("Xposed") }
     val voiceSwitch = remember { mutableStateOf(false) }
-    @Suppress("LocalVariableName") val LocalString = LocalString
+    @Suppress("LocalVariableName") val LocalString = LocalString.init()
 
     if (!AppRuntime.isInit) {
         AppRuntime.state = remember {
@@ -147,7 +148,7 @@ private fun AppMainView() {
 
         AppRuntime.requestCount = remember { mutableIntStateOf(0) }
 
-        AppRuntime.isInit = false
+        AppRuntime.isInit = true
     }
 
     val ctx = LocalContext.current

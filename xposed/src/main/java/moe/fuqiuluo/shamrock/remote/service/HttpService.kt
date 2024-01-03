@@ -27,16 +27,13 @@ import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.remote.action.ActionManager
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
+import moe.fuqiuluo.shamrock.remote.action.handlers.QuickOperation.quicklyReply
 import moe.fuqiuluo.shamrock.remote.config.ECHO_KEY
 import moe.fuqiuluo.shamrock.remote.entries.EmptyObject
 import moe.fuqiuluo.shamrock.remote.entries.Status
 import moe.fuqiuluo.shamrock.remote.service.api.GlobalEventTransmitter
 
 internal object HttpService: HttpTransmitServlet() {
-    private val actionMsgTypes = arrayOf(
-        "record", "voice", "video", "markdown"
-    )
-
     private val jobList = arrayListOf<Job>()
 
     override fun submitFlowJob(job: Job) {
@@ -153,42 +150,5 @@ internal object HttpService: HttpTransmitServlet() {
         } else {
             handler.handle(ActionSession(params, echo))
         }
-    }
-
-    private suspend fun quicklyReply(
-        record: MsgRecord,
-        message: JsonArray,
-        msgHash: Int,
-        atSender: Boolean,
-        autoReply: Boolean
-    ) {
-        val messageList = mutableListOf<JsonElement>()
-        message.filter {
-            it.asJsonObject["type"]?.asString in actionMsgTypes
-        }.let {
-            if (it.isNotEmpty()) {
-                it.map { listOf(it) }.forEach {
-                    MsgSvc.sendToAio(record.chatType, record.peerUin.toString(), it.jsonArray)
-                }
-                return
-            }
-        }
-
-        if (autoReply) messageList.add(mapOf(
-            "type" to "reply",
-            "data" to mapOf(
-                "id" to msgHash
-            )
-        ).json) // 添加回复
-        if (MsgConstant.KCHATTYPEGROUP == record.chatType && atSender) {
-            messageList.add(mapOf(
-                "type" to "at",
-                "data" to mapOf(
-                    "qq" to record.senderUin
-                )
-            ).json) // 添加@发送者
-        }
-        messageList.addAll(message)
-        MsgSvc.sendToAio(record.chatType, record.peerUin.toString(), JsonArray(messageList))
     }
 }

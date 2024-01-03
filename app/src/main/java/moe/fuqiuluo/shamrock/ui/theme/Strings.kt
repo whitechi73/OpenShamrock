@@ -6,7 +6,9 @@ package moe.fuqiuluo.shamrock.ui.theme
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import moe.fuqiuluo.shamrock.R
 
 private val LocalStringDefault = Default()
@@ -164,4 +166,14 @@ open class VarString(
 
     var persistentText: String,
     var persistentTextDesc: String
-)
+) {
+    private var inited = false
+
+    @Composable
+    fun init(): VarString {
+        if (inited) return this
+
+        inited = true
+        return this
+    }
+}
