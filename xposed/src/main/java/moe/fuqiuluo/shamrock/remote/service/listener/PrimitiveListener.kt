@@ -214,7 +214,12 @@ internal object PrimitiveListener {
 
         val targetUin = detail[5, 5].asLong
 
-        val groupId = detail[4].asLong
+        var groupId:Long
+        try {
+            groupId = detail[4].asULong
+        }catch (e: ClassCastException){
+            groupId = detail[4].asList.value[0].asULong
+        }
 
         // 恭喜<{\"cmd\":5,\"data\":\"qq\",\"text}\":\"nickname\"}>获得群主授予的<{\"cmd\":1,\"data\":\"https://qun.qq.com/qqweb/m/qun/medal/detail.html?_wv=16777223&bid=2504&gc=gid&isnew=1&medal=302&uin=uin\",\"text\":\"title\",\"url\":\"https://qun.qq.com/qqweb/m/qun/medal/detail.html?_wv=16777223&bid=2504&gc=gid&isnew=1&medal=302&uin=uin\"}>头衔
         val titleChangeInfo = detail[5, 2].asUtf8String
@@ -248,7 +253,12 @@ internal object PrimitiveListener {
             }
         }
 
-        val groupId = detail[4].asLong
+        var groupId:Long
+        try {
+            groupId = detail[4].asULong
+        }catch (e: ClassCastException){
+            groupId = detail[4].asList.value[0].asULong
+        }
         val mesSeq = detail[37].asInt
         val senderUin = detail[33, 5].asLong
         val operatorUin = detail[33, 6].asLong
@@ -301,7 +311,12 @@ internal object PrimitiveListener {
         var suffix: String? = null
         var actionImg: String? = null
         var rankImg: String? = null
-        val groupCode = detail[4].asULong
+        var groupCode:Long
+        try {
+            groupCode = detail[4].asULong
+        }catch (e: ClassCastException){
+            groupCode = detail[4].asList.value[0].asULong
+        }
         detail[26][7]
             .asList
             .value
@@ -468,7 +483,12 @@ internal object PrimitiveListener {
                     LogCenter.log("onGroupRecall error: ${e.stackTraceToString()}", Level.WARN)
                 }
             }
-            val groupCode = detail[4].asULong
+            var groupCode:Long
+            try {
+                groupCode = detail[4].asULong
+            }catch (e: ClassCastException){
+                groupCode = detail[4].asList.value[0].asULong
+            }
             val operatorUid = detail[11, 1].asUtf8String
             val targetUid = detail[11, 3, 6].asUtf8String
             val msgSeq = detail[11, 3, 1].asLong
