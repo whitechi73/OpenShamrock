@@ -61,7 +61,7 @@ class ProtoMap(
         var curMap = value
         tags.forEachIndexed { index, tag ->
             if (index == tags.size - 1) {
-                return curMap[tag] ?: error("Tag $tag not found")
+                return curMap[tag] ?: error("pb[${tags.joinToString(", ")}][$index] Tag $tag not found")
             }
             curMap[tag]?.let { v ->
                 if (v is ProtoMap) {
@@ -69,7 +69,7 @@ class ProtoMap(
                 } else {
                     return v
                 }
-            } ?: error("Tag $tag not found")
+            } ?: error("pb[${tags.joinToString(", ")}][$index] Tag $tag not found")
         }
         error("Instance is not ProtoMap for get(${tags.first()})")
     }
