@@ -457,14 +457,22 @@ internal object PrimitiveListener {
     private suspend fun onGroupBan(msgTime: Long, pb: ProtoMap) {
         val groupCode = pb[1, 3, 2, 1].asULong
         val operatorUid = pb[1, 3, 2, 4].asUtf8String
-        val targetUid = pb[1, 3, 2, 5, 3, 1].asUtf8String
-        val duration = pb[1, 3, 2, 5, 3, 2].asInt
-        val operation = ContactHelper.getUinByUidAsync(operatorUid).toLong()
-        val target = ContactHelper.getUinByUidAsync(targetUid).toLong()
-        LogCenter.log("群禁言($groupCode): $operation -> $target, 时长 = ${duration}s")
+        val wholeBan = !pb.has(1, 3, 2, 5, 3, 1)
+        val targetUid = if (wholeBan) "" else pb[1, 3, 2, 5, 3, 1].asUtf8String
+        val rawDuration = pb[1, 3, 2, 5, 3, 2].asInt
 
+        val operation = ContactHelper.getUinByUidAsync(operatorUid).toLong()
+        val duration = if (wholeBan) -1 else rawDuration
+        val target = if (wholeBan) 0 else ContactHelper.getUinByUidAsync(targetUid).toLong()
+        val subType = if (rawDuration == 0) NoticeSubType.LiftBan else NoticeSubType.Ban
+
+        if (wholeBan) {
+            LogCenter.log("群全员禁言($groupCode): $operation -> ${if (subType == NoticeSubType.Ban) "开启" else "关闭"}")
+        } else {
+            LogCenter.log("群禁言($groupCode): $operation -> $target, 时长 = ${duration}s")
+        }
         if (!GlobalEventTransmitter.GroupNoticeTransmitter
-                .transGroupBan(msgTime, operation, target, groupCode, duration)
+                .transGroupBan(msgTime, subType, operation, target, groupCode, duration)
         ) {
             LogCenter.log("群禁言推送失败！", Level.WARN)
         }
