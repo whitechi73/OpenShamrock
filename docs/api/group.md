@@ -373,3 +373,49 @@ data 的响应内容为 json 数组，每个元素内容如下：
 ```
 
 :::
+
+## 获取群 @全体成员 剩余次数
+
+当机器人是管理员时可用
+
+### API端点
+
+`/get_group_at_all_remain`
+
+### 参数
+
+| 字段     | 类型  | 必须 | 说明  |
+| -------- | ----- | ---- | ----- |
+| group_id | int64 | 是   | 群号  |
+
+### 响应
+
+::: tabs
+
+@tab 响应字段
+
+| 字段     | 类型   | 说明  |
+| -------- | ------ | ----- |
+| can_at_all  | bool  | 是否可以 @全体成员 |
+| remain_at_all_count_for_group | int32 | 群内所有管理当天剩余 @全体成员 次数  |
+| remain_at_all_count_for_uin | int32 | Bot 当天剩余 @全体成员 次数  |
+
+@tab 响应示例
+
+```json
+{
+  "status": "ok",
+  "retcode": 0,
+  "data": [
+    {
+      "can_at_all": true,
+      "remain_at_all_count_for_group": 20,
+      "remain_at_all_count_for_group": 10
+    }
+  ],
+  "echo": "xxxx"
+}
+```
+
+:::
+
