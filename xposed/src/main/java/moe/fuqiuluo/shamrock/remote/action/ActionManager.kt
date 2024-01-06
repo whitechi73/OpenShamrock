@@ -32,6 +32,7 @@ internal object ActionManager {
             ModifyTroopName, LeaveTroop, KickTroopMember, BanTroopMember, SetGroupWholeBan, SetGroupAdmin,
             ModifyTroopMemberName, SetGroupUnique, GetTroopHonor, GroupPoke, SetEssenceMessage, DeleteEssenceMessage,
             GetGroupSystemMsg, GetProhibitedMemberList, GetEssenceMessageList, GetGroupNotice, SendGroupNotice, SendGroupSign,
+            GetGroupRemainAtAllRemain,
 
             // MSG ACTIONS
             SendMessage, DeleteMessage, GetMsg, GetForwardMsg, SendPrivateForwardMessage, SendGroupMessage, SendPrivateMessage,

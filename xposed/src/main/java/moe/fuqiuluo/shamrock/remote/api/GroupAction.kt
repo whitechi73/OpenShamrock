@@ -145,4 +145,9 @@ fun Routing.troopAction() {
         call.respondText(SendGroupSign(groupId), ContentType.Application.Json)
     }
 
+    getOrPost("/get_group_at_all_remain") {
+        val groupId = fetchOrThrow("group_id").toLong()
+        call.respondText(GetGroupRemainAtAllRemain(groupId), ContentType.Application.Json)
+    }
+
 }

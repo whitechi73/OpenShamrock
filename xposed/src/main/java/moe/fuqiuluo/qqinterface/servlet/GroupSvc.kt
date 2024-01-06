@@ -47,7 +47,9 @@ import moe.fuqiuluo.proto.ProtoUtils
 import moe.fuqiuluo.proto.asInt
 import moe.fuqiuluo.proto.asUtf8String
 import moe.fuqiuluo.proto.protobufOf
+import moe.fuqiuluo.qqinterface.servlet.TicketSvc.getLongUin
 import moe.fuqiuluo.qqinterface.servlet.TicketSvc.getUin
+import moe.fuqiuluo.qqinterface.servlet.entries.GroupAtAllRemainInfo
 import moe.fuqiuluo.qqinterface.servlet.entries.ProhibitedMemberInfo
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
@@ -76,6 +78,7 @@ import tencent.im.group.group_member_info
 import tencent.im.oidb.cmd0x899.oidb_0x899
 import tencent.im.oidb.cmd0x89a.oidb_0x89a
 import tencent.im.oidb.cmd0x8a0.oidb_0x8a0
+import tencent.im.oidb.cmd0x8a7.cmd0x8a7
 import tencent.im.oidb.cmd0x8fc.Oidb_0x8fc
 import tencent.im.oidb.cmd0xeb7.oidb_0xeb7
 import tencent.im.oidb.oidb_sso
@@ -102,6 +105,27 @@ internal object GroupSvc: BaseSvc() {
     private lateinit var METHOD_REQ_TROOP_MEM_LIST: Method
     private lateinit var METHOD_REQ_MODIFY_GROUP_NAME: Method
 
+    suspend fun getGroupRemainAtAllRemain (groupId: Long): Result<GroupAtAllRemainInfo> {
+        val buffer = sendOidbAW("OidbSvcTrpcTcp.0x8a7_0", 2215, 0, cmd0x8a7.ReqBody().apply {
+            uint32_sub_cmd.set(1)
+            uint32_limit_interval_type_for_uin.set(2)
+            uint32_limit_interval_type_for_group.set(1)
+            uint64_uin.set(getLongUin())
+            uint64_group_code.set(groupId)
+        }.toByteArray(), trpc = true) ?: return Result.failure(RuntimeException("[oidb] timeout"))
+        val body = oidb_sso.OIDBSSOPkg()
+        body.mergeFrom(buffer.slice(4))
+        if(body.uint32_result.get() != 0) {
+            return Result.failure(RuntimeException(body.str_error_msg.get()))
+        }
+
+        val resp = cmd0x8a7.RspBody().mergeFrom(body.bytes_bodybuffer.get().toByteArray())
+        return Result.success(GroupAtAllRemainInfo(
+            canAtAll = resp.bool_can_at_all.get(),
+            remainAtAllCountForGroup = resp.uint32_remain_at_all_count_for_group.get(),
+            remainAtAllCountForUin = resp.uint32_remain_at_all_count_for_uin.get()
+        ))
+    }
     suspend fun getProhibitedMemberList(groupId: Long): Result<List<ProhibitedMemberInfo>> {
         val buffer = sendOidbAW("OidbSvc.0x899_0", 2201, 0, oidb_0x899.ReqBody().apply {
             uint64_group_code.set(groupId)
