@@ -305,6 +305,7 @@ internal object GlobalEventTransmitter: BaseSvc() {
 
         suspend fun transGroupBan(
             msgTime: Long,
+            subType: NoticeSubType,
             operation: Long,
             target: Long,
             groupCode: Long,
@@ -315,7 +316,7 @@ internal object GlobalEventTransmitter: BaseSvc() {
                 selfId = app.longAccountUin,
                 postType = PostType.Notice,
                 type = NoticeType.GroupBan,
-                subType = if (duration == 0) NoticeSubType.LiftBan else NoticeSubType.Ban,
+                subType = subType,
                 operatorId = operation,
                 userId = target,
                 senderId = operation,
