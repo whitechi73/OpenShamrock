@@ -12,15 +12,7 @@ import kotlinx.io.core.discardExact
 import kotlinx.io.core.readBytes
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
-import moe.fuqiuluo.proto.ProtoByteString
-import moe.fuqiuluo.proto.ProtoMap
-import moe.fuqiuluo.proto.asInt
-import moe.fuqiuluo.proto.asLong
-import moe.fuqiuluo.proto.asUtf8String
-import moe.fuqiuluo.proto.ProtoUtils
-import moe.fuqiuluo.proto.asByteArray
-import moe.fuqiuluo.proto.asList
-import moe.fuqiuluo.proto.asULong
+import moe.fuqiuluo.proto.*
 import moe.fuqiuluo.qqinterface.servlet.FriendSvc.requestFriendSystemMsgNew
 import moe.fuqiuluo.qqinterface.servlet.GroupSvc.requestGroupSystemMsgNew
 import moe.fuqiuluo.qqinterface.servlet.TicketSvc.getLongUin
@@ -211,9 +203,12 @@ internal object PrimitiveListener {
                 LogCenter.log("onGroupTitleChange error: ${e.stackTraceToString()}", Level.WARN)
             }
         }
+        var detail5 = detail[5]
+        if (detail5 is ProtoList) {
+            detail5 = detail5.value.first { it is ProtoMap }
+        }
 
-        val targetUin = detail[5, 5].asLong
-
+        val targetUin = detail5[5].asLong
         var groupId:Long
         try {
             groupId = detail[4].asULong
@@ -222,7 +217,7 @@ internal object PrimitiveListener {
         }
 
         // 恭喜<{\"cmd\":5,\"data\":\"qq\",\"text}\":\"nickname\"}>获得群主授予的<{\"cmd\":1,\"data\":\"https://qun.qq.com/qqweb/m/qun/medal/detail.html?_wv=16777223&bid=2504&gc=gid&isnew=1&medal=302&uin=uin\",\"text\":\"title\",\"url\":\"https://qun.qq.com/qqweb/m/qun/medal/detail.html?_wv=16777223&bid=2504&gc=gid&isnew=1&medal=302&uin=uin\"}>头衔
-        val titleChangeInfo = detail[5, 2].asUtf8String
+        val titleChangeInfo = detail5[2].asUtf8String
         if (titleChangeInfo.indexOf("群主授予") == -1) {
             return
         }

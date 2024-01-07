@@ -324,7 +324,8 @@ internal sealed class MessageElemConverter: IMessageConvert {
                     val notify = tip.jsonGrayTipElement
                     when(notify.busiId) {
                         /* 新人入群 */ 17L, /* 群戳一戳 */1061L,
-                        /* 群撤回 */1014L, /* 群设精消息 */2401L -> {}
+                        /* 群撤回 */1014L, /* 群设精消息 */2401L,
+                        /* 群头衔 */2407L -> {}
                         else -> LogCenter.log("不支持的灰条类型(JSON): ${notify.busiId}", Level.WARN)
                     }
                 }
