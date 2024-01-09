@@ -203,12 +203,6 @@ internal object PrimitiveListener {
                 LogCenter.log("onGroupTitleChange error: ${e.stackTraceToString()}", Level.WARN)
             }
         }
-        var detail5 = detail[5]
-        if (detail5 is ProtoList) {
-            detail5 = detail5.value.first { it is ProtoMap }
-        }
-
-        val targetUin = detail5[5].asLong
         var groupId:Long
         try {
             groupId = detail[4].asULong
@@ -216,8 +210,16 @@ internal object PrimitiveListener {
             groupId = detail[4].asList.value[0].asULong
         }
 
+        detail = if (detail[5] is ProtoList) {
+            (detail[5] as ProtoList).value[0]
+        } else {
+            detail[5]
+        }
+
+        val targetUin = detail[5].asLong
+
         // 恭喜<{\"cmd\":5,\"data\":\"qq\",\"text}\":\"nickname\"}>获得群主授予的<{\"cmd\":1,\"data\":\"https://qun.qq.com/qqweb/m/qun/medal/detail.html?_wv=16777223&bid=2504&gc=gid&isnew=1&medal=302&uin=uin\",\"text\":\"title\",\"url\":\"https://qun.qq.com/qqweb/m/qun/medal/detail.html?_wv=16777223&bid=2504&gc=gid&isnew=1&medal=302&uin=uin\"}>头衔
-        val titleChangeInfo = detail5[2].asUtf8String
+        val titleChangeInfo = detail[2].asUtf8String
         if (titleChangeInfo.indexOf("群主授予") == -1) {
             return
         }
@@ -300,19 +302,26 @@ internal object PrimitiveListener {
                 LogCenter.log("onGroupPokeAndGroupSign error: ${e.stackTraceToString()}", Level.WARN)
             }
         }
+        var groupId:Long
+        try {
+            groupId = detail[4].asULong
+        }catch (e: ClassCastException){
+            groupId = detail[4].asList.value[0].asULong
+        }
+
+        detail = if (detail[26] is ProtoList) {
+            (detail[26] as ProtoList).value[0]
+        } else {
+            detail[26]
+        }
+
         lateinit var target: String
         lateinit var operation: String
         var action: String? = null
         var suffix: String? = null
         var actionImg: String? = null
         var rankImg: String? = null
-        var groupCode:Long
-        try {
-            groupCode = detail[4].asULong
-        }catch (e: ClassCastException){
-            groupCode = detail[4].asList.value[0].asULong
-        }
-        detail[26][7]
+        detail[7]
             .asList
             .value
             .forEach {
@@ -334,27 +343,27 @@ internal object PrimitiveListener {
                     // "sign_word" ->  我也要打卡
                 }
             }
-        when (detail[26][2].asInt) {
+        when (detail[2].asInt) {
             1061 -> {
-                LogCenter.log("群戳一戳($groupCode): $operation $action $target $suffix")
+                LogCenter.log("群戳一戳($groupId): $operation $action $target $suffix")
                 if (!GlobalEventTransmitter.GroupNoticeTransmitter
-                        .transGroupPoke(time, operation.toLong(), target.toLong(), action, suffix, actionImg, groupCode)
+                        .transGroupPoke(time, operation.toLong(), target.toLong(), action, suffix, actionImg, groupId)
                 ) {
                     LogCenter.log("群戳一戳推送失败！", Level.WARN)
                 }
             }
 
             1068 -> {
-                LogCenter.log("群打卡($groupCode): $action $target")
+                LogCenter.log("群打卡($groupId): $action $target")
                 if (!GlobalEventTransmitter.GroupNoticeTransmitter
-                        .transGroupSign(time, target.toLong(), action, rankImg, groupCode)
+                        .transGroupSign(time, target.toLong(), action, rankImg, groupId)
                 ) {
                     LogCenter.log("群打卡推送失败！", Level.WARN)
                 }
             }
 
             else -> {
-                LogCenter.log("onGroupPokeAndGroupSign unknown type ${detail[26, 2].asInt}", Level.WARN)
+                LogCenter.log("onGroupPokeAndGroupSign unknown type ${detail[2].asInt}", Level.WARN)
             }
         }
     }
