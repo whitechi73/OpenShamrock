@@ -44,16 +44,17 @@ internal object SendMessage: IActionHandler() {
                     fromId = groupId
                 }
             }
+            val retryCnt = session.getIntOrNull("retry_cnt")
             return if (session.isString("message")) {
                 val autoEscape = session.getBooleanOrDefault("auto_escape", false)
                 val message = session.getString("message")
-                invoke(chatType, peerId, message, autoEscape, echo = session.echo, fromId = fromId)
+                invoke(chatType, peerId, message, autoEscape, echo = session.echo, fromId = fromId, retryCnt = retryCnt ?: 3)
             } else if (session.isArray("message")) {
                 val message = session.getArray("message")
-                invoke(chatType, peerId, message, session.echo, fromId = fromId)
+                invoke(chatType, peerId, message, session.echo, fromId = fromId, retryCnt ?: 3)
             } else {
                 val message = session.getObject("message")
-                invoke(chatType, peerId, listOf( message ).jsonArray, session.echo, fromId = fromId)
+                invoke(chatType, peerId, listOf( message ).jsonArray, session.echo, fromId = fromId, retryCnt ?: 3)
             }
         } catch (e: ParamsException) {
             return noParam(e.message!!, session.echo)
@@ -69,6 +70,7 @@ internal object SendMessage: IActionHandler() {
         message: String,
         autoEscape: Boolean,
         fromId: String = peerId,
+        retryCnt: Int,
         echo: JsonElement = EmptyJsonString
     ): String {
         //if (!ContactHelper.checkContactAvailable(chatType, peerId)) {
@@ -89,7 +91,7 @@ internal object SendMessage: IActionHandler() {
                 LogCenter.log("CQ码不合法", Level.WARN)
                 return logic("CQCode is illegal", echo)
             } else {
-                MsgSvc.sendToAio(chatType, peerId, msg, fromId = fromId)
+                MsgSvc.sendToAio(chatType, peerId, msg, fromId = fromId, retryCnt)
             }
         }
         if (result.isFailure) {
@@ -107,12 +109,12 @@ internal object SendMessage: IActionHandler() {
 
     // 消息段格式消息
     suspend operator fun invoke(
-        chatType: Int, peerId: String, message: JsonArray, echo: JsonElement = EmptyJsonString, fromId: String = peerId
+        chatType: Int, peerId: String, message: JsonArray, echo: JsonElement = EmptyJsonString, fromId: String = peerId, retryCnt: Int
     ): String {
         //if (!ContactHelper.checkContactAvailable(chatType, peerId)) {
         //    return logic("contact is not found", echo = echo)
         //}
-        val result = MsgSvc.sendToAio(chatType, peerId, message, fromId = fromId)
+        val result = MsgSvc.sendToAio(chatType, peerId, message, fromId = fromId, retryCnt)
         if (result.isFailure) {
             return logic(result.exceptionOrNull()?.message ?: "", echo)
         }

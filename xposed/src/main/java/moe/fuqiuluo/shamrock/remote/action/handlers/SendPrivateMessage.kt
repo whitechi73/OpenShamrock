@@ -10,6 +10,7 @@ internal object SendPrivateMessage: IActionHandler() {
         val userId = session.getString("user_id")
         val groupId = session.getStringOrNull("group_id")
         val chatType = if (groupId == null) MsgConstant.KCHATTYPEC2C else MsgConstant.KCHATTYPETEMPC2CFROMGROUP
+        val retryCnt = session.getIntOrNull("retry_cnt")
         return if (session.isString("message")) {
             val autoEscape = session.getBooleanOrDefault("auto_escape", false)
             val message = session.getString("message")
@@ -19,7 +20,8 @@ internal object SendPrivateMessage: IActionHandler() {
                 message = message,
                 autoEscape = autoEscape,
                 echo = session.echo,
-                fromId = groupId ?: userId
+                fromId = groupId ?: userId,
+                retryCnt = retryCnt ?: 3
             )
         } else if (session.isArray("message")) {
             val message = session.getArray("message")
@@ -28,7 +30,8 @@ internal object SendPrivateMessage: IActionHandler() {
                 peerId = userId,
                 message = message,
                 echo = session.echo,
-                fromId = groupId ?: userId
+                fromId = groupId ?: userId,
+                retryCnt = retryCnt ?: 3
             )
         } else {
             val message = session.getObject("message")
@@ -37,7 +40,8 @@ internal object SendPrivateMessage: IActionHandler() {
                 peerId = userId,
                 message = listOf( message ).jsonArray,
                 echo = session.echo,
-                fromId = groupId ?: userId
+                fromId = groupId ?: userId,
+                retryCnt = retryCnt ?: 3
             )
         }
     }
