@@ -24,31 +24,33 @@ internal object SendForwardMessage : IActionHandler() {
                 MessageHelper.obtainMessageTypeByDetailType(it)
             } ?: run {
                 if (session.has("user_id")) {
-                    MsgConstant.KCHATTYPEC2C
+                    if (session.has("group_id")) {
+                        MsgConstant.KCHATTYPETEMPC2CFROMGROUP
+                    } else {
+                        MsgConstant.KCHATTYPEC2C
+                    }
                 } else if (session.has("group_id")) {
                     MsgConstant.KCHATTYPEGROUP
                 } else {
                     return noParam("detail_type/message_type", session.echo)
                 }
             }
-            val peerId = when (chatType) {
-                MsgConstant.KCHATTYPEGROUP -> session.getStringOrNull("group_id") ?: return noParam(
-                    "group_id",
-                    session.echo
-                )
-
-                MsgConstant.KCHATTYPEC2C -> session.getStringOrNull("user_id") ?: return noParam(
-                    "user_id",
-                    session.echo
-                )
-
+            val peerId = when(chatType) {
+                MsgConstant.KCHATTYPEGROUP -> session.getStringOrNull("group_id") ?: return noParam("group_id", session.echo)
+                MsgConstant.KCHATTYPEC2C, MsgConstant.KCHATTYPETEMPC2CFROMGROUP -> session.getStringOrNull("user_id") ?: return noParam("user_id", session.echo)
                 else -> error("unknown chat type: $chatType")
             }
-            if (session.isArray("messages")) {
-                val messages = session.getArray("messages")
-                invoke(chatType, peerId, messages, echo = session.echo)
+            val fromId = when(chatType) {
+                MsgConstant.KCHATTYPEGROUP, MsgConstant.KCHATTYPETEMPC2CFROMGROUP -> session.getStringOrNull("group_id") ?: return noParam("group_id", session.echo)
+                MsgConstant.KCHATTYPEC2C -> session.getStringOrNull("user_id") ?: return noParam("user_id", session.echo)
+                else -> error("unknown chat type: $chatType")
             }
-            return logic("未知格式合并转发消息", session.echo)
+            return if (session.isArray("messages")) {
+                val messages = session.getArray("messages")
+                invoke(chatType, peerId, messages, fromId, echo = session.echo)
+            } else {
+                logic("未知格式合并转发消息", session.echo)
+            }
         } catch (e: ParamsException) {
             return noParam(e.message!!, session.echo)
         } catch (e: Throwable) {
@@ -60,6 +62,7 @@ internal object SendForwardMessage : IActionHandler() {
         chatType: Int,
         peerId: String,
         messages: JsonArray,
+        fromId: String = peerId,
         echo: JsonElement = EmptyJsonString
     ): String {
         kotlin.runCatching {
@@ -148,7 +151,7 @@ internal object SendForwardMessage : IActionHandler() {
             }.filterNotNull()
 
             val from = MessageHelper.generateContact(MsgConstant.KCHATTYPEC2C, selfUin)
-            val to = MessageHelper.generateContact(chatType, peerId)
+            val to = MessageHelper.generateContact(chatType, peerId, fromId)
 
             val uniseq = MessageHelper.generateMsgId(chatType)
             msgService.multiForwardMsg(ArrayList<MultiMsgInfo>().apply {

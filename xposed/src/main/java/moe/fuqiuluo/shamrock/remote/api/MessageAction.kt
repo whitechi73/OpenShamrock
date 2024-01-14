@@ -113,6 +113,7 @@ fun Routing.messageAction() {
         get {
             val msgType = fetchGetOrThrow("message_type")
             val message = fetchGetOrThrow("message")
+            val retryCnt = fetchGetOrNull("retry_cnt")?.toInt() ?: 3
             val autoEscape = fetchGetOrNull("auto_escape")?.toBooleanStrict() ?: false
             val chatType = MessageHelper.obtainMessageTypeByDetailType(msgType)
 
@@ -124,12 +125,14 @@ fun Routing.messageAction() {
                 peerId = if (chatType == MsgConstant.KCHATTYPEC2C) userId!! else groupId!!,
                 message = message,
                 autoEscape = autoEscape,
-                fromId = groupId ?: userId ?: ""
+                fromId = groupId ?: userId ?: "",
+                retryCnt = retryCnt
             ), ContentType.Application.Json)
         }
         post {
             val msgType = fetchPostOrThrow("message_type")
             val chatType = MessageHelper.obtainMessageTypeByDetailType(msgType)
+            val retryCnt = fetchPostOrNull("retry_cnt")?.toInt() ?: 3
 
             val userId = fetchPostOrNull("user_id")
             val groupId = fetchPostOrNull("group_id")
@@ -141,14 +144,16 @@ fun Routing.messageAction() {
                         chatType = chatType,
                         peerId = peerId,
                         message = listOf(fetchPostJsonObject("message")).jsonArray,
-                        fromId = groupId ?: userId ?: ""
+                        fromId = groupId ?: userId ?: "",
+                        retryCnt = retryCnt
                     )
                 } else {
                     SendMessage(
                         chatType = chatType,
                         peerId = peerId,
                         message = fetchPostJsonArray("message"),
-                        fromId = groupId ?: userId ?: ""
+                        fromId = groupId ?: userId ?: "",
+                        retryCnt = retryCnt
                     )
                 }
             } else {
@@ -159,7 +164,8 @@ fun Routing.messageAction() {
                     peerId = peerId,
                     message = fetchPostOrThrow("message"),
                     autoEscape = autoEscape,
-                    fromId = groupId ?: userId ?: ""
+                    fromId = groupId ?: userId ?: "",
+                    retryCnt = retryCnt
                 )
             }, ContentType.Application.Json)
         }
@@ -169,34 +175,38 @@ fun Routing.messageAction() {
         get {
             val groupId = fetchGetOrThrow("group_id")
             val message = fetchGetOrThrow("message")
+            val retryCnt = fetchGetOrNull("retry_cnt")?.toInt() ?: 3
             val autoEscape = fetchGetOrNull("auto_escape")?.toBooleanStrict() ?: false
-            call.respondText(SendMessage(MsgConstant.KCHATTYPEGROUP, groupId, message, autoEscape))
+            call.respondText(SendMessage(MsgConstant.KCHATTYPEGROUP, groupId, message, autoEscape, retryCnt = retryCnt))
         }
         post {
             val groupId = fetchPostOrThrow("group_id")
 
+            val retryCnt = fetchPostOrNull("retry_cnt")?.toInt() ?: 3
             val autoEscape = fetchPostOrNull("auto_escape")?.toBooleanStrict() ?: false
 
             val result = if (isJsonData()) {
                 if (isJsonString("message")) {
-                    SendMessage(MsgConstant.KCHATTYPEGROUP, groupId, fetchPostJsonString("message"), autoEscape)
+                    SendMessage(MsgConstant.KCHATTYPEGROUP, groupId, fetchPostJsonString("message"), autoEscape, retryCnt = retryCnt)
                 } else {
                     if (isJsonObject("message")) {
                         SendMessage(
                             chatType = MsgConstant.KCHATTYPEGROUP,
                             peerId = groupId,
-                            message = listOf(fetchPostJsonObject("message")).jsonArray
+                            message = listOf(fetchPostJsonObject("message")).jsonArray,
+                            retryCnt = retryCnt
                         )
                     } else {
                         SendMessage(
                             chatType = MsgConstant.KCHATTYPEGROUP,
                             peerId = groupId,
-                            message = fetchPostJsonArray("message")
+                            message = fetchPostJsonArray("message"),
+                            retryCnt = retryCnt
                         )
                     }
                 }
             } else {
-                SendMessage(MsgConstant.KCHATTYPEGROUP, groupId, fetchPostOrThrow("message"), autoEscape)
+                SendMessage(MsgConstant.KCHATTYPEGROUP, groupId, fetchPostOrThrow("message"), autoEscape, retryCnt = retryCnt)
             }
 
             call.respondText(result, ContentType.Application.Json)
@@ -208,18 +218,21 @@ fun Routing.messageAction() {
             val userId = fetchGetOrThrow("user_id")
             val groupId = fetchGetOrNull("group_id")
             val message = fetchGetOrThrow("message")
+            val retryCnt = fetchGetOrNull("retry_cnt")?.toInt() ?: 3
             val autoEscape = fetchGetOrNull("auto_escape")?.toBooleanStrict() ?: false
             call.respondText(SendMessage(
                 chatType = if (groupId == null) MsgConstant.KCHATTYPEC2C else MsgConstant.KCHATTYPETEMPC2CFROMGROUP,
                 peerId = userId,
                 message = message,
                 autoEscape = autoEscape,
-                fromId = groupId ?: userId
+                fromId = groupId ?: userId,
+                retryCnt = retryCnt
             ), ContentType.Application.Json)
         }
         post {
             val userId = fetchPostOrThrow("user_id")
             val groupId = fetchPostOrNull("group_id")
+            val retryCnt = fetchPostOrNull("retry_cnt")?.toInt() ?: 3
             val autoEscape = fetchPostOrNull("auto_escape")?.toBooleanStrict() ?: false
 
             val chatType = if (groupId == null) MsgConstant.KCHATTYPEC2C else MsgConstant.KCHATTYPETEMPC2CFROMGROUP
@@ -233,7 +246,8 @@ fun Routing.messageAction() {
                         peerId = userId,
                         message = fetchPostJsonString("message"),
                         autoEscape = autoEscape,
-                        fromId = fromId
+                        fromId = fromId,
+                        retryCnt = retryCnt
                     )
                 } else {
                     if (isJsonObject("message")) {
@@ -241,14 +255,16 @@ fun Routing.messageAction() {
                             chatType = chatType,
                             peerId = userId,
                             message = listOf(fetchPostJsonObject("message")).jsonArray,
-                            fromId = fromId
+                            fromId = fromId,
+                            retryCnt = retryCnt
                         )
                     } else {
                         SendMessage(
                             chatType = chatType,
                             peerId = userId,
                             message = fetchPostJsonArray("message"),
-                            fromId = fromId
+                            fromId = fromId,
+                            retryCnt = retryCnt
                         )
                     }
                 }
@@ -258,7 +274,8 @@ fun Routing.messageAction() {
                     peerId = userId,
                     message = fetchPostOrThrow("message"),
                     autoEscape = autoEscape,
-                    fromId = fromId
+                    fromId = fromId,
+                    retryCnt = retryCnt
                 )
             }
 

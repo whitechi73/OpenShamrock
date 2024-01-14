@@ -9,7 +9,7 @@ internal object SendGroupForwardMessage: IActionHandler() {
         val groupId = session.getString("group_id")
         return if (session.isArray("messages")) {
             val messages = session.getArray("messages")
-            SendForwardMessage(MsgConstant.KCHATTYPEGROUP, groupId, messages, session.echo)
+            SendForwardMessage(MsgConstant.KCHATTYPEGROUP, groupId, messages, echo = session.echo)
         } else {
             logic("未知格式合并转发消息", session.echo)
         }

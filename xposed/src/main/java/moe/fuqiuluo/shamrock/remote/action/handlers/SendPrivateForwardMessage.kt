@@ -9,7 +9,7 @@ internal object SendPrivateForwardMessage : IActionHandler() {
         val userId = session.getString("user_id")
         return if (session.isArray("messages")) {
             val messages = session.getArray("messages")
-            SendForwardMessage(MsgConstant.KCHATTYPEC2C, userId, messages, session.echo)
+            SendForwardMessage(MsgConstant.KCHATTYPEC2C, userId, messages, echo = session.echo)
         } else {
             logic("未知格式合并转发消息", session.echo)
         }

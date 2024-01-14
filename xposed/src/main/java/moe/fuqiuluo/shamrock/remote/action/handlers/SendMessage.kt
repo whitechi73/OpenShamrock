@@ -20,11 +20,15 @@ internal object SendMessage: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val detailType = session.getStringOrNull("detail_type") ?: session.getStringOrNull("message_type")
         try {
-            var chatType = detailType?.let {
+            val chatType = detailType?.let {
                 MessageHelper.obtainMessageTypeByDetailType(it)
             } ?: run {
                 if (session.has("user_id")) {
-                    MsgConstant.KCHATTYPEC2C
+                    if (session.has("group_id")) {
+                        MsgConstant.KCHATTYPETEMPC2CFROMGROUP
+                    } else {
+                        MsgConstant.KCHATTYPEC2C
+                    }
                 } else if (session.has("group_id")) {
                     MsgConstant.KCHATTYPEGROUP
                 } else {
@@ -33,16 +37,13 @@ internal object SendMessage: IActionHandler() {
             }
             val peerId = when(chatType) {
                 MsgConstant.KCHATTYPEGROUP -> session.getStringOrNull("group_id") ?: return noParam("group_id", session.echo)
-                MsgConstant.KCHATTYPEC2C -> session.getStringOrNull("user_id") ?: return noParam("user_id", session.echo)
+                MsgConstant.KCHATTYPEC2C, MsgConstant.KCHATTYPETEMPC2CFROMGROUP -> session.getStringOrNull("user_id") ?: return noParam("user_id", session.echo)
                 else -> error("unknown chat type: $chatType")
             }
-            var fromId = peerId
-            if (chatType == MsgConstant.KCHATTYPEC2C) {
-                val groupId = session.getStringOrNull("group_id")
-                if (groupId != null) {
-                    chatType = MsgConstant.KCHATTYPETEMPC2CFROMGROUP
-                    fromId = groupId
-                }
+            val fromId = when(chatType) {
+                MsgConstant.KCHATTYPEGROUP, MsgConstant.KCHATTYPETEMPC2CFROMGROUP -> session.getStringOrNull("group_id") ?: return noParam("group_id", session.echo)
+                MsgConstant.KCHATTYPEC2C -> session.getStringOrNull("user_id") ?: return noParam("user_id", session.echo)
+                else -> error("unknown chat type: $chatType")
             }
             val retryCnt = session.getIntOrNull("retry_cnt")
             return if (session.isString("message")) {
