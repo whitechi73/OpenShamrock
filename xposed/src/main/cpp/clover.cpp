@@ -85,8 +85,6 @@ int fake_system_property_get(const char *name, char *value) {
     return backup_system_property_get(name, value);
 }
 
-
-
 FILE* fake_fopen(const char *filename, const char *mode) {
     if (strstr(filename, "qemu_pipe")) {
         LOGI("[Shamrock] bypass qemu detection");
@@ -117,6 +115,54 @@ FILE* fake_fopen(const char *filename, const char *mode) {
     return backup_fopen(filename, mode);
 }
 
+char * __cdecl my_strstr(const char *lhs, const char *rhs) {
+    char *cur = (char *)lhs;
+    char *l;
+    char *r;
+    if (!*rhs) {
+        return ((char *)lhs);
+    }
+    while (*cur) {
+        l = cur;
+        r = (char *)rhs;
+        while (*r && !(*l - *r)) {
+            l++;
+            r++;
+        }
+        if (!*r) {
+            return cur;
+        }
+        cur++;
+    }
+    return nullptr;
+}
+
+int fake_memcmp(const void* __lhs, const void* __rhs, size_t __n) {
+    if (my_strstr((const char*) __rhs, "lsposed")) {
+        return -1;
+    }
+    if (my_strstr((const char*) __rhs, "xposed")) {
+        return -1;
+    }
+    if (my_strstr((const char*) __rhs, "shamrock")) {
+        if (backup_memcmp(__lhs, __rhs, __n) == 0) {
+            // 底层广播判断
+            return 0;
+        }
+        return -1;
+    }
+    if (my_strstr((const char*) __rhs, "riru")) {
+        return -1;
+    }
+    if (my_strstr((const char*) __rhs, "zygisk")) {
+        return -1;
+    }
+    if (my_strstr((const char*) __rhs, "magisk")) {
+        return -1;
+    }
+    return backup_memcmp(__lhs, __rhs, __n);
+}
+
 void on_library_loaded(const char *name, void *handle) {
 
 }
@@ -136,5 +182,8 @@ Java_moe_fuqiuluo_shamrock_xposed_actions_AntiDetection_antiNativeDetections(JNI
     if (hook_function == nullptr) return false;
     hook_function((void*) __system_property_get, (void *)fake_system_property_get, (void **) &backup_system_property_get);
     hook_function((void*) fopen, (void*) fake_fopen, (void**) &backup_fopen);
+    //hook_function((void*) strstr, (void*) fake_strstr, (void**) &backup_strstr);
+    hook_function((void*) memcmp, (void*) fake_memcmp, (void**) &backup_memcmp);
+
     return true;
 }

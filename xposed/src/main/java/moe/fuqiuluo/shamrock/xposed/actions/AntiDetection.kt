@@ -5,12 +5,14 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.content.pm.VersionedPackage
 import android.os.Build
+import android.os.Looper
 import de.robv.android.xposed.XC_MethodReplacement
 import de.robv.android.xposed.XSharedPreferences
 import de.robv.android.xposed.XposedHelpers
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.remote.service.config.ShamrockConfig
+import moe.fuqiuluo.shamrock.tools.MethodHooker
 import moe.fuqiuluo.shamrock.tools.hookMethod
 import moe.fuqiuluo.shamrock.xposed.XposedEntry
 import moe.fuqiuluo.shamrock.xposed.loader.LuoClassloader
@@ -181,6 +183,22 @@ class AntiDetection: IAction {
             return className.isModuleStack()
         }
 
+        val stackTraceHooker: MethodHooker = {
+            val result = it.result as Array<StackTraceElement>
+            var zygote = false
+            val newResult = result.filter {
+                if (it.className == ZYGOTE_NAME) {
+                    zygote = true
+                }
+                !it.isModuleStack()
+            }.toTypedArray()
+            if (!zygote && Thread.currentThread() == Looper.getMainLooper().thread) {
+                it.result = arrayListOf(StackTraceElement(ZYGOTE_NAME, "main", ZYGOTE_NAME, 0), *newResult)
+            } else {
+                it.result = newResult
+            }
+        }
+
         Thread::class.java.hookMethod("getName").after {
             val result = it.result as String
             if (result.contains("fuqiuluo") || result.contains("shamrock") || result.contains("whitechi")) {
@@ -188,30 +206,15 @@ class AntiDetection: IAction {
             }
         }
 
-        Thread::class.java.hookMethod("getStackTrace").after {
-            val result = it.result as Array<StackTraceElement>
-            it.result = result.filter {
-                !it.isModuleStack()
-            }.toTypedArray()
-        }
-
-        Throwable::class.java.hookMethod("getStackTrace").after {
-            val result = it.result as Array<StackTraceElement>
-            it.result = result.filter {
-                !it.isModuleStack()
-            }.toTypedArray()
-        }
-
-        Throwable::class.java.hookMethod("getOurStackTrace").after {
-            val result = it.result as Array<StackTraceElement>
-            it.result = result.filter {
-                !it.isModuleStack()
-            }.toTypedArray()
-        }
+        Thread::class.java.hookMethod("getStackTrace").after(stackTraceHooker)
+        Throwable::class.java.hookMethod("getStackTrace").after(stackTraceHooker)
+        Throwable::class.java.hookMethod("getOurStackTrace").after(stackTraceHooker)
     }
 
     companion object {
         @JvmStatic
         var isAntiFindPackage = false
+
+        const val ZYGOTE_NAME = "com.android.internal.os.ZygoteInit"
     }
 }
