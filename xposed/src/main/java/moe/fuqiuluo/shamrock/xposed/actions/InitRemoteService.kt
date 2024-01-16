@@ -115,7 +115,11 @@ internal class InitRemoteService : IAction {
                     LogCenter.log("被动WebSocket地址不合法: $url", Level.ERROR)
                 }
             } catch (e: Throwable) {
-                LogCenter.log(e.stackTraceToString(), Level.ERROR)
+                if (e is RuntimeException) {
+                    LogCenter.log(e.message ?: e.stackTraceToString(), Level.ERROR)
+                } else {
+                    LogCenter.log(e.stackTraceToString(), Level.ERROR)
+                }
             }
         }
     }

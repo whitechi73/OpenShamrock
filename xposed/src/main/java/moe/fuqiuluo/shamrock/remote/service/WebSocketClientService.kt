@@ -18,6 +18,11 @@ internal class WebSocketClientService(
 ) : WebSocketClientServlet(address, heartbeatInterval, wsHeaders) {
     private val eventJobList = mutableSetOf<Job>()
 
+    init {
+        startHeartbeatTimer()
+        initTransmitter()
+    }
+
     override fun submitFlowJob(job: Job) {
         eventJobList.add(job)
     }
