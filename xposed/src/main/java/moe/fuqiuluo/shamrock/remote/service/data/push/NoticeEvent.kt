@@ -67,14 +67,20 @@ internal data class NoticeEvent(
     @SerialName("post_type") val postType: PostType,
     @SerialName("notice_type") val type: NoticeType,
     @SerialName("sub_type") val subType: NoticeSubType = NoticeSubType.None,
-    @SerialName("group_id") val groupId: Long = -1,
-    @SerialName("operator_id") val operatorId: Long = -1,
-    @SerialName("user_id") val userId: Long = -1,
-    @SerialName("sender_id") val senderId: Long = -1,
-    @SerialName("duration") val duration: Int = -1,
-    @SerialName("message_id") val msgId: Int = -1,
+    @SerialName("group_id") val groupId: Long = Long.MIN_VALUE,
+    @SerialName("operator_id") val operatorId: Long = Long.MIN_VALUE,
+    @SerialName("operator_uid") val operatorUid: String = "",
+    @SerialName("user_id") val userId: Long = Long.MIN_VALUE,
+    @SerialName("user_uid") val userUid: String = "",
+    @SerialName("sender_id") val senderId: Long = Long.MIN_VALUE,
+    @SerialName("duration") val duration: Int = Int.MIN_VALUE,
+    @SerialName("message_id") val msgId: Int = Int.MIN_VALUE,
     @SerialName("tip_text") val tip: String = "",
-    @SerialName("target_id") val target: Long = -1,
+
+    @SerialName("target_id") val target: Long = Long.MIN_VALUE,
+    @SerialName("target_uid") val targetUid: String = "",
+
+
     @SerialName("file") val file: GroupFileMsg? = null,
     @SerialName("private_file") val privateFile: PrivateFileMsg? = null,
     @SerialName("flag") val flag: String? = null,
@@ -92,7 +98,7 @@ internal data class NoticeEvent(
     // 群打卡
     @SerialName("sign_detail") val signDetail: SignDetail? = null,
 
-)
+    )
 
 /**
  * 不要使用继承的方式实现通用字段，那样会很难维护！

@@ -14,6 +14,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import moe.fuqiuluo.proto.*
 import moe.fuqiuluo.qqinterface.servlet.FriendSvc.requestFriendSystemMsgNew
+import moe.fuqiuluo.qqinterface.servlet.GroupSvc
 import moe.fuqiuluo.qqinterface.servlet.GroupSvc.requestGroupSystemMsgNew
 import moe.fuqiuluo.qqinterface.servlet.TicketSvc.getLongUin
 import moe.fuqiuluo.shamrock.helper.MessageHelper
@@ -302,11 +303,10 @@ internal object PrimitiveListener {
                 LogCenter.log("onGroupPokeAndGroupSign error: ${e.stackTraceToString()}", Level.WARN)
             }
         }
-        var groupId:Long
-        try {
-            groupId = detail[4].asULong
+        val groupId = try {
+            detail[4].asULong
         }catch (e: ClassCastException){
-            groupId = detail[4].asList.value[0].asULong
+            detail[4].asList.value[0].asULong
         }
 
         detail = if (detail[26] is ProtoList) {
@@ -392,13 +392,21 @@ internal object PrimitiveListener {
         val groupCode = pb[1, 3, 2, 1].asULong
         val targetUid = pb[1, 3, 2, 3].asUtf8String
         val type = pb[1, 3, 2, 4].asInt
-        val operation = ContactHelper.getUinByUidAsync(pb[1, 3, 2, 5].asUtf8String).toLong()
+
+        GroupSvc.getGroupMemberList(groupCode.toString(), true).onFailure {
+            LogCenter.log("新成员加入刷新群成员列表失败: $groupCode", Level.WARN)
+        }.onSuccess {
+            LogCenter.log("新成员加入刷新群成员列表成功，群成员数量: ${it.size}", Level.INFO)
+        }
+
+        val operatorUid = pb[1, 3, 2, 5].asUtf8String
+        val operator = ContactHelper.getUinByUidAsync(operatorUid).toLong()
         val target = ContactHelper.getUinByUidAsync(targetUid).toLong()
         LogCenter.log("群成员增加($groupCode): $target, type = $type")
 
         if (!GlobalEventTransmitter.GroupNoticeTransmitter
                 .transGroupMemberNumChanged(
-                    time, target, groupCode, operation, NoticeType.GroupMemIncrease, when (type) {
+                    time, target, targetUid, groupCode, operator, operatorUid, NoticeType.GroupMemIncrease, when (type) {
                         130 -> NoticeSubType.Approve
                         131 -> NoticeSubType.Invite
                         else -> NoticeSubType.Approve
@@ -413,11 +421,19 @@ internal object PrimitiveListener {
         val groupCode = pb[1, 3, 2, 1].asULong
         val targetUid = pb[1, 3, 2, 3].asUtf8String
         val type = pb[1, 3, 2, 4].asInt
-        val operation = try {
-            ContactHelper.getUinByUidAsync(pb[1, 3, 2, 5, 1, 1].asUtf8String).toLong()
+        val operatorUid = try {
+            pb[1, 3, 2, 5, 1, 1].asUtf8String
         } catch (e: Throwable) {
-            ContactHelper.getUinByUidAsync(pb[1, 3, 2, 5].asUtf8String).toLong()
+            pb[1, 3, 2, 5].asUtf8String
         }
+
+        GroupSvc.getGroupMemberList(groupCode.toString(), true).onFailure {
+            LogCenter.log("新成员加入刷新群成员列表失败: $groupCode", Level.WARN)
+        }.onSuccess {
+            LogCenter.log("新成员加入刷新群成员列表成功，群成员数量: ${it.size}", Level.INFO)
+        }
+
+        val operator = ContactHelper.getUinByUidAsync(operatorUid).toLong()
         val target = ContactHelper.getUinByUidAsync(targetUid).toLong()
         val subtype = when (type) {
             130 -> NoticeSubType.Leave
@@ -431,7 +447,7 @@ internal object PrimitiveListener {
         LogCenter.log("群成员减少($groupCode): $target, type = $subtype ($type)")
 
         if (!GlobalEventTransmitter.GroupNoticeTransmitter
-                .transGroupMemberNumChanged(time, target, groupCode, operation, NoticeType.GroupMemDecrease, subtype)
+                .transGroupMemberNumChanged(time, target, targetUid, groupCode, operator, operatorUid, NoticeType.GroupMemDecrease, subtype)
         ) {
             LogCenter.log("群成员减少推送失败！", Level.WARN)
         }
@@ -452,7 +468,7 @@ internal object PrimitiveListener {
         LogCenter.log("群管理员变动($groupCode): $target, isSetAdmin = $isSetAdmin")
 
         if (!GlobalEventTransmitter.GroupNoticeTransmitter
-                .transGroupAdminChanged(msgTime, target, groupCode, isSetAdmin)
+                .transGroupAdminChanged(msgTime, target, targetUid, groupCode, isSetAdmin)
         ) {
             LogCenter.log("群管理员变动推送失败！", Level.WARN)
         }
@@ -465,18 +481,18 @@ internal object PrimitiveListener {
         val targetUid = if (wholeBan) "" else pb[1, 3, 2, 5, 3, 1].asUtf8String
         val rawDuration = pb[1, 3, 2, 5, 3, 2].asInt
 
-        val operation = ContactHelper.getUinByUidAsync(operatorUid).toLong()
+        val operator = ContactHelper.getUinByUidAsync(operatorUid).toLong()
         val duration = if (wholeBan) -1 else rawDuration
         val target = if (wholeBan) 0 else ContactHelper.getUinByUidAsync(targetUid).toLong()
         val subType = if (rawDuration == 0) NoticeSubType.LiftBan else NoticeSubType.Ban
 
         if (wholeBan) {
-            LogCenter.log("群全员禁言($groupCode): $operation -> ${if (subType == NoticeSubType.Ban) "开启" else "关闭"}")
+            LogCenter.log("群全员禁言($groupCode): $operator -> ${if (subType == NoticeSubType.Ban) "开启" else "关闭"}")
         } else {
-            LogCenter.log("群禁言($groupCode): $operation -> $target, 时长 = ${duration}s")
+            LogCenter.log("群禁言($groupCode): $operator -> $target, 时长 = ${duration}s")
         }
         if (!GlobalEventTransmitter.GroupNoticeTransmitter
-                .transGroupBan(msgTime, subType, operation, target, groupCode, duration)
+                .transGroupBan(msgTime, subType, operator, operatorUid, target, targetUid, groupCode, duration)
         ) {
             LogCenter.log("群禁言推送失败！", Level.WARN)
         }

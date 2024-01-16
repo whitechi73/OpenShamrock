@@ -264,8 +264,10 @@ internal object GlobalEventTransmitter: BaseSvc() {
         suspend fun transGroupMemberNumChanged(
             time: Long,
             target: Long,
+            targetUid: String,
             groupCode: Long,
-            operation: Long,
+            operator: Long,
+            operatorUid: String,
             noticeType: NoticeType,
             noticeSubType: NoticeSubType
         ): Boolean {
@@ -275,11 +277,14 @@ internal object GlobalEventTransmitter: BaseSvc() {
                 postType = PostType.Notice,
                 type = noticeType,
                 subType = noticeSubType,
-                operatorId = operation,
+                operatorId = operator,
                 userId = target,
-                senderId = operation,
+                senderId = operator,
                 target = target,
-                groupId = groupCode
+                groupId = groupCode,
+                targetUid = targetUid,
+                operatorUid = operatorUid,
+                userUid = targetUid
             ))
             return true
         }
@@ -287,6 +292,7 @@ internal object GlobalEventTransmitter: BaseSvc() {
         suspend fun transGroupAdminChanged(
             msgTime: Long,
             target: Long,
+            targetUid: String,
             groupCode: Long,
             setAdmin: Boolean
         ): Boolean {
@@ -298,6 +304,7 @@ internal object GlobalEventTransmitter: BaseSvc() {
                 subType = if (setAdmin) NoticeSubType.Set else NoticeSubType.UnSet,
                 operatorId = 0,
                 target = target,
+                targetUid = targetUid,
                 groupId = groupCode
             ))
             return true
@@ -306,8 +313,10 @@ internal object GlobalEventTransmitter: BaseSvc() {
         suspend fun transGroupBan(
             msgTime: Long,
             subType: NoticeSubType,
-            operation: Long,
+            operator: Long,
+            operatorUid: String,
             target: Long,
+            targetUid: String,
             groupCode: Long,
             duration: Int
         ): Boolean {
@@ -317,12 +326,14 @@ internal object GlobalEventTransmitter: BaseSvc() {
                 postType = PostType.Notice,
                 type = NoticeType.GroupBan,
                 subType = subType,
-                operatorId = operation,
+                operatorId = operator,
                 userId = target,
-                senderId = operation,
+                senderId = operator,
                 target = target,
                 groupId = groupCode,
-                duration = duration
+                duration = duration,
+                operatorUid = operatorUid,
+                targetUid = targetUid
             ))
             return true
         }

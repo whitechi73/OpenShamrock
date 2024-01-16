@@ -138,12 +138,12 @@ char * __cdecl my_strstr(const char *lhs, const char *rhs) {
 }
 
 int fake_memcmp(const void* __lhs, const void* __rhs, size_t __n) {
-    if (my_strstr((const char*) __rhs, "lsposed")) {
-        return -1;
-    }
-    if (my_strstr((const char*) __rhs, "xposed")) {
-        return -1;
-    }
+    //if (my_strstr((const char*) __rhs, "lsposed")) {
+        //return -1;
+    //}
+    //if (my_strstr((const char*) __rhs, "xposed")) {
+    //    return -1;
+    //}
     if (my_strstr((const char*) __rhs, "shamrock")) {
         if (backup_memcmp(__lhs, __rhs, __n) == 0) {
             // 底层广播判断
@@ -154,12 +154,12 @@ int fake_memcmp(const void* __lhs, const void* __rhs, size_t __n) {
     if (my_strstr((const char*) __rhs, "riru")) {
         return -1;
     }
-    if (my_strstr((const char*) __rhs, "zygisk")) {
-        return -1;
-    }
-    if (my_strstr((const char*) __rhs, "magisk")) {
-        return -1;
-    }
+    //if (my_strstr((const char*) __rhs, "zygisk")) {
+    //    return -1;
+    //}
+    //if (my_strstr((const char*) __rhs, "magisk")) {
+    //    return -1;
+    //}
     return backup_memcmp(__lhs, __rhs, __n);
 }
 
