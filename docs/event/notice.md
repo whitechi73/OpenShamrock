@@ -42,6 +42,8 @@ icon: bell
 | group_id    | int64  | 群号                   |
 | user_id     | int64  | 新增成员 QQ            |
 | operator_id | int64  | 操作者 QQ 号           |
+| operator_uid | string  | 操作者 UID           |
+| user_uid | string  | 新成员 UID           |
 | sub_type    | string | 子类型(approve/invite) |
 
 ## 群组成员减少
@@ -53,6 +55,8 @@ icon: bell
 | group_id    | int64  | 群号                       |
 | user_id     | int64  | 减少成员 QQ                |
 | operator_id | int64  | 操作者 QQ 号               |
+| operator_uid | string  | 操作者 UID           |
+| user_uid | string  | 新成员 UID           |
 | sub_type    | string | 子类型(leave/kick/kick_me) |
 
 ## 群组管理员变动

@@ -21,7 +21,8 @@ icon: comment
 | ----------- | ----------------------------- | ---- | ---------------- |
 | user_id     | int64                         | 是   | QQ 号            |
 | message     | `string` / `object` / `array` | 是   | 消息内容         |
-| auto_escape | bool                          | 否   | 是否解析 CQ 码。 |
+| auto_escape | bool                          | 否   | 是否解析 CQ 码（true为不解析）。 |
+| recall_duration     | int64                         | 否   | 自动撤回时间间隔（毫秒）            |
 
 message格式可为[消息段](../message/format.md#%E6%B6%88%E6%81%AF%E6%AE%B5)object，或[消息段组合](../message/format.md#%E7%BB%84%E5%90%88)array
 
@@ -46,7 +47,8 @@ message格式可为[消息段](../message/format.md#%E6%B6%88%E6%81%AF%E6%AE%B5)
 | ----------- | ----------------------------- | ---- | ---------------- |
 | group_id    | int64                         | 是   | 群号             |
 | message     | `string` / `object` / `array` | 是   | 消息内容         |
-| auto_escape | bool                          | 否   | 是否解析 CQ 码。 |
+| auto_escape | bool                          | 否   | 是否解析 CQ 码（true为不解析）。 |
+| recall_duration     | int64                         | 否   | 自动撤回时间间隔（毫秒）            |
 
 message格式同`/send_private_msg`
 
@@ -74,7 +76,8 @@ message格式同`/send_private_msg`
 | group_id     | int64                         | 是   | 群号             |
 | discuss_id   | int64                         | 是   | 讨论组号         |
 | message      | `string` / `object` / `array` | 是   | 消息内容         |
-| auto_escape  | bool                          | 否   | 是否解析 CQ 码。 |
+| auto_escape  | bool                          | 否   | 是否解析 CQ 码（true为不解析）。 |
+| recall_duration     | int64                         | 否   | 自动撤回时间间隔（毫秒）            |
 
 message格式同`/send_private_msg`
 
