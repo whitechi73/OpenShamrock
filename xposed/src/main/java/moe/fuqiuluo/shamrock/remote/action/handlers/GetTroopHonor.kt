@@ -30,7 +30,7 @@ internal object GetTroopHonor: IActionHandler() {
                 GroupSvc.parseHonor(member.honorList).forEach {
                     val honor = nativeDecodeHonor(member.memberuin, it, member.mHonorRichFlag)
                     if (honor != null) {
-                        honor.nick = member.troopnick.ifBlank { member.friendnick }
+                        honor.nick = member.troopnick.ifEmpty { member.friendnick }
                         honorInfo.add(honor)
                     }
                 }

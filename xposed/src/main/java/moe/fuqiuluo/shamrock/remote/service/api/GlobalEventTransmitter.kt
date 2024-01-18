@@ -82,9 +82,9 @@ internal object GlobalEventTransmitter: BaseSvc() {
                     sender = Sender(
                         userId = record.senderUin,
                         nickname = record.sendNickName
-                            .ifBlank { record.sendRemarkName }
-                            .ifBlank { record.sendMemberName }
-                            .ifBlank { record.peerName },
+                            .ifEmpty { record.sendRemarkName }
+                            .ifEmpty { record.sendMemberName }
+                            .ifEmpty { record.peerName },
                         card = record.sendMemberName,
                         role = when (record.senderUin) {
                             GroupSvc.getOwner(record.peerUin.toString()) -> MemberRole.Owner
@@ -112,7 +112,7 @@ internal object GlobalEventTransmitter: BaseSvc() {
         ): Boolean {
             val botUin = app.longAccountUin
             var nickName = record.sendNickName
-            if (nickName.isNullOrBlank()) {
+            if (nickName.isNullOrEmpty()) {
                 CardSvc.getProfileCard(record.senderUin.toString()).onSuccess {
                     nickName = it.strNick ?: record.peerName
                 }

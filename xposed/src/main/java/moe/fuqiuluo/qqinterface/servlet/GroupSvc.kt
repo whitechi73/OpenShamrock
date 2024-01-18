@@ -194,13 +194,19 @@ internal object GroupSvc: BaseSvc() {
 
         var groupInfo = getGroupInfo(groupId)
 
-        if(refresh || !service.isTroopCacheInited || groupInfo.troopuin.isNullOrBlank()) {
-            groupInfo = requestGroupList(service, groupId.toLong()).onFailure {
-                return Result.failure(it)
-            }.getOrThrow()
+        return if(refresh || !service.isTroopCacheInited || groupInfo.troopuin.isNullOrBlank()) {
+            requestGroupList(service, groupId.toLong()).onFailure {
+                groupInfo = service.findTroopInfo(groupId)
+                if (groupInfo.troopuin.isNullOrBlank()) {
+                    Result.failure(it)
+                } else {
+                    Result.success(groupInfo)
+                }
+            }
+        } else {
+            Result.success(groupInfo)
         }
 
-        return Result.success(groupInfo)
     }
 
     suspend fun setGroupUniqueTitle(groupId: String, userId: String, title: String) {
@@ -209,7 +215,7 @@ internal object GroupSvc: BaseSvc() {
         req.uint64_group_code.set(groupId.toLong())
         val memberInfo = Oidb_0x8fc.MemberInfo()
         memberInfo.uint64_uin.set(userId.toLong())
-        memberInfo.bytes_uin_name.set(ByteStringMicro.copyFromUtf8(localMemberInfo.troopnick.ifBlank {
+        memberInfo.bytes_uin_name.set(ByteStringMicro.copyFromUtf8(localMemberInfo.troopnick.ifEmpty {
             localMemberInfo.troopremark.ifNullOrEmpty("")
         }))
         memberInfo.bytes_special_title.set(ByteStringMicro.copyFromUtf8(title))
