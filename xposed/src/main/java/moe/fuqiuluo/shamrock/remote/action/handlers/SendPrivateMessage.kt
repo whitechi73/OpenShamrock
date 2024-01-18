@@ -11,6 +11,7 @@ internal object SendPrivateMessage: IActionHandler() {
         val groupId = session.getStringOrNull("group_id")
         val chatType = if (groupId == null) MsgConstant.KCHATTYPEC2C else MsgConstant.KCHATTYPETEMPC2CFROMGROUP
         val retryCnt = session.getIntOrNull("retry_cnt")
+        val recallDuration = session.getLongOrNull("recall_duration")
         return if (session.isString("message")) {
             val autoEscape = session.getBooleanOrDefault("auto_escape", false)
             val message = session.getString("message")
@@ -21,7 +22,8 @@ internal object SendPrivateMessage: IActionHandler() {
                 autoEscape = autoEscape,
                 echo = session.echo,
                 fromId = groupId ?: userId,
-                retryCnt = retryCnt ?: 3
+                retryCnt = retryCnt ?: 3,
+                recallDuration = recallDuration
             )
         } else if (session.isArray("message")) {
             val message = session.getArray("message")
@@ -31,7 +33,8 @@ internal object SendPrivateMessage: IActionHandler() {
                 message = message,
                 echo = session.echo,
                 fromId = groupId ?: userId,
-                retryCnt = retryCnt ?: 3
+                retryCnt = retryCnt ?: 3,
+                recallDuration = recallDuration
             )
         } else {
             val message = session.getObject("message")
@@ -41,7 +44,8 @@ internal object SendPrivateMessage: IActionHandler() {
                 message = listOf( message ).jsonArray,
                 echo = session.echo,
                 fromId = groupId ?: userId,
-                retryCnt = retryCnt ?: 3
+                retryCnt = retryCnt ?: 3,
+                recallDuration = recallDuration
             )
         }
     }

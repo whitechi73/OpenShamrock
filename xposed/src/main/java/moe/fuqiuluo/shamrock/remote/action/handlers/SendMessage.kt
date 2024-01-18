@@ -1,6 +1,10 @@
 package moe.fuqiuluo.shamrock.remote.action.handlers
 
 import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.shamrock.helper.MessageHelper
@@ -46,16 +50,17 @@ internal object SendMessage: IActionHandler() {
                 else -> error("unknown chat type: $chatType")
             }
             val retryCnt = session.getIntOrNull("retry_cnt")
+            val recallDuration = session.getLongOrNull("recall_duration")
             return if (session.isString("message")) {
                 val autoEscape = session.getBooleanOrDefault("auto_escape", false)
                 val message = session.getString("message")
-                invoke(chatType, peerId, message, autoEscape, echo = session.echo, fromId = fromId, retryCnt = retryCnt ?: 3)
+                invoke(chatType, peerId, message, autoEscape, echo = session.echo, fromId = fromId, retryCnt = retryCnt ?: 3, recallDuration = recallDuration)
             } else if (session.isArray("message")) {
                 val message = session.getArray("message")
-                invoke(chatType, peerId, message, session.echo, fromId = fromId, retryCnt ?: 3)
+                invoke(chatType, peerId, message, session.echo, fromId = fromId, retryCnt ?: 3, recallDuration = recallDuration)
             } else {
                 val message = session.getObject("message")
-                invoke(chatType, peerId, listOf( message ).jsonArray, session.echo, fromId = fromId, retryCnt ?: 3)
+                invoke(chatType, peerId, listOf( message ).jsonArray, session.echo, fromId = fromId, retryCnt ?: 3, recallDuration = recallDuration)
             }
         } catch (e: ParamsException) {
             return noParam(e.message!!, session.echo)
@@ -72,6 +77,7 @@ internal object SendMessage: IActionHandler() {
         autoEscape: Boolean,
         fromId: String = peerId,
         retryCnt: Int,
+        recallDuration: Long?,
         echo: JsonElement = EmptyJsonString
     ): String {
         //if (!ContactHelper.checkContactAvailable(chatType, peerId)) {
@@ -102,6 +108,7 @@ internal object SendMessage: IActionHandler() {
         if (pair.first <= 0) {
             return logic("send message failed", echo = echo)
         }
+        recallDuration?.let { autoRecall(pair.second, it) }
         return ok(MessageResult(
             msgId = pair.second,
             time = (pair.first * 0.001).toLong()
@@ -110,7 +117,7 @@ internal object SendMessage: IActionHandler() {
 
     // 消息段格式消息
     suspend operator fun invoke(
-        chatType: Int, peerId: String, message: JsonArray, echo: JsonElement = EmptyJsonString, fromId: String = peerId, retryCnt: Int
+        chatType: Int, peerId: String, message: JsonArray, echo: JsonElement = EmptyJsonString, fromId: String = peerId, retryCnt: Int, recallDuration: Long?,
     ): String {
         //if (!ContactHelper.checkContactAvailable(chatType, peerId)) {
         //    return logic("contact is not found", echo = echo)
@@ -123,10 +130,18 @@ internal object SendMessage: IActionHandler() {
         if (pair.first <= 0) {
             return logic("send message failed", echo = echo)
         }
+        recallDuration?.let { autoRecall(pair.second, it) }
         return ok(MessageResult(
             msgId = pair.second,
             time = (pair.first * 0.001).toLong()
         ), echo)
+    }
+
+    private fun autoRecall(msgHash: Int, duration: Long) {
+        GlobalScope.launch(Dispatchers.Default) {
+            delay(duration)
+            MsgSvc.recallMsg(msgHash)
+        }
     }
 
     override val requiredParams: Array<String> = arrayOf("message")

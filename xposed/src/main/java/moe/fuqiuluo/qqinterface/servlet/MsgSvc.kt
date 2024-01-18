@@ -31,10 +31,6 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 internal object MsgSvc: BaseSvc() {
-    fun uploadForwardMsg(): Result<String> {
-        return Result.failure(Exception("Not implemented"))
-    }
-
     suspend fun prepareTempChatFromGroup(
         groupId: String,
         peerId: String
