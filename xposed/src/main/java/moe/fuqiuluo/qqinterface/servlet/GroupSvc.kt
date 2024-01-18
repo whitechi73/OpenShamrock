@@ -179,7 +179,7 @@ internal object GroupSvc: BaseSvc() {
 
         var troopList = service.allTroopList
         if(refresh || !service.isTroopCacheInited || troopList == null) {
-            if(!requestGroupList(service)) {
+            if(!requestGroupInfo(service)) {
                 return Result.failure(Exception("获取群列表失败"))
             } else {
                 troopList = service.allTroopList
@@ -192,17 +192,10 @@ internal object GroupSvc: BaseSvc() {
         val service = app
             .getRuntimeService(ITroopInfoService::class.java, "all")
 
-        var groupInfo = getGroupInfo(groupId)
+        val groupInfo = getGroupInfo(groupId)
 
         return if(refresh || !service.isTroopCacheInited || groupInfo.troopuin.isNullOrBlank()) {
-            requestGroupList(service, groupId.toLong()).onFailure {
-                groupInfo = service.findTroopInfo(groupId)
-                if (groupInfo.troopuin.isNullOrBlank()) {
-                    Result.failure(it)
-                } else {
-                    Result.success(groupInfo)
-                }
-            }
+            requestGroupInfo(service, groupId.toLong())
         } else {
             Result.success(groupInfo)
         }
@@ -567,7 +560,7 @@ internal object GroupSvc: BaseSvc() {
         }
     }
 
-    private suspend fun requestGroupList(
+    private suspend fun requestGroupInfo(
         service: ITroopInfoService
     ): Boolean {
         refreshTroopList()
@@ -660,9 +653,9 @@ internal object GroupSvc: BaseSvc() {
         METHOD_REQ_MEMBER_INFO_V2.invoke(businessHandler, groupId.toString(), groupUin2GroupCode(groupId).toString(), arrayListOf(memberUin.toString()))
     }
 
-    private suspend fun requestGroupList(dataService: ITroopInfoService, uin: Long): Result<TroopInfo> {
+    private suspend fun requestGroupInfo(dataService: ITroopInfoService, uin: Long): Result<TroopInfo> {
         val strUin = uin.toString()
-        val list = withTimeoutOrNull(5000) {
+        val info = withTimeoutOrNull(5000) {
             var troopInfo: TroopInfo?
             do {
                 troopInfo = dataService.getTroopInfo(strUin)
@@ -670,8 +663,8 @@ internal object GroupSvc: BaseSvc() {
             } while (troopInfo == null || troopInfo.troopuin.isNullOrBlank())
             return@withTimeoutOrNull troopInfo
         }
-        return if (list != null) {
-            Result.success(list)
+        return if (info != null) {
+            Result.success(info)
         } else {
             Result.failure(Exception("获取群列表失败"))
         }
