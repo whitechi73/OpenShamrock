@@ -48,7 +48,6 @@ internal object PrimitiveListener {
         if (
             !pb.has(1, 3)
             || !pb.has(1, 2)
-//            || !pb.has(1, 2, 2)
             || !pb.has(1, 2, 6)
         ) return
         val msgType = pb[1, 2, 1].asInt
