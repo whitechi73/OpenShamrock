@@ -29,7 +29,7 @@ internal object GetProfileCard: IActionHandler() {
             uin = card.uin.toLong(),
             name = card.strNick,
             mail = card.strShowName ?: card.strEmail ?: "",
-            remark = card.strReMark.let { if (it.isNullOrBlank()) card.strAutoRemark else it },
+            remark = card.strReMark.let { if (it.isNullOrEmpty()) card.strAutoRemark else it },
             findMethod = card.addSrcName,
             displayName = card.strContactName,
             maxVoteCnt = card.bAvailVoteCnt,

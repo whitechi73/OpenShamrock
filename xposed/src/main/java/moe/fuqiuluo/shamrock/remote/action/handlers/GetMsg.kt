@@ -30,9 +30,9 @@ internal object GetMsg: IActionHandler() {
             realId = seq,
             sender = MessageSender(
                 msg.senderUin, msg.sendNickName
-                    .ifBlank { msg.sendMemberName }
-                    .ifBlank { msg.sendRemarkName }
-                    .ifBlank { msg.peerName }, "unknown", 0, msg.senderUid
+                    .ifEmpty { msg.sendMemberName }
+                    .ifEmpty { msg.sendRemarkName }
+                    .ifEmpty { msg.peerName }, "unknown", 0, msg.senderUid
             ),
             message = MessageConvert.convertMessageRecordToMsgSegment(msg).map {
                 it.toJson()

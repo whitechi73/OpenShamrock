@@ -179,7 +179,7 @@ internal object GroupSvc: BaseSvc() {
 
         var troopList = service.allTroopList
         if(refresh || !service.isTroopCacheInited || troopList == null) {
-            if(!requestGroupList(service)) {
+            if(!requestGroupInfo(service)) {
                 return Result.failure(Exception("获取群列表失败"))
             } else {
                 troopList = service.allTroopList
@@ -192,15 +192,14 @@ internal object GroupSvc: BaseSvc() {
         val service = app
             .getRuntimeService(ITroopInfoService::class.java, "all")
 
-        var groupInfo = getGroupInfo(groupId)
+        val groupInfo = getGroupInfo(groupId)
 
-        if(refresh || !service.isTroopCacheInited || groupInfo.troopuin.isNullOrBlank()) {
-            groupInfo = requestGroupList(service, groupId.toLong()).onFailure {
-                return Result.failure(it)
-            }.getOrThrow()
+        return if(refresh || !service.isTroopCacheInited || groupInfo.troopuin.isNullOrBlank()) {
+            requestGroupInfo(service, groupId.toLong())
+        } else {
+            Result.success(groupInfo)
         }
 
-        return Result.success(groupInfo)
     }
 
     suspend fun setGroupUniqueTitle(groupId: String, userId: String, title: String) {
@@ -209,7 +208,7 @@ internal object GroupSvc: BaseSvc() {
         req.uint64_group_code.set(groupId.toLong())
         val memberInfo = Oidb_0x8fc.MemberInfo()
         memberInfo.uint64_uin.set(userId.toLong())
-        memberInfo.bytes_uin_name.set(ByteStringMicro.copyFromUtf8(localMemberInfo.troopnick.ifBlank {
+        memberInfo.bytes_uin_name.set(ByteStringMicro.copyFromUtf8(localMemberInfo.troopnick.ifEmpty {
             localMemberInfo.troopremark.ifNullOrEmpty("")
         }))
         memberInfo.bytes_special_title.set(ByteStringMicro.copyFromUtf8(title))
@@ -561,7 +560,7 @@ internal object GroupSvc: BaseSvc() {
         }
     }
 
-    private suspend fun requestGroupList(
+    private suspend fun requestGroupInfo(
         service: ITroopInfoService
     ): Boolean {
         refreshTroopList()
@@ -654,9 +653,9 @@ internal object GroupSvc: BaseSvc() {
         METHOD_REQ_MEMBER_INFO_V2.invoke(businessHandler, groupId.toString(), groupUin2GroupCode(groupId).toString(), arrayListOf(memberUin.toString()))
     }
 
-    private suspend fun requestGroupList(dataService: ITroopInfoService, uin: Long): Result<TroopInfo> {
+    private suspend fun requestGroupInfo(dataService: ITroopInfoService, uin: Long): Result<TroopInfo> {
         val strUin = uin.toString()
-        val list = withTimeoutOrNull(5000) {
+        val info = withTimeoutOrNull(5000) {
             var troopInfo: TroopInfo?
             do {
                 troopInfo = dataService.getTroopInfo(strUin)
@@ -664,8 +663,8 @@ internal object GroupSvc: BaseSvc() {
             } while (troopInfo == null || troopInfo.troopuin.isNullOrBlank())
             return@withTimeoutOrNull troopInfo
         }
-        return if (list != null) {
-            Result.success(list)
+        return if (info != null) {
+            Result.success(info)
         } else {
             Result.failure(Exception("获取群列表失败"))
         }
