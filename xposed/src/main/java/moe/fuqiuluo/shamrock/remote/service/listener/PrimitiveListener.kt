@@ -498,43 +498,42 @@ internal object PrimitiveListener {
     }
 
     private suspend fun onGroupRecall(time: Long, pb: ProtoMap) {
-            var detail = pb[1, 3, 2]
-            if (detail !is ProtoMap) {
-                try {
-                    val readPacket = ByteReadPacket(detail.asByteArray)
-                    readPacket.discardExact(4)
-                    readPacket.discardExact(1)
-                    detail = ProtoUtils.decodeFromByteArray(readPacket.readBytes(readPacket.readShort().toInt()))
-                    readPacket.release()
-                } catch (e: Exception) {
-                    LogCenter.log("onGroupRecall error: ${e.stackTraceToString()}", Level.WARN)
-                }
-            }
-            var groupCode:Long
+        var detail = pb[1, 3, 2]
+        if (detail !is ProtoMap) {
             try {
-                groupCode = detail[4].asULong
-            }catch (e: ClassCastException){
-                groupCode = detail[4].asList.value[0].asULong
+                val readPacket = ByteReadPacket(detail.asByteArray)
+                readPacket.discardExact(4)
+                readPacket.discardExact(1)
+                detail = ProtoUtils.decodeFromByteArray(readPacket.readBytes(readPacket.readShort().toInt()))
+                readPacket.release()
+            } catch (e: Exception) {
+                LogCenter.log("onGroupRecall error: ${e.stackTraceToString()}", Level.WARN)
             }
-            val operatorUid = detail[11, 1].asUtf8String
-            val targetUid = detail[11, 3, 6].asUtf8String
-            val msgSeq = detail[11, 3, 1].asLong
-            val tipText = if (detail.has(11, 9)) detail[11, 9, 2].asUtf8String else ""
-            val mapping = MessageHelper.getMsgMappingBySeq(MsgConstant.KCHATTYPEGROUP, msgSeq.toInt())
-            if (mapping == null) {
-                LogCenter.log("由于缺失消息映射关系(seq = $msgSeq)，消息撤回事件无法推送！", Level.WARN)
-                return
-            }
-            val msgHash = mapping.msgHashId
-            val operator = ContactHelper.getUinByUidAsync(operatorUid).toLong()
-            val target = ContactHelper.getUinByUidAsync(targetUid).toLong()
-            LogCenter.log("群消息撤回($groupCode): $operator -> $target, seq = $msgSeq, hash = $msgHash, tip = $tipText")
+        }
+        val groupCode:Long = try {
+            detail[4].asULong
+        }catch (e: ClassCastException){
+            detail[4].asList.value[0].asULong
+        }
+        val operatorUid = detail[11, 1].asUtf8String
+        val targetUid = detail[11, 3, 6].asUtf8String
+        val msgSeq = detail[11, 3, 1].asLong
+        val tipText = if (detail.has(11, 9)) detail[11, 9, 2].asUtf8String else ""
+        val mapping = MessageHelper.getMsgMappingBySeq(MsgConstant.KCHATTYPEGROUP, msgSeq.toInt())
+        if (mapping == null) {
+            LogCenter.log("由于缺失消息映射关系(seq = $msgSeq)，消息撤回事件无法推送！", Level.WARN)
+            return
+        }
+        val msgHash = mapping.msgHashId
+        val operator = ContactHelper.getUinByUidAsync(operatorUid).toLong()
+        val target = ContactHelper.getUinByUidAsync(targetUid).toLong()
+        LogCenter.log("群消息撤回($groupCode): $operator -> $target, seq = $msgSeq, hash = $msgHash, tip = $tipText")
 
-            if (!GlobalEventTransmitter.GroupNoticeTransmitter
-                    .transGroupMsgRecall(time, operator, target, groupCode, msgHash, tipText)
-            ) {
-                LogCenter.log("群消息撤回推送失败！", Level.WARN)
-            }
+        if (!GlobalEventTransmitter.GroupNoticeTransmitter
+                .transGroupMsgRecall(time, operator, target, groupCode, msgHash, tipText)
+        ) {
+            LogCenter.log("群消息撤回推送失败！", Level.WARN)
+        }
     }
 
     private suspend fun onGroupApply(time: Long, pb: ProtoMap) {

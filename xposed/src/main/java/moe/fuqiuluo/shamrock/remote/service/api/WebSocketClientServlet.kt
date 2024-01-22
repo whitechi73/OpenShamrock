@@ -45,6 +45,7 @@ internal abstract class WebSocketClientServlet(
         }
     }
 
+    private var firstOpen = true
     private val sendLock = Mutex()
 
     override fun allowTransmit(): Boolean {
@@ -89,7 +90,12 @@ internal abstract class WebSocketClientServlet(
 
         //startHeartbeatTimer()
         pushMetaLifecycle()
-        //initTransmitter()
+        if (firstOpen) {
+            firstOpen = false
+        } else {
+            cancelFlowJobs()
+        }
+        initTransmitter()
     }
 
     override fun onClose(code: Int, reason: String?, remote: Boolean) {

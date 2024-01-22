@@ -20,7 +20,6 @@ internal class WebSocketClientService(
 
     init {
         startHeartbeatTimer()
-        initTransmitter()
     }
 
     override fun submitFlowJob(job: Job) {
