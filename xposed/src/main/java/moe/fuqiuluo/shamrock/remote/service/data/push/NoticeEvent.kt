@@ -112,6 +112,7 @@ internal data class RequestEvent(
     @SerialName("sub_type") val subType: RequestSubType = RequestSubType.None,
     @SerialName("group_id") val groupId: Long = -1,
     @SerialName("user_id") val userId: Long = -1,
+    @SerialName("user_uid") val userUid: String = "",
     @SerialName("comment") val comment: String = "",
     @SerialName("flag") val flag: String? = null,
 )

@@ -481,7 +481,8 @@ internal object GlobalEventTransmitter: BaseSvc() {
 
         suspend fun transGroupApply(
             time: Long,
-            operator: Long,
+            applier: Long,
+            applierUid: String,
             reason: String,
             groupCode: Long,
             flag: String,
@@ -492,7 +493,8 @@ internal object GlobalEventTransmitter: BaseSvc() {
                 selfId = app.longAccountUin,
                 postType = PostType.Request,
                 type = RequestType.Group,
-                userId = operator,
+                userId = applier,
+                userUid = applierUid,
                 comment = reason,
                 groupId = groupCode,
                 subType = subType,
