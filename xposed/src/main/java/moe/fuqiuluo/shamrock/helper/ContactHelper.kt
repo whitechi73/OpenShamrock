@@ -10,7 +10,7 @@ import kotlin.coroutines.resume
 internal object ContactHelper {
     suspend fun getUinByUidAsync(uid: String): String {
         if (uid.isBlank() || uid == "0") {
-            return "-1"
+            return "0"
         }
 
         val kernelService = NTServiceFetcher.kernelService
@@ -20,7 +20,7 @@ internal object ContactHelper {
             sessionService.uixConvertService.getUin(hashSetOf(uid)) {
                 continuation.resume(it)
             }
-        }[uid]?.toString() ?: "-1"
+        }[uid]?.toString() ?: "0"
     }
 
     suspend fun getUidByUinAsync(peerId: Long): String {
