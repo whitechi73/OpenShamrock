@@ -44,6 +44,8 @@ public interface IKernelMsgListener {
 
     void onGuildInteractiveUpdate(GuildInteractiveNotificationItem guildInteractiveNotificationItem);
 
+    void onGuildMsgAbFlagChanged(GuildMsgAbFlag guildMsgAbFlag);
+
     void onGuildNotificationAbstractUpdate(GuildNotificationAbstractInfo guildNotificationAbstractInfo);
 
     void onHitCsRelatedEmojiResult(DownloadRelateEmojiResultInfo downloadRelateEmojiResultInfo);
