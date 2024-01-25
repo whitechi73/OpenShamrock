@@ -1,4 +1,4 @@
-package moe.fuqiuluo.qqinterface.servlet.entries
+package moe.fuqiuluo.qqinterface.servlet.structures
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

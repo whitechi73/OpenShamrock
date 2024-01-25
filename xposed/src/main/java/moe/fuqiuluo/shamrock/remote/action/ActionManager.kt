@@ -26,7 +26,7 @@ internal object ActionManager {
             GetModelShowList, GetOnlineClients, GetStrangerInfo, IsBlackListUin, GetHttpCookies, GetFriendSystemMsg,
 
             // GroupInfo
-            GetTroopList, GetTroopInfo, GetTroopList, GetTroopMemberInfo, GetTroopMemberList,
+            GetTroopList, GetTroopInfo, GetTroopList, GetTroopMemberInfo, GetTroopMemberList, GetNotJoinedGroupInfo,
 
             // GroupActions
             ModifyTroopName, LeaveTroop, KickTroopMember, BanTroopMember, SetGroupWholeBan, SetGroupAdmin,

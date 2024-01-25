@@ -14,6 +14,11 @@ import moe.fuqiuluo.shamrock.tools.fetchOrThrow
 import moe.fuqiuluo.shamrock.tools.getOrPost
 
 fun Routing.troopAction() {
+    getOrPost("/get_not_joined_group_info") {
+        val groupId = fetchOrThrow("group_id")
+        call.respondText(GetNotJoinedGroupInfo(groupId), ContentType.Application.Json)
+    }
+
     getOrPost("/get_prohibited_member_list") {
         val groupId = fetchOrThrow("group_id").toLong()
         call.respondText(GetProhibitedMemberList(groupId), ContentType.Application.Json)

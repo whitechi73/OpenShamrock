@@ -2,7 +2,7 @@ package moe.fuqiuluo.qqinterface.servlet
 
 import com.tencent.mobileqq.pb.ByteStringMicro
 import moe.fuqiuluo.proto.protobufOf
-import moe.fuqiuluo.qqinterface.servlet.entries.*
+import moe.fuqiuluo.qqinterface.servlet.structures.*
 import moe.fuqiuluo.qqinterface.servlet.transfile.RichProtoSvc
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter

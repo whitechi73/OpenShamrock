@@ -121,6 +121,24 @@ internal abstract class BaseSvc {
         app.sendToService(toServiceMsg)
     }
 
+    protected suspend fun sendAW(toServiceMsg: ToServiceMsg, timeout: Long = 5000L): ByteArray? {
+        val seq = MsfCore.getNextSeq()
+        return withTimeoutOrNull<ByteArray?>(timeout) {
+            suspendCancellableCoroutine { continuation ->
+                GlobalScope.launch(Dispatchers.Default) {
+                    DynamicReceiver.register(IPCRequest(toServiceMsg.serviceCmd, seq) {
+                        val buffer = it.getByteArrayExtra("buffer")!!
+                        continuation.resume(buffer)
+                    })
+                    toServiceMsg.addAttribute("shamrock_seq", seq)
+                    send(toServiceMsg)
+                }
+            }
+        }.also {
+            if (it == null) DynamicReceiver.unregister(seq)
+        }?.copyOf()
+    }
+
     protected fun sendExtra(cmd: String, builder: (Bundle) -> Unit) {
         val toServiceMsg = createToServiceMsg(cmd)
         builder(toServiceMsg.extraData)

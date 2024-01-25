@@ -2,7 +2,9 @@
 
 package moe.fuqiuluo.qqinterface.servlet
 
+import KQQ.RespBatchProcess
 import androidx.core.text.HtmlCompat
+import com.qq.jce.wup.UniPacket
 import com.tencent.common.app.AppInterface
 import com.tencent.mobileqq.app.BusinessHandlerFactory
 import com.tencent.mobileqq.app.QQAppInterface
@@ -12,6 +14,7 @@ import com.tencent.mobileqq.pb.ByteStringMicro
 import com.tencent.mobileqq.troop.api.ITroopInfoService
 import com.tencent.mobileqq.troop.api.ITroopMemberInfoService
 import com.tencent.protofile.join_group_link.join_group_link
+import com.tencent.qphone.base.remote.FromServiceMsg
 import com.tencent.qphone.base.remote.ToServiceMsg
 import com.tencent.qqnt.kernel.nativeinterface.MemberInfo
 import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
@@ -49,8 +52,9 @@ import moe.fuqiuluo.proto.asUtf8String
 import moe.fuqiuluo.proto.protobufOf
 import moe.fuqiuluo.qqinterface.servlet.TicketSvc.getLongUin
 import moe.fuqiuluo.qqinterface.servlet.TicketSvc.getUin
-import moe.fuqiuluo.qqinterface.servlet.entries.GroupAtAllRemainInfo
-import moe.fuqiuluo.qqinterface.servlet.entries.ProhibitedMemberInfo
+import moe.fuqiuluo.qqinterface.servlet.structures.GroupAtAllRemainInfo
+import moe.fuqiuluo.qqinterface.servlet.structures.NotJoinedGroupInfo
+import moe.fuqiuluo.qqinterface.servlet.structures.ProhibitedMemberInfo
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.helper.MessageHelper
@@ -75,6 +79,7 @@ import moe.fuqiuluo.shamrock.xposed.helper.AppRuntimeFetcher
 import moe.fuqiuluo.shamrock.xposed.helper.NTServiceFetcher
 import mqq.app.MobileQQ
 import tencent.im.group.group_member_info
+import tencent.im.oidb.cmd0x88d.oidb_0x88d
 import tencent.im.oidb.cmd0x899.oidb_0x899
 import tencent.im.oidb.cmd0x89a.oidb_0x89a
 import tencent.im.oidb.cmd0x8a0.oidb_0x8a0
@@ -87,10 +92,11 @@ import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import java.nio.ByteBuffer
 import kotlin.coroutines.resume
-import tencent.mobileim.structmsg.`structmsg$ReqSystemMsgNew` as ReqSystemMsgNew
 import tencent.mobileim.structmsg.`structmsg$FlagInfo` as FlagInfo
+import tencent.mobileim.structmsg.`structmsg$ReqSystemMsgNew` as ReqSystemMsgNew
 import tencent.mobileim.structmsg.`structmsg$RspSystemMsgNew` as RspSystemMsgNew
 import tencent.mobileim.structmsg.`structmsg$StructMsg` as StructMsg
+
 internal object GroupSvc: BaseSvc() {
     private val RefreshTroopMemberInfoLock by lazy {
         Mutex()
@@ -186,6 +192,36 @@ internal object GroupSvc: BaseSvc() {
             }
         }
         return Result.success(troopList)
+    }
+
+    suspend fun getNotJoinedGroupInfo(groupId: Long): Result<NotJoinedGroupInfo> {
+        return withTimeoutOrNull(5000) timeout@{
+            val toServiceMsg = createToServiceMsg("ProfileService.ReqBatchProcess")
+            toServiceMsg.extraData.putLong("troop_code", groupId)
+            toServiceMsg.extraData.putBoolean("is_admin", false)
+            toServiceMsg.extraData.putInt("from", 0)
+            val buffer = sendAW(toServiceMsg)
+            val uniPacket = UniPacket(true)
+            uniPacket.encodeName = "utf-8"
+            uniPacket.decode(buffer)
+            val respBatchProcess = uniPacket.getByClass("RespBatchProcess", RespBatchProcess())
+            val batchRespInfo = oidb_0x88d.RspBody().mergeFrom(oidb_sso.OIDBSSOPkg()
+                .mergeFrom(respBatchProcess.batch_response_list.first().buffer)
+                .bytes_bodybuffer.get().toByteArray()).stzrspgroupinfo.get().firstOrNull()
+                ?: return@timeout Result.failure(Exception("获取群信息失败"))
+            val info = batchRespInfo.stgroupinfo
+            Result.success(NotJoinedGroupInfo(
+                groupId = batchRespInfo.uint64_group_code.get(),
+                maxMember = info.uint32_group_member_max_num.get(),
+                memberCount = info.uint32_group_member_num.get(),
+                groupName = info.string_group_name.get().toStringUtf8(),
+                groupDesc = info.string_group_finger_memo.get().toStringUtf8(),
+                owner = info.uint64_group_owner.get(),
+                createTime = info.uint32_group_create_time.get().toLong(),
+                groupFlag = info.uint32_group_flag.get(),
+                groupFlagExt = info.uint32_group_flag_ext.get()
+            ))
+        } ?: Result.failure(Exception("获取群信息超时"))
     }
 
     suspend fun getGroupInfo(groupId: String, refresh: Boolean): Result<TroopInfo> {
@@ -655,7 +691,7 @@ internal object GroupSvc: BaseSvc() {
 
     private suspend fun requestGroupInfo(dataService: ITroopInfoService, uin: Long): Result<TroopInfo> {
         val strUin = uin.toString()
-        val info = withTimeoutOrNull(5000) {
+        val info = withTimeoutOrNull(1000) {
             var troopInfo: TroopInfo?
             do {
                 troopInfo = dataService.getTroopInfo(strUin)
