@@ -5,7 +5,9 @@ import moe.fuqiuluo.qqinterface.servlet.GroupSvc
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
+import moe.fuqiuluo.symbols.OneBotHandler
 
+@OneBotHandler("get_not_joined_group_info")
 internal object GetNotJoinedGroupInfo: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val groupId = session.getString("group_id")
@@ -20,6 +22,4 @@ internal object GetNotJoinedGroupInfo: IActionHandler() {
         }
         return logic("Unable to obtain group information", echo)
     }
-
-    override fun path(): String = "get_not_joined_group_info"
 }

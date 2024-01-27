@@ -10,7 +10,9 @@ import moe.fuqiuluo.shamrock.remote.service.data.MessageSender
 import moe.fuqiuluo.qqinterface.servlet.MsgSvc
 import moe.fuqiuluo.qqinterface.servlet.msg.convert.MessageConvert
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
+import moe.fuqiuluo.symbols.OneBotHandler
 
+@OneBotHandler("get_message", ["get_msg"])
 internal object GetMsg: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val hashCode = session.getIntOrNull("message_id")
@@ -44,8 +46,4 @@ internal object GetMsg: IActionHandler() {
     }
 
     override val requiredParams: Array<String> = arrayOf("message_id")
-
-    override val alias: Array<String> = arrayOf("get_message")
-
-    override fun path(): String = "get_msg"
 }

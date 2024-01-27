@@ -12,7 +12,9 @@ import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.shamrock.remote.service.data.MessageDetail
 import moe.fuqiuluo.shamrock.remote.service.data.MessageSender
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
+import moe.fuqiuluo.symbols.OneBotHandler
 
+@OneBotHandler("get_forward_msg")
 internal object GetForwardMsg: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val id = session.getString("id")
@@ -57,6 +59,4 @@ internal object GetForwardMsg: IActionHandler() {
     )
 
     override val requiredParams: Array<String> = arrayOf("id")
-
-    override fun path(): String  = "get_forward_msg"
 }

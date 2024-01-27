@@ -5,7 +5,9 @@ import moe.fuqiuluo.qqinterface.servlet.ark.WeatherSvc
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
+import moe.fuqiuluo.symbols.OneBotHandler
 
+@OneBotHandler("get_weather_city_code")
 internal object GetWeatherCityCode: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val city = session.getString("city")
@@ -22,9 +24,6 @@ internal object GetWeatherCityCode: IActionHandler() {
 
         return ok(regions, echo)
     }
-
-    override fun path(): String = "get_weather_city_code"
-
 
     override val requiredParams: Array<String> = arrayOf("city")
 }

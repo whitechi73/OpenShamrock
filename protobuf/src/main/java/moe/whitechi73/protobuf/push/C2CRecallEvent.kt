@@ -1,0 +1,21 @@
+package moe.whitechi73.protobuf.push
+
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.protobuf.ProtoNumber
+
+@Serializable
+data class C2CRecallEvent(
+    @ProtoNumber(1) val head: C2CRecallHead? = null,
+)
+
+@Serializable
+data class C2CRecallHead(
+    @ProtoNumber(1) val operator: String? = null,
+    @ProtoNumber(13) val wording: RecallWording? = null,
+    @ProtoNumber(20) val msgSeq: Long = Long.MIN_VALUE,
+)
+
+@Serializable
+data class RecallWording(
+    @ProtoNumber(2) val wording: String? = null
+)

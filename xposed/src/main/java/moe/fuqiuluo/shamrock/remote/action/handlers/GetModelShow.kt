@@ -5,7 +5,9 @@ import moe.fuqiuluo.qqinterface.servlet.CardSvc
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
+import moe.fuqiuluo.symbols.OneBotHandler
 
+@OneBotHandler("get_model_show")
 internal object GetModelShow: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val uin = session.getLongOrNull("user_id")
@@ -26,6 +28,4 @@ internal object GetModelShow: IActionHandler() {
         }
         return ok(CardSvc.getModelShow(uin), echo)
     }
-
-    override fun path(): String = "get_model_show"
 }

@@ -7,8 +7,10 @@ import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.shamrock.remote.entries.StdAccount
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
 import moe.fuqiuluo.shamrock.xposed.helper.AppRuntimeFetcher
+import moe.fuqiuluo.symbols.OneBotHandler
 import mqq.app.MobileQQ
 
+@OneBotHandler("get_login_info")
 internal object GetLoginInfo: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         return invoke(session.echo)
@@ -27,6 +29,4 @@ internal object GetLoginInfo: IActionHandler() {
             ), echo = echo)
         }
     }
-
-    override fun path(): String = "get_login_info"
 }

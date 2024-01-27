@@ -5,7 +5,9 @@ import moe.fuqiuluo.qqinterface.servlet.GroupSvc
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
+import moe.fuqiuluo.symbols.OneBotHandler
 
+@OneBotHandler("leave_group", ["set_group_leave"])
 internal object LeaveTroop: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val groupId = session.getString("group_id")
@@ -21,8 +23,4 @@ internal object LeaveTroop: IActionHandler() {
     }
 
     override val requiredParams: Array<String> = arrayOf("group_id")
-
-    override val alias: Array<String> = arrayOf("set_group_leave")
-
-    override fun path(): String = "leave_group"
 }

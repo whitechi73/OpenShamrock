@@ -12,7 +12,9 @@ import moe.fuqiuluo.shamrock.remote.service.data.HONOR_HAPPY
 import moe.fuqiuluo.shamrock.remote.service.data.HONOR_NEWBIE
 import moe.fuqiuluo.shamrock.remote.service.data.HONOR_TALKATIVE
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
+import moe.fuqiuluo.symbols.OneBotHandler
 
+@OneBotHandler("get_group_honor_info", ["get_troop_honor_info"])
 internal object GetTroopHonor: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val groupId = session.getString("group_id")
@@ -52,8 +54,6 @@ internal object GetTroopHonor: IActionHandler() {
     }
 
     override val requiredParams: Array<String> = arrayOf("group_id", "refresh")
-
-    override fun path(): String = "get_group_honor_info"
 
     private external fun nativeDecodeHonor(userId: String, honorId: Int, honorFlag: Byte): GroupMemberHonor?
 }

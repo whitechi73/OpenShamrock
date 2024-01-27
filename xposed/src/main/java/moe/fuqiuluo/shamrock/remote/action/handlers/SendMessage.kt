@@ -19,7 +19,9 @@ import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
 import moe.fuqiuluo.shamrock.tools.jsonArray
+import moe.fuqiuluo.symbols.OneBotHandler
 
+@OneBotHandler("send_msg", ["send_message"])
 internal object SendMessage: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val detailType = session.getStringOrNull("detail_type") ?: session.getStringOrNull("message_type")
@@ -145,8 +147,4 @@ internal object SendMessage: IActionHandler() {
     }
 
     override val requiredParams: Array<String> = arrayOf("message")
-
-    override fun path(): String = "send_message"
-
-    override val alias: Array<String> = arrayOf("send_msg")
 }

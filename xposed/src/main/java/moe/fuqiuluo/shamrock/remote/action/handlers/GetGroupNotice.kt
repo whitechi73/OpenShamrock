@@ -1,13 +1,13 @@
 package moe.fuqiuluo.shamrock.remote.action.handlers
 
-import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
 import kotlinx.serialization.json.JsonElement
 import moe.fuqiuluo.qqinterface.servlet.GroupSvc
-import moe.fuqiuluo.qqinterface.servlet.MsgSvc
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
+import moe.fuqiuluo.symbols.OneBotHandler
 
+@OneBotHandler("_get_group_notice", ["get_group_notice"])
 internal object GetGroupNotice: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val groupId = session.getLong("group_id")
@@ -22,7 +22,4 @@ internal object GetGroupNotice: IActionHandler() {
         return logic(announcements.exceptionOrNull()?.message ?: "", echo)
 
     }
-
-    override val alias: Array<String> = arrayOf("get_group_notice")
-    override fun path(): String = "_get_group_notice"
 }

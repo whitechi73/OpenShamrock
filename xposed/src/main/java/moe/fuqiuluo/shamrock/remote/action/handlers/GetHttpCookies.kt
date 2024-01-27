@@ -6,7 +6,9 @@ import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.shamrock.remote.service.data.Credentials
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
+import moe.fuqiuluo.symbols.OneBotHandler
 
+@OneBotHandler("get_http_cookies")
 internal object GetHttpCookies : IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val appid = session.getString("appid")
@@ -24,6 +26,4 @@ internal object GetHttpCookies : IActionHandler() {
         val ck = TicketSvc.GetHttpCookies(appid, daid, jumpurl) ?: ""
         return ok(Credentials(cookie = ck), echo)
     }
-
-    override fun path(): String = "get_http_cookies"
 }

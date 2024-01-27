@@ -5,7 +5,9 @@ import moe.fuqiuluo.qqinterface.servlet.FileSvc
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
+import moe.fuqiuluo.symbols.OneBotHandler
 
+@OneBotHandler("get_group_file_system_info")
 internal object GetGroupFileSystemInfo: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val groupId = session.getString("group_id")
@@ -17,6 +19,4 @@ internal object GetGroupFileSystemInfo: IActionHandler() {
     }
 
     override val requiredParams: Array<String> = arrayOf("group_id")
-
-    override fun path(): String = "get_group_file_system_info"
 }

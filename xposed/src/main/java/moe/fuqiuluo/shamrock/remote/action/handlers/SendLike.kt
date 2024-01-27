@@ -6,7 +6,9 @@ import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
 import moe.fuqiuluo.shamrock.tools.errMsg
+import moe.fuqiuluo.symbols.OneBotHandler
 
+@OneBotHandler("send_like")
 internal object SendLike: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val times = session.getInt("times")
@@ -24,6 +26,4 @@ internal object SendLike: IActionHandler() {
     }
 
     override val requiredParams: Array<String> = arrayOf("times", "user_id")
-
-    override fun path(): String = "send_like"
 }

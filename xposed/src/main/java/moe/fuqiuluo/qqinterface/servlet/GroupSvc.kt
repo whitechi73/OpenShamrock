@@ -46,10 +46,6 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.decodeFromStream
 import kotlinx.serialization.json.jsonObject
-import moe.fuqiuluo.proto.ProtoUtils
-import moe.fuqiuluo.proto.asInt
-import moe.fuqiuluo.proto.asUtf8String
-import moe.fuqiuluo.proto.protobufOf
 import moe.fuqiuluo.qqinterface.servlet.TicketSvc.getLongUin
 import moe.fuqiuluo.qqinterface.servlet.TicketSvc.getUin
 import moe.fuqiuluo.qqinterface.servlet.structures.GroupAtAllRemainInfo
@@ -85,17 +81,16 @@ import tencent.im.oidb.cmd0x89a.oidb_0x89a
 import tencent.im.oidb.cmd0x8a0.oidb_0x8a0
 import tencent.im.oidb.cmd0x8a7.cmd0x8a7
 import tencent.im.oidb.cmd0x8fc.Oidb_0x8fc
+import tencent.im.oidb.cmd0xeac.oidb_0xeac
 import tencent.im.oidb.cmd0xeb7.oidb_0xeb7
+import tencent.im.oidb.cmd0xed3.oidb_cmd0xed3
 import tencent.im.oidb.oidb_sso
 import tencent.im.troop.honor.troop_honor
+import tencent.mobileim.structmsg.structmsg
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import java.nio.ByteBuffer
 import kotlin.coroutines.resume
-import tencent.mobileim.structmsg.`structmsg$FlagInfo` as FlagInfo
-import tencent.mobileim.structmsg.`structmsg$ReqSystemMsgNew` as ReqSystemMsgNew
-import tencent.mobileim.structmsg.`structmsg$RspSystemMsgNew` as RspSystemMsgNew
-import tencent.mobileim.structmsg.`structmsg$StructMsg` as StructMsg
 
 internal object GroupSvc: BaseSvc() {
     private val RefreshTroopMemberInfoLock by lazy {
@@ -155,11 +150,12 @@ internal object GroupSvc: BaseSvc() {
     }
 
     fun poke(groupId: String, userId: String) {
-        sendOidb("OidbSvc.0xed3", 3795, 1, protobufOf(
-            1 to userId.toLong(),
-            2 to groupId.toLong(),
-            3 to 0
-        ).toByteArray())
+        val req = oidb_cmd0xed3.ReqBody().apply {
+            uint64_group_code.set(groupId.toLong())
+            uint64_to_uin.set(userId.toLong())
+            uint32_msg_seq.set(0)
+        }
+        sendOidb("OidbSvc.0xed3", 3795, 1, req.toByteArray())
     }
 
     suspend fun getGroupMemberList(groupId: String, refresh: Boolean): Result<List<TroopMemberInfo>> {
@@ -272,46 +268,42 @@ internal object GroupSvc: BaseSvc() {
     }
 
     suspend fun setEssenceMessage(groupId: Long, seq: Long, rand: Long): Pair<Boolean, String> {
-        val array = protobufOf(
-            1 to groupId,
-            2 to seq,
-            3 to rand
-        ).toByteArray()
-        val buffer = sendOidbAW("OidbSvc.0xeac_1", 3756, 1, array)
-            ?: return Pair(false, "unknown error")
+        val buffer = sendOidbAW("OidbSvc.0xeac_1", 3756, 1, oidb_0xeac.ReqBody().apply {
+            group_code.set(groupId)
+            msg_seq.set(seq.toInt())
+            msg_random.set(rand.toInt())
+        }.toByteArray()) ?: return Pair(false, "unknown error")
         val body = oidb_sso.OIDBSSOPkg()
         body.mergeFrom(buffer.slice(4))
-        val result = ProtoUtils.decodeFromByteArray(body.bytes_bodybuffer.get().toByteArray())
-        return if (result.has(1)) {
-            LogCenter.log("设置群精华失败: ${result[1].asUtf8String}")
-            Pair(false, "设置群精华失败: ${result[1].asUtf8String}")
+        val result = oidb_0xeac.RspBody().mergeFrom(body.bytes_bodybuffer.get().toByteArray())
+        return if (result.wording.has()) {
+            LogCenter.log("设置群精华失败: ${result.wording.get()}")
+            Pair(false, "设置群精华失败: ${result.wording.get()}")
         } else {
-            LogCenter.log("设置群精华 -> $groupId:$seq")
+            LogCenter.log("设置群精华 -> $groupId: $seq")
             Pair(true, "ok")
         }
     }
 
     suspend fun deleteEssenceMessage(groupId: Long, seq: Long, rand: Long): Pair<Boolean, String> {
-        val array = protobufOf(
-            1 to groupId,
-            2 to seq,
-            3 to rand
-        ).toByteArray()
-        val buffer = sendOidbAW("OidbSvc.0xeac_2", 3756, 2, array)
+        val buffer = sendOidbAW("OidbSvc.0xeac_2", 3756, 2, oidb_0xeac.ReqBody().apply {
+            group_code.set(groupId)
+            msg_seq.set(seq.toInt())
+            msg_random.set(rand.toInt())
+        }.toByteArray())
         val body = oidb_sso.OIDBSSOPkg()
         if (buffer == null) {
             return Pair(false, "unknown error")
         }
         body.mergeFrom(buffer.slice(4))
-        val result = ProtoUtils.decodeFromByteArray(body.bytes_bodybuffer.get().toByteArray())
-        return if (result.has(1)) {
-            LogCenter.log("移除群精华失败: ${result[1].asUtf8String}")
-            Pair(false, "移除群精华失败: ${result[1].asUtf8String}")
+        val result = oidb_0xeac.RspBody().mergeFrom(body.bytes_bodybuffer.get().toByteArray())
+        return if (result.wording.has()) {
+            LogCenter.log("移除群精华失败: ${result.wording.get()}")
+            Pair(false, "移除群精华失败: ${result.wording.get()}")
         } else {
-            LogCenter.log("移除群精华 -> $groupId:$seq")
+            LogCenter.log("移除群精华 -> $groupId: $seq")
             Pair(true, "ok")
         }
-
     }
 
     fun setGroupAdmin(groupId: Long, userId: Long, enable: Boolean) {
@@ -550,12 +542,12 @@ internal object GroupSvc: BaseSvc() {
         }
     }
 
-    suspend fun getTroopMemberInfoByUid(groupId: String, uid: String): Result<MemberInfo> {
+    suspend fun getTroopMemberInfoByUid(groupId: Long, uid: String): Result<MemberInfo> {
         val kernelService = NTServiceFetcher.kernelService
         val sessionService = kernelService.wrapperSession
         val groupService = sessionService.groupService
         val info = suspendCancellableCoroutine {
-            groupService.getTransferableMemberInfo(groupId.toLong()) { code, _, data ->
+            groupService.getTransferableMemberInfo(groupId) { code, _, data ->
                 if (code != 0) {
                     it.resume(null)
                     return@getTransferableMemberInfo
@@ -740,72 +732,56 @@ internal object GroupSvc: BaseSvc() {
         notSee: Boolean? = false,
         subType: String
     ): Result<String>{
-        // 实在找不到接口了 发pb吧
-        val buffer: ByteArray
-        when (subType) {
-            "invite" -> {
-                buffer = protobufOf(
-                    1 to 1,
-                    2 to msgSeq,
-                    3 to uin, // self
-                    4 to 1,
-                    5 to 3,
-                    6 to 10016,
-                    7 to 2,
-                    8 to mapOf(
-                        1 to if (approve != false) 11 else 12,
-                        2 to gid
-                    ),
-                    9 to 1000
-                ).toByteArray()
-            }
-            "add" -> {
-                buffer = protobufOf(
-                    1 to 2,
-                    2 to msgSeq,
-                    3 to uin,
-                    4 to 1,
-                    5 to 2,
-                    6 to 30024,
-                    7 to 1,
-                    8 to mapOf(
-                        1 to if (approve != false) 11 else 12,
-                        2 to gid,
-                        50 to msg,
-                        53 to if (notSee != false) 1 else 0
-                    ),
-                    9 to 1000
-                ).toByteArray()
-            }
-            else -> {
-                return Result.failure(Exception("不支持的sub_type"))
-            }
-        }
-        val respBuffer = sendBufferAW("ProfileService.Pb.ReqSystemMsgAction.Group", true, buffer)
-            ?: return Result.failure(Exception("操作失败"))
-        val result = ProtoUtils.decodeFromByteArray(respBuffer.slice(4))
-        return if (result.has(1, 1)) {
-            if (result[1, 1].asInt == 0) {
-                Result.success(result[2].asUtf8String)
+        val req = structmsg.ReqSystemMsgAction().apply {
+            if (subType == "invite") {
+                msg_type.set(1)
+                src_id.set(3)
+                sub_src_id.set(10016)
+                group_msg_type.set(2)
             } else {
-                Result.failure(Exception(result[1, 2].asUtf8String))
+                msg_type.set(2)
+                src_id.set(2)
+                sub_src_id.set(30024)
+                group_msg_type.set(1)
+            }
+            msg_seq.set(msgSeq)
+            req_uin.set(uin)
+            sub_type.set(1)
+            action_info.set(structmsg.SystemMsgActionInfo().apply {
+                type.set(if (approve != false) 11 else 12)
+                group_code.set(gid)
+                if (subType == "add") {
+                    this.msg.set(msg)
+                    this.blacklist.set(notSee != false)
+                }
+            })
+            language.set(1000)
+        }
+        val respBuffer = sendBufferAW("ProfileService.Pb.ReqSystemMsgAction.Group", true, req.toByteArray())
+            ?: return Result.failure(Exception("操作失败"))
+        val rsp = structmsg.RspSystemMsgAction().mergeFrom(respBuffer.slice(4))
+        return if (rsp.head.result.has()) {
+            if (rsp.head.result.get() == 0) {
+                Result.success(rsp.msg_detail.get())
+            } else {
+                Result.failure(Exception(rsp.head.msg_fail.get()))
             }
         } else {
             Result.failure(Exception("操作失败"))
         }
     }
 
-    suspend fun requestGroupSystemMsgNew(msgNum: Int, reqMsgType: Int = 1, latestFriendSeq: Long = 0, latestGroupSeq: Long = 0, retryCnt: Int = 5): List<StructMsg> {
+    suspend fun requestGroupSystemMsgNew(msgNum: Int, reqMsgType: Int = 1, latestFriendSeq: Long = 0, latestGroupSeq: Long = 0, retryCnt: Int = 5): List<structmsg.StructMsg> {
         if (retryCnt < 0) {
             return ArrayList()
         }
-        val req = ReqSystemMsgNew()
+        val req = structmsg.ReqSystemMsgNew()
         req.msg_num.set(msgNum)
         req.latest_friend_seq.set(latestFriendSeq)
         req.latest_group_seq.set(latestGroupSeq)
         req.version.set(1000)
         req.checktype.set(3)
-        val flag = FlagInfo()
+        val flag = structmsg.FlagInfo()
         flag.GrpMsg_Kick_Admin.set(1)
         flag.GrpMsg_HiddenGrp.set(1)
         flag.GrpMsg_WordingDown.set(1)
@@ -834,7 +810,7 @@ internal object GroupSvc: BaseSvc() {
             ArrayList()
         } else {
             try {
-                val msg = RspSystemMsgNew()
+                val msg = structmsg.RspSystemMsgNew()
                 msg.mergeFrom(respBuffer.slice(4))
                 return msg.groupmsgs.get().orEmpty()
             } catch (err: Throwable) {
@@ -873,7 +849,7 @@ internal object GroupSvc: BaseSvc() {
                     messageSeq = msgSeq,
                     messageContent = obj["msg_content"] ?: EmptyJsonArray
                 )
-                val mapping = MessageHelper.getMsgMappingBySeq(MsgConstant.KCHATTYPEGROUP, msgSeq)
+                val mapping = MessageHelper.getMsgMappingBySeq(MsgConstant.KCHATTYPEGROUP, groupId.toString(), msgSeq)
                 if (mapping != null) {
                     msg.messageId = mapping.msgHashId
                 }

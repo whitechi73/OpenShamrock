@@ -9,12 +9,10 @@ import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.shamrock.tools.toHexString
 import moe.fuqiuluo.qqinterface.servlet.CardSvc
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
+import moe.fuqiuluo.symbols.OneBotHandler
 
+@OneBotHandler("get_stranger_info", ["_get_stranger_info"])
 internal object GetStrangerInfo: IActionHandler() {
-    override fun path(): String = "_get_stranger_info"
-
-    override val alias: Array<String> = arrayOf("get_stranger_info")
-
     override suspend fun internalHandle(session: ActionSession): String {
         val uid = session.getString("user_id")
         return invoke(uid, session.echo)

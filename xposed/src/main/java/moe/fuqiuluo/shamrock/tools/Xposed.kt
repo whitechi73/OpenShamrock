@@ -1,5 +1,14 @@
 package moe.fuqiuluo.shamrock.tools
 
+import com.tencent.mobileqq.pb.MessageMicro
+import com.tencent.mobileqq.pb.PBBoolField
+import com.tencent.mobileqq.pb.PBBytesField
+import com.tencent.mobileqq.pb.PBEnumField
+import com.tencent.mobileqq.pb.PBInt32Field
+import com.tencent.mobileqq.pb.PBInt64Field
+import com.tencent.mobileqq.pb.PBStringField
+import com.tencent.mobileqq.pb.PBUInt32Field
+import com.tencent.mobileqq.pb.PBUInt64Field
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
 import de.robv.android.xposed.XposedBridge
@@ -157,7 +166,7 @@ internal fun Any.toInnerValuesString(): String {
     val builder = StringBuilder()
     val clz = javaClass
     builder.append(clz.canonicalName)
-    builder.append("========>\n")
+    builder.append(" {\n")
     clz.declaredFields.forEach {
         if (!Modifier.isStatic(it.modifiers)) {
             if (!it.isAccessible) {
@@ -188,12 +197,39 @@ internal fun Any.toInnerValuesString(): String {
                     }
                     builder.append("]")
                 }
+                is PBUInt32Field -> {
+                    builder.append(v.get())
+                }
+                is PBUInt64Field -> {
+                    builder.append(v.get())
+                }
+                is PBInt32Field -> {
+                    builder.append(v.get())
+                }
+                is PBInt64Field -> {
+                    builder.append(v.get())
+                }
+                is PBStringField -> {
+                    builder.append(v.get())
+                }
+                is PBBytesField -> {
+                    builder.append(v.get().toByteArray().toHexString())
+                }
+                is PBBoolField -> {
+                    builder.append(v.get().toString())
+                }
+                is PBEnumField -> {
+                    builder.append(v.get().toString())
+                }
+                is MessageMicro<*> -> {
+                    builder.append(v.toInnerValuesString())
+                }
                 else -> builder.append(v)
             }
             builder.append("\n")
         }
     }
-    builder.append("=======================>\n")
+    builder.append("}\n")
     return builder.toString()
 }
 

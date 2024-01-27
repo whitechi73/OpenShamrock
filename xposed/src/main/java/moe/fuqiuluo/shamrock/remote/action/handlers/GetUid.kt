@@ -7,8 +7,10 @@ import moe.fuqiuluo.shamrock.remote.entries.Status
 import moe.fuqiuluo.shamrock.remote.entries.resultToString
 import moe.fuqiuluo.shamrock.tools.asString
 import moe.fuqiuluo.shamrock.xposed.helper.NTServiceFetcher
+import moe.fuqiuluo.symbols.OneBotHandler
 import kotlin.coroutines.resume
 
+@OneBotHandler("get_uid")
 internal object GetUid: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val kernelService = NTServiceFetcher.kernelService
@@ -24,8 +26,4 @@ internal object GetUid: IActionHandler() {
         }
         return resultToString(true, Status.Ok, uidMap, echo = session.echo)
     }
-
-    override fun path(): String = "get_uid"
-
-
 }

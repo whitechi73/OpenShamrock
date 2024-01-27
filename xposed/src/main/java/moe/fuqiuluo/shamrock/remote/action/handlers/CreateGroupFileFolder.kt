@@ -5,7 +5,9 @@ import moe.fuqiuluo.qqinterface.servlet.FileSvc
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
+import moe.fuqiuluo.symbols.OneBotHandler
 
+@OneBotHandler("create_group_file_folder")
 internal object CreateGroupFileFolder: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val groupId = session.getString("group_id")
@@ -14,12 +16,13 @@ internal object CreateGroupFileFolder: IActionHandler() {
         return invoke(groupId, folderName, echo)
     }
 
-    operator fun invoke(groupId: String, folderName: String, echo: JsonElement = EmptyJsonString): String {
-        FileSvc.createFileFolder(groupId, folderName)
-        return ok(msg = "成功", echo = echo)
+    suspend operator fun invoke(groupId: String, folderName: String, echo: JsonElement = EmptyJsonString): String {
+        val result = FileSvc.createFileFolder(groupId, folderName)
+        if (result.isFailure) {
+            return ok(msg = result.exceptionOrNull()?.message ?: "无法创建群文件夹", echo = echo)
+        }
+        return ok(data = result.getOrThrow(), msg = "成功", echo = echo)
     }
 
     override val requiredParams: Array<String> = arrayOf("group_id", "name")
-
-    override fun path(): String  = "create_group_file_folder"
 }

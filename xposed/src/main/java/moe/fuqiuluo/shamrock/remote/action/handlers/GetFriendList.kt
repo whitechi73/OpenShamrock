@@ -7,7 +7,9 @@ import moe.fuqiuluo.shamrock.remote.service.data.FriendEntry
 import moe.fuqiuluo.shamrock.remote.service.data.PlatformType
 import moe.fuqiuluo.qqinterface.servlet.FriendSvc
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
+import moe.fuqiuluo.symbols.OneBotHandler
 
+@OneBotHandler("get_friend_list")
 internal object GetFriendList: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val refresh = session.getBooleanOrDefault("refresh", false)
@@ -32,7 +34,4 @@ internal object GetFriendList: IActionHandler() {
             )
         }, echo)
     }
-
-
-    override fun path(): String = "get_friend_list"
 }

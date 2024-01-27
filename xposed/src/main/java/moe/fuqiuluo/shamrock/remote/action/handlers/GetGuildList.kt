@@ -5,7 +5,9 @@ import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.shamrock.tools.EmptyJsonArray
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
+import moe.fuqiuluo.symbols.OneBotHandler
 
+@OneBotHandler("get_guild_list")
 internal object GetGuildList : IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         return invoke(echo = session.echo)
@@ -15,6 +17,4 @@ internal object GetGuildList : IActionHandler() {
         // TODO: get_guild_list
         return ok(EmptyJsonArray, echo, "此功能尚未实现")
     }
-
-    override fun path(): String = "get_guild_list"
 }

@@ -6,8 +6,10 @@ import com.tencent.mobileqq.profilecard.api.IProfileProtocolService
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.shamrock.xposed.helper.AppRuntimeFetcher
+import moe.fuqiuluo.symbols.OneBotHandler
 import mqq.app.MobileQQ
 
+@OneBotHandler("set_qq_profile")
 internal object SetProfileCard: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val nickName = session.getString("nickname")
@@ -40,6 +42,4 @@ internal object SetProfileCard: IActionHandler() {
     }
 
     override val requiredParams: Array<String> = arrayOf("nickname", "company", "email", "college", "personal_note")
-
-    override fun path(): String = "set_qq_profile"
 }

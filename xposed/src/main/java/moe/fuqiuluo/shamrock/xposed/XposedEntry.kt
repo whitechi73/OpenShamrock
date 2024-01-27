@@ -27,7 +27,7 @@ internal class XposedEntry: IXposedHookLoadPackage {
         @JvmStatic
         var sec_static_stage_inited = false
         @JvmStatic
-        var sec_static_nativehook_inited = false
+        var secStaticNativehookInited = false
 
         external fun injected(): Boolean
 

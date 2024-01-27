@@ -7,7 +7,9 @@ import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
+import moe.fuqiuluo.symbols.OneBotHandler
 
+@OneBotHandler("set_group_add_request")
 internal object SetGroupAddRequest: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val flag = session.getString("flag")
@@ -50,8 +52,6 @@ internal object SetGroupAddRequest: IActionHandler() {
             error("失败：${err.message}", echo)
         }
     }
-
-    override fun path(): String = "set_group_add_request"
 
     override val requiredParams: Array<String> = arrayOf("flag", "sub_type")
 }

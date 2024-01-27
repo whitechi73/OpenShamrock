@@ -15,7 +15,9 @@ import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.shamrock.remote.service.data.ForwardMessageResult
 import moe.fuqiuluo.shamrock.tools.*
 import moe.fuqiuluo.shamrock.xposed.helper.NTServiceFetcher
+import moe.fuqiuluo.symbols.OneBotHandler
 
+@OneBotHandler("send_forward_msg")
 internal object SendForwardMessage : IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val detailType = session.getStringOrNull("detail_type") ?: session.getStringOrNull("message_type")
@@ -171,6 +173,4 @@ internal object SendForwardMessage : IActionHandler() {
     }
 
     override val requiredParams: Array<String> = arrayOf("messages")
-
-    override fun path(): String = "send_forward_msg"
 }

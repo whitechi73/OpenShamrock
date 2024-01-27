@@ -9,9 +9,11 @@ import kotlinx.serialization.json.JsonElement
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
+import moe.fuqiuluo.symbols.OneBotHandler
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
+@OneBotHandler("is_blacklist_uin")
 internal object IsBlackListUin: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val userId = session.getString("user_id")
@@ -31,8 +33,6 @@ internal object IsBlackListUin: IActionHandler() {
     }
 
     override val requiredParams: Array<String> = arrayOf("user_id")
-
-    override fun path(): String = "is_blacklist_uin"
 
     @Serializable
     data class IsBlackListUinResult(

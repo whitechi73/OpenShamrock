@@ -9,7 +9,9 @@ import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
+import moe.fuqiuluo.symbols.OneBotHandler
 
+@OneBotHandler("send_group_notice", ["send_group_announcement"])
 internal object SendGroupNotice: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val groupId = session.getLong("group_id")
@@ -33,7 +35,4 @@ internal object SendGroupNotice: IActionHandler() {
     }
 
     override val requiredParams: Array<String> = arrayOf("group_id", "content")
-
-    override val alias: Array<String> = arrayOf("send_group_notice")
-    override fun path(): String = "_send_group_notice"
 }

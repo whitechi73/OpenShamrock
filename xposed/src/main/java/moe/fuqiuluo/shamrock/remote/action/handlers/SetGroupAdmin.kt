@@ -5,7 +5,9 @@ import moe.fuqiuluo.qqinterface.servlet.GroupSvc
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
+import moe.fuqiuluo.symbols.OneBotHandler
 
+@OneBotHandler("set_group_admin")
 internal object SetGroupAdmin: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val groupId = session.getLong("group_id")
@@ -21,6 +23,4 @@ internal object SetGroupAdmin: IActionHandler() {
         GroupSvc.setGroupAdmin(groupId, userId, enable)
         return ok("成功", echo)
     }
-
-    override fun path(): String = "set_group_admin"
 }

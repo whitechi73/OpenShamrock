@@ -1,20 +1,12 @@
 package moe.fuqiuluo.qqinterface.servlet.transfile
 
-import com.tencent.av.utils.api.IAudioHelperApi
-import com.tencent.mobileqq.qroute.QRoute
+import com.tencent.mobileqq.pb.ByteStringMicro
 import com.tencent.mobileqq.transfile.FileMsg
 import com.tencent.mobileqq.transfile.api.IProtoReqManager
 import com.tencent.mobileqq.transfile.protohandler.RichProto
 import com.tencent.mobileqq.transfile.protohandler.RichProtoProc
 import kotlinx.coroutines.suspendCancellableCoroutine
-import moe.fuqiuluo.proto.ProtoUtils
-import moe.fuqiuluo.proto.asByteArray
-import moe.fuqiuluo.proto.asInt
-import moe.fuqiuluo.proto.asList
-import moe.fuqiuluo.proto.asUtf8String
-import moe.fuqiuluo.proto.protobufOf
 import moe.fuqiuluo.qqinterface.servlet.BaseSvc
-import moe.fuqiuluo.shamrock.helper.ContactHelper
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.tools.hex2ByteArray
@@ -23,6 +15,9 @@ import moe.fuqiuluo.shamrock.tools.toHexString
 import moe.fuqiuluo.shamrock.utils.PlatformUtils
 import moe.fuqiuluo.shamrock.xposed.helper.AppRuntimeFetcher
 import mqq.app.MobileQQ
+import tencent.im.cs.cmd0x346.cmd0x346
+import tencent.im.oidb.cmd0x6d6.oidb_0x6d6
+import tencent.im.oidb.cmd0xe37.cmd0xe37
 import tencent.im.oidb.oidb_sso
 import kotlin.coroutines.resume
 
@@ -32,27 +27,29 @@ internal object RichProtoSvc: BaseSvc() {
         fileId: String,
         bizId: Int = 102
     ): String {
-        val buffer = sendOidbAW("OidbSvcTrpcTcp.0x6d6_2", 1750, 2, protobufOf(
-            3 to mapOf(
-                1 to peerId,
-                2 to 3,
-                3 to bizId,
-                4 to fileId,
-            )
-        ).toByteArray())
+        val buffer = sendOidbAW("OidbSvcTrpcTcp.0x6d6_2", 1750, 2, oidb_0x6d6.ReqBody().apply {
+            download_file_req.set(oidb_0x6d6.DownloadFileReqBody().apply {
+                uint64_group_code.set(peerId)
+                uint32_app_id.set(3)
+                uint32_bus_id.set(bizId)
+                str_file_id.set(fileId)
+            })
+        }.toByteArray())
         if (buffer == null) {
             return ""
         } else {
             val body = oidb_sso.OIDBSSOPkg()
             body.mergeFrom(buffer.slice(4))
-            val result = ProtoUtils.decodeFromByteArray(body.bytes_bodybuffer.get().toByteArray())
-
-            if (body.uint32_result.get() != 0 || result[3, 1].asInt != 0) {
+            val result = oidb_0x6d6.RspBody().mergeFrom(body.bytes_bodybuffer.get().toByteArray())
+            if (body.uint32_result.get() != 0
+                || result.download_file_rsp.int32_ret_code.get() != 0) {
                 return ""
             }
 
-            val domain = if (result.has(3, 5)) ("https://" + result[3, 4].asUtf8String) else ("http://" + result[3, 5].asUtf8String)
-            val downloadUrl = result[3, 6].asByteArray.toHexString()
+            val domain = if (!result.download_file_rsp.str_download_dns.has())
+                    ("https://" + result.download_file_rsp.str_download_ip.get())
+            else ("http://" + result.download_file_rsp.str_download_dns.get())
+            val downloadUrl = result.download_file_rsp.bytes_download_url.get().toByteArray().toHexString()
             val appId = MobileQQ.getMobileQQ().appId
             val version = PlatformUtils.getQQVersion(MobileQQ.getContext())
 
@@ -65,23 +62,25 @@ internal object RichProtoSvc: BaseSvc() {
         subId: String,
         retryCnt: Int = 0
     ): String {
-        val buffer = sendOidbAW("OidbSvc.0xe37_1200", 3639, 1200, protobufOf(
-            1 to 1200,
-            2 to 1 /* QRoute.api(IAudioHelperApi::class.java).genDebugSeq().toInt() */, /* seq */
-            14 to mapOf(
-                10 to app.longAccountUin,
-                20 to fileId,
-                30 to 2, /* ver */
-                60 to subId,
-                601 to 0
-            ),
-            101 to 3, // uint32_business_id
-            102 to 104, /* client_type */
-            200 to 1, /* uint32_flag_support_mediaplatform */
-            99999 to mapOf(
-                90200 to 1 // uint32_download_url_type
-            )
-        ).toByteArray())
+        val buffer = sendOidbAW("OidbSvc.0xe37_1200", 3639, 1200, cmd0xe37.Req0xe37().apply {
+            bytes_cmd_0x346_req_body.set(ByteStringMicro.copyFrom(cmd0x346.ReqBody().apply {
+                uint32_cmd.set(1200)
+                uint32_seq.set(1)
+                msg_apply_download_req.set(cmd0x346.ApplyDownloadReq().apply {
+                    uint64_uin.set(app.longAccountUin)
+                    bytes_uuid.set(ByteStringMicro.copyFrom(fileId.toByteArray()))
+                    uint32_owner_type.set(2)
+                    str_fileidcrc.set(subId)
+
+                })
+                uint32_business_id.set(3)
+                uint32_client_type.set(104)
+                uint32_flag_support_mediaplatform.set(1)
+                msg_extension_req.set(cmd0x346.ExtensionReq().apply {
+                    uint32_download_url_type.set(1)
+                })
+            }.toByteArray()))
+        }.toByteArray())
 
         if (buffer == null) {
             if (retryCnt < 3) {
@@ -91,17 +90,19 @@ internal object RichProtoSvc: BaseSvc() {
         } else {
             val body = oidb_sso.OIDBSSOPkg()
             body.mergeFrom(buffer.slice(4))
-            val result = ProtoUtils.decodeFromByteArray(body.bytes_bodybuffer.get().toByteArray())
-
-            if (body.uint32_result.get() != 0 || result[14, 10].asInt != 0) {
+            val result = cmd0x346.RspBody().mergeFrom(cmd0xe37.Resp0xe37().mergeFrom(
+                body.bytes_bodybuffer.get().toByteArray()
+            ).bytes_cmd_0x346_rsp_body.get().toByteArray())
+            if (body.uint32_result.get() != 0 ||
+                result.msg_apply_download_rsp.int32_ret_code.has() && result.msg_apply_download_rsp.int32_ret_code.get() != 0) {
                 return ""
             }
 
-            val oldData = result[14, 30]
+            val oldData = result.msg_apply_download_rsp.msg_download_info
             //val newData = result[14, 40] NTQQ 文件信息
 
-            val domain = if (oldData.has(90)) ("https://" + oldData[90].asUtf8String) else ("http://" + oldData[60].asList.value.first().asUtf8String)
-            val params = oldData[50].asUtf8String
+            val domain = if (oldData.str_download_dns.has()) ("https://" + oldData.str_download_dns.get()) else ("http://" + oldData.rpt_str_downloadip_list.get().first())
+            val params = oldData.str_download_url.get()
             val appId = MobileQQ.getMobileQQ().appId
             val version = PlatformUtils.getQQVersion(MobileQQ.getContext())
 

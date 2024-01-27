@@ -9,7 +9,9 @@ import moe.fuqiuluo.shamrock.remote.service.data.SimpleTroopMemberInfo
 import moe.fuqiuluo.shamrock.remote.service.data.push.MemberRole
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
 import moe.fuqiuluo.shamrock.tools.ifNullOrEmpty
+import moe.fuqiuluo.symbols.OneBotHandler
 
+@OneBotHandler("get_group_member_list")
 internal object GetTroopMemberList : IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val groupId = session.getString("group_id")
@@ -72,7 +74,5 @@ internal object GetTroopMemberList : IActionHandler() {
     }
 
     override val requiredParams: Array<String> = arrayOf("group_id")
-
-    override fun path(): String = "get_group_member_list"
 }
 

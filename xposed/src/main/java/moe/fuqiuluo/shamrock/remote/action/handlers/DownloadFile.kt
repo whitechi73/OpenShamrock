@@ -11,7 +11,9 @@ import moe.fuqiuluo.shamrock.tools.asString
 import moe.fuqiuluo.shamrock.utils.DownloadUtils
 import moe.fuqiuluo.shamrock.utils.FileUtils
 import moe.fuqiuluo.shamrock.utils.MD5
+import moe.fuqiuluo.symbols.OneBotHandler
 
+@OneBotHandler("download_file")
 internal object DownloadFile: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val url = session.getStringOrNull("url")
@@ -107,8 +109,6 @@ internal object DownloadFile: IActionHandler() {
             logic(it.stackTraceToString(), echo)
         }
     }
-
-    override fun path(): String = "download_file"
 
     @Serializable
     data class DownloadResult(

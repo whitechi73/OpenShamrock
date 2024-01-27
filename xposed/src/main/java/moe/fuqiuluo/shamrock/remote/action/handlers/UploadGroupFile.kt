@@ -26,10 +26,12 @@ import moe.fuqiuluo.shamrock.remote.service.api.RichMediaUploadHandler
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
 import moe.fuqiuluo.shamrock.utils.FileUtils
 import moe.fuqiuluo.shamrock.utils.MD5
+import moe.fuqiuluo.symbols.OneBotHandler
 import java.io.File
 import java.io.FileOutputStream
 import kotlin.coroutines.resume
 
+@OneBotHandler("upload_group_file")
 internal object UploadGroupFile : IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val groupId = session.getString("group_id")
@@ -133,8 +135,6 @@ internal object UploadGroupFile : IActionHandler() {
     }
 
     override val requiredParams: Array<String> = arrayOf("group_id", "file", "name")
-
-    override fun path(): String = "upload_group_file"
 
     @Serializable
     data class FileUploadResult(

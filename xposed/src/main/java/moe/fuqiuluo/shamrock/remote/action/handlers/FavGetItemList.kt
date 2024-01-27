@@ -4,21 +4,18 @@ import kotlinx.io.core.ByteReadPacket
 import kotlinx.io.core.discardExact
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.json.JsonElement
-import moe.fuqiuluo.proto.ProtoUtils
-import moe.fuqiuluo.proto.asInt
-import moe.fuqiuluo.proto.asList
-import moe.fuqiuluo.proto.asLong
-import moe.fuqiuluo.proto.asMap
-import moe.fuqiuluo.proto.asULong
-import moe.fuqiuluo.proto.asUtf8String
+import kotlinx.serialization.protobuf.ProtoBuf
 import moe.fuqiuluo.qqinterface.servlet.QFavSvc
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
-import moe.fuqiuluo.shamrock.tools.toHexString
 import moe.fuqiuluo.shamrock.utils.DeflateTools
+import moe.fuqiuluo.symbols.OneBotHandler
+import moe.whitechi73.protobuf.fav.WeiyunComm
 
+@OneBotHandler("fav.get_item_list")
 internal object FavGetItemList: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val category = session.getInt("category")
@@ -58,31 +55,31 @@ internal object FavGetItemList: IActionHandler() {
         val data = ByteArray(dataLength).also {
             readPacket.readFully(it, 0, it.size)
         }
-        val pb = ProtoUtils.decodeFromByteArray(data)
+        val resp = ProtoBuf.decodeFromByteArray<WeiyunComm>(data).resp!!.getFavListResp!!
 
         val itemList = arrayListOf<Item>()
-        val rawItemList = pb[2, 20000, 1].asList
-        rawItemList.value.forEach {
-            val item = it.asMap
-            val itemId = item[1].asUtf8String
-            val authorType = item[4, 1].asInt
-            val author = item[4, 2].asULong
-            val authorName = item[4, 3].asUtf8String
+        val rawItemList = resp.collections!!
+        rawItemList.forEach {
+            val itemId = it.cid
+            val author = it.author!!
+            val authorType = author.type.toInt()
+            val authorId = author.numId.toLong()
+            val authorName = author.strId
             val groupName: String
             val groupId: Long
             if (authorType == 2) {
-                groupName = item[4, 5].asUtf8String
-                groupId = item[4, 4].asULong
+                groupName = author.groupName
+                groupId = author.groupId.toLong()
             } else {
                 groupName = ""
                 groupId = 0L
             }
-            val clientVersion = item[7].asUtf8String
-            val time = item[9].asLong
+            val clientVersion = it.srcAppVer
+            val time = it.createTime.toLong()
             itemList.add(Item(
                 id = itemId,
                 authorType = authorType,
-                author = author,
+                author = authorId,
                 authorName = authorName,
                 groupName = groupName,
                 groupId = groupId,
@@ -95,8 +92,6 @@ internal object FavGetItemList: IActionHandler() {
     }
 
     override val requiredParams: Array<String> = arrayOf("category", "start_pos", "page_size")
-
-    override fun path(): String = "fav.get_item_list"
 
     @Serializable
     private data class ItemList(

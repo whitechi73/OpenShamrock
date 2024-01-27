@@ -298,9 +298,9 @@ internal object MessageHelper {
         return db.messageMappingDao().queryByMsgHashId(hash)
     }
 
-    fun getMsgMappingBySeq(chatType: Int, msgSeq: Int): MessageMapping? {
+    fun getMsgMappingBySeq(chatType: Int, peerId: String, msgSeq: Int): MessageMapping? {
         val db = MessageDB.getInstance()
-        return db.messageMappingDao().queryByMsgSeq(chatType, msgSeq)
+        return db.messageMappingDao().queryByMsgSeq(chatType, peerId, msgSeq)
     }
 
     fun removeMsgByHashCode(hashCode: Int) {

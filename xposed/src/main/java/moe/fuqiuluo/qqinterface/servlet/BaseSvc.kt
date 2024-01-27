@@ -13,17 +13,16 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
-import moe.fuqiuluo.proto.protobufOf
+import kotlinx.serialization.encodeToByteArray
+import kotlinx.serialization.protobuf.ProtoBuf
 import moe.fuqiuluo.shamrock.utils.PlatformUtils
 import moe.fuqiuluo.shamrock.xposed.helper.AppRuntimeFetcher
-import moe.fuqiuluo.shamrock.xposed.helper.PacketHandler
 import moe.fuqiuluo.shamrock.xposed.helper.internal.DynamicReceiver
 import moe.fuqiuluo.shamrock.xposed.helper.internal.IPCRequest
+import moe.whitechi73.protobuf.oidb.TrpcOidb
 import mqq.app.MobileQQ
 import tencent.im.oidb.oidb_sso
-import kotlin.concurrent.timer
 import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 internal abstract class BaseSvc {
     companion object {
@@ -95,12 +94,15 @@ internal abstract class BaseSvc {
 
         fun sendTrpcOidb(cmd: String, cmdId: Int, serviceId: Int, buffer: ByteArray, seq: Int = -1) {
             val to = createToServiceMsg(cmd)
-            to.putWupBuffer(protobufOf(
-                1 to cmdId,
-                2 to serviceId,
-                4 to buffer,
-                12 to 0
-            ).toByteArray())
+
+            val oidb = TrpcOidb(
+                cmd = cmdId,
+                service = serviceId,
+                buffer = buffer,
+                flag = 0
+            )
+            to.putWupBuffer(ProtoBuf.encodeToByteArray(oidb))
+
             to.addAttribute("req_pb_protocol_flag", true)
             if (seq != -1) {
                 to.addAttribute("shamrock_seq", seq)

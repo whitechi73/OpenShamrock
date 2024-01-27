@@ -6,7 +6,9 @@ import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
 import moe.fuqiuluo.shamrock.utils.MMKVFetcher
+import moe.fuqiuluo.symbols.OneBotHandler
 
+@OneBotHandler("clean_cache")
 internal object CleanCache: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         return invoke(session.echo)
@@ -24,6 +26,4 @@ internal object CleanCache: IActionHandler() {
             .clear()
         return ok("成功", echo)
     }
-
-    override fun path(): String = "clean_cache"
 }

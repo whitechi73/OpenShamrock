@@ -7,7 +7,9 @@ import moe.fuqiuluo.qqinterface.servlet.MsgSvc
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
+import moe.fuqiuluo.symbols.OneBotHandler
 
+@OneBotHandler("delete_essence_msg", ["delete_essence_message"])
 internal object DeleteEssenceMessage: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val messageId = session.getInt("message_id")
@@ -29,7 +31,4 @@ internal object DeleteEssenceMessage: IActionHandler() {
             logic(tip, echo)
         }
     }
-
-    override val alias: Array<String> = arrayOf("delete_essence_message")
-    override fun path(): String = "delete_essence_msg"
 }

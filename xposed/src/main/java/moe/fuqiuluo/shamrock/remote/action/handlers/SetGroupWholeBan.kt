@@ -5,7 +5,9 @@ import moe.fuqiuluo.qqinterface.servlet.GroupSvc
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
+import moe.fuqiuluo.symbols.OneBotHandler
 
+@OneBotHandler("set_group_whole_ban")
 internal object SetGroupWholeBan: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val groupId = session.getLong("group_id")
@@ -19,6 +21,4 @@ internal object SetGroupWholeBan: IActionHandler() {
     }
 
     override val requiredParams: Array<String> = arrayOf()
-
-    override fun path(): String = "set_group_whole_ban"
 }

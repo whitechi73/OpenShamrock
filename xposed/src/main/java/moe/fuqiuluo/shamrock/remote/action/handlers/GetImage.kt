@@ -8,7 +8,9 @@ import moe.fuqiuluo.shamrock.helper.db.ImageDB
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
+import moe.fuqiuluo.symbols.OneBotHandler
 
+@OneBotHandler("get_image")
 internal object GetImage: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val echo = session.echo
@@ -41,8 +43,6 @@ internal object GetImage: IActionHandler() {
     }
 
     override val requiredParams: Array<String> = arrayOf("file")
-
-    override fun path(): String = "get_image"
 
     @Serializable
     data class GetImageResult(

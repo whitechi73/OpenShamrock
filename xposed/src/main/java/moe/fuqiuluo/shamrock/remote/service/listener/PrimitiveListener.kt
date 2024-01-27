@@ -1,4 +1,4 @@
-@file:OptIn(DelicateCoroutinesApi::class)
+@file:OptIn(DelicateCoroutinesApi::class, ExperimentalSerializationApi::class)
 
 package moe.fuqiuluo.shamrock.remote.service.listener
 
@@ -10,9 +10,11 @@ import kotlinx.coroutines.launch
 import kotlinx.io.core.ByteReadPacket
 import kotlinx.io.core.discardExact
 import kotlinx.io.core.readBytes
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
-import moe.fuqiuluo.proto.*
+import kotlinx.serialization.protobuf.ProtoBuf
 import moe.fuqiuluo.qqinterface.servlet.FriendSvc.requestFriendSystemMsgNew
 import moe.fuqiuluo.qqinterface.servlet.GroupSvc
 import moe.fuqiuluo.qqinterface.servlet.GroupSvc.requestGroupSystemMsgNew
@@ -28,15 +30,17 @@ import moe.fuqiuluo.shamrock.remote.service.data.push.RequestSubType
 import moe.fuqiuluo.shamrock.tools.asJsonObject
 import moe.fuqiuluo.shamrock.tools.asString
 import moe.fuqiuluo.shamrock.tools.readBuf32Long
-import moe.fuqiuluo.shamrock.tools.toHexString
 import moe.fuqiuluo.shamrock.xposed.helper.PacketHandler
+import moe.whitechi73.protobuf.message.*
+import moe.whitechi73.protobuf.push.*
 
 internal object PrimitiveListener {
     fun registerListener() {
         PacketHandler.register("trpc.msg.olpush.OlPushService.MsgPush") { _, buffer ->
             GlobalScope.launch {
                 try {
-                    onMsgPush(ProtoUtils.decodeFromByteArray(buffer.slice(4)))
+                    val push = ProtoBuf.decodeFromByteArray<MessagePush>(buffer.slice(4))
+                    onMsgPush(push)
                 } catch (e: Exception) {
                     LogCenter.log(e.stackTraceToString(), Level.WARN)
                 }
@@ -44,40 +48,41 @@ internal object PrimitiveListener {
         }
     }
 
-    private suspend fun onMsgPush(pb: ProtoMap) {
+    private suspend fun onMsgPush(push: MessagePush) {
         if (
-            !pb.has(1, 3)
-            || !pb.has(1, 2)
-            || !pb.has(1, 2, 6)
+            push.msgBody == null ||
+            push.msgBody!!.contentHead == null ||
+            push.msgBody!!.richMsg == null ||
+            push.msgBody!!.contentHead!!.msgTime == null
         ) return
-        val msgType = pb[1, 2, 1].asInt
-        var subType = 0
-        if (pb.has(1, 2, 3) && pb.has(1, 2, 2)) {
-            subType = pb[1, 2, 2].asInt
-        }
-        val msgTime = pb[1, 2, 6].asLong
+        val msgBody = push.msgBody!!
+        val contentHead = msgBody.contentHead!!
+        val msgType = contentHead.msgType
+        val subType = contentHead.msgSubType
+        val msgTime = contentHead.msgTime!!
+        val richMsg = msgBody.richMsg!!
         try {
             when (msgType) {
-                33 -> onGroupMemIncreased(msgTime, pb)
-                34 -> onGroupMemberDecreased(msgTime, pb)
-                44 -> onGroupAdminChange(msgTime, pb)
-                84 -> onGroupApply(msgTime, pb)
-                87 -> onInviteGroup(msgTime, pb)
+                33 -> onGroupMemIncreased(msgTime, richMsg)
+                34 -> onGroupMemberDecreased(msgTime, richMsg)
+                44 -> onGroupAdminChange(msgTime, richMsg)
+                84 -> onGroupApply(msgTime, contentHead, richMsg)
+                87 -> onInviteGroup(msgTime, msgBody.msgHead!!, richMsg)
                 528 -> when (subType) {
-                    35 -> onFriendApply(msgTime, pb)
-                    39 -> onCardChange(msgTime, pb)
+                    35 -> onFriendApply(msgTime, push.clientInfo!!, richMsg)
+                    39 -> onCardChange(msgTime, richMsg)
                     // invite
-                    68 -> onGroupApply(msgTime, pb)
-                    138 -> onC2CRecall(msgTime, pb)
-                    290 -> onC2cPoke(msgTime, pb)
+                    68 -> onGroupApply(msgTime, contentHead, richMsg)
+                    138 -> onC2CRecall(msgTime, richMsg)
+                    290 -> onC2CPoke(msgTime, richMsg)
                 }
 
                 732 -> when (subType) {
-                    12 -> onGroupBan(msgTime, pb)
-                    16 -> onGroupTitleChange(msgTime, pb)
-                    17 -> onGroupRecall(msgTime, pb)
-                    20 -> onGroupPokeAndGroupSign(msgTime, pb)
-                    21 -> onEssenceMessage(msgTime, pb)
+                    12 -> onGroupBan(msgTime, richMsg)
+                    16 -> onGroupUniqueTitleChange(msgTime, richMsg)
+                    17 -> onGroupRecall(msgTime, richMsg)
+                    20 -> onGroupPokeAndGroupSign(msgTime, richMsg)
+                    21 -> onEssenceMessage(msgTime, push.clientInfo, richMsg)
                 }
             }
         } catch (e: Exception) {
@@ -85,31 +90,19 @@ internal object PrimitiveListener {
         }
     }
 
-    private suspend fun onC2cPoke(msgTime: Long, pb: ProtoMap) {
-        val detail = pb[1, 3, 2]
-        if (detail !is ProtoMap) {
-            error("不支持该私聊戳一戳解析: ${(detail as ProtoByteString).toByteArray().toHexString()}")
+    private suspend fun onC2CPoke(msgTime: Long, richMsg: RichMessage) {
+        val event = ProtoBuf.decodeFromByteArray<C2CCommonTipsEvent>(richMsg.rawBuffer!!)
+        if (event.params == null) return
+
+        val params = event.params!!.associate {
+            it.key to it.value
         }
 
-        lateinit var target: String
-        lateinit var operation: String
-        var suffix: String? = null
-        var actionImg: String? = null
-        var action: String? = null
-        detail[7]
-            .asList
-            .value
-            .forEach {
-                val value = it[2].asUtf8String
-                when (it[1].asUtf8String) {
-                    "uin_str1" -> operation = value
-                    "uin_str2" -> target = value
-                    "action_str" -> action = value
-                    "alt_str1" -> action = value
-                    "suffix_str" -> suffix = value
-                    "action_img_url" -> actionImg = value
-                }
-            }
+        val target = params["uin_str2"] ?: return
+        val operation = params["uin_str1"] ?: return
+        val suffix = params["suffix_str"] ?: ""
+        val actionImg = params["action_img_url"] ?: ""
+        val action = params["alt_str1"] ?: ""
 
         LogCenter.log("私聊戳一戳: $operation $action $target $suffix")
 
@@ -120,16 +113,22 @@ internal object PrimitiveListener {
         }
     }
 
-    private suspend fun onFriendApply(msgTime: Long, pb: ProtoMap) {
-        val applierUid = pb[1, 3, 2, 1, 2].asUtf8String
-        val msg = pb[1, 3, 2, 1, 10].asUtf8String
-        val source = pb[1, 3, 2, 1, 11].asUtf8String
+    private suspend fun onFriendApply(
+        msgTime: Long,
+        clientInfo: MessagePushClientInfo,
+        richMsg: RichMessage
+    ) {
+        val event = ProtoBuf.decodeFromByteArray<FriendApplyEvent>(richMsg.rawBuffer!!)
+        val head = event.head!!
+        val applierUid = head.applierUid
+        val msg = head.applyMsg ?: ""
+        val source = head.source ?: ""
         var applier = ContactHelper.getUinByUidAsync(applierUid).toLong()
         if (applier == 0L) {
-            applier = pb[4, 3, 8].asLong
+            applier = clientInfo.liteHead?.sender?.toLong() ?: 0
         }
-        val src = pb[1, 3, 2, 1, 7].asInt
-        val subSrc = pb[1, 3, 2, 1, 8].asInt
+        val src = head.srcId
+        val subSrc = head.subSrc
         val flag: String = try {
             val reqs = requestFriendSystemMsgNew(20, 0, 0)
             val req = reqs?.first {
@@ -149,18 +148,21 @@ internal object PrimitiveListener {
     }
 
 
-    private suspend fun onCardChange(msgTime: Long, pb: ProtoMap) {
+    private suspend fun onCardChange(msgTime: Long, richMsg: RichMessage) {
+        LogCenter.log("群名片事件异常，请尝试提交issue！", Level.WARN)
+        /*try {
+            val readPacket = ByteReadPacket(richMsg.rawBuffer!!)
+            if(readPacket.readBuf32Long() ==
+            readPacket.discardExact(1)
+            detail = ProtoUtils.decodeFromByteArray(readPacket.readBytes(readPacket.readShort().toInt()))
+            readPacket.release()
+        } catch (e: Exception) {
+            LogCenter.log("onCardChange error: ${e.stackTraceToString()}", Level.WARN)
+        }
+
         var detail = pb[1, 3, 2]
         if (detail !is ProtoMap) {
-            try {
-                val readPacket = ByteReadPacket(detail.asByteArray)
-                readPacket.readBuf32Long()
-                readPacket.discardExact(1)
-                detail = ProtoUtils.decodeFromByteArray(readPacket.readBytes(readPacket.readShort().toInt()))
-                readPacket.release()
-            } catch (e: Exception) {
-                LogCenter.log("onCardChange error: ${e.stackTraceToString()}", Level.WARN)
-            }
+
         }
 
         val targetId = detail[1, 13, 2].asUtf8String
@@ -187,39 +189,34 @@ internal object PrimitiveListener {
                 .transCardChange(msgTime, targetQQ, oldCard, newCard, groupId)
         ) {
             LogCenter.log("群名片变动推送失败！", Level.WARN)
-        }
+        }*/
     }
 
-    private suspend fun onGroupTitleChange(msgTime: Long, pb: ProtoMap) {
-        var detail = pb[1, 3, 2]
-        if (detail !is ProtoMap) {
-            try {
-                val readPacket = ByteReadPacket(detail.asByteArray)
-                readPacket.readBuf32Long()
-                readPacket.discardExact(1)
-                detail = ProtoUtils.decodeFromByteArray(readPacket.readBytes(readPacket.readShort().toInt()))
+    private suspend fun onGroupUniqueTitleChange(msgTime: Long, richMsg: RichMessage) {
+        val event = runCatching {
+            ProtoBuf.decodeFromByteArray<GroupCommonTipsEvent>(richMsg.rawBuffer!!)
+        }.getOrElse {
+            val readPacket = ByteReadPacket(richMsg.rawBuffer!!)
+            readPacket.readBuf32Long()
+            readPacket.discardExact(1)
+
+            ProtoBuf.decodeFromByteArray<GroupCommonTipsEvent>(readPacket.readBytes(readPacket.readShort().toInt()).also {
                 readPacket.release()
-            } catch (e: Exception) {
-                LogCenter.log("onGroupTitleChange error: ${e.stackTraceToString()}", Level.WARN)
-            }
+            })
         }
-        var groupId:Long
-        try {
-            groupId = detail[4].asULong
-        }catch (e: ClassCastException){
-            groupId = detail[4].asList.value[0].asULong
-        }
+        val groupId = event.groupCode.toLong()
+        val detail = event.uniqueTitleChangeDetail!!.first()
 
-        detail = if (detail[5] is ProtoList) {
-            (detail[5] as ProtoList).value[0]
-        } else {
-            detail[5]
-        }
+        //detail = if (detail[5] is ProtoList) {
+        //    (detail[5] as ProtoList).value[0]
+        //} else {
+        //    detail[5]
+       // }
 
-        val targetUin = detail[5].asLong
+        val targetUin = detail.targetUin.toLong()
 
         // 恭喜<{\"cmd\":5,\"data\":\"qq\",\"text}\":\"nickname\"}>获得群主授予的<{\"cmd\":1,\"data\":\"https://qun.qq.com/qqweb/m/qun/medal/detail.html?_wv=16777223&bid=2504&gc=gid&isnew=1&medal=302&uin=uin\",\"text\":\"title\",\"url\":\"https://qun.qq.com/qqweb/m/qun/medal/detail.html?_wv=16777223&bid=2504&gc=gid&isnew=1&medal=302&uin=uin\"}>头衔
-        val titleChangeInfo = detail[2].asUtf8String
+        val titleChangeInfo = detail.wording
         if (titleChangeInfo.indexOf("群主授予") == -1) {
             return
         }
@@ -236,45 +233,44 @@ internal object PrimitiveListener {
         }
     }
 
-    private suspend fun onEssenceMessage(msgTime: Long, pb: ProtoMap) {
-        var detail = pb[1, 3, 2]
-        if (detail !is ProtoMap) {
-            try {
-                val readPacket = ByteReadPacket(detail.asByteArray)
-                readPacket.readBuf32Long()
-                readPacket.discardExact(1)
-                detail = ProtoUtils.decodeFromByteArray(readPacket.readBytes(readPacket.readShort().toInt()))
-                readPacket.release()
-            } catch (e: Exception) {
-                LogCenter.log("onEssenceMessage error: ${e.stackTraceToString()}", Level.WARN)
-            }
-        }
+    private suspend fun onEssenceMessage(
+        msgTime: Long,
+        clientInfo: MessagePushClientInfo?,
+        richMsg: RichMessage
+    ) {
+        if (clientInfo == null) return
+        val event = runCatching {
+            ProtoBuf.decodeFromByteArray<GroupCommonTipsEvent>(richMsg.rawBuffer!!)
+        }.getOrElse {
+            val readPacket = ByteReadPacket(richMsg.rawBuffer!!)
+            readPacket.readBuf32Long()
+            readPacket.discardExact(1)
 
-        var groupId:Long
-        try {
-            groupId = detail[4].asULong
-        }catch (e: ClassCastException){
-            groupId = detail[4].asList.value[0].asULong
+            ProtoBuf.decodeFromByteArray<GroupCommonTipsEvent>(readPacket.readBytes(readPacket.readShort().toInt()).also {
+                readPacket.release()
+            })
         }
-        val mesSeq = detail[37].asInt
-        val senderUin = detail[33, 5].asLong
-        val operatorUin = detail[33, 6].asLong
-        var msgId = 0
-        MessageHelper.getMsgMappingBySeq(MsgConstant.KCHATTYPEGROUP, mesSeq).also {
-            if (it != null) {
-                msgId = it.msgHashId
+        val groupId = event.groupCode.toLong()
+        val detail = event.essenceMsgInfo!!.first()
+
+        val megSeq = event.msgSeq.toInt()
+        val senderUin = detail.sender.toLong()
+        val operatorUin = detail.operator.toLong()
+        val msgHashId = MessageHelper.getMsgMappingBySeq(MsgConstant.KCHATTYPEGROUP, groupId.toString(), megSeq).also {
+            if (it == null) {
+                LogCenter.log("精华消息变动推送失败！找不到消息映射关系！", Level.WARN)
+                return
             }
-        }
-        val subType = when (val type = detail[33, 4].asInt) {
-            1 -> {
-                // add essence
-                LogCenter.log("群设精消息($groupId): $senderUin $msgId $operatorUin")
+        }!!.msgHashId
+
+        val subType = when (val type = detail.type) {
+            1u -> {
+                LogCenter.log("群设精消息(groupId=$groupId, sender=$senderUin, msgId=$msgHashId, operator=$operatorUin)")
                 NoticeSubType.Add
             }
 
-            2 -> {
-                // remove essence
-                LogCenter.log("群取精消息($groupId): $senderUin $msgId $operatorUin")
+            2u -> {
+                LogCenter.log("群撤精消息(groupId=$groupId, sender=$senderUin, msgId=$msgHashId, operator=$operatorUin)")
                 NoticeSubType.Delete
             }
 
@@ -282,68 +278,44 @@ internal object PrimitiveListener {
         }
 
         if (!GlobalEventTransmitter.GroupNoticeTransmitter
-                .transEssenceChange(msgTime, senderUin, operatorUin, msgId, groupId, subType)
+                .transEssenceChange(msgTime, senderUin, operatorUin, msgHashId, groupId, subType)
         ) {
             LogCenter.log("精华消息变动推送失败！", Level.WARN)
         }
     }
 
 
-    private suspend fun onGroupPokeAndGroupSign(time: Long, pb: ProtoMap) {
-        var detail = pb[1, 3, 2]
-        if (detail !is ProtoMap) {
-            try {
-                val readPacket = ByteReadPacket(detail.asByteArray)
-                readPacket.discardExact(4)
-                readPacket.discardExact(1)
-                detail = ProtoUtils.decodeFromByteArray(readPacket.readBytes(readPacket.readShort().toInt()))
+    private suspend fun onGroupPokeAndGroupSign(time: Long, richMsg: RichMessage) {
+        val event = runCatching {
+            ProtoBuf.decodeFromByteArray<GroupCommonTipsEvent>(richMsg.rawBuffer!!)
+        }.getOrElse {
+            val readPacket = ByteReadPacket(richMsg.rawBuffer!!)
+            readPacket.discardExact(4)
+            readPacket.discardExact(1)
+
+            ProtoBuf.decodeFromByteArray<GroupCommonTipsEvent>(readPacket.readBytes(readPacket.readShort().toInt()).also {
                 readPacket.release()
-            } catch (e: Exception) {
-                LogCenter.log("onGroupPokeAndGroupSign error: ${e.stackTraceToString()}", Level.WARN)
-            }
+            })
         }
-        val groupId = try {
-            detail[4].asULong
-        }catch (e: ClassCastException){
-            detail[4].asList.value[0].asULong
-        }
+        val groupId = event.groupCode.toLong()
+        val detail = event.baseTips!!.first()
 
-        detail = if (detail[26] is ProtoList) {
-            (detail[26] as ProtoList).value[0]
-        } else {
-            detail[26]
+        val params = detail.params!!.associate {
+            it.key to it.value
         }
 
-        lateinit var target: String
-        lateinit var operation: String
-        var action: String? = null
-        var suffix: String? = null
-        var actionImg: String? = null
-        var rankImg: String? = null
-        detail[7]
-            .asList
-            .value
-            .forEach {
-                val value = it[2].asUtf8String
-                when (it[1].asUtf8String) {
-                    "uin_str1" -> operation = value
-                    "uin_str2" -> target = value
-                    // "nick_str1" -> operation_nick = value
-                    // "nick_str2" -> operation_nick = value
-                    "action_str" -> action = value
-                    "alt_str1" -> action = value
-                    "suffix_str" -> suffix = value
-                    "action_img_url" -> actionImg = value
+        val target = params["uin_str2"] ?: params["mqq_uin"] ?: return
+        val operation = params["uin_str1"] ?: return
+        val suffix = params["suffix_str"] ?: ""
+        val actionImg = params["action_img_url"] ?: ""
+        val action = params["alt_str1"]
+            ?: params["action_str"]
+            ?: params["user_sign"]
+            ?: ""
+        val rankImg = params["rank_img"] ?: ""
 
-                    "mqq_uin" -> target = value
-                    // "mqq_nick" -> operation_nick = value
-                    "user_sign" -> action = value
-                    "rank_img" -> rankImg = value
-                    // "sign_word" ->  我也要打卡
-                }
-            }
-        when (detail[2].asInt) {
-            1061 -> {
+        when (detail.type) {
+            1061u -> {
                 LogCenter.log("群戳一戳($groupId): $operation $action $target $suffix")
                 if (!GlobalEventTransmitter.GroupNoticeTransmitter
                         .transGroupPoke(time, operation.toLong(), target.toLong(), action, suffix, actionImg, groupId)
@@ -352,7 +324,7 @@ internal object PrimitiveListener {
                 }
             }
 
-            1068 -> {
+            1068u -> {
                 LogCenter.log("群打卡($groupId): $action $target")
                 if (!GlobalEventTransmitter.GroupNoticeTransmitter
                         .transGroupSign(time, target.toLong(), action, rankImg, groupId)
@@ -362,35 +334,41 @@ internal object PrimitiveListener {
             }
 
             else -> {
-                LogCenter.log("onGroupPokeAndGroupSign unknown type ${detail[2].asInt}", Level.WARN)
+                LogCenter.log("onGroupPokeAndGroupSign unknown type ${detail.type}", Level.WARN)
             }
         }
     }
 
-    private suspend fun onC2CRecall(time: Long, pb: ProtoMap) {
-        val operationUid = pb[1, 3, 2, 1, 1].asUtf8String
-        val msgSeq = pb[1, 3, 2, 1, 20].asLong
-        val tipText = if (pb.has(1, 3, 2, 1, 13)) pb[1, 3, 2, 1, 13, 2].asUtf8String else ""
-        val mapping = MessageHelper.getMsgMappingBySeq(MsgConstant.KCHATTYPEC2C, msgSeq.toInt())
+    private suspend fun onC2CRecall(time: Long, richMsg: RichMessage) {
+        val event = ProtoBuf.decodeFromByteArray<C2CRecallEvent>(richMsg.rawBuffer!!)
+        val head = event.head!!
+
+        val operationUid = head.operator!!
+        val operator = ContactHelper.getUinByUidAsync(operationUid).toLong()
+
+        val msgSeq = head.msgSeq
+        val tipText = head.wording?.wording ?: ""
+
+        val mapping = MessageHelper.getMsgMappingBySeq(MsgConstant.KCHATTYPEC2C, operator.toString(), msgSeq.toInt())
         if (mapping == null) {
             LogCenter.log("由于缺失消息映射关系，消息撤回事件无法推送！", Level.WARN)
             return
         }
-        val operation = ContactHelper.getUinByUidAsync(operationUid).toLong()
 
-        LogCenter.log("私聊消息撤回: $operation, seq = $msgSeq, hash = ${mapping.msgHashId}, tip = $tipText")
+        LogCenter.log("私聊消息撤回: $operator, seq = $msgSeq, hash = ${mapping.msgHashId}, tip = $tipText")
 
         if (!GlobalEventTransmitter.PrivateNoticeTransmitter
-                .transPrivateRecall(time, operation, mapping.msgHashId, tipText)
+                .transPrivateRecall(time, operator, mapping.msgHashId, tipText)
         ) {
             LogCenter.log("私聊消息撤回推送失败！", Level.WARN)
         }
     }
 
-    private suspend fun onGroupMemIncreased(time: Long, pb: ProtoMap) {
-        val groupCode = pb[1, 3, 2, 1].asULong
-        val targetUid = pb[1, 3, 2, 3].asUtf8String
-        val type = pb[1, 3, 2, 4].asInt
+    private suspend fun onGroupMemIncreased(time: Long, richMsg: RichMessage) {
+        val event = ProtoBuf.decodeFromByteArray<GroupListChangeEvent>(richMsg.rawBuffer!!)
+        val groupCode = event.groupCode
+        val targetUid = event.memberUid
+        val type = event.type
 
         GroupSvc.getGroupMemberList(groupCode.toString(), true).onFailure {
             LogCenter.log("新成员加入刷新群成员列表失败: $groupCode", Level.WARN)
@@ -398,7 +376,7 @@ internal object PrimitiveListener {
             LogCenter.log("新成员加入刷新群成员列表成功，群成员数量: ${it.size}", Level.INFO)
         }
 
-        val operatorUid = pb[1, 3, 2, 5].asUtf8String
+        val operatorUid = event.operatorUid
         val operator = ContactHelper.getUinByUidAsync(operatorUid).toLong()
         val target = ContactHelper.getUinByUidAsync(targetUid).toLong()
         LogCenter.log("群成员增加($groupCode): $target, type = $type")
@@ -416,15 +394,12 @@ internal object PrimitiveListener {
         }
     }
 
-    private suspend fun onGroupMemberDecreased(time: Long, pb: ProtoMap) {
-        val groupCode = pb[1, 3, 2, 1].asULong
-        val targetUid = pb[1, 3, 2, 3].asUtf8String
-        val type = pb[1, 3, 2, 4].asInt
-        val operatorUid = try {
-            pb[1, 3, 2, 5, 1, 1].asUtf8String
-        } catch (e: Throwable) {
-            pb[1, 3, 2, 5].asUtf8String
-        }
+    private suspend fun onGroupMemberDecreased(time: Long, richMsg: RichMessage) {
+        val event = ProtoBuf.decodeFromByteArray<GroupListChangeEvent>(richMsg.rawBuffer!!)
+        val groupCode = event.groupCode
+        val targetUid = event.memberUid
+        val type = event.type
+        val operatorUid = event.operatorUid
 
         GroupSvc.getGroupMemberList(groupCode.toString(), true).onFailure {
             LogCenter.log("新成员加入刷新群成员列表失败: $groupCode", Level.WARN)
@@ -452,17 +427,23 @@ internal object PrimitiveListener {
         }
     }
 
-    private suspend fun onGroupAdminChange(msgTime: Long, pb: ProtoMap) {
-        val groupCode = pb[1, 3, 2, 1].asULong
-        lateinit var targetUid: String
+    private suspend fun onGroupAdminChange(msgTime: Long, richMsg: RichMessage) {
+        val event = ProtoBuf.decodeFromByteArray<GroupAdminChangeEvent>(richMsg.rawBuffer!!)
+        val groupCode = event.groupCode
+        if (event.operation == null) return
+        val operation = event.operation!!
+        if (operation.setInfo == null && operation.unsetInfo == null) return
+
         val isSetAdmin: Boolean
-        if (pb.has(1, 3, 2, 4, 1)) {
-            targetUid = pb[1, 3, 2, 4, 1, 1].asUtf8String
-            isSetAdmin = pb[1, 3, 2, 4, 1, 2].asInt == 1
+        val targetUid: String
+        if (operation.setInfo == null) {
+            isSetAdmin = false
+            targetUid = operation.unsetInfo!!.targetUid!!
         } else {
-            targetUid = pb[1, 3, 2, 4, 2, 1].asUtf8String
-            isSetAdmin = pb[1, 3, 2, 4, 2, 2].asInt == 1
+            isSetAdmin = true
+            targetUid = operation.setInfo!!.targetUid!!
         }
+
         val target = ContactHelper.getUinByUidAsync(targetUid).toLong()
         LogCenter.log("群管理员变动($groupCode): $target, isSetAdmin = $isSetAdmin")
 
@@ -473,12 +454,13 @@ internal object PrimitiveListener {
         }
     }
 
-    private suspend fun onGroupBan(msgTime: Long, pb: ProtoMap) {
-        val groupCode = pb[1, 3, 2, 1].asULong
-        val operatorUid = pb[1, 3, 2, 4].asUtf8String
-        val wholeBan = !pb.has(1, 3, 2, 5, 3, 1)
-        val targetUid = if (wholeBan) "" else pb[1, 3, 2, 5, 3, 1].asUtf8String
-        val rawDuration = pb[1, 3, 2, 5, 3, 2].asInt
+    private suspend fun onGroupBan(msgTime: Long, richMsg: RichMessage) {
+        val event = ProtoBuf.decodeFromByteArray<GroupBanEvent>(richMsg.rawBuffer!!)
+        val groupCode = event.groupCode.toLong()
+        val operatorUid = event.operatorUid
+        val wholeBan = event.target?.target?.targetUid == null
+        val targetUid = event.target?.target?.targetUid ?: ""
+        val rawDuration = event.target?.target?.rawDuration?.toInt() ?: 0
 
         val operator = ContactHelper.getUinByUidAsync(operatorUid).toLong()
         val duration = if (wholeBan) -1 else rawDuration
@@ -497,29 +479,24 @@ internal object PrimitiveListener {
         }
     }
 
-    private suspend fun onGroupRecall(time: Long, pb: ProtoMap) {
-        var detail = pb[1, 3, 2]
-        if (detail !is ProtoMap) {
-            try {
-                val readPacket = ByteReadPacket(detail.asByteArray)
-                readPacket.discardExact(4)
-                readPacket.discardExact(1)
-                detail = ProtoUtils.decodeFromByteArray(readPacket.readBytes(readPacket.readShort().toInt()))
+    private suspend fun onGroupRecall(time: Long, richMsg: RichMessage) {
+        val event = runCatching {
+            ProtoBuf.decodeFromByteArray<GroupCommonTipsEvent>(richMsg.rawBuffer!!)
+        }.getOrElse {
+            val readPacket = ByteReadPacket(richMsg.rawBuffer!!)
+            readPacket.discardExact(4)
+            readPacket.discardExact(1)
+            ProtoBuf.decodeFromByteArray<GroupCommonTipsEvent>(readPacket.readBytes(readPacket.readShort().toInt()).also {
                 readPacket.release()
-            } catch (e: Exception) {
-                LogCenter.log("onGroupRecall error: ${e.stackTraceToString()}", Level.WARN)
-            }
+            })
         }
-        val groupCode:Long = try {
-            detail[4].asULong
-        }catch (e: ClassCastException){
-            detail[4].asList.value[0].asULong
-        }
-        val operatorUid = detail[11, 1].asUtf8String
-        val targetUid = detail[11, 3, 6].asUtf8String
-        val msgSeq = detail[11, 3, 1].asLong
-        val tipText = if (detail.has(11, 9)) detail[11, 9, 2].asUtf8String else ""
-        val mapping = MessageHelper.getMsgMappingBySeq(MsgConstant.KCHATTYPEGROUP, msgSeq.toInt())
+        val groupCode = event.groupCode.toLong()
+        val detail = event.recallDetails!!
+        val operatorUid = detail.operatorUid
+        val targetUid = detail.msgInfo!!.senderUid
+        val msgSeq = detail.msgInfo!!.msgSeq.toLong()
+        val tipText = detail.wording?.wording ?: ""
+        val mapping = MessageHelper.getMsgMappingBySeq(MsgConstant.KCHATTYPEGROUP, groupCode.toString(), msgSeq.toInt())
         if (mapping == null) {
             LogCenter.log("由于缺失消息映射关系(seq = $msgSeq)，消息撤回事件无法推送！", Level.WARN)
             return
@@ -536,23 +513,25 @@ internal object PrimitiveListener {
         }
     }
 
-    private suspend fun onGroupApply(time: Long, pb: ProtoMap) {
-        when (pb[1, 2, 1].asInt) {
+    private suspend fun onGroupApply(time: Long, contentHead: MessageContentHead, richMsg: RichMessage) {
+        when (contentHead.msgType) {
             84 -> {
-                val groupCode = pb[1, 3, 2, 1].asULong
-                val applierUid = pb[1, 3, 2, 3].asUtf8String
-                val reason = pb[1, 3, 2, 5].asUtf8String
+                val event = ProtoBuf.decodeFromByteArray<GroupApplyEvent>(richMsg.rawBuffer!!)
+                val groupCode = event.groupCode
+                val applierUid = event.applierUid
+                val reason = event.applyMsg ?: ""
                 val applier = ContactHelper.getUinByUidAsync(applierUid).toLong()
                 if (applier == getLongUin()) {
                     return
                 }
-                LogCenter.log("入群申请($groupCode) $applier: \"$reason\"")
+                val msgSeq = contentHead.msgSeq
+                LogCenter.log("入群申请($groupCode) $applier: \"$reason\", seq: $msgSeq")
                 val flag = try {
                     var reqs = requestGroupSystemMsgNew(10, 1)
                     val riskReqs = requestGroupSystemMsgNew(5, 2)
                     reqs = reqs + riskReqs
-                    val req = reqs.firstOrNull() {
-                        it.msg_time.get() == time
+                    val req = reqs.firstOrNull {
+                        it.msg_time.get() == time && it.msg?.group_code?.get() == groupCode
                     }
                     val seq = req?.msg_seq?.get() ?: time
                     "$seq;$groupCode;$applier"
@@ -565,15 +544,15 @@ internal object PrimitiveListener {
                     LogCenter.log("入群申请推送失败！", Level.WARN)
                 }
             }
-
             528 -> {
-                val groupCode = pb[1, 3, 2, 2, 3].asULong
-                val applierUid = pb[1, 3, 2, 2, 5].asUtf8String
+                val event = ProtoBuf.decodeFromByteArray<GroupInvitedApplyEvent>(richMsg.rawBuffer!!)
+                val groupCode = event.applyInfo?.groupCode ?: return
+                val applierUid = event.applyInfo?.applierUid ?: return
                 val applier = ContactHelper.getUinByUidAsync(applierUid).toLong()
                 if (applier == getLongUin()) {
                     return
                 }
-                if (pb[1, 3, 2, 2, 1].asInt < 3) {
+                if ((event.applyInfo?.type ?: return) < 3) {
                     // todo
                     return
                 }
@@ -599,17 +578,18 @@ internal object PrimitiveListener {
         }
     }
 
-    private suspend fun onInviteGroup(time: Long, pb: ProtoMap) {
-        val groupCode = pb[1, 3, 2, 1].asULong
-        val invitorUid = pb[1, 3, 2, 5].asUtf8String
+    private suspend fun onInviteGroup(time: Long, msgHead: MessageHead,richMsg: RichMessage) {
+        val event = ProtoBuf.decodeFromByteArray<GroupInviteEvent>(richMsg.rawBuffer!!)
+        val groupCode = event.groupCode
+        val invitorUid = event.inviterUid
         val invitor = ContactHelper.getUinByUidAsync(invitorUid).toLong()
-        val uin = pb[1, 1, 5].asLong
-        LogCenter.log("邀请入群$groupCode 邀请者: \"$invitor\"")
+        val uin = msgHead.receiver
+        LogCenter.log("邀请入群: $groupCode, 邀请者: \"$invitor\"")
         val flag = try {
             var reqs = requestGroupSystemMsgNew(10, 1)
             val riskReqs = requestGroupSystemMsgNew(10, 2)
             reqs = reqs + riskReqs
-            val req = reqs.firstOrNull() {
+            val req = reqs.firstOrNull {
                 it.msg_time.get() == time
             }
             val seq = req?.msg_seq?.get() ?: time

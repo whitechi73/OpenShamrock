@@ -50,8 +50,10 @@ interface MessageMappingDao {
     @Query("SELECT * FROM message_mapping WHERE peerId = :peerId AND chatType = :chatType")
     fun queryByPeerId(chatType: Int, peerId: String): List<MessageMapping>
 
-    @Query("SELECT * FROM message_mapping WHERE msgSeq = :msgSeq AND chatType = :chatType")
-    fun queryByMsgSeq(chatType: Int, msgSeq: Int): MessageMapping?
+    //@Query("SELECT * FROM message_mapping WHERE msgSeq = :msgSeq AND chatType = :chatType")
+    //fun queryByMsgSeq(chatType: Int, msgSeq: Int): MessageMapping?
+    // 不要调用这个，seq不唯一啊，老哥！！！！！！！！！！！！！
+    // 我就说怎么这么多bug
 
     @Query("SELECT * FROM message_mapping WHERE msgSeq = :msgSeq AND chatType = :chatType AND peerId = :peerId")
     fun queryByMsgSeq(chatType: Int, peerId: String, msgSeq: Int): MessageMapping?

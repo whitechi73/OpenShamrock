@@ -6,7 +6,9 @@ import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.shamrock.remote.service.data.VersionInfo
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
 import moe.fuqiuluo.shamrock.tools.ShamrockVersion
+import moe.fuqiuluo.symbols.OneBotHandler
 
+@OneBotHandler("get_version_info", ["get_version"])
 internal object GetVersionInfo : IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         return invoke(session.echo)
@@ -25,9 +27,4 @@ internal object GetVersionInfo : IActionHandler() {
             echo = echo
         )
     }
-
-    override val alias: Array<String> = arrayOf("get_version")
-
-    override fun path(): String = "get_version_info"
-
 }

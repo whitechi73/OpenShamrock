@@ -7,7 +7,9 @@ import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.shamrock.tools.EmptyJsonObject
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
 import moe.fuqiuluo.shamrock.xposed.helper.AppRuntimeFetcher
+import moe.fuqiuluo.symbols.OneBotHandler
 
+@OneBotHandler("get_guild_service_profile")
 internal object GetGuildServiceProfile : IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         return invoke(echo = session.echo)
@@ -27,6 +29,4 @@ internal object GetGuildServiceProfile : IActionHandler() {
 
         return ok(echo = echo)
     }
-
-    override fun path(): String = "get_guild_service_profile"
 }

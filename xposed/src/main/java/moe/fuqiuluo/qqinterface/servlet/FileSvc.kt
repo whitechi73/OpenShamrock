@@ -1,7 +1,9 @@
 package moe.fuqiuluo.qqinterface.servlet
 
 import com.tencent.mobileqq.pb.ByteStringMicro
-import moe.fuqiuluo.proto.protobufOf
+import kotlinx.serialization.decodeFromByteArray
+import kotlinx.serialization.encodeToByteArray
+import kotlinx.serialization.protobuf.ProtoBuf
 import moe.fuqiuluo.qqinterface.servlet.structures.*
 import moe.fuqiuluo.qqinterface.servlet.transfile.RichProtoSvc
 import moe.fuqiuluo.shamrock.helper.Level
@@ -10,56 +12,100 @@ import moe.fuqiuluo.shamrock.tools.EMPTY_BYTE_ARRAY
 import moe.fuqiuluo.shamrock.tools.slice
 import moe.fuqiuluo.shamrock.tools.toHexString
 import moe.fuqiuluo.shamrock.utils.DeflateTools
+import moe.whitechi73.protobuf.oidb.cmd0x6d7.CreateFolderReq
+import moe.whitechi73.protobuf.oidb.cmd0x6d7.DeleteFolderReq
+import moe.whitechi73.protobuf.oidb.cmd0x6d7.MoveFolderReq
+import moe.whitechi73.protobuf.oidb.cmd0x6d7.Oidb0x6d7ReqBody
+import moe.whitechi73.protobuf.oidb.cmd0x6d7.Oidb0x6d7RespBody
+import moe.whitechi73.protobuf.oidb.cmd0x6d7.RenameFolderReq
+import tencent.im.oidb.cmd0x6d6.oidb_0x6d6
 import tencent.im.oidb.cmd0x6d8.oidb_0x6d8
 import tencent.im.oidb.oidb_sso
+import moe.whitechi73.protobuf.group_file_common.FolderInfo as GroupFileCommonFolderInfo
 
 internal object FileSvc: BaseSvc() {
-    fun createFileFolder(groupId: String, folderName: String) {
-        sendOidb("OidbSvc.0x6d7_0", 1751, 0, protobufOf(
-            1 to mapOf(
-                1 to groupId.toLong(),
-                2 to 3,
-                3 to "/",
-                4 to folderName
+    suspend fun createFileFolder(groupId: String, folderName: String, parentFolderId: String = "/"): Result<GroupFileCommonFolderInfo> {
+        val data = ProtoBuf.encodeToByteArray(Oidb0x6d7ReqBody(
+            createFolder = CreateFolderReq(
+                groupCode = groupId.toULong(),
+                appId = 3u,
+                parentFolderId = parentFolderId,
+                folderName = folderName
             )
-        ).toByteArray())
-    }
-
-    fun deleteGroupFolder(groupId: String, folderUid: String) {
-        sendOidb("OidbSvc.0x6d7_1", 1751, 1, protobufOf(
-            2 to mapOf(
-                1 to groupId.toLong(),
-                2 to 3,
-                3 to folderUid,
-            )
-        ).toByteArray())
-    }
-
-    fun deleteGroupFile(groupId: String, bizId: Int, fileUid: String) {
-        /*
-        val kernelService = NTServiceFetcher.kernelService
-        val sessionService = kernelService.wrapperSession
-        val richMediaService = sessionService.richMediaService
-
-        val result = withTimeoutOrNull(3000L) {
-            suspendCancellableCoroutine {
-                richMediaService.deleteGroupFile(groupId.toLong(), fileUid, bizId) { code, _, result ->
-                    it.resume(code to result.result)
-                }
-            }
+        ))
+        val resultBuffer = sendOidbAW("OidbSvc.0x6d7_0", 1751, 0, data)
+            ?: return Result.failure(Exception("unable to fetch result"))
+        val oidbPkg = oidb_sso.OIDBSSOPkg()
+        oidbPkg.mergeFrom(resultBuffer.slice(4))
+        val rsp = ProtoBuf.decodeFromByteArray<Oidb0x6d7RespBody>(oidbPkg.bytes_bodybuffer.get().toByteArray())
+        if (rsp.createFolder?.retCode != 0) {
+            return Result.failure(Exception("unable to create folder: ${rsp.createFolder?.retCode}"))
         }
+        return Result.success(rsp.createFolder!!.folderInfo!!)
+    }
 
-        return if (result == null) Result.failure(RuntimeException("delete group file timeout")) else Result.success(result)*/
-        // 调用QQ内部实现会导致闪退！
-        sendOidb("OidbSvc.0x6d6_3", 1750, 3, protobufOf(
-             4 to mapOf(
-                1 to groupId.toLong(),
-                2 to 3,
-                3 to bizId,
-                4 to "/",
-                5 to fileUid
+    suspend fun deleteGroupFolder(groupId: String, folderUid: String): Boolean {
+        val buffer = sendOidbAW("OidbSvc.0x6d7_1", 1751, 1, ProtoBuf.encodeToByteArray(Oidb0x6d7ReqBody(
+            deleteFolder = DeleteFolderReq(
+                groupCode = groupId.toULong(),
+                appId = 3u,
+                folderId = folderUid
             )
-        ).toByteArray())
+        ))) ?: return false
+        val oidbPkg = oidb_sso.OIDBSSOPkg()
+        oidbPkg.mergeFrom(buffer.slice(4))
+        val rsp = ProtoBuf.decodeFromByteArray<Oidb0x6d7RespBody>(oidbPkg.bytes_bodybuffer.get().toByteArray())
+        return rsp.deleteFolder?.retCode == 0
+    }
+
+    suspend fun moveGroupFolder(groupId: String, folderUid: String, newParentFolderUid: String): Boolean {
+        val buffer = sendOidbAW("OidbSvc.0x6d7_2", 1751, 2, ProtoBuf.encodeToByteArray(Oidb0x6d7ReqBody(
+            moveFolder = MoveFolderReq(
+                groupCode = groupId.toULong(),
+                appId = 3u,
+                folderId = folderUid,
+                parentFolderId = "/"
+            )
+        ))) ?: return false
+        val oidbPkg = oidb_sso.OIDBSSOPkg()
+        oidbPkg.mergeFrom(buffer.slice(4))
+        val rsp = ProtoBuf.decodeFromByteArray<Oidb0x6d7RespBody>(oidbPkg.bytes_bodybuffer.get().toByteArray())
+        return rsp.moveFolder?.retCode == 0
+    }
+
+    suspend fun renameFolder(groupId: String, folderUid: String, name: String): Boolean {
+        val buffer = sendOidbAW("OidbSvc.0x6d7_3", 1751, 3, ProtoBuf.encodeToByteArray(Oidb0x6d7ReqBody(
+            renameFolder = RenameFolderReq(
+                groupCode = groupId.toULong(),
+                appId = 3u,
+                folderId = folderUid,
+                folderName = name
+            )
+        ))) ?: return false
+        val oidbPkg = oidb_sso.OIDBSSOPkg()
+        oidbPkg.mergeFrom(buffer.slice(4))
+        val rsp = ProtoBuf.decodeFromByteArray<Oidb0x6d7RespBody>(oidbPkg.bytes_bodybuffer.get().toByteArray())
+        return rsp.renameFolder?.retCode == 0
+    }
+
+    suspend fun deleteGroupFile(groupId: String, bizId: Int, fileUid: String): Boolean {
+        val oidb0x6d6ReqBody = oidb_0x6d6.ReqBody().apply {
+            delete_file_req.set(oidb_0x6d6.DeleteFileReqBody().apply {
+                uint64_group_code.set(groupId.toLong())
+                uint32_app_id.set(3)
+                uint32_bus_id.set(bizId)
+                str_parent_folder_id.set("/")
+                str_file_id.set(fileUid)
+            })
+        }
+        val result = sendOidbAW("OidbSvc.0x6d6_3", 1750, 3, oidb0x6d6ReqBody.toByteArray())
+            ?: return false
+        val oidbPkg = oidb_sso.OIDBSSOPkg()
+        oidbPkg.mergeFrom(result.slice(4))
+        val rsp = oidb_0x6d6.RspBody().apply {
+            mergeFrom(oidbPkg.bytes_bodybuffer.get().toByteArray())
+        }
+        return rsp.delete_file_rsp.int32_ret_code.get() == 0
     }
 
     suspend fun getGroupFileSystemInfo(groupId: Long): FileSystemInfo {

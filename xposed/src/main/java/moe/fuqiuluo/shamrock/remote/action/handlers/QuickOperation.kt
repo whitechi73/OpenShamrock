@@ -23,7 +23,9 @@ import moe.fuqiuluo.shamrock.tools.asLong
 import moe.fuqiuluo.shamrock.tools.asString
 import moe.fuqiuluo.shamrock.tools.json
 import moe.fuqiuluo.shamrock.tools.jsonArray
+import moe.fuqiuluo.symbols.OneBotHandler
 
+@OneBotHandler(".handle_quick_operation_async")
 internal object QuickOperation: IActionHandler() {
     val actionMsgTypes = arrayOf(
         "record", "voice", "video", "markdown"
@@ -104,8 +106,6 @@ internal object QuickOperation: IActionHandler() {
 
         return logic("操作成功", session.echo)
     }
-
-    override fun path(): String = ".handle_quick_operation_async"
 
     override val requiredParams: Array<String> = arrayOf("context", "operation", "self_id")
 

@@ -3,7 +3,9 @@ package moe.fuqiuluo.shamrock.remote.action.handlers
 import moe.fuqiuluo.shamrock.helper.db.MessageDB
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
+import moe.fuqiuluo.symbols.OneBotHandler
 
+@OneBotHandler("get_group_msg_history")
 internal object GetGroupMsgHistory: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val groupId = session.getString("group_id")
@@ -17,8 +19,5 @@ internal object GetGroupMsgHistory: IActionHandler() {
         return GetHistoryMsg("group", groupId, cnt, startId, session.echo)
     }
 
-    override val requiredParams: Array<String>
-        get() = arrayOf("group_id")
-
-    override fun path(): String = "get_group_msg_history"
+    override val requiredParams: Array<String> = arrayOf("group_id")
 }

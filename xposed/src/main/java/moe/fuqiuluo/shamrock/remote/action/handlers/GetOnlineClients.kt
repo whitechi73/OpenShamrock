@@ -7,7 +7,9 @@ import moe.fuqiuluo.qqinterface.servlet.QSafeSvc
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
+import moe.fuqiuluo.symbols.OneBotHandler
 
+@OneBotHandler("_get_online_clients")
 internal object GetOnlineClients: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         return invoke(session.echo)
@@ -19,12 +21,9 @@ internal object GetOnlineClients: IActionHandler() {
         return ok(clients.map {
             DevInfo(it.iAppId, it.strDeviceName, it.strDeviceTypeInfo, it.iLoginTime,
                 it.iLoginPlatform, it.strLoginLocation
-                // it.vecGuid.toHexString() ignore this field
             )
         }, echo)
     }
-
-    override fun path(): String = "_get_online_clients"
 
     @Serializable
     data class DevInfo(

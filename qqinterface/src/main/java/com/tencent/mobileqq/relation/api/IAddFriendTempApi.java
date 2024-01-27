@@ -154,7 +154,7 @@ public interface IAddFriendTempApi extends QRouteApi {
 
 //    void sendDelSingleSystemMsg(structmsg.StructMsg paramStructMsg, String paramString, int paramInt, long paramLong, AppInterface paramAppInterface);
 
-    void sendFriendSystemMsgAction(int msg_type, long msg_seq, long req_uin, int sub_type, int src_id, int sub_src_id, int group_msg_type, structmsg$SystemMsgActionInfo action_info, int system_msg_action_type, structmsg$StructMsg paramStructMsg, boolean isUncommonlyUsedFrd, AppInterface paramAppInterface);
+    void sendFriendSystemMsgAction(int msg_type, long msg_seq, long req_uin, int sub_type, int src_id, int sub_src_id, int group_msg_type, structmsg.SystemMsgActionInfo action_info, int system_msg_action_type, structmsg.StructMsg paramStructMsg, boolean isUncommonlyUsedFrd, AppInterface paramAppInterface);
 
     void sendFriendSystemMsgReadedReport(AppInterface paramAppInterface);
 

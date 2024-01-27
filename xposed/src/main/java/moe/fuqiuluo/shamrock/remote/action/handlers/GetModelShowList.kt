@@ -18,7 +18,9 @@ import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.qqinterface.servlet.TicketSvc
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
+import moe.fuqiuluo.symbols.OneBotHandler
 
+@OneBotHandler("_get_model_show")
 internal object GetModelShowList : IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         return invoke(session.getString("model"), session.echo)
@@ -73,9 +75,6 @@ internal object GetModelShowList : IActionHandler() {
     }
 
     override val requiredParams: Array<String> = arrayOf("model")
-
-    override fun path(): String = "_get_model_show"
-
 
     @Serializable
     data class GetModelListResp(

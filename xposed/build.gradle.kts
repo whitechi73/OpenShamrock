@@ -1,9 +1,9 @@
 plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
-    //id("io.realm.kotlin")
     id("kotlin-kapt")
-    kotlin("plugin.serialization") version "1.8.10"
+    id("com.google.devtools.ksp") version "1.9.21-1.0.15"
+    kotlin("plugin.serialization") version "1.9.21"
 }
 
 android {
@@ -49,54 +49,48 @@ android {
     }
 }
 
+kotlin {
+    sourceSets.all {
+        languageSettings {
+            languageVersion = "2.0"
+        }
+    }
+}
+
 dependencies {
     compileOnly ("de.robv.android.xposed:api:82")
     compileOnly (project(":qqinterface"))
 
-    implementation("androidx.core:core-ktx:1.9.0")
-    implementation("androidx.appcompat:appcompat:1.6.1")
-    implementation("com.google.android.material:material:1.9.0")
-
-    // 业务场景不适配
-    //implementation("io.realm.kotlin:library-base:1.11.0")
-    //implementation("io.realm.kotlin:library-sync:1.11.0")
-
-    val ktorVersion = "2.3.3"
-    //implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1")
-    implementation("io.github.xn32:json5k:0.3.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-io-jvm:0.1.16")
-    implementation("io.ktor:ktor-server-core:$ktorVersion")
-    implementation("io.ktor:ktor-server-host-common:$ktorVersion")
-    implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
-    implementation("io.ktor:ktor-server-netty:$ktorVersion")
-    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
-    implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")
-    implementation("io.ktor:ktor-client-core:$ktorVersion")
-    implementation("io.ktor:ktor-client-cio:$ktorVersion")
-    implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
-    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
-    //implementation("io.ktor:ktor-serialization-kotlinx-protobuf:$ktorVersion")
-    implementation("io.ktor:ktor-network-tls-certificates:$ktorVersion")
-
-    /**
-     * 为什么不用Ktor的WebSocket呢？
-     * 因为那玩意使用了安卓9才有的Java API
-     */
-    implementation("org.java-websocket:Java-WebSocket:1.5.4")
+    implementation(project(":protobuf"))
+    implementation(project(":annotations"))
+    ksp(project(":processor"))
 
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
-    implementation("androidx.exifinterface:exifinterface:1.3.6")
-    implementation("com.google.protobuf:protobuf-java:3.24.0")
 
-    val roomVersion = "2.5.0"
-    implementation("androidx.room:room-runtime:$roomVersion")
-    //annotationProcessor("androidx.room:room-compiler:$roomVersion")
-    // To use Kotlin annotation processing tool (kapt)
-    kapt("androidx.room:room-compiler:$roomVersion")
-    // To use Kotlin Symbol Processing (KSP)
-    //ksp("androidx.room:room-compiler:$roomVersion")
-    // optional - Kotlin Extensions and Coroutines support for Room
-    implementation("androidx.room:room-ktx:$roomVersion")
+    DEPENDENCY_ANDROIDX.forEach {
+        implementation(it)
+    }
+    implementation(DEPENDENCY_JAVA_WEBSOCKET)
+    implementation(DEPENDENCY_PROTOBUF)
+    implementation(DEPENDENCY_JSON5K)
+
+    implementation(room("runtime"))
+    kapt(room("compiler"))
+    implementation(room("ktx"))
+
+    implementation(kotlinx("io-jvm", "0.1.16"))
+    implementation(kotlinx("serialization-protobuf", "1.6.2"))
+
+    implementation(ktor("server", "core"))
+    implementation(ktor("server", "host-common"))
+    implementation(ktor("server", "status-pages"))
+    implementation(ktor("server", "netty"))
+    implementation(ktor("server", "content-negotiation"))
+    implementation(ktor("client", "core"))
+    implementation(ktor("client", "content-negotiation"))
+    implementation(ktor("client", "cio"))
+    implementation(ktor("serialization", "kotlinx-json"))
+    implementation(ktor("network", "tls-certificates"))
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
@@ -104,4 +98,5 @@ dependencies {
     androidTestImplementation(platform("androidx.compose:compose-bom:2023.06.01"))
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
 }
+
 

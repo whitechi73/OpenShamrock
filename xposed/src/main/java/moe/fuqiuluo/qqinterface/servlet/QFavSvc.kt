@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalSerializationApi::class)
+
 package moe.fuqiuluo.qqinterface.servlet
 
 import android.graphics.BitmapFactory
@@ -12,7 +14,9 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.io.core.BytePacketBuilder
 import kotlinx.io.core.readBytes
 import kotlinx.io.core.writeFully
-import moe.fuqiuluo.proto.protobufMapOf
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.encodeToByteArray
+import kotlinx.serialization.protobuf.ProtoBuf
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.tools.hex2ByteArray
@@ -20,6 +24,18 @@ import moe.fuqiuluo.shamrock.tools.toHexString
 import moe.fuqiuluo.shamrock.utils.DeflateTools
 import moe.fuqiuluo.shamrock.utils.MD5
 import moe.fuqiuluo.shamrock.xposed.helper.AppRuntimeFetcher
+import moe.whitechi73.protobuf.fav.WeiyunAddRichMediaReq
+import moe.whitechi73.protobuf.fav.WeiyunAuthor
+import moe.whitechi73.protobuf.fav.WeiyunCollectCommInfo
+import moe.whitechi73.protobuf.fav.WeiyunComm
+import moe.whitechi73.protobuf.fav.WeiyunCommonReq
+import moe.whitechi73.protobuf.fav.WeiyunFastUploadResourceReq
+import moe.whitechi73.protobuf.fav.WeiyunGetFavContentReq
+import moe.whitechi73.protobuf.fav.WeiyunGetFavListReq
+import moe.whitechi73.protobuf.fav.WeiyunMsgHead
+import moe.whitechi73.protobuf.fav.WeiyunPicInfo
+import moe.whitechi73.protobuf.fav.WeiyunRichMediaContent
+import moe.whitechi73.protobuf.fav.WeiyunRichMediaSummary
 import mqq.manager.TicketManager
 import oicq.wlogin_sdk.request.Ticket
 import oicq.wlogin_sdk.request.WtTicketPromise
@@ -56,40 +72,30 @@ internal object QFavSvc: BaseSvc() {
         startPos: Int,
         pageSize: Int,
     ): Result<NetResp> {
-        val data = protobufMapOf {
-            it[1] = mapOf(
-                20000 to mapOf(
-                    /**
-                     * "type", "bid", "category", "start_time", "order_type", "start_pos", "page_size", "sync_policy", "req_source"
-                     */
-                    1 to 0,
-                    2 to 0,
-                    3 to category,
-                    //4 to System.currentTimeMillis() - 1000 * 60,
-                    //4 to System.currentTimeMillis(),
-                    4 to 0,
-                    5 to 0,
-                    6 to startPos,
-                    7 to pageSize,
-                    8 to 0,
-                    9 to 0
-                )
+        val baseReq = WeiyunCommonReq(
+            getFavListReq = WeiyunGetFavListReq(
+                type = 0u,
+                bid = 0u,
+                category = category.toUInt(),
+                startTime = 0u,
+                orderType = 0u,
+                startPos = startPos.toUInt(),
+                pageSize = pageSize.toUInt(),
+                syncPolicy = 0u,
+                reqSource = 0u
             )
-        }.toByteArray()
-        return sendWeiyunReq(20000, data)
+        )
+        return sendWeiyunReq(20000, baseReq)
     }
 
     suspend fun getItemContent(
         id: String
     ): Result<NetResp> {
-        val data = protobufMapOf {
-            it[1] = mapOf(
-                20001 to mapOf(
-                    1 to id
-                )
+        return sendWeiyunReq(20001, WeiyunCommonReq(
+            getFavContentReq = WeiyunGetFavContentReq(
+                cidList = arrayListOf(id)
             )
-        }.toByteArray()
-        return sendWeiyunReq(20001, data)
+        ))
     }
 
     suspend fun addImageMsg(
@@ -104,57 +110,60 @@ internal object QFavSvc: BaseSvc() {
         md5: String,
     ): Result<NetResp> {
         val md5Bytes = md5.hex2ByteArray()
-        val data = protobufMapOf {
-            it[1] = mapOf(
-                20009 to mapOf(
-                    1 to mapOf(
-                        1 to 1, // bid
-                        2 to 1, // category
-                        3 to mapOf( // author
-                            1 to if (groupId == 0L) 1 else 2, // type
-                            2 to uin, // num_id
-                            3 to name, // str_id
-                            4 to groupId, // group_id
-                            5 to groupName // group_name
-                        ),
-                        4 to System.currentTimeMillis() - 2000, // create_time
-                        5 to System.currentTimeMillis() - 1000, // sequence
-                        7 to """{"recordAudioOnly":false,"audioOnly":false,"fileOnly":false}""",
-                        9 to 0, // original_app_id
-                        10 to 0 // custom_group_id
+        return sendWeiyunReq(20009, WeiyunCommonReq(
+            addRichMediaReq = WeiyunAddRichMediaReq(
+                commInfo = WeiyunCollectCommInfo(
+                    bid = 1u,
+                    category = 1u,
+                    author = WeiyunAuthor(
+                        type = if (groupId == 0L) 1u else 2u,
+                        numId = uin.toULong(),
+                        strId = name,
+                        groupId = groupId.toULong(),
+                        groupName = groupName
                     ),
-                    2 to mapOf(
-                        1 to "",
-                        3 to "[图片]",
-                        4 to mapOf(
-                            1 to picUrl,
-                            2 to md5Bytes,
-                            3 to md5,
-                            6 to width,
-                            7 to height,
-                            8 to size,
-                            9 to 0,
-                            11 to pid
-                        ),
-                        5 to 1
-                    ),
-                    3 to mapOf(
-                        2 to """<img src="$picUrl" />""",
-                        4 to mapOf(
-                            1 to picUrl,
-                            2 to md5Bytes,
-                            3 to md5,
-                            6 to width,
-                            7 to height,
-                            8 to size,
-                            9 to 0,
-                            11 to pid
+                    createTime = System.currentTimeMillis().toULong() - 2000u,
+                    seq = System.currentTimeMillis().toULong() - 1000u,
+                    bizDataList = arrayListOf("""{"recordAudioOnly":false,"audioOnly":false,"fileOnly":false}""".toByteArray()),
+                    originalAppId = 0u,
+                    customGroupId = 0u
+                ),
+                summary = WeiyunRichMediaSummary(
+                    title = "",
+                    brief = "[图片]",
+                    picList = arrayListOf(
+                        WeiyunPicInfo(
+                            uri = picUrl,
+                            md5 = md5Bytes,
+                            sha1 = md5.toByteArray(),
+                            name = "",
+                            note = "",
+                            width = width.toUInt(),
+                            height = height.toUInt(),
+                            size = size.toULong(),
+                            type = 0u,
+                            picId = pid
                         )
-                    )
-                )
+                    ),
+                    contentType = 1u
+                ),
+                richMediaContent = listOf(WeiyunRichMediaContent(
+                    rawData = """<img src="$picUrl" />""".toByteArray(),
+                    picList = listOf(WeiyunPicInfo(
+                        uri = picUrl,
+                        md5 = md5Bytes,
+                        sha1 = md5.toByteArray(),
+                        name = "",
+                        note = "",
+                        width = width.toUInt(),
+                        height = height.toUInt(),
+                        size = size.toULong(),
+                        type = 0u,
+                        picId = pid
+                    ))
+                ))
             )
-        }.toByteArray()
-        return sendWeiyunReq(20009, data)
+        ))
     }
 
     suspend fun applyUpImageMsg(
@@ -169,29 +178,26 @@ internal object QFavSvc: BaseSvc() {
             return Result.failure(IllegalArgumentException("image file not exists"))
         }
         val md5 = MD5.genFileMd5(image.absolutePath)
-        val data = protobufMapOf {
-            it[1] = mapOf(
-                20010 to mapOf(
-                    1 to mapOf(
-                        2 to md5,
-                        4 to md5.toHexString(),
-                        10 to mapOf( // author
-                            1 to if (groupId == 0L) 1 else 2, // type
-                            2 to uin, // num_id
-                            3 to name, // str_id
-                            4 to groupId, // group_id
-                            5 to groupName // group_name
-                        ),
-                        6 to width, // width
-                        7 to height,
-                        8 to image.length(),
-                        9 to 1, // type
-                        11 to "/storage/emulated/0/DCIM/ShamrockUpload.jpeg" // pic_id
+        return sendWeiyunReq(20010, WeiyunCommonReq(
+            fastUploadResourceReq = WeiyunFastUploadResourceReq(
+                picInfoList = listOf(WeiyunPicInfo(
+                    md5 = md5,
+                    name = md5.toHexString(),
+                    width = width.toUInt(),
+                    height = height.toUInt(),
+                    size = image.length().toULong(),
+                    type = 1u,
+                    picId = "/storage/emulated/0/DCIM/temp.jpeg",
+                    owner = WeiyunAuthor(
+                        type = if (groupId == 0L) 1u else 2u,
+                        numId = uin.toULong(),
+                        strId = name,
+                        groupId = groupId.toULong(),
+                        groupName = groupName
                     )
-                )
+                )),
             )
-        }.toByteArray()
-        return sendWeiyunReq(20010, data)
+        ))
     }
 
     suspend fun addRichMediaMsg(
@@ -202,66 +208,32 @@ internal object QFavSvc: BaseSvc() {
         time: Long = System.currentTimeMillis(),
         content: String
     ): Result<NetResp> {
-        val data = protobufMapOf {
-            it[1] = mapOf(
-                20009 to mapOf(
-                    1 to mapOf(
-                        /**
-                         * 1 => bid
-                         * 2 => category
-                         * 3 => author
-                         * 4 => create_time
-                         * 5 => sequence
-                         * 6 => biz_key
-                         * 7 => biz_data_list
-                         * 8 => share_url
-                         * 9 => original_app_id
-                         * 10 => custom_group_id
-                         * 506 => modify_time
-                         * 507 => qzone_ugc_key
-                         */
-                        1 to 1, // bid
-                        2 to 1, // category
-                        3 to mapOf( // author
-                            1 to if (groupId == 0L) 1 else 2, // type
-                            2 to uin, // num_id
-                            3 to name, // str_id
-                            4 to groupId, // group_id
-                            5 to groupName // group_name
-                        ),
-                        4 to time - 2000, // create_time
-                        5 to time - 1000, // sequence
-                        9 to 0, // original_app_id
-                        10 to 0 // custom_group_id
+        return sendWeiyunReq(20009, WeiyunCommonReq(
+            addRichMediaReq = WeiyunAddRichMediaReq(
+                commInfo = WeiyunCollectCommInfo(
+                    bid = 1u,
+                    category = 1u,
+                    author = WeiyunAuthor(
+                        type = if (groupId == 0L) 1u else 2u,
+                        numId = uin.toULong(),
+                        strId = name,
+                        groupId = groupId.toULong(),
+                        groupName = groupName
                     ),
-                    2 to mapOf(
-                        /**
-                         * 1 => title
-                         * 2 => sub_title
-                         * 3 => brief
-                         * 4 => pic_list
-                         * 5 => content_type
-                         * 6 => original_uri
-                         * 7 => publisher
-                         * 8 => rich_media_version
-                         */
-                        3 to content,
-                        5 to 1
-                    ),
-                    3 to mapOf(
-                        /**
-                         * 1 => rich_media
-                         * 2 => raw_data
-                         * 3 => biz_data_list
-                         * 4 => pic_list
-                         * 5 => file_list
-                         */
-                        2 to content.textToHtml()
-                    )
-                )
+                    createTime = time.toULong() - 2000u,
+                    seq = time.toULong() - 1000u,
+                    originalAppId = 0u,
+                    customGroupId = 0u
+                ),
+                summary = WeiyunRichMediaSummary(
+                    brief = content,
+                    contentType = 1u
+                ),
+                richMediaContent = listOf(WeiyunRichMediaContent(
+                    rawData = content.textToHtml().toByteArray(),
+                ))
             )
-        }.toByteArray()
-        return sendWeiyunReq(20009, data)
+        ))
     }
 
     private fun String.textToHtml(): String {
@@ -327,7 +299,7 @@ internal object QFavSvc: BaseSvc() {
 
     suspend fun sendWeiyunReq(
         cmd: Int,
-        body: ByteArray,
+        req: WeiyunCommonReq,
         outputStream: ByteArrayOutputStream = ByteArrayOutputStream(),
     ): Result<NetResp> {
         return suspendCancellableCoroutine {
@@ -346,7 +318,7 @@ internal object QFavSvc: BaseSvc() {
             }
             val pSKey = getWeiYunPSKey()
             httpNetReq.mHttpMethod = HttpNetReq.HTTP_POST
-            httpNetReq.mSendData = DeflateTools.gzip(packData(packHead(cmd, pSKey), body))
+            httpNetReq.mSendData = DeflateTools.gzip(packData(packHead(cmd, pSKey), ProtoBuf.encodeToByteArray(WeiyunComm(req = req))))
             httpNetReq.mOutStream = outputStream
             httpNetReq.mStartDownOffset = 0L
             httpNetReq.mReqProperties["Shamrock"] = "true"
@@ -366,39 +338,19 @@ internal object QFavSvc: BaseSvc() {
     }
 
     private fun packHead(cmd: Int, pskey: String): ByteArray {
-        /**
-         * 1 => uin
-         * 2 => seq
-         * 3 => type
-         * 4 => cmd
-         * 5 => appid
-         * 6 => version
-         * 7 => nettype
-         * 8 => clientip
-         * 9 => encrypt
-         * 10 => keytype
-         * 11 => encryptkey
-         * 14 => major_version
-         * 15 => minor_version
-         * 101 => retcode
-         * 102 => retmsg
-         * 103 => promptmsg
-         * 111 => total_space
-         * 112 => used_space
-         */
-        return protobufMapOf {
-            it[1] = app.longAccountUin
-            it[2] = seq++ // seq
-            it[3] = 1 // type
-            it[4] = cmd
-            it[5] = APPID
-            it[6] = VERSION // VERSION
-            it[7] = 3 // nettype
-            it[10] = 27 // keytype
-            it[11] = pskey
-            it[14] = MAJOR_VERSION
-            it[15] = MINOR_VERSION
-        }.toByteArray()
+        return ProtoBuf.encodeToByteArray(WeiyunMsgHead(
+            uin = app.longAccountUin.toULong(),
+            seq = seq++.toUInt(),
+            type = 1u,
+            cmd = cmd.toUInt(),
+            appId = APPID.toUInt(),
+            version = VERSION.toUInt(),
+            netType = 3u,
+            keyType = 27u,
+            key = pskey.toByteArray(),
+            majorVersion = MAJOR_VERSION.toUInt(),
+            minorVersion = MINOR_VERSION.toUInt(),
+        ))
     }
 
     private fun packData(head: ByteArray, body: ByteArray): ByteArray {

@@ -16,13 +16,8 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import moe.fuqiuluo.shamrock.tools.slice
 import moe.fuqiuluo.shamrock.xposed.helper.AppRuntimeFetcher
 import mqq.app.AppRuntime
-import tencent.mobileim.structmsg.`structmsg$FlagInfo`
-import tencent.mobileim.structmsg.`structmsg$ReqSystemMsgNew`
-import tencent.mobileim.structmsg.`structmsg$RspSystemMsgNew`
+import tencent.mobileim.structmsg.structmsg
 import kotlin.coroutines.resume
-import tencent.mobileim.structmsg.`structmsg$SystemMsgActionInfo` as ActionInfo
-import tencent.mobileim.structmsg.`structmsg$AddFrdSNInfo` as AddFrdSNInfo
-import tencent.mobileim.structmsg.`structmsg$StructMsg` as StructMsg
 
 internal object FriendSvc: BaseSvc() {
 
@@ -43,30 +38,31 @@ internal object FriendSvc: BaseSvc() {
         if (app !is AppInterface)
             throw RuntimeException("AppRuntime cannot cast to AppInterface")
         val service = QRoute.api(IAddFriendTempApi::class.java)
-        val action = ActionInfo()
+        val action = structmsg.SystemMsgActionInfo()
         action.type.set(if (approve != false) 2 else 3)
         action.group_id.set(0)
         action.remark.set(remark)
-        val snInfo = AddFrdSNInfo()
+        val snInfo = structmsg.AddFrdSNInfo()
         snInfo.uint32_not_see_dynamic.set(if (notSee != false) 1 else 0)
         snInfo.uint32_set_sn.set(0)
         action.addFrdSNInfo.set(snInfo)
-        service.sendFriendSystemMsgAction(1, msgSeq, uin, 1, 2004, 11, 0, action, 0, StructMsg(), false,
+        service.sendFriendSystemMsgAction(1, msgSeq, uin, 1, 2004, 11, 0, action, 0,
+            structmsg.StructMsg(), false,
             app
         )
     }
 
-    suspend fun requestFriendSystemMsgNew(msgNum: Int, latestFriendSeq: Long = 0, latestGroupSeq: Long = 0, retryCnt: Int = 3): List<StructMsg>? {
+    suspend fun requestFriendSystemMsgNew(msgNum: Int, latestFriendSeq: Long = 0, latestGroupSeq: Long = 0, retryCnt: Int = 3): List<structmsg.StructMsg>? {
         if (retryCnt < 0) {
             return ArrayList()
         }
-        val req = `structmsg$ReqSystemMsgNew`()
+        val req = structmsg.ReqSystemMsgNew()
         req.msg_num.set(msgNum)
         req.latest_friend_seq.set(latestFriendSeq)
         req.latest_group_seq.set(latestGroupSeq)
         req.version.set(1000)
         req.checktype.set(2)
-        val flag = `structmsg$FlagInfo`()
+        val flag = structmsg.FlagInfo()
 //        flag.GrpMsg_Kick_Admin.set(1)
 //        flag.GrpMsg_HiddenGrp.set(1)
 //        flag.GrpMsg_WordingDown.set(1)
@@ -95,7 +91,7 @@ internal object FriendSvc: BaseSvc() {
             ArrayList()
         } else {
             try {
-                val msg = `structmsg$RspSystemMsgNew`()
+                val msg = structmsg.RspSystemMsgNew()
                 msg.mergeFrom(respBuffer.slice(4))
                 return msg.friendmsgs.get()
             } catch (err: Throwable) {

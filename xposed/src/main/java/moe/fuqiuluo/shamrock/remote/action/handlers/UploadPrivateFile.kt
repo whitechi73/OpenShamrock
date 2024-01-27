@@ -27,10 +27,12 @@ import moe.fuqiuluo.shamrock.remote.service.api.RichMediaUploadHandler
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
 import moe.fuqiuluo.shamrock.utils.FileUtils
 import moe.fuqiuluo.shamrock.utils.MD5
+import moe.fuqiuluo.symbols.OneBotHandler
 import java.io.File
 import java.io.FileOutputStream
 import kotlin.coroutines.resume
 
+@OneBotHandler("upload_private_file")
 internal object UploadPrivateFile : IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val userId = session.getString("user_id")
@@ -134,6 +136,4 @@ internal object UploadPrivateFile : IActionHandler() {
     }
 
     override val requiredParams: Array<String> = arrayOf("user_id", "file", "name")
-
-    override fun path(): String = "upload_private_file"
 }

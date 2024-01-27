@@ -15,10 +15,12 @@ import moe.fuqiuluo.shamrock.remote.service.data.MessageDetail
 import moe.fuqiuluo.shamrock.remote.service.data.MessageSender
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
 import moe.fuqiuluo.shamrock.xposed.helper.NTServiceFetcher
+import moe.fuqiuluo.symbols.OneBotHandler
 import java.util.ArrayList
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
+@OneBotHandler("get_history_msg")
 internal object GetHistoryMsg: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val msgType = session.getString("message_type")
@@ -102,10 +104,7 @@ internal object GetHistoryMsg: IActionHandler() {
         return ok(data = GetHistoryMsgResult(msgList), echo = echo)
     }
 
-    override val requiredParams: Array<String>
-        get() = arrayOf("message_type")
-
-    override fun path(): String = "get_history_msg"
+    override val requiredParams: Array<String> = arrayOf("message_type")
 
     @Serializable
     data class GetHistoryMsgResult(

@@ -36,3 +36,6 @@ include(
     ":xposed",
     ":qqinterface"
 )
+include(":protobuf")
+include(":processor")
+include(":annotations")

@@ -5,7 +5,9 @@ import moe.fuqiuluo.qqinterface.servlet.ark.WeatherSvc
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
+import moe.fuqiuluo.symbols.OneBotHandler
 
+@OneBotHandler("get_weather")
 internal object GetWeather: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         session.getIntOrNull("code")?.let {
@@ -31,6 +33,4 @@ internal object GetWeather: IActionHandler() {
         }
         return invoke(code.getOrThrow().first().adcode, echo)
     }
-
-    override fun path(): String = "get_weather"
 }

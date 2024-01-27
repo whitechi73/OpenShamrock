@@ -1,19 +1,24 @@
+@file:OptIn(ExperimentalSerializationApi::class)
+
 package moe.fuqiuluo.shamrock.remote.action.handlers
 
 import kotlinx.io.core.ByteReadPacket
 import kotlinx.io.core.discardExact
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.json.JsonElement
-import moe.fuqiuluo.proto.ProtoUtils
-import moe.fuqiuluo.proto.asUtf8String
+import kotlinx.serialization.protobuf.ProtoBuf
 import moe.fuqiuluo.qqinterface.servlet.QFavSvc
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
-import moe.fuqiuluo.shamrock.tools.toHexString
 import moe.fuqiuluo.shamrock.utils.DeflateTools
+import moe.fuqiuluo.symbols.OneBotHandler
+import moe.whitechi73.protobuf.fav.WeiyunComm
 
+@OneBotHandler("fav.get_item_content")
 internal object FavGetItemContent: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val id = session.getString("id")
@@ -41,12 +46,14 @@ internal object FavGetItemContent: IActionHandler() {
         val data = ByteArray(dataLength).also {
             readPacket.readFully(it, 0, it.size)
         }
-        val pb = ProtoUtils.decodeFromByteArray(data)
 
-        return ok(ItemContent(pb[2, 20001, 1, 8, 2].asUtf8String))
+        val resp = ProtoBuf.decodeFromByteArray<WeiyunComm>(data).resp!!
+        return ok(ItemContent(
+            resp.getFavContentResp!!.content!!.joinToString("") {
+                String(it.richMedia!!.rawData!!)
+            }
+        ))
     }
-
-    override fun path(): String = "fav.get_item_content"
 
     override val requiredParams: Array<String> = arrayOf("id")
 

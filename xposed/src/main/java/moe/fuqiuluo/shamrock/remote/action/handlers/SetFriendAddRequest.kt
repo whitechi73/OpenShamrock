@@ -6,7 +6,9 @@ import moe.fuqiuluo.qqinterface.servlet.GroupSvc
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
+import moe.fuqiuluo.symbols.OneBotHandler
 
+@OneBotHandler("set_friend_add_request")
 internal object SetFriendAddRequest: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val flag = session.getString("flag")
@@ -38,10 +40,7 @@ internal object SetFriendAddRequest: IActionHandler() {
             err.printStackTrace()
             error("失败：${err.message}", echo)
         }
-
     }
-
-    override fun path(): String = "set_friend_add_request"
 
     override val requiredParams: Array<String> = arrayOf("flag")
 }

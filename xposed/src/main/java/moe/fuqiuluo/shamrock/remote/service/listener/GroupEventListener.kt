@@ -1,3 +1,5 @@
+@file:OptIn(DelicateCoroutinesApi::class)
+
 package moe.fuqiuluo.shamrock.remote.service.listener
 
 import com.tencent.qqnt.kernel.nativeinterface.BulletinFeedsDownloadInfo
@@ -15,6 +17,10 @@ import com.tencent.qqnt.kernel.nativeinterface.GroupStatisticInfo
 import com.tencent.qqnt.kernel.nativeinterface.IKernelGroupListener
 import com.tencent.qqnt.kernel.nativeinterface.JoinGroupNotifyMsg
 import com.tencent.qqnt.kernel.nativeinterface.MemberInfo
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import moe.fuqiuluo.qqinterface.servlet.GroupSvc
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import java.util.ArrayList
 import java.util.HashMap
@@ -29,7 +35,7 @@ internal object GroupEventListener: IKernelGroupListener {
     }
 
     override fun onGroupAvatarUrlChange(j2: Long, str: String?) {
-        //LogCenter.log("onGroupAvatarUrlChange($j2, $str)")
+        LogCenter.log("onGroupAvatarUrlChange($j2, $str)")
     }
 
     override fun onGroupBulletinChange(j2: Long, groupBulletin: GroupBulletin?) {
@@ -49,14 +55,14 @@ internal object GroupEventListener: IKernelGroupListener {
     }
 
     override fun onGroupDetailInfoChange(groupDetailInfo: GroupDetailInfo?) {
-        //LogCenter.log("onGroupDetailInfoChange($groupDetailInfo)")
+        LogCenter.log("onGroupDetailInfoChange($groupDetailInfo)")
     }
 
     override fun onGroupListUpdate(
         groupListUpdateType: GroupListUpdateType?,
         arrayList: ArrayList<GroupSimpleInfo>?
     ) {
-        //LogCenter.log("onGroupListUpdate($groupListUpdateType, $arrayList)")
+        LogCenter.log("onGroupListUpdate($groupListUpdateType, $arrayList)")
     }
 
     override fun onGroupNotifiesUnreadCountUpdated(z: Boolean, j2: Long, i2: Int) {
@@ -72,7 +78,7 @@ internal object GroupEventListener: IKernelGroupListener {
         arrayList: ArrayList<String>?,
         arrayList2: ArrayList<String>?
     ) {
-        //LogCenter.log("onGroupPortraitChange($j2, $arrayList, $arrayList2)")
+        LogCenter.log("onGroupPortraitChange($j2, $arrayList, $arrayList2)")
     }
 
     override fun onGroupSingleScreenNotifies(
@@ -96,11 +102,19 @@ internal object GroupEventListener: IKernelGroupListener {
     }
 
     override fun onMemberInfoChange(
-        j2: Long,
-        dataSource: DataSource?,
-        hashMap: HashMap<String, MemberInfo>?
+        groupCode: Long,
+        dataSource: DataSource,
+        hashMap: HashMap<String, MemberInfo>
     ) {
-        //LogCenter.log("onMemberInfoChange($j2, $dataSource, $hashMap)")
+        /*GlobalScope.launch {
+            hashMap.values.forEach { memberInfo ->
+                GroupSvc.getTroopMemberInfoByUid(groupCode, memberInfo.uid).onSuccess {
+                    LogCenter.log("onMemberInfoChange($groupCode, $dataSource, $it, $memberInfo)")
+                }.onFailure {
+                    LogCenter.log("onMemberInfoChange($groupCode, $dataSource, $it, $memberInfo)")
+                }
+            }
+        }*/
     }
 
     override fun onMemberListChange(groupMemberListChangeInfo: GroupMemberListChangeInfo?) {

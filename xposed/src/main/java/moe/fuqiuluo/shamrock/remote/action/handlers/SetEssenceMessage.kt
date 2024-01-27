@@ -7,7 +7,9 @@ import moe.fuqiuluo.qqinterface.servlet.MsgSvc
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
+import moe.fuqiuluo.symbols.OneBotHandler
 
+@OneBotHandler("set_essence_msg", ["set_essence_message"])
 internal object SetEssenceMessage: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val messageId = session.getInt("message_id")
@@ -19,18 +21,14 @@ internal object SetEssenceMessage: IActionHandler() {
             return logic("Obtain msg failed, please check your msg_id.", echo)
         }.getOrThrow()
         val (success, tip) = GroupSvc.setEssenceMessage(
-            if (msg.chatType == MsgConstant.KCHATTYPEGROUP) msg.peerUin else 0,
-            msg.msgSeq,
-            msg.msgRandom
+            groupId = if (msg.chatType == MsgConstant.KCHATTYPEGROUP) msg.peerUin else 0,
+            seq = msg.msgSeq,
+            rand = msg.msgRandom
         )
         return if (success) {
             ok("成功", echo)
         } else {
             logic(tip, echo)
         }
-
     }
-
-    override val alias: Array<String> = arrayOf("set_essence_message")
-    override fun path(): String = "set_essence_msg"
 }

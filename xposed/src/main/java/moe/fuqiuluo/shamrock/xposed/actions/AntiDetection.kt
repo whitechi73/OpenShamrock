@@ -45,6 +45,13 @@ class AntiDetection: IAction {
 
     private fun antiNativeDetection() {
         try {
+            val pref = XSharedPreferences("moe.fuqiuluo.shamrock", "shared_config")
+            if (!pref.file.canRead()) {
+                LogCenter.log("[Shamrock] unable to load XSharedPreferences", Level.WARN)
+                return
+            } else if (!pref.getBoolean("super_anti", false)) {
+                return
+            }
             //System.loadLibrary("clover")
             NativeLoader.load("clover")
             val env = XposedEntry.hasEnv()
@@ -52,15 +59,8 @@ class AntiDetection: IAction {
             if (!env || !injected) {
                 LogCenter.log("[Shamrock] Shamrock反检测启动失败(env=$env, injected=$injected)", Level.ERROR)
             } else {
-                XposedEntry.sec_static_nativehook_inited = true
-                val pref = XSharedPreferences("moe.fuqiuluo.shamrock", "shared_config")
-                if (pref.file.canRead()) {
-                    if (pref.getBoolean("super_anti", false)) {
-                        LogCenter.log("[Shamrock] Shamrock反检测启动成功: ${antiNativeDetections()}", Level.INFO)
-                    }
-                } else {
-                    LogCenter.log("[Shamrock] unable to load XSharedPreferences", Level.WARN)
-                }
+                XposedEntry.secStaticNativehookInited = true
+                LogCenter.log("[Shamrock] Shamrock反检测启动成功: ${antiNativeDetections()}", Level.INFO)
             }
         } catch (e: Throwable) {
             LogCenter.log("[Shamrock] Shamrock反检测启动失败，请检查LSPosed版本使用大于100: ${e.message}", Level.ERROR)

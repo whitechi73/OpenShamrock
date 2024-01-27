@@ -78,7 +78,7 @@ internal object AioListener : IKernelMsgListener {
 
             when (record.chatType) {
                 MsgConstant.KCHATTYPEGROUP -> {
-                    LogCenter.log("群消息(group = ${record.peerName}(${record.peerUin}), uin = ${record.senderUin}, id = $msgHash|${record.msgSeq}, msg = $rawMsg)")
+                    LogCenter.log("群消息(group = ${record.peerName}(${record.peerUin}), uin = ${record.senderUin}, id = $msgHash, seq = ${record.msgSeq}, msg = $rawMsg)")
                     ShamrockConfig.getGroupMsgRule()?.let { rule ->
                         if (!rule.black.isNullOrEmpty() && rule.black.contains(record.senderUin)) return
                         if (!rule.white.isNullOrEmpty() && !rule.white.contains(record.senderUin)) return

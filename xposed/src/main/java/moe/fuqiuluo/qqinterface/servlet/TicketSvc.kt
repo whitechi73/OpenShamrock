@@ -1,12 +1,9 @@
 package moe.fuqiuluo.qqinterface.servlet
 
 import com.tencent.mobileqq.app.QQAppInterface
+import com.tencent.mobileqq.pskey.oidb.cmd0x102a.oidb_cmd0x102a
 import io.ktor.client.request.get
 import io.ktor.client.request.header
-import moe.fuqiuluo.proto.ProtoUtils
-import moe.fuqiuluo.proto.asUtf8String
-import moe.fuqiuluo.proto.protobufOf
-import moe.fuqiuluo.qqinterface.servlet.BaseSvc
 import moe.fuqiuluo.shamrock.tools.GlobalClientNoRedirect
 import moe.fuqiuluo.shamrock.tools.slice
 import mqq.app.MobileQQ
@@ -108,26 +105,22 @@ internal object TicketSvc: BaseSvc() {
         return manager.getSuperkey(uin) ?: ""
     }
 
-    suspend fun getLessPSKey(domain: String): String? {
-        val resp = sendOidbAW("OidbSvcTcp.0x102a", 4138, 0, protobufOf(
-            1 to arrayOf(domain),
-            //2 to 3
-        ).toByteArray()) ?: return null
-
+    suspend fun getLessPSKey(vararg domain: String): Result<List<oidb_cmd0x102a.PSKey>> {
+        val req = oidb_cmd0x102a.GetPSkeyRequest()
+        req.domains.set(domain.toList())
+        val buffer = sendOidbAW("OidbSvcTcp.0x102a", 4138, 0, req.toByteArray())
+            ?: return Result.failure(Exception("getLessPSKey failed"))
         val body = oidb_sso.OIDBSSOPkg()
-        body.mergeFrom(resp.slice(4))
-
-        val pb = ProtoUtils.decodeFromByteArray(body.bytes_bodybuffer.get().toByteArray())
-        return if (pb.has(1, 2)) {
-            pb[1][2].asUtf8String
-        } else {
-            null
-        }
+        body.mergeFrom(buffer.slice(4))
+        val rsp = oidb_cmd0x102a.GetPSkeyResponse().mergeFrom(body.bytes_bodybuffer.get().toByteArray())
+        return Result.success(rsp.private_keys.get())
     }
 
     suspend fun getPSKey(uin: String, domain: String): String? {
         return (app.getManager(QQAppInterface.TICKET_MANAGER) as TicketManager).getPskey(uin, domain).let {
-            if (it.isNullOrBlank()) getLessPSKey(domain) else it
+            if (it.isNullOrBlank())
+                getLessPSKey(domain).getOrNull()?.firstOrNull()?.key?.get()
+            else it
         }
     }
 
@@ -141,7 +134,7 @@ internal object TicketSvc: BaseSvc() {
         var url = "https://ui.ptlogin2.qq.com/cgi-bin/login?pt_hide_ad=1&style=9&appid=$appid&pt_no_auth=1&pt_wxtest=1&daid=$daid&s_url=$jumpurl"
         var cookie = GlobalClientNoRedirect.get(url).headers.getAll("Set-Cookie")?.joinToString(";")
         url = "https://ssl.ptlogin2.qq.com/jump?u1=$jumpurl&pt_report=1&daid=$daid&style=9&keyindex=19&clientuin=$uin&clientkey=$clientkey"
-        var head = GlobalClientNoRedirect.get(url) {
+        GlobalClientNoRedirect.get(url) {
             header("Cookie", cookie)
         }.let {
             cookie = it.headers.getAll("Set-Cookie")?.joinToString(";")

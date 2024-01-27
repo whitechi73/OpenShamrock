@@ -4,7 +4,9 @@ import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.shamrock.tools.jsonArray
+import moe.fuqiuluo.symbols.OneBotHandler
 
+@OneBotHandler("send_private_msg", ["send_private_message"])
 internal object SendPrivateMessage: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val userId = session.getString("user_id")
@@ -51,9 +53,4 @@ internal object SendPrivateMessage: IActionHandler() {
     }
 
     override val requiredParams: Array<String> = arrayOf("message", "user_id")
-
-    override fun path(): String = "send_private_message"
-
-    override val alias: Array<String>
-        get() = arrayOf("send_private_msg")
 }

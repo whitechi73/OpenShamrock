@@ -1,13 +1,13 @@
 package moe.fuqiuluo.shamrock.remote.action.handlers
 
-import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
 import kotlinx.serialization.json.JsonElement
 import moe.fuqiuluo.qqinterface.servlet.GroupSvc
-import moe.fuqiuluo.qqinterface.servlet.MsgSvc
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
+import moe.fuqiuluo.symbols.OneBotHandler
 
+@OneBotHandler("get_essence_msg_list", ["get_essence_message_list"])
 internal object GetEssenceMessageList: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val groupId = session.getLong("group_id")
@@ -25,9 +25,5 @@ internal object GetEssenceMessageList: IActionHandler() {
             return ok(essenceMessageList.getOrNull(), echo)
         }
         return logic(essenceMessageList.exceptionOrNull()?.message ?: "", echo)
-
     }
-
-    override val alias: Array<String> = arrayOf("get_essence_message_list")
-    override fun path(): String = "get_essence_msg_list"
 }

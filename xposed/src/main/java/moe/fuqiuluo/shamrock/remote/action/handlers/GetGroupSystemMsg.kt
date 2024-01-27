@@ -7,7 +7,9 @@ import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.shamrock.remote.service.data.GroupRequest
 import moe.fuqiuluo.shamrock.remote.service.data.GroupSystemMessage
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
+import moe.fuqiuluo.symbols.OneBotHandler
 
+@OneBotHandler("get_group_system_msg")
 internal object GetGroupSystemMsg: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         return invoke(echo = session.echo)
@@ -60,6 +62,4 @@ internal object GetGroupSystemMsg: IActionHandler() {
         }
         return ok(msgs, echo = echo)
     }
-
-    override fun path(): String  = "get_group_system_msg"
 }

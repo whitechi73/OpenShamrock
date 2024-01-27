@@ -5,7 +5,9 @@ import moe.fuqiuluo.qqinterface.servlet.GroupSvc
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
+import moe.fuqiuluo.symbols.OneBotHandler
 
+@OneBotHandler("set_group_card")
 internal object ModifyTroopMemberName: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val groupId = session.getString("group_id")
@@ -24,6 +26,4 @@ internal object ModifyTroopMemberName: IActionHandler() {
     }
 
     override val requiredParams: Array<String> = arrayOf("group_id", "user_id")
-
-    override fun path(): String = "set_group_card"
 }

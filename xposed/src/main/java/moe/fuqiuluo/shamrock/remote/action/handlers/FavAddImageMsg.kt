@@ -5,9 +5,9 @@ import kotlinx.io.core.ByteReadPacket
 import kotlinx.io.core.discardExact
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.json.JsonElement
-import moe.fuqiuluo.proto.ProtoUtils
-import moe.fuqiuluo.proto.asUtf8String
+import kotlinx.serialization.protobuf.ProtoBuf
 import moe.fuqiuluo.qqinterface.servlet.QFavSvc
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
@@ -15,7 +15,10 @@ import moe.fuqiuluo.shamrock.tools.EmptyJsonString
 import moe.fuqiuluo.shamrock.utils.CryptTools
 import moe.fuqiuluo.shamrock.utils.DeflateTools
 import moe.fuqiuluo.shamrock.utils.FileUtils
+import moe.fuqiuluo.symbols.OneBotHandler
+import moe.whitechi73.protobuf.fav.WeiyunComm
 
+@OneBotHandler("fav.add_image_msg")
 internal object FavAddImageMsg: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val uin = session.getLong("user_id")
@@ -70,11 +73,13 @@ internal object FavAddImageMsg: IActionHandler() {
                 val data = ByteArray(dataLength).also {
                     readPacket.readFully(it, 0, it.size)
                 }
-                val pb = ProtoUtils.decodeFromByteArray(data)
-                val resp = pb[2, 20010, 1, 2]
-                picUrl = resp[1].asUtf8String
-                picId = resp[11].asUtf8String
-                md5 = resp[4].asUtf8String
+
+                val resp = ProtoBuf.decodeFromByteArray<WeiyunComm>(data)
+                    .resp!!.fastUploadResourceResp!!.picResultList!!.first()
+                val picInfo = resp.picInfo!!
+                picUrl = picInfo.uri
+                picId = picInfo.picId
+                md5 = picInfo.name
             } else {
                 return logic(it.mErrDesc, echo)
             }
@@ -128,8 +133,8 @@ internal object FavAddImageMsg: IActionHandler() {
                 val data = ByteArray(dataLength).also {
                     readPacket.readFully(it, 0, it.size)
                 }
-                val pb = ProtoUtils.decodeFromByteArray(data)
-                itemId = pb[2, 20009, 1].asUtf8String
+                val resp = ProtoBuf.decodeFromByteArray<WeiyunComm>(data).resp!!
+                itemId = resp.addRichMediaResp!!.cid
             }
 
             System.gc()
@@ -141,8 +146,6 @@ internal object FavAddImageMsg: IActionHandler() {
             id = itemId
         ), echo)
     }
-
-    override fun path(): String = "fav.add_image_msg"
 
     override val requiredParams: Array<String> = arrayOf("user_id", "nick", "file")
 

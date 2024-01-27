@@ -5,8 +5,10 @@ import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
 import moe.fuqiuluo.shamrock.xposed.helper.AppRuntimeFetcher
+import moe.fuqiuluo.symbols.OneBotHandler
 import mqq.app.MobileQQ
 
+@OneBotHandler("switch_account")
 internal object SwitchAccount: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val userId = session.getString("user_id")
@@ -30,6 +32,4 @@ internal object SwitchAccount: IActionHandler() {
     }
 
     override val requiredParams: Array<String> = arrayOf("user_id")
-
-    override fun path(): String = "switch_account"
 }

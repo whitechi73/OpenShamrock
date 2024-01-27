@@ -7,8 +7,10 @@ import moe.fuqiuluo.shamrock.remote.entries.resultToString
 import moe.fuqiuluo.shamrock.remote.service.data.BotStatus
 import moe.fuqiuluo.shamrock.remote.service.data.Self
 import moe.fuqiuluo.shamrock.xposed.helper.AppRuntimeFetcher
+import moe.fuqiuluo.symbols.OneBotHandler
 import mqq.app.MobileQQ
 
+@OneBotHandler("get_status", ["status"])
 internal object GetStatus: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val runtime = AppRuntimeFetcher.appRuntime
@@ -19,6 +21,4 @@ internal object GetStatus: IActionHandler() {
             )
         ), echo = session.echo)
     }
-
-    override fun path(): String = "get_status"
 }
