@@ -47,6 +47,7 @@ icon: comment-dots
 | 字段 | 类型 | 收  | 发  | 必填 | 说明    |
 | ---- | ---- | --- | --- | ---- | ------- |
 | id   | int  | ✓   | ✓   | 是   | 表情 ID |
+| big   | bool  | ✓   | X   | 否   | 是否是大表情 |
 
 ::: tip 提示
 表情 ID 可以在 [这里](https://github.com/richardchien/coolq-http-api/wiki/%E8%A1%A8%E6%83%85-CQ-%E7%A0%81-ID-%E8%A1%A8) 查看。
@@ -57,7 +58,7 @@ icon: comment-dots
 @tab CQ 码
 
 ```
-[CQ:face,id=1]
+[CQ:face,id=351,big=true]
 ```
 
 @tab 消息段
@@ -66,7 +67,43 @@ icon: comment-dots
 {
   "type": "face",
   "data": {
-    "id": 1
+    "id": 351,
+    "big": true
+  }
+}
+```
+
+:::
+
+## 弹射表情
+
+### 参数
+
+| 字段 | 类型 | 收  | 发  | 必填 | 说明    |
+| ---- | ---- | --- | --- | ---- | ------- |
+| id   | int  | ✓   | ✓   | 是   | 表情 ID |
+| count   | int  | ✓   | √   | 是   | 数量 |
+
+::: tip 提示
+表情 ID 可以在 [这里](https://github.com/richardchien/coolq-http-api/wiki/%E8%A1%A8%E6%83%85-CQ-%E7%A0%81-ID-%E8%A1%A8) 查看。
+:::
+
+::: tabs
+
+@tab CQ 码
+
+```
+[CQ:bubble_face,id=351,count=114514]
+```
+
+@tab 消息段
+
+```json
+{
+  "type": "bubble_face",
+  "data": {
+    "id": 351,
+    "count": 114514
   }
 }
 ```
