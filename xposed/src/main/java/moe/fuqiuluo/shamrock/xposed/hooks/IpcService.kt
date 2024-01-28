@@ -16,7 +16,7 @@ import moe.fuqiuluo.shamrock.xposed.ipc.ShamrockIpc
 import moe.fuqiuluo.symbols.Process
 import moe.fuqiuluo.symbols.XposedHook
 
-@XposedHook(Process.MSF, 0)
+@XposedHook(Process.MSF, priority = 0)
 internal class IpcService: IAction {
     override fun invoke(ctx: Context) {
         if (!PlatformUtils.isMsfProcess()) return
