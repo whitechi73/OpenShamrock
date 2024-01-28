@@ -4,6 +4,7 @@ import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
 import com.tencent.qqnt.kernel.nativeinterface.MsgElement
 import com.tencent.qqnt.kernel.nativeinterface.MsgRecord
 import kotlinx.serialization.json.JsonElement
+import moe.fuqiuluo.qqinterface.servlet.msg.convert.MessageElemConverter.*
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.helper.MessageHelper
@@ -43,19 +44,20 @@ internal suspend fun List<MsgElement>.toCQCode(chatType: Int, peerId: String): S
 internal object MessageConvert {
     private val convertMap by lazy {
         mutableMapOf<Int, IMessageConvert>(
-            MsgConstant.KELEMTYPETEXT to MessageElemConverter.TextConverter,
-            MsgConstant.KELEMTYPEFACE to MessageElemConverter.FaceConverter,
-            MsgConstant.KELEMTYPEPIC to MessageElemConverter.ImageConverter,
-            MsgConstant.KELEMTYPEPTT to MessageElemConverter.VoiceConverter,
-            MsgConstant.KELEMTYPEVIDEO to MessageElemConverter.VideoConverter,
-            MsgConstant.KELEMTYPEMARKETFACE to MessageElemConverter.MarketFaceConverter,
-            MsgConstant.KELEMTYPEARKSTRUCT to MessageElemConverter.StructJsonConverter,
-            MsgConstant.KELEMTYPEREPLY to MessageElemConverter.ReplyConverter,
-            MsgConstant.KELEMTYPEGRAYTIP to MessageElemConverter.GrayTipsConverter,
-            MsgConstant.KELEMTYPEFILE to MessageElemConverter.FileConverter,
-            MsgConstant.KELEMTYPEMARKDOWN to MessageElemConverter.MarkdownConverter,
-            //MsgConstant.KELEMTYPEMULTIFORWARD to MessageElemConverter.XmlMultiMsgConverter,
-            //MsgConstant.KELEMTYPESTRUCTLONGMSG to MessageElemConverter.XmlLongMsgConverter,
+            MsgConstant.KELEMTYPETEXT to TextConverter,
+            MsgConstant.KELEMTYPEFACE to FaceConverter,
+            MsgConstant.KELEMTYPEPIC to ImageConverter,
+            MsgConstant.KELEMTYPEPTT to VoiceConverter,
+            MsgConstant.KELEMTYPEVIDEO to VideoConverter,
+            MsgConstant.KELEMTYPEMARKETFACE to MarketFaceConverter,
+            MsgConstant.KELEMTYPEARKSTRUCT to StructJsonConverter,
+            MsgConstant.KELEMTYPEREPLY to ReplyConverter,
+            MsgConstant.KELEMTYPEGRAYTIP to GrayTipsConverter,
+            MsgConstant.KELEMTYPEFILE to FileConverter,
+            MsgConstant.KELEMTYPEMARKDOWN to MarkdownConverter,
+            //MsgConstant.KELEMTYPEMULTIFORWARD to XmlMultiMsgConverter,
+            //MsgConstant.KELEMTYPESTRUCTLONGMSG to XmlLongMsgConverter,
+            MsgConstant.KELEMTYPEFACEBUBBLE to BubbleFaceConverter,
         )
     }
 
@@ -65,11 +67,11 @@ internal object MessageConvert {
         peerId: String
     ): ArrayList<MessageSegment> {
         val messageData = arrayListOf<MessageSegment>()
-        elements.forEach {
+        elements.forEach { msg ->
             kotlin.runCatching {
-                val elementId = it.elementType
+                val elementId = msg.elementType
                 val converter = convertMap[elementId]
-                converter?.convert(chatType, peerId, it)
+                converter?.convert(chatType, peerId, msg)
                     ?: throw UnsupportedOperationException("不支持的消息element类型：$elementId")
             }.onSuccess {
                 messageData.add(it)
@@ -77,7 +79,7 @@ internal object MessageConvert {
                 if (it is UnknownError) {
                     // 不处理的消息类型，抛出unknown error
                 } else {
-                    LogCenter.log("消息element转换错误：$it", Level.WARN)
+                    LogCenter.log("消息element转换错误：$it, elementType: ${msg.elementType}", Level.WARN)
                 }
             }
         }

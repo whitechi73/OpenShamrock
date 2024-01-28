@@ -19,4 +19,11 @@ public class QQSysFaceUtil {
     public static String getFaceDescription(int localId) {
         return "";
     }
+
+    public static String getPrueFaceDescription(String str) {
+        if (str == null) {
+            return null;
+        }
+        return str.startsWith("/") ? str.substring(1) : str;
+    }
 }

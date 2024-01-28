@@ -45,6 +45,7 @@ internal sealed class MessageElemConverter: IMessageConvert {
     data object FaceConverter: MessageElemConverter() {
         override suspend fun convert(chatType: Int, peerId: String, element: MsgElement): MessageSegment {
             val face = element.faceElement
+
             if (face.faceType == 5) {
                 return MessageSegment(
                     type = "poke",
@@ -55,8 +56,6 @@ internal sealed class MessageElemConverter: IMessageConvert {
                     )
                 )
             }
-
-
             when (face.faceIndex) {
                 114 -> {
                     return MessageSegment(
@@ -87,7 +86,8 @@ internal sealed class MessageElemConverter: IMessageConvert {
                 else -> return MessageSegment(
                     type = "face",
                     data = hashMapOf(
-                        "id" to face.faceIndex
+                        "id" to face.faceIndex,
+                        "big" to (face.faceType == 3)
                     )
                 )
             }
@@ -426,6 +426,23 @@ internal sealed class MessageElemConverter: IMessageConvert {
                 type = "markdown",
                 data = mapOf(
                     "content" to markdown.content
+                )
+            )
+        }
+    }
+
+    data object BubbleFaceConverter: MessageElemConverter() {
+        override suspend fun convert(
+            chatType: Int,
+            peerId: String,
+            element: MsgElement
+        ): MessageSegment {
+            val bubbleElement = element.faceBubbleElement
+            return MessageSegment(
+                type = "bubble_face",
+                data = mapOf(
+                    "id" to bubbleElement.yellowFaceInfo.index,
+                    "count" to (bubbleElement.faceCount ?: 1),
                 )
             )
         }

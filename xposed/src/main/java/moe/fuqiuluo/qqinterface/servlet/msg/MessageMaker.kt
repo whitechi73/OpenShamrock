@@ -9,6 +9,7 @@ import com.tencent.mobileqq.qroute.QRoute
 import com.tencent.qphone.base.remote.ToServiceMsg
 import com.tencent.qqnt.aio.adapter.api.IAIOPttApi
 import com.tencent.qqnt.kernel.nativeinterface.ArkElement
+import com.tencent.qqnt.kernel.nativeinterface.FaceBubbleElement
 import com.tencent.qqnt.kernel.nativeinterface.FaceElement
 import com.tencent.qqnt.kernel.nativeinterface.MarkdownElement
 import com.tencent.qqnt.kernel.nativeinterface.MarketFaceElement
@@ -20,9 +21,9 @@ import com.tencent.qqnt.kernel.nativeinterface.PttElement
 import com.tencent.qqnt.kernel.nativeinterface.QQNTWrapperUtil
 import com.tencent.qqnt.kernel.nativeinterface.ReplyElement
 import com.tencent.qqnt.kernel.nativeinterface.RichMediaFilePathInfo
+import com.tencent.qqnt.kernel.nativeinterface.SmallYellowFaceInfo
 import com.tencent.qqnt.kernel.nativeinterface.TextElement
 import com.tencent.qqnt.kernel.nativeinterface.VideoElement
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
@@ -45,7 +46,9 @@ import moe.fuqiuluo.qqinterface.servlet.transfile.with
 import moe.fuqiuluo.shamrock.helper.ActionMsgException
 import moe.fuqiuluo.shamrock.helper.ContactHelper
 import moe.fuqiuluo.shamrock.helper.IllegalParamsException
+import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LocalCacheHelper
+import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.helper.LogicException
 import moe.fuqiuluo.shamrock.helper.MessageHelper
 import moe.fuqiuluo.shamrock.helper.MusicHelper
@@ -62,8 +65,6 @@ import moe.fuqiuluo.shamrock.utils.AudioUtils
 import moe.fuqiuluo.shamrock.utils.FileUtils
 import moe.fuqiuluo.shamrock.utils.MediaType
 import moe.fuqiuluo.shamrock.utils.PlatformUtils
-import moe.fuqiuluo.shamrock.helper.Level
-import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.xposed.helper.AppRuntimeFetcher
 import moe.fuqiuluo.shamrock.xposed.helper.NTServiceFetcher
 import moe.fuqiuluo.shamrock.xposed.helper.msgService
@@ -106,7 +107,31 @@ internal object MessageMaker {
         "basketball" to MessageMaker::createBasketballElem,
         //"node" to MessageMaker::createNodeElem,
         //"multi_msg" to MessageMaker::createLongMsgStruct,
+        "bubble_face" to MessageMaker::createBubbleFaceElem,
     )
+
+    private suspend fun createBubbleFaceElem(chatType: Int, msgId: Long, peerId: String, data: JsonObject): Result<MsgElement> {
+        data.checkAndThrow("id", "count")
+        val faceId = data["id"].asInt
+        val local = QQSysFaceUtil.convertToLocal(faceId)
+        val name = QQSysFaceUtil.getFaceDescription(local)
+        val count = data["count"].asInt
+        val elem = MsgElement()
+        elem.elementType = MsgConstant.KELEMTYPEFACEBUBBLE
+        val face = FaceBubbleElement()
+        face.faceType = 13
+        face.faceCount = count
+        face.faceSummary = QQSysFaceUtil.getPrueFaceDescription(name)
+        val smallYellowFaceInfo = SmallYellowFaceInfo()
+        smallYellowFaceInfo.index = faceId
+        smallYellowFaceInfo.compatibleText = face.faceSummary
+        smallYellowFaceInfo.text = face.faceSummary
+        face.yellowFaceInfo = smallYellowFaceInfo
+        face.faceFlag = 0
+        face.content = data["text"].asStringOrNull ?: "[${face.faceSummary}]x$count"
+        elem.faceBubbleElement = face
+        return Result.success(elem)
+    }
 
 //    private suspend fun createNodeElem(
 //        chatType: Int,
@@ -475,19 +500,31 @@ internal object MessageMaker {
     private suspend fun createFaceElem(chatType: Int, msgId: Long, peerId: String, data: JsonObject): Result<MsgElement> {
         data.checkAndThrow("id")
 
+        val big = data["big"].asBooleanOrNull ?: false
+
         val elem = MsgElement()
         elem.elementType = MsgConstant.KELEMTYPEFACE
         val face = FaceElement()
 
+        // 1 old face
+        // 2 normal face
+        // 3 super face
         // 4 is market face
         // 5 is vas poke
-        face.faceType = 0
+        face.faceType = if (big) 3 else 2
         val serverId = data["id"].asInt
-        val localId = QQSysFaceUtil.convertToLocal(serverId)
         face.faceIndex = serverId
-        face.faceText = QQSysFaceUtil.getFaceDescription(localId)
+        face.faceText = QQSysFaceUtil.getFaceDescription(QQSysFaceUtil.convertToLocal(serverId))
         face.imageType = 0
-        face.packId = "0"
+        if (big) {
+            face.stickerId = 30.toString()
+            face.packId = "1"
+            face.sourceType = 1
+            face.stickerType = 1
+            face.randomType = 1
+        } else {
+            face.packId = "0"
+        }
         elem.faceElement = face
 
         return Result.success(elem)
