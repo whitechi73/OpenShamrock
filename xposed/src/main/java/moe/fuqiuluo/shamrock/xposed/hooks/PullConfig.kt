@@ -1,6 +1,6 @@
 @file:OptIn(DelicateCoroutinesApi::class)
 
-package moe.fuqiuluo.shamrock.xposed.actions
+package moe.fuqiuluo.shamrock.xposed.hooks
 
 import android.content.Context
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -13,12 +13,14 @@ import moe.fuqiuluo.shamrock.utils.PlatformUtils
 import moe.fuqiuluo.shamrock.xposed.helper.internal.DataRequester
 import moe.fuqiuluo.shamrock.xposed.helper.internal.DynamicReceiver
 import moe.fuqiuluo.shamrock.xposed.helper.internal.IPCRequest
-import moe.fuqiuluo.shamrock.xposed.loader.ActionLoader
 import moe.fuqiuluo.shamrock.xposed.loader.NativeLoader
+import moe.fuqiuluo.symbols.Process
+import moe.fuqiuluo.symbols.XposedHook
 import mqq.app.MobileQQ
 import kotlin.concurrent.thread
 import kotlin.system.exitProcess
 
+@XposedHook(Process.MAIN, priority = 1)
 class PullConfig: IAction {
     companion object {
         @JvmStatic
@@ -87,6 +89,6 @@ class PullConfig: IAction {
     private fun initAppService(ctx: Context) {
         NativeLoader.load("shamrock")
         ctx.toast(testNativeLibrary())
-        ActionLoader.runService(ctx)
+        runServiceActions(ctx)
     }
 }

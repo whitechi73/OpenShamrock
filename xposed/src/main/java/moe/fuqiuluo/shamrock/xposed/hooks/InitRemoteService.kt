@@ -1,6 +1,6 @@
 @file:OptIn(DelicateCoroutinesApi::class)
 
-package moe.fuqiuluo.shamrock.xposed.actions
+package moe.fuqiuluo.shamrock.xposed.hooks
 
 import android.content.Context
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -16,12 +16,15 @@ import moe.fuqiuluo.shamrock.remote.HTTPServer
 import moe.fuqiuluo.shamrock.remote.service.HttpService
 import moe.fuqiuluo.shamrock.tools.ShamrockVersion
 import moe.fuqiuluo.shamrock.xposed.helper.AppRuntimeFetcher
+import moe.fuqiuluo.symbols.Process
+import moe.fuqiuluo.symbols.XposedHook
 import mqq.app.MobileQQ
 import kotlin.concurrent.timer
 
+@XposedHook(Process.MAIN, priority = 10)
 internal class InitRemoteService : IAction {
     override fun invoke(ctx: Context) {
-        if (!PlatformUtils.isMainProcess()) return
+        //if (!PlatformUtils.isMainProcess()) return
 
         GlobalScope.launch {
             try {

@@ -1,4 +1,4 @@
-package moe.fuqiuluo.shamrock.xposed.actions
+package moe.fuqiuluo.shamrock.xposed.hooks
 
 import android.content.Context
 import com.tencent.beacon.event.open.BeaconReport
@@ -8,10 +8,10 @@ import moe.fuqiuluo.shamrock.tools.hex2ByteArray
 import moe.fuqiuluo.shamrock.tools.hookMethod
 import moe.fuqiuluo.shamrock.utils.MMKVFetcher
 import moe.fuqiuluo.shamrock.utils.PlatformUtils
+import moe.fuqiuluo.symbols.XposedHook
 import oicq.wlogin_sdk.tools.util
-import kotlin.coroutines.resume
-import kotlin.reflect.jvm.javaMethod
 
+@XposedHook(priority = 10)
 internal class GuidLock: IAction {
     companion object {
         var qimei: String = ""

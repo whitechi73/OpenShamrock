@@ -6,7 +6,7 @@ import io.ktor.server.application.call
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.Routing
 import moe.fuqiuluo.shamrock.remote.action.handlers.*
-import moe.fuqiuluo.shamrock.remote.entries.Status
+import moe.fuqiuluo.shamrock.remote.structures.Status
 import moe.fuqiuluo.shamrock.tools.*
 
 fun Routing.ticketActions() {

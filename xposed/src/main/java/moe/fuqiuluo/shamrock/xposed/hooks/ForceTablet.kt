@@ -1,11 +1,9 @@
 @file:Suppress("UNUSED_VARIABLE", "LocalVariableName")
-package moe.fuqiuluo.shamrock.xposed.actions
+package moe.fuqiuluo.shamrock.xposed.hooks
 
 import android.content.Context
 import com.tencent.common.config.pad.DeviceType
 import com.tencent.qqnt.kernel.nativeinterface.InitSessionConfig
-import com.tencent.qqnt.kernel.nativeinterface.PlatformType
-import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedBridge
 import moe.fuqiuluo.shamrock.remote.service.config.ShamrockConfig
 import moe.fuqiuluo.shamrock.tools.FuzzySearchClass
@@ -14,7 +12,9 @@ import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.tools.afterHook
 import moe.fuqiuluo.shamrock.tools.hookMethod
 import moe.fuqiuluo.shamrock.xposed.loader.LuoClassloader
+import moe.fuqiuluo.symbols.XposedHook
 
+@XposedHook(priority = 0)
 internal class ForceTablet: IAction {
     override fun invoke(ctx: Context) {
         //if (!PlatformUtils.isMqqPackage()) return

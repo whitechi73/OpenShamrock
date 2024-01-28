@@ -1,19 +1,9 @@
-package moe.fuqiuluo.shamrock.xposed.actions
+package moe.fuqiuluo.shamrock.xposed.hooks
 
 import android.content.Context
-import com.tencent.mobileqq.profilecard.api.IProfileProtocolService
-import com.tencent.mobileqq.qroute.QRoute
-import com.tencent.mobileqq.qroute.QRouteApi
-import com.tencent.mobileqq.transfile.HttpNetReq
-import com.tencent.mobileqq.transfile.NetReq
-import com.tencent.mobileqq.transfile.api.IHttpEngineService
-import com.tencent.mobileqq.transfile.api.IOldHttpEngineProcessor
-import moe.fuqiuluo.shamrock.helper.LogCenter
-import moe.fuqiuluo.shamrock.tools.hookMethod
-import moe.fuqiuluo.shamrock.tools.toInnerValuesString
-import moe.fuqiuluo.shamrock.xposed.helper.AppRuntimeFetcher
-import mqq.app.MobileQQ
+import moe.fuqiuluo.symbols.XposedHook
 
+@XposedHook(priority = -1)
 internal class HookForDebug: IAction {
     override fun invoke(ctx: Context) {
         /*

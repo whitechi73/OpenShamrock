@@ -1,12 +1,10 @@
-package moe.fuqiuluo.shamrock.remote.entries
+package moe.fuqiuluo.shamrock.remote.structures
 
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
-import moe.fuqiuluo.shamrock.remote.service.config.ShamrockConfig
-import moe.fuqiuluo.shamrock.tools.json
 
 enum class Status(
     val code: Int

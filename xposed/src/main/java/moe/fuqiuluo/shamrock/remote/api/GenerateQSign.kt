@@ -27,7 +27,7 @@ import kotlinx.io.core.BytePacketBuilder
 import kotlinx.io.core.readBytes
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
-import moe.fuqiuluo.shamrock.remote.entries.Status
+import moe.fuqiuluo.shamrock.remote.structures.Status
 import moe.fuqiuluo.shamrock.tools.EMPTY_BYTE_ARRAY
 import moe.fuqiuluo.shamrock.tools.EmptyJsonObject
 import moe.fuqiuluo.shamrock.tools.fetchGetOrThrow

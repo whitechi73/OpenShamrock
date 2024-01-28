@@ -5,7 +5,7 @@ import com.tencent.mobileqq.transfile.TransferRequest
 import com.tencent.mobileqq.transfile.api.ITransFileController
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.post
-import moe.fuqiuluo.shamrock.remote.entries.Status
+import moe.fuqiuluo.shamrock.remote.structures.Status
 import moe.fuqiuluo.shamrock.tools.fetchPost
 import moe.fuqiuluo.shamrock.tools.respond
 import moe.fuqiuluo.shamrock.utils.MD5

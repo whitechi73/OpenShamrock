@@ -3,7 +3,7 @@ package moe.fuqiuluo.shamrock.remote.api
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.get
 import kotlinx.coroutines.delay
-import moe.fuqiuluo.shamrock.remote.entries.Status
+import moe.fuqiuluo.shamrock.remote.structures.Status
 import moe.fuqiuluo.shamrock.tools.getOrPost
 import moe.fuqiuluo.shamrock.tools.respond
 import moe.fuqiuluo.shamrock.helper.LogCenter

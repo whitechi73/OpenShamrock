@@ -9,9 +9,9 @@ import io.ktor.server.routing.Routing
 import moe.fuqiuluo.shamrock.remote.action.ActionManager
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.handlers.GetLoginInfo
-import moe.fuqiuluo.shamrock.remote.entries.CommonResult
-import moe.fuqiuluo.shamrock.remote.entries.CurrentAccount
-import moe.fuqiuluo.shamrock.remote.entries.Status
+import moe.fuqiuluo.shamrock.remote.structures.CommonResult
+import moe.fuqiuluo.shamrock.remote.structures.CurrentAccount
+import moe.fuqiuluo.shamrock.remote.structures.Status
 import moe.fuqiuluo.shamrock.tools.*
 import moe.fuqiuluo.shamrock.xposed.helper.AppRuntimeFetcher
 import mqq.app.MobileQQ

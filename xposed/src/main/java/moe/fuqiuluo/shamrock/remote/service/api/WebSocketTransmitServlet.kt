@@ -11,9 +11,9 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import moe.fuqiuluo.shamrock.remote.action.ActionManager
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
-import moe.fuqiuluo.shamrock.remote.entries.EmptyObject
-import moe.fuqiuluo.shamrock.remote.entries.Status
-import moe.fuqiuluo.shamrock.remote.entries.resultToString
+import moe.fuqiuluo.shamrock.remote.structures.EmptyObject
+import moe.fuqiuluo.shamrock.remote.structures.Status
+import moe.fuqiuluo.shamrock.remote.structures.resultToString
 import moe.fuqiuluo.shamrock.remote.service.config.ShamrockConfig
 import moe.fuqiuluo.shamrock.remote.service.data.BotStatus
 import moe.fuqiuluo.shamrock.remote.service.data.Self

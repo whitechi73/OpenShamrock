@@ -1,4 +1,4 @@
-package moe.fuqiuluo.shamrock.xposed.actions
+package moe.fuqiuluo.shamrock.xposed.hooks
 
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -6,8 +6,10 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Process
 import moe.fuqiuluo.shamrock.helper.LogCenter
+import moe.fuqiuluo.symbols.XposedHook
 import kotlin.system.exitProcess
 
+@XposedHook(priority = 20)
 internal class ListenShamrockUpdate: IAction {
     override fun invoke(ctx: Context) {
         val intent = IntentFilter()

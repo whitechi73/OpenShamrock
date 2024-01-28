@@ -1,4 +1,4 @@
-package moe.fuqiuluo.shamrock.remote.entries
+package moe.fuqiuluo.shamrock.remote.structures
 
 import kotlinx.serialization.Serializable
 

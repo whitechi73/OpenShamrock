@@ -1,9 +1,11 @@
-package moe.fuqiuluo.shamrock.xposed.actions
+package moe.fuqiuluo.shamrock.xposed.hooks
 
 import android.content.Context
 import moe.fuqiuluo.shamrock.tools.hookMethod
 import moe.fuqiuluo.shamrock.xposed.loader.NativeLoader
+import moe.fuqiuluo.symbols.XposedHook
 
+@XposedHook(priority = 0)
 internal class FixLibraryLoad: IAction {
     val redirectedLibrary =arrayOf(
         "ffmpegkit_abidetect",

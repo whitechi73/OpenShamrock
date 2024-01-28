@@ -1,5 +1,5 @@
 @file:OptIn(DelicateCoroutinesApi::class)
-package moe.fuqiuluo.shamrock.xposed.actions
+package moe.fuqiuluo.shamrock.xposed.hooks
 
 import android.content.Context
 import com.tencent.msf.service.protocol.pb.SSOLoginMerge
@@ -8,7 +8,6 @@ import com.tencent.qphone.base.remote.ToServiceMsg
 import com.tencent.qphone.base.util.CodecWarpper
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.DelicateCoroutinesApi
-import moe.fuqiuluo.qqinterface.servlet.TicketSvc
 import moe.fuqiuluo.shamrock.remote.service.PacketReceiver
 import moe.fuqiuluo.shamrock.remote.service.config.ShamrockConfig
 import moe.fuqiuluo.shamrock.tools.EMPTY_BYTE_ARRAY
@@ -18,9 +17,11 @@ import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.xposed.helper.internal.DynamicReceiver
 import moe.fuqiuluo.shamrock.xposed.helper.internal.IPCRequest
+import moe.fuqiuluo.symbols.XposedHook
 
 private const val MAGIC_APP_ID = 114514
 
+@XposedHook(priority = 2)
 internal class HookWrapperCodec: IAction {
     private val IgnoredCmd = arrayOf(
         "trpc.sq_adv.official_account_adv_push.OfficialAccountAdvPush.AdvPush",

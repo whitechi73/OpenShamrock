@@ -9,8 +9,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import moe.fuqiuluo.shamrock.remote.service.config.ShamrockConfig
-import moe.fuqiuluo.shamrock.utils.FileUtils
-import moe.fuqiuluo.shamrock.xposed.actions.toast
+import moe.fuqiuluo.shamrock.xposed.hooks.toast
 import moe.fuqiuluo.shamrock.xposed.helper.internal.DataRequester
 import mqq.app.MobileQQ
 import java.io.File

@@ -1,5 +1,5 @@
 @file:OptIn(DelicateCoroutinesApi::class)
-package moe.fuqiuluo.shamrock.xposed.actions
+package moe.fuqiuluo.shamrock.xposed.hooks
 
 import android.content.Context
 import com.tencent.qqnt.kernel.api.IKernelService
@@ -13,7 +13,9 @@ import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.xposed.helper.NTServiceFetcher
 import moe.fuqiuluo.shamrock.xposed.loader.NativeLoader
+import moe.fuqiuluo.symbols.XposedHook
 
+@XposedHook(priority = 2)
 internal class FetchService: IAction {
     override fun invoke(ctx: Context) {
         NativeLoader.load("shamrock")

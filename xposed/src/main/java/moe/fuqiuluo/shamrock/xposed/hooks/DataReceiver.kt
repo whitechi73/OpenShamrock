@@ -1,5 +1,5 @@
 @file:OptIn(DelicateCoroutinesApi::class)
-package moe.fuqiuluo.shamrock.xposed.actions
+package moe.fuqiuluo.shamrock.xposed.hooks
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -13,6 +13,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import moe.fuqiuluo.shamrock.utils.PlatformUtils
 import moe.fuqiuluo.shamrock.xposed.helper.internal.DynamicReceiver
+import moe.fuqiuluo.symbols.XposedHook
 import mqq.app.MobileQQ
 
 internal lateinit var GlobalUi: Handler
@@ -25,6 +26,7 @@ internal fun Context.toast(msg: String, flag: Int = Toast.LENGTH_SHORT) {
     GlobalUi.post { Toast.makeText(this, msg, flag).show() }
 }
 
+@XposedHook(priority = 0)
 internal class DataReceiver: IAction {
     @SuppressLint("UnspecifiedRegisterReceiverFlag")
     override fun invoke(ctx: Context) {

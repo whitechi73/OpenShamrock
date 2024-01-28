@@ -165,7 +165,7 @@ NativeOnModuleLoaded native_init(const NativeAPIEntries *entries) {
 
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_moe_fuqiuluo_shamrock_xposed_actions_AntiDetection_antiNativeDetections(JNIEnv *env,
+Java_moe_fuqiuluo_shamrock_xposed_hooks_AntiDetection_antiNativeDetections(JNIEnv *env,
                                                                              jobject thiz) {
     if (hook_function == nullptr) return false;
     hook_function((void*) __system_property_get, (void *)fake_system_property_get, (void **) &backup_system_property_get);

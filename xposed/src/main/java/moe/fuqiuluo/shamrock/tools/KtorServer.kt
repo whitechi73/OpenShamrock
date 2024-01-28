@@ -24,9 +24,9 @@ import io.ktor.http.parseUrlEncodedParameters
 import io.ktor.server.request.httpMethod
 import io.ktor.server.routing.route
 import kotlinx.serialization.json.JsonElement
-import moe.fuqiuluo.shamrock.remote.entries.CommonResult
-import moe.fuqiuluo.shamrock.remote.entries.EmptyObject
-import moe.fuqiuluo.shamrock.remote.entries.Status
+import moe.fuqiuluo.shamrock.remote.structures.CommonResult
+import moe.fuqiuluo.shamrock.remote.structures.EmptyObject
+import moe.fuqiuluo.shamrock.remote.structures.Status
 
 @DslMarker
 @Target(AnnotationTarget.FUNCTION, AnnotationTarget.CLASS, AnnotationTarget.TYPEALIAS, AnnotationTarget.TYPE)
@@ -316,13 +316,15 @@ internal suspend inline fun PipelineContext<Unit, ApplicationCall>.respond(
     msg: String = "",
     echo: JsonElement = EmptyJsonString
 ) {
-    call.respond(CommonResult(
+    call.respond(
+        CommonResult(
         if (isOk) "ok" else "failed",
         code.code,
         EmptyObject,
         msg,
         echo
-    ))
+    )
+    )
 }
 
 @ShamrockDsl
@@ -333,13 +335,15 @@ internal suspend inline fun <reified T : Any> PipelineContext<Unit, ApplicationC
     msg: String = "",
     echo: JsonElement = EmptyJsonString
 ) {
-    call.respond(CommonResult(
+    call.respond(
+        CommonResult(
         if (isOk) "ok" else "failed",
         code.code,
         data,
         msg,
         echo
-    ))
+    )
+    )
 }
 
 @ShamrockDsl
@@ -350,11 +354,13 @@ internal suspend inline fun <reified T : Any> PipelineContext<Unit, ApplicationC
     msg: String = "",
     echo: JsonElement = EmptyJsonString
 ) {
-    call.respond(CommonResult(
+    call.respond(
+        CommonResult(
         if (isOk) "ok" else "failed",
         code,
         data,
         msg,
         echo
-    ))
+    )
+    )
 }

@@ -66,7 +66,7 @@ class OneBotHandlerProcessor(
             }.build()).apply {
                 addImport("moe.fuqiuluo.shamrock.remote.action.ActionManager", "actionMap")
                 actionHandlers.forEach {
-                    addImport("moe.fuqiuluo.shamrock.remote.action.handlers", it.simpleName.asString())
+                    addImport(it.packageName.asString(), it.simpleName.asString())
                 }
             }.build()
 

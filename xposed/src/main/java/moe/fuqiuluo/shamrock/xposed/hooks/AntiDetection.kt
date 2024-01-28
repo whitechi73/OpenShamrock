@@ -1,5 +1,5 @@
 @file:Suppress("UNCHECKED_CAST", "LocalVariableName")
-package moe.fuqiuluo.shamrock.xposed.actions
+package moe.fuqiuluo.shamrock.xposed.hooks
 
 import android.content.Context
 import android.content.pm.PackageManager
@@ -17,12 +17,11 @@ import moe.fuqiuluo.shamrock.tools.hookMethod
 import moe.fuqiuluo.shamrock.xposed.XposedEntry
 import moe.fuqiuluo.shamrock.xposed.loader.LuoClassloader
 import moe.fuqiuluo.shamrock.xposed.loader.NativeLoader
+import moe.fuqiuluo.symbols.XposedHook
 
-/**
- * 反检测
- */
+@XposedHook(priority = 0)
 class AntiDetection: IAction {
-    external fun antiNativeDetections(): Boolean
+    private external fun antiNativeDetections(): Boolean
 
     override fun invoke(ctx: Context) {
         antiFindPackage(ctx)

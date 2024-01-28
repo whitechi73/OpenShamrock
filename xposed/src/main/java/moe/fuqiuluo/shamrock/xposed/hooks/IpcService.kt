@@ -1,6 +1,6 @@
 @file:OptIn(DelicateCoroutinesApi::class)
 
-package moe.fuqiuluo.shamrock.xposed.actions
+package moe.fuqiuluo.shamrock.xposed.hooks
 
 import android.content.Context
 import android.os.Bundle
@@ -13,7 +13,10 @@ import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.xposed.helper.internal.*
 import moe.fuqiuluo.shamrock.xposed.ipc.ShamrockIpc
+import moe.fuqiuluo.symbols.Process
+import moe.fuqiuluo.symbols.XposedHook
 
+@XposedHook(Process.MSF, 0)
 internal class IpcService: IAction {
     override fun invoke(ctx: Context) {
         if (!PlatformUtils.isMsfProcess()) return

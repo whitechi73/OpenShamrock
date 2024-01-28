@@ -7,7 +7,6 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.core.content.ContextCompat.startActivity
 import io.ktor.client.request.get
-import io.ktor.client.request.header
 import io.ktor.client.request.parameter
 import io.ktor.client.request.url
 import io.ktor.client.statement.bodyAsText
@@ -17,9 +16,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
-import moe.fuqiuluo.shamrock.remote.entries.CommonResult
-import moe.fuqiuluo.shamrock.remote.entries.CurrentAccount
-import moe.fuqiuluo.shamrock.remote.entries.Status
+import moe.fuqiuluo.shamrock.remote.structures.CommonResult
+import moe.fuqiuluo.shamrock.remote.structures.CurrentAccount
+import moe.fuqiuluo.shamrock.remote.structures.Status
 import moe.fuqiuluo.shamrock.tools.GlobalClient
 import moe.fuqiuluo.shamrock.ui.app.AppRuntime.AccountInfo
 import moe.fuqiuluo.shamrock.ui.app.AppRuntime.log

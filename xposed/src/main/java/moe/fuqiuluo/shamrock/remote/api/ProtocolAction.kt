@@ -3,9 +3,9 @@ package moe.fuqiuluo.shamrock.remote.api
 import com.tencent.mobileqq.dt.model.FEBound
 import io.ktor.server.routing.Routing
 import moe.fuqiuluo.qqinterface.servlet.BaseSvc
-import moe.fuqiuluo.shamrock.remote.entries.Protocol
-import moe.fuqiuluo.shamrock.remote.entries.QSignDtConfig
-import moe.fuqiuluo.shamrock.remote.entries.Status
+import moe.fuqiuluo.shamrock.remote.structures.Protocol
+import moe.fuqiuluo.shamrock.remote.structures.QSignDtConfig
+import moe.fuqiuluo.shamrock.remote.structures.Status
 import moe.fuqiuluo.shamrock.tools.*
 import moe.fuqiuluo.shamrock.utils.MMKVFetcher
 import moe.fuqiuluo.shamrock.utils.PlatformUtils

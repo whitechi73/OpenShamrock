@@ -8,7 +8,7 @@ import com.tencent.mobileqq.qsec.qsecurity.QSec
 import com.tencent.qphone.base.util.BaseApplication
 import moe.fuqiuluo.shamrock.tools.toHexString
 import moe.fuqiuluo.shamrock.utils.MMKVFetcher
-import moe.fuqiuluo.shamrock.xposed.actions.GuidLock
+import moe.fuqiuluo.shamrock.xposed.hooks.GuidLock
 import mqq.app.MobileQQ
 import oicq.wlogin_sdk.tools.util
 

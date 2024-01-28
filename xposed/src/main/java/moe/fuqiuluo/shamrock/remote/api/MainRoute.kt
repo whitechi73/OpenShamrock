@@ -19,9 +19,9 @@ import moe.fuqiuluo.shamrock.remote.HTTPServer
 import moe.fuqiuluo.shamrock.remote.action.ActionManager
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.config.ECHO_KEY
-import moe.fuqiuluo.shamrock.remote.entries.EmptyObject
-import moe.fuqiuluo.shamrock.remote.entries.IndexData
-import moe.fuqiuluo.shamrock.remote.entries.Status
+import moe.fuqiuluo.shamrock.remote.structures.EmptyObject
+import moe.fuqiuluo.shamrock.remote.structures.IndexData
+import moe.fuqiuluo.shamrock.remote.structures.Status
 import moe.fuqiuluo.shamrock.tools.EmptyJsonObject
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
 import moe.fuqiuluo.shamrock.tools.asJsonObjectOrNull
@@ -30,12 +30,9 @@ import moe.fuqiuluo.shamrock.tools.fetchOrNull
 import moe.fuqiuluo.shamrock.tools.fetchOrThrow
 import moe.fuqiuluo.shamrock.tools.fetchPostJsonElement
 import moe.fuqiuluo.shamrock.tools.fetchPostJsonElementOrNull
-import moe.fuqiuluo.shamrock.tools.fetchPostJsonObject
 import moe.fuqiuluo.shamrock.tools.fetchPostJsonObjectOrNull
 import moe.fuqiuluo.shamrock.tools.isJsonArray
-import moe.fuqiuluo.shamrock.tools.isJsonData
 import moe.fuqiuluo.shamrock.tools.isJsonObject
-import moe.fuqiuluo.shamrock.tools.isJsonString
 import moe.fuqiuluo.shamrock.tools.json
 import moe.fuqiuluo.shamrock.tools.respond
 import moe.fuqiuluo.shamrock.utils.PlatformUtils

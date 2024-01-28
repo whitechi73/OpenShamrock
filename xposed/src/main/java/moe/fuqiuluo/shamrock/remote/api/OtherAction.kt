@@ -4,7 +4,6 @@ import io.ktor.http.ContentType
 import io.ktor.http.content.PartData
 import io.ktor.http.content.forEachPart
 import io.ktor.http.content.streamProvider
-import io.ktor.server.application.Application
 import io.ktor.server.application.call
 import io.ktor.server.request.receiveMultipart
 import io.ktor.server.response.respondText
@@ -12,7 +11,6 @@ import io.ktor.server.routing.Routing
 import io.ktor.server.routing.post
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.JsonObject
 import moe.fuqiuluo.shamrock.remote.action.handlers.CleanCache
@@ -20,7 +18,7 @@ import moe.fuqiuluo.shamrock.remote.action.handlers.DownloadFile
 import moe.fuqiuluo.shamrock.remote.action.handlers.GetDeviceBattery
 import moe.fuqiuluo.shamrock.remote.action.handlers.GetVersionInfo
 import moe.fuqiuluo.shamrock.remote.action.handlers.RestartMe
-import moe.fuqiuluo.shamrock.remote.entries.Status
+import moe.fuqiuluo.shamrock.remote.structures.Status
 import moe.fuqiuluo.shamrock.remote.service.config.ShamrockConfig
 import moe.fuqiuluo.shamrock.tools.asString
 import moe.fuqiuluo.shamrock.tools.fetchOrNull
@@ -33,7 +31,6 @@ import moe.fuqiuluo.shamrock.tools.respond
 import moe.fuqiuluo.shamrock.utils.FileUtils
 import moe.fuqiuluo.shamrock.utils.MD5
 import java.io.File
-import java.util.concurrent.TimeUnit
 
 fun Routing.otherAction() {
 

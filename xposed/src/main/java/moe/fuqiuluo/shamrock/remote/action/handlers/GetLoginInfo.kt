@@ -4,7 +4,7 @@ import com.tencent.mobileqq.app.QQAppInterface
 import kotlinx.serialization.json.JsonElement
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
-import moe.fuqiuluo.shamrock.remote.entries.StdAccount
+import moe.fuqiuluo.shamrock.remote.structures.StdAccount
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
 import moe.fuqiuluo.shamrock.xposed.helper.AppRuntimeFetcher
 import moe.fuqiuluo.symbols.OneBotHandler
@@ -24,7 +24,8 @@ internal object GetLoginInfo: IActionHandler() {
         return if (account == null || !account.isLogined) {
             error("当前不处于已登录状态", echo = echo)
         } else {
-            ok(StdAccount(
+            ok(
+                StdAccount(
                 curUin.toLong(),if (runtime is QQAppInterface) runtime.currentNickname else "unknown"
             ), echo = echo)
         }

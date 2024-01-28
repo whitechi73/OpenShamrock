@@ -4,8 +4,8 @@ import com.tencent.mobileqq.data.Card
 import moe.fuqiuluo.qqinterface.servlet.CardSvc
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
-import moe.fuqiuluo.shamrock.remote.entries.Status
-import moe.fuqiuluo.shamrock.remote.entries.resultToString
+import moe.fuqiuluo.shamrock.remote.structures.Status
+import moe.fuqiuluo.shamrock.remote.structures.resultToString
 import moe.fuqiuluo.shamrock.remote.service.data.VipInfo
 import moe.fuqiuluo.shamrock.remote.service.data.VipType
 import moe.fuqiuluo.shamrock.remote.service.data.profile.Location
