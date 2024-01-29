@@ -123,7 +123,7 @@ internal sealed class MessageElemConverter: IMessageConvert {
                         else -> unknownChatType(chatType)
                     },
                     "subType" to image.picSubType,
-                    "type" to if (image.isFlashPic) "flash" else "show"
+                    "type" to if (image.isFlashPic) "flash" else if(image.original) "original" else "show"
                 )
             )
         }
