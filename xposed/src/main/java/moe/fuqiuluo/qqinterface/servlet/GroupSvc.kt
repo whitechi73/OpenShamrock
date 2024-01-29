@@ -335,7 +335,7 @@ internal object GroupSvc: BaseSvc() {
         sendOidb("OidbSvc.0x570_8", 1392, 8, array)
     }
 
-    fun kickMember(groupId: Long, rejectAddRequest: Boolean, vararg memberUin: Long) {
+    fun kickMember(groupId: Long, rejectAddRequest: Boolean, kickMsg: String, vararg memberUin: Long) {
         val reqBody = oidb_0x8a0.ReqBody()
         reqBody.opt_uint64_group_code.set(groupId)
 
@@ -346,6 +346,7 @@ internal object GroupSvc: BaseSvc() {
             memberInfo.opt_uint32_flag.set(if (rejectAddRequest) 1 else 0)
             reqBody.rpt_msg_kick_list.add(memberInfo)
         }
+        reqBody.bytes_kick_msg.set(ByteStringMicro.copyFrom(kickMsg.toByteArray()))
 
         sendOidb("OidbSvc.0x8a0_0", 2208, 0, reqBody.toByteArray())
     }

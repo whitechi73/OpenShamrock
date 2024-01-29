@@ -120,7 +120,12 @@ fun Routing.troopAction() {
     getOrPost("/set_group_kick") {
         val userId = fetchOrThrow("user_id").toLong()
         val groupId = fetchOrThrow("group_id").toLong()
-        call.respondText(KickTroopMember(groupId, userId), ContentType.Application.Json)
+        val kickMsg = fetchOrNull("kick_msg") ?: ""
+        val rejectAddRequest = when(fetchGetOrNull("reject_add_request")) {
+            "1", "true" -> true
+            else -> false
+        }
+        call.respondText(KickTroopMember(groupId, userId, rejectAddRequest, kickMsg), ContentType.Application.Json)
     }
 
     getOrPost("/set_essence_msg") {
