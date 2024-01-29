@@ -113,7 +113,7 @@ internal object HttpService: HttpTransmitServlet() {
                     MsgSvc.recallMsg(msgHash)
                 }
                 if (MsgConstant.KCHATTYPEGROUP == record.chatType && data.containsKey("kick") && data["kick"].asBoolean) {
-                    GroupSvc.kickMember(record.peerUin, false, record.senderUin)
+                    GroupSvc.kickMember(record.peerUin, false, "", record.senderUin)
                 }
                 if (MsgConstant.KCHATTYPEGROUP == record.chatType && data.containsKey("ban") && data["ban"].asBoolean) {
                     val banTime = data["ban_duration"].asIntOrNull ?: (30 * 60)

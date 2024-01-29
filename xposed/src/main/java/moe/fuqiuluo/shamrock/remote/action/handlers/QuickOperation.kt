@@ -96,7 +96,7 @@ internal object QuickOperation: IActionHandler() {
             MsgSvc.recallMsg(msgHash)
         }
         if (MsgConstant.KCHATTYPEGROUP == record.chatType && operation.containsKey("kick") && operation["kick"].asBoolean) {
-            GroupSvc.kickMember(record.peerUin, false, record.senderUin)
+            GroupSvc.kickMember(record.peerUin, false, "", record.senderUin)
         }
         if (MsgConstant.KCHATTYPEGROUP == record.chatType && operation.containsKey("ban") && operation["ban"].asBoolean) {
             val banTime = operation["ban_duration"].asIntOrNull ?: (30 * 60)
