@@ -23,6 +23,7 @@ import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.helper.MessageHelper
 import moe.fuqiuluo.shamrock.helper.SendMsgException
+import moe.fuqiuluo.shamrock.remote.structures.SendMsgResult
 import moe.fuqiuluo.shamrock.tools.EMPTY_BYTE_ARRAY
 import moe.fuqiuluo.shamrock.xposed.helper.NTServiceFetcher
 import moe.fuqiuluo.shamrock.xposed.helper.msgService
@@ -170,8 +171,7 @@ internal object MsgSvc: BaseSvc() {
         peedId: String,
         message: JsonArray,
         fromId: String = peedId,
-        retryCnt: Int = 3
-    ): Result<Pair<Long, Int>> {
+    ): Result<SendMsgResult> {
         // 主动临时消息
         when (chatType) {
             MsgConstant.KCHATTYPETEMPC2CFROMGROUP -> {
@@ -181,14 +181,17 @@ internal object MsgSvc: BaseSvc() {
                 }
             }
         }
-        val result =  MessageHelper.sendMessageWithoutMsgId(chatType, peedId, message, fromId, MessageCallback(peedId, 0))
-        return if (result.isFailure
-            && result.exceptionOrNull()?.javaClass == SendMsgException::class.java
-            && retryCnt > 0) {
+        val result = MessageHelper.sendMessageWithoutMsgId(chatType, peedId, message, fromId, MessageCallback(peedId, 0))
+        result.onFailure {
+            LogCenter.log(it.stackTraceToString(), Level.ERROR)
+            return result
+        }
+        val sendResult = result.getOrThrow()
+        return if (sendResult.isTimeout) {
             // 发送失败，可能网络问题出现红色感叹号，重试
             // 例如 rich media transfer failed
             delay(100)
-            sendToAio(chatType, peedId, message, fromId, retryCnt - 1)
+            MessageHelper.resendMsg(chatType, peedId, fromId, sendResult.qqMsgId, 3, sendResult.msgHashId)
         } else {
             result
         }

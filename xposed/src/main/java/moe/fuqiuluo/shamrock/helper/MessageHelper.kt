@@ -19,6 +19,7 @@ import moe.fuqiuluo.qqinterface.servlet.MsgSvc
 import moe.fuqiuluo.qqinterface.servlet.msg.MessageMaker
 import moe.fuqiuluo.shamrock.helper.db.MessageDB
 import moe.fuqiuluo.shamrock.helper.db.MessageMapping
+import moe.fuqiuluo.shamrock.remote.structures.SendMsgResult
 import moe.fuqiuluo.shamrock.tools.EmptyJsonObject
 import moe.fuqiuluo.shamrock.tools.asJsonObject
 import moe.fuqiuluo.shamrock.tools.asJsonObjectOrNull
@@ -36,18 +37,40 @@ internal object MessageHelper {
         message: String,
         callback: IOperateCallback,
         fromId: String = peerId
-    ): Pair<Long, Int> {
+    ): SendMsgResult {
         val uniseq = generateMsgId(chatType)
-        val msg = messageArrayToMessageElements(chatType, uniseq.second, peerId, decodeCQCode(message)).also {
+        val msg = messageArrayToMessageElements(chatType, uniseq.qqMsgId, peerId, decodeCQCode(message)).also {
             if (it.second.isEmpty() && !it.first) {
                 error("消息合成失败，请查看日志或者检查输入。")
             } else if (it.second.isEmpty()) {
-                return System.currentTimeMillis() to 0
+                return uniseq.copy(msgHashId = 0, msgTime = System.currentTimeMillis())
             }
         }.second.filter {
             it.elementType != -1
         } as ArrayList<MsgElement>
         return sendMessageWithoutMsgId(chatType, peerId, msg, fromId, callback)
+    }
+
+    suspend fun resendMsg(chatType: Int, peerId: String, fromId: String, msgId: Long, retryCnt: Int, msgHashId: Int): Result<SendMsgResult> {
+        val contact = generateContact(chatType, peerId, fromId)
+        return resendMsg(contact, msgId, retryCnt, msgHashId)
+    }
+
+    suspend fun resendMsg(contact: Contact, msgId: Long, retryCnt: Int, msgHashId: Int): Result<SendMsgResult> {
+        if (retryCnt < 0) return Result.failure(SendMsgException("消息发送超时次数过多"))
+        val service = QRoute.api(IMsgService::class.java)
+        val result = withTimeoutOrNull(15000) {
+            if(suspendCancellableCoroutine {
+                service.resendMsg(contact, msgId) { result, _ ->
+                    it.resume(result)
+                }
+            } != 0) {
+                resendMsg(contact, msgId, retryCnt - 1, msgHashId)
+            } else {
+                Result.success(SendMsgResult(msgHashId, msgId, System.currentTimeMillis()))
+            }
+        }
+        return result ?: resendMsg(contact, msgId, retryCnt - 1, msgHashId)
     }
 
     @OptIn(DelicateCoroutinesApi::class)
@@ -57,9 +80,9 @@ internal object MessageHelper {
         message: JsonArray,
         fromId: String = peerId,
         callback: IOperateCallback
-    ): Result<Pair<Long, Int>> {
+    ): Result<SendMsgResult> {
         val uniseq = generateMsgId(chatType)
-        val msg = messageArrayToMessageElements(chatType, uniseq.second, peerId, message).also {
+        val msg = messageArrayToMessageElements(chatType, uniseq.qqMsgId, peerId, message).also {
             if (it.second.isEmpty() && !it.first) error("消息合成失败，请查看日志或者检查输入。")
         }.second.filter {
             it.elementType != -1
@@ -67,7 +90,7 @@ internal object MessageHelper {
 
         // ActionMsg No Care
         if (msg.isEmpty()) {
-            return Result.success(System.currentTimeMillis() to 0)
+            return Result.success(uniseq.copy(msgTime = System.currentTimeMillis(), msgHashId = 0))
         }
 
         val totalSize = msg.filter {
@@ -78,13 +101,13 @@ internal object MessageHelper {
             (it.picElement?.fileSize ?: 0) + (it.pttElement?.fileSize
                 ?: 0) + (it.videoElement?.fileSize ?: 0)
         }.reduceOrNull { a, b -> a + b } ?: 0
-        val estimateTime =  (totalSize / (300 * 1024)) * 1000 + 2000
+        val estimateTime = (totalSize / (300 * 1024)) * 1000 + 2000
 
-        lateinit var sendResultPair: Pair<Long, Int>
+        lateinit var sendResult: SendMsgResult // msgTime to msgHash
         val sendRet = withTimeoutOrNull<Pair<Int, String>>(estimateTime) {
             suspendCancellableCoroutine {
                 GlobalScope.launch {
-                    sendResultPair = sendMessageWithoutMsgId(
+                    sendResult = sendMessageWithoutMsgId(
                         chatType,
                         peerId,
                         msg,
@@ -96,10 +119,12 @@ internal object MessageHelper {
                 }
             }
         }
+
         if (sendRet?.first != 0) {
-            return Result.failure(SendMsgException(sendRet?.second ?: "发送消息超时"))
+            //return Result.failure(SendMsgException(sendRet?.second ?: "发送消息超时"))
+            return Result.success(uniseq.copy(isTimeout = true))
         }
-        return Result.success(sendResultPair)
+        return Result.success(sendResult)
     }
 
     suspend fun sendMessageWithoutMsgId(
@@ -108,7 +133,7 @@ internal object MessageHelper {
         message: ArrayList<MsgElement>,
         fromId: String = peerId,
         callback: IOperateCallback
-    ): Pair<Long, Int> {
+    ): SendMsgResult {
         return sendMessageWithoutMsgId(generateContact(chatType, peerId, fromId), message, callback)
     }
 
@@ -116,24 +141,25 @@ internal object MessageHelper {
         contact: Contact,
         message: ArrayList<MsgElement>,
         callback: IOperateCallback
-    ): Pair<Long, Int> {
+    ): SendMsgResult {
         val uniseq = generateMsgId(contact.chatType)
         val nonMsg: Boolean = message.isEmpty()
         return if (!nonMsg) {
             val service = QRoute.api(IMsgService::class.java)
             if (callback is MsgSvc.MessageCallback) {
-                callback.msgHash = uniseq.first
+                callback.msgHash = uniseq.msgHashId
             }
 
             service.sendMsg(
                 contact,
-                uniseq.second,
+                uniseq.qqMsgId,
                 message,
                 callback
             )
-            System.currentTimeMillis() to uniseq.first
+
+            uniseq.copy(msgTime = System.currentTimeMillis())
         } else {
-            System.currentTimeMillis() to 0
+            uniseq.copy(msgHashId = 0, msgTime = System.currentTimeMillis())
         }
     }
 
@@ -143,9 +169,9 @@ internal object MessageHelper {
         message: JsonArray,
         callback: IOperateCallback,
         fromId: String = peerId
-    ): Pair<Long, Int> {
+    ): SendMsgResult {
         val uniseq = generateMsgId(chatType)
-        val msg = messageArrayToMessageElements(chatType, uniseq.second, peerId, message).also {
+        val msg = messageArrayToMessageElements(chatType, uniseq.qqMsgId, peerId, message).also {
             if (it.second.isEmpty() && !it.first) error("消息合成失败，请查看日志或者检查输入。")
         }.second.filter {
             it.elementType != -1
@@ -155,18 +181,18 @@ internal object MessageHelper {
         return if (!nonMsg) {
             val service = QRoute.api(IMsgService::class.java)
             if (callback is MsgSvc.MessageCallback) {
-                callback.msgHash = uniseq.first
+                callback.msgHash = uniseq.msgHashId
             }
 
             service.sendMsg(
                 contact,
-                uniseq.second,
+                uniseq.qqMsgId,
                 msg,
                 callback
             )
-            uniseq.second to uniseq.first
+            uniseq.copy(msgTime = System.currentTimeMillis())
         } else {
-            uniseq.second to 0
+            uniseq.copy(msgHashId = 0, msgTime = System.currentTimeMillis())
         }
     }
 
@@ -174,24 +200,25 @@ internal object MessageHelper {
         contact: Contact,
         message: ArrayList<MsgElement>,
         callback: IOperateCallback
-    ): Pair<Long, Int> {
+    ): SendMsgResult {
         val uniseq = generateMsgId(contact.chatType)
         val nonMsg: Boolean = message.isEmpty()
         return if (!nonMsg) {
             val service = QRoute.api(IMsgService::class.java)
             if (callback is MsgSvc.MessageCallback) {
-                callback.msgHash = uniseq.first
+                callback.msgHash = uniseq.msgHashId
             }
 
             service.sendMsg(
                 contact,
-                uniseq.second,
+                uniseq.qqMsgId,
                 message,
                 callback
             )
-            uniseq.second to uniseq.first
+
+            uniseq.copy(msgTime = System.currentTimeMillis())
         } else {
-            0L to 0
+            uniseq.copy(msgTime = 0, msgHashId = 0)
         }
     }
 
@@ -200,24 +227,23 @@ internal object MessageHelper {
         peerId: String,
         message: JsonArray,
         fromId: String = peerId
-    ): Pair<Int, Long> {
+    ): SendMsgResult {
         val uniseq = generateMsgId(chatType)
-        val msg = messageArrayToMessageElements(chatType, uniseq.second, peerId, message).also {
+        val msg = messageArrayToMessageElements(chatType, uniseq.qqMsgId, peerId, message).also {
             if (it.second.isEmpty() && !it.first) error("消息合成失败，请查看日志或者检查输入。")
         }.second.filter {
             it.elementType != -1
         } as ArrayList<MsgElement>
         val contact = generateContact(chatType, peerId, fromId)
-        val nonMsg: Boolean = message.isEmpty()
-        return if (!nonMsg) {
+        return if (!message.isEmpty()) {
             val service = QRoute.api(IMsgService::class.java)
-            return suspendCoroutine {
-                service.sendMsg(contact, uniseq.second, msg) { code, why ->
-                    it.resume(code to uniseq.second)
+            return suspendCancellableCoroutine {
+                service.sendMsg(contact, uniseq.qqMsgId, msg) { code, why ->
+                    it.resume(uniseq.copy(msgTime = System.currentTimeMillis()))
                 }
             }
         } else {
-            -1 to uniseq.second
+            uniseq.copy(msgHashId = 0, msgTime = 0)
         }
     }
 
@@ -287,10 +313,10 @@ internal object MessageHelper {
         return abs(key.hashCode())
     }
 
-    fun generateMsgId(chatType: Int): Pair<Int, Long> {
+    fun generateMsgId(chatType: Int): SendMsgResult {
         val msgId = createMessageUniseq(chatType, System.currentTimeMillis())
         val hashCode: Int = generateMsgIdHash(chatType, msgId)
-        return hashCode to msgId
+        return SendMsgResult(hashCode, msgId, 0)
     }
 
     fun getMsgMappingByHash(hash: Int): MessageMapping? {

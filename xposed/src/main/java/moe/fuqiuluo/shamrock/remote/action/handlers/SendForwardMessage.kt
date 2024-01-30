@@ -145,10 +145,11 @@ internal object SendForwardMessage : IActionHandler() {
                     }.json
 
                     val result = MessageHelper.sendMessageNoCb(MsgConstant.KCHATTYPEC2C, selfUin, content)
-                    if (result.first != 0) {
+                    if (result.qqMsgId == 0L) {
                         LogCenter.log("合并转发消息节点消息发送失败", Level.WARN)
+                        return@map null
                     }
-                    result.second to node.first
+                    result.qqMsgId to node.first
                 }
             }.filterNotNull()
 
@@ -158,11 +159,11 @@ internal object SendForwardMessage : IActionHandler() {
             val uniseq = MessageHelper.generateMsgId(chatType)
             msgService.multiForwardMsg(ArrayList<MultiMsgInfo>().apply {
                 multiNodes.forEach { add(MultiMsgInfo(it.first, it.second)) }
-            }.also { it.reverse() }, from, to, MsgSvc.MessageCallback(peerId, uniseq.first))
+            }.also { it.reverse() }, from, to, MsgSvc.MessageCallback(peerId, uniseq.msgHashId))
 
             return ok(
                 ForwardMessageResult(
-                    msgId = uniseq.first,
+                    msgId = uniseq.msgHashId,
                     forwardId = ""
                 ), echo = echo
             )

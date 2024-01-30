@@ -108,12 +108,12 @@ internal object UploadGroupFile : IActionHandler() {
             val contact = MessageHelper.generateContact(MsgConstant.KCHATTYPEGROUP, groupId)
             suspendCancellableCoroutine<FileTransNotifyInfo?> {
                 msgService.sendMsgWithMsgId(
-                    contact, msgIdPair.second, arrayListOf(msgElement)
+                    contact, msgIdPair.qqMsgId, arrayListOf(msgElement)
                 ) { code, reason ->
                     LogCenter.log("群文件消息发送异常(code = $code, reason = $reason)")
                     it.resume(null)
                 }
-                RichMediaUploadHandler.registerListener(msgIdPair.second) {
+                RichMediaUploadHandler.registerListener(msgIdPair.qqMsgId) {
                     it.resume(this)
                     return@registerListener true
                 }
@@ -125,7 +125,7 @@ internal object UploadGroupFile : IActionHandler() {
         }.commonFileInfo
 
         return ok(data = FileUploadResult(
-            msgHash = msgIdPair.first,
+            msgHash = msgIdPair.msgHashId,
             bizid = info.bizType ?: 0,
             md5 = info.md5,
             sha = info.sha,
