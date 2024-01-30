@@ -42,10 +42,12 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.encodeToByteArray
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.decodeFromStream
 import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.protobuf.ProtoBuf
 import moe.fuqiuluo.qqinterface.servlet.TicketSvc.getLongUin
 import moe.fuqiuluo.qqinterface.servlet.TicketSvc.getUin
 import moe.fuqiuluo.qqinterface.servlet.structures.GroupAtAllRemainInfo
@@ -73,6 +75,8 @@ import moe.fuqiuluo.shamrock.utils.FileUtils
 import moe.fuqiuluo.shamrock.utils.PlatformUtils
 import moe.fuqiuluo.shamrock.xposed.helper.AppRuntimeFetcher
 import moe.fuqiuluo.shamrock.xposed.helper.NTServiceFetcher
+import moe.whitechi73.protobuf.oidb.cmd0xf16.Oidb0xf16
+import moe.whitechi73.protobuf.oidb.cmd0xf16.SetGroupRemarkReq
 import mqq.app.MobileQQ
 import tencent.im.group.group_member_info
 import tencent.im.oidb.cmd0x88d.oidb_0x88d
@@ -267,6 +271,17 @@ internal object GroupSvc: BaseSvc() {
         return true
     }
 
+    fun modifyGroupRemark(groupId: Long, remark: String): Boolean {
+        sendOidb("OidbSvc.0xf16_1", 3862, 1, ProtoBuf.encodeToByteArray(Oidb0xf16(
+            setGroupRemarkReq = SetGroupRemarkReq(
+                groupCode = groupId.toULong(),
+                groupUin = groupCode2GroupUin(groupId).toULong(),
+                groupRemark = remark
+            )
+        )))
+        return true
+    }
+
     suspend fun setEssenceMessage(groupId: Long, seq: Long, rand: Long): Pair<Boolean, String> {
         val buffer = sendOidbAW("OidbSvc.0xeac_1", 3756, 1, oidb_0xeac.ReqBody().apply {
             group_code.set(groupId)
@@ -450,6 +465,37 @@ internal object GroupSvc: BaseSvc() {
             }
         }
         return calc * 1000000L + groupuin % 1000000L
+    }
+
+    fun groupCode2GroupUin(groupcode: Long): Long {
+        var calc = groupcode / 1000000L
+        loop@ while (true) calc += when (calc) {
+            in 0..10 -> {
+                (202 - 0).toLong()
+            }
+            in 11..19 -> {
+                (480 - 11).toLong()
+            }
+            in 20..66 -> {
+                (2100 - 20).toLong()
+            }
+            in 67..156 -> {
+                (2010 - 67).toLong()
+            }
+            in 157..209 -> {
+                (2147 - 157).toLong()
+            }
+            in 210..309 -> {
+                (4100 - 210).toLong()
+            }
+            in 310..499 -> {
+                (3800 - 310).toLong()
+            }
+            else -> {
+                break@loop
+            }
+        }
+        return calc * 1000000L + groupcode % 1000000L
     }
 
     suspend fun getShareTroopArkMsg(groupId: Long): String {

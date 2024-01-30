@@ -22,7 +22,7 @@ internal object ModifyTroopMemberName: IActionHandler() {
         }
         return if(GroupSvc.modifyGroupMemberCard(groupId.toLong(), userId.toLong(), card))
             ok("成功", echo)
-        else error("check if member or group exist")
+        else error("check if member or group exist", echo)
     }
 
     override val requiredParams: Array<String> = arrayOf("group_id", "user_id")
