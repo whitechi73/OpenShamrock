@@ -83,6 +83,17 @@ internal sealed class MessageElemConverter: IMessageConvert {
                         )
                     )
                 }
+                394 -> {
+                    //LogCenter.log(face.toString())
+                    return MessageSegment(
+                        type = "face",
+                        data = hashMapOf(
+                            "id" to face.faceIndex,
+                            "big" to (face.faceType == 3),
+                            "result" to (face.resultId ?: "1")
+                        )
+                    )
+                }
                 else -> return MessageSegment(
                     type = "face",
                     data = hashMapOf(
@@ -123,7 +134,7 @@ internal sealed class MessageElemConverter: IMessageConvert {
                         else -> unknownChatType(chatType)
                     },
                     "subType" to image.picSubType,
-                    "type" to if (image.isFlashPic) "flash" else if(image.original) "original" else "show"
+                    "type" to if (image.isFlashPic == true) "flash" else if(image.original) "original" else "show"
                 )
             )
         }

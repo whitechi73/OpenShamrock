@@ -500,7 +500,8 @@ internal object MessageMaker {
     private suspend fun createFaceElem(chatType: Int, msgId: Long, peerId: String, data: JsonObject): Result<MsgElement> {
         data.checkAndThrow("id")
 
-        val big = data["big"].asBooleanOrNull ?: false
+        val serverId = data["id"].asInt
+        val big = (data["big"].asBooleanOrNull ?: false) || serverId == 394
 
         val elem = MsgElement()
         elem.elementType = MsgConstant.KELEMTYPEFACE
@@ -512,17 +513,24 @@ internal object MessageMaker {
         // 4 is market face
         // 5 is vas poke
         face.faceType = if (big) 3 else 2
-        val serverId = data["id"].asInt
         face.faceIndex = serverId
         face.faceText = QQSysFaceUtil.getFaceDescription(QQSysFaceUtil.convertToLocal(serverId))
-        face.imageType = 0
-        if (big) {
+        if (serverId == 394) {
+            face.stickerId = 40.toString()
+            face.packId = "1"
+            face.sourceType = 1
+            face.stickerType = 3
+            face.randomType = 1
+            face.resultId = data["result"].asStringOrNull ?: Random.nextInt(1 .. 5).toString()
+        } else if (big) {
+            face.imageType = 0
             face.stickerId = 30.toString()
             face.packId = "1"
             face.sourceType = 1
             face.stickerType = 1
             face.randomType = 1
         } else {
+            face.imageType = 0
             face.packId = "0"
         }
         elem.faceElement = face
