@@ -122,7 +122,7 @@ internal object QuickOperation: IActionHandler() {
         }.let {
             if (it.isNotEmpty()) {
                 it.map { listOf(it) }.forEach {
-                    MsgSvc.sendToAio(record.chatType, record.peerUin.toString(), it.jsonArray)
+                    MsgSvc.sendToAio(record.chatType, record.peerUin.toString(), it.jsonArray, retryCnt = 3)
                 }
                 return
             }
@@ -143,6 +143,6 @@ internal object QuickOperation: IActionHandler() {
             ).json) // 添加@发送者
         }
         messageList.addAll(message)
-        MsgSvc.sendToAio(record.chatType, record.peerUin.toString(), JsonArray(messageList))
+        MsgSvc.sendToAio(record.chatType, record.peerUin.toString(), JsonArray(messageList), retryCnt = 3)
     }
 }

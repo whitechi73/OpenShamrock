@@ -12,7 +12,6 @@ import moe.fuqiuluo.shamrock.helper.ParamsException
 import moe.fuqiuluo.qqinterface.servlet.MsgSvc
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
-import moe.fuqiuluo.shamrock.helper.ContactHelper
 import moe.fuqiuluo.shamrock.remote.service.data.MessageResult
 import moe.fuqiuluo.shamrock.tools.json
 import moe.fuqiuluo.shamrock.helper.Level
@@ -93,7 +92,7 @@ internal object SendMessage: IActionHandler() {
                         "text" to message
                     )
                 )
-            ).json, fromId = fromId)
+            ).json, fromId = fromId, retryCnt)
         } else {
             val msg = MessageHelper.decodeCQCode(message)
             if (msg.isEmpty()) {
@@ -106,14 +105,14 @@ internal object SendMessage: IActionHandler() {
         if (result.isFailure) {
             return logic(result.exceptionOrNull()?.message ?: "", echo)
         }
-        val pair = result.getOrNull() ?: Pair(0L, 0)
-        if (pair.first <= 0) {
+        val sendMsgResult = result.getOrThrow()
+        if (sendMsgResult.msgHashId <= 0) {
             return logic("send message failed", echo = echo)
         }
-        recallDuration?.let { autoRecall(pair.second, it) }
+        recallDuration?.let { autoRecall(sendMsgResult.msgHashId, it) }
         return ok(MessageResult(
-            msgId = pair.second,
-            time = (pair.first * 0.001).toLong()
+            msgId = sendMsgResult.msgHashId,
+            time = (sendMsgResult.msgTime * 0.001).toLong()
         ), echo = echo)
     }
 
@@ -128,14 +127,14 @@ internal object SendMessage: IActionHandler() {
         if (result.isFailure) {
             return logic(result.exceptionOrNull()?.message ?: "", echo)
         }
-        val pair = result.getOrNull() ?: Pair(0L, 0)
-        if (pair.first <= 0) {
+        val sendMsgResult = result.getOrThrow()
+        if (sendMsgResult.msgHashId <= 0) {
             return logic("send message failed", echo = echo)
         }
-        recallDuration?.let { autoRecall(pair.second, it) }
+        recallDuration?.let { autoRecall(sendMsgResult.msgHashId, it) }
         return ok(MessageResult(
-            msgId = pair.second,
-            time = (pair.first * 0.001).toLong()
+            msgId = sendMsgResult.msgHashId,
+            time = (sendMsgResult.msgTime * 0.001).toLong()
         ), echo)
     }
 

@@ -171,6 +171,7 @@ internal object MsgSvc: BaseSvc() {
         peedId: String,
         message: JsonArray,
         fromId: String = peedId,
+        retryCnt: Int
     ): Result<SendMsgResult> {
         // 主动临时消息
         when (chatType) {
