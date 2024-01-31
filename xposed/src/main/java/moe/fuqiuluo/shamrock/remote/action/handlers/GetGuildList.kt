@@ -20,11 +20,15 @@ internal object GetGuildList : IActionHandler() {
     }
 
     operator fun invoke(refresh: Boolean = true, echo: JsonElement = EmptyJsonString): String {
+        PlatformUtils.requireMinQQVersion(version = PlatformUtils.QQ_9_0_8_VER)
+
         val kernelGProService = NTServiceFetcher.kernelService.wrapperSession.guildService
         if (refresh) {
             kernelGProService.refreshGuildList(true)
+            kernelGProService.guildListFromCache.forEach {
+                kernelGProService.refreshGuildInfo(it.guildId, true, 1)
+            }
         }
-        PlatformUtils.requireMinQQVersion(version = PlatformUtils.QQ_9_0_8_VER)
         val result = arrayListOf<GuildInfo>()
         kernelGProService.guildListFromCache.forEach {
             if (it.result != 0) return@forEach
