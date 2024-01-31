@@ -8,8 +8,10 @@ import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.shamrock.tools.EmptyJsonArray
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
+import moe.fuqiuluo.shamrock.utils.PlatformUtils
 import moe.fuqiuluo.shamrock.xposed.helper.NTServiceFetcher
 import moe.fuqiuluo.symbols.OneBotHandler
+import mqq.app.MobileQQ
 
 @OneBotHandler("get_guild_list")
 internal object GetGuildList : IActionHandler() {
@@ -22,6 +24,7 @@ internal object GetGuildList : IActionHandler() {
         if (refresh) {
             kernelGProService.refreshGuildList(true)
         }
+        PlatformUtils.requireMinQQVersion(version = PlatformUtils.QQ_9_0_8_VER)
         val result = arrayListOf<GuildInfo>()
         kernelGProService.guildListFromCache.forEach {
             if (it.result != 0) return@forEach

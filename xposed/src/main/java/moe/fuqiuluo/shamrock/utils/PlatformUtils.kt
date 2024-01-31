@@ -16,9 +16,22 @@ import mqq.app.MobileQQ
 import kotlin.random.Random
 
 internal object PlatformUtils {
+    const val QQ_9_0_8_VER = 5540
+
     fun getQQVersion(context: Context): String {
         val packageInfo: PackageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
         return packageInfo.versionName
+    }
+
+    fun getQQVersionCode(context: Context = MobileQQ.getContext()): Int {
+        val packageInfo: PackageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+        return packageInfo.versionCode
+    }
+
+    fun requireMinQQVersion(context: Context = MobileQQ.getContext(), version: Int) {
+        require(getQQVersionCode(context) >= version) {
+            "require QQ version >= $version, but current version is ${getQQVersionCode(context)}"
+        }
     }
 
     /**
