@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProLiveGearInfo {
+public  final class GProLiveGearInfo {
     Integer bitRate;
     Integer level;
     String name;

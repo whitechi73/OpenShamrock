@@ -1,8 +1,7 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* compiled from: P */
-/* loaded from: classes2.dex */
-public final class MsgBoxNecessaryMsgInfo {
+
+public  final class MsgBoxNecessaryMsgInfo {
     String highlightDigest;
     long msgSeq;
     long msgTime;

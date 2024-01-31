@@ -3,8 +3,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-/* loaded from: classes2.dex */
-public final class GProGetPrefetchRecommendGuildsRsp implements Serializable {
+public  final class GProGetPrefetchRecommendGuildsRsp implements Serializable {
     GProPrefetchRecommendBubbleInfo bubbleInfo;
     ArrayList<GProPrefetchRecommendGuildInfo> guildInfos;
     GProPrefetchRecommendRedDotInfo redDotInfo;

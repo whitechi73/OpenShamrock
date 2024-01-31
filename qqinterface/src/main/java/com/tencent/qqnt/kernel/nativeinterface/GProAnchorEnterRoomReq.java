@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProAnchorEnterRoomReq {
+public  final class GProAnchorEnterRoomReq {
     String extData;
     String machine;
     Long openLiveType;

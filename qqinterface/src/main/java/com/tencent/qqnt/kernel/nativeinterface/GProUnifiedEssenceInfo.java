@@ -3,8 +3,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-/* loaded from: classes2.dex */
-public final class GProUnifiedEssenceInfo implements Serializable {
+public  final class GProUnifiedEssenceInfo implements Serializable {
     ArrayList<GProEssenceChannel> channels;
     String content;
     Long operatorName;

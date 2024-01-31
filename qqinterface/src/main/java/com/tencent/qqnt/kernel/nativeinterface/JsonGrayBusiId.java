@@ -1,8 +1,7 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* compiled from: P */
-/* loaded from: classes2.dex */
-public final class JsonGrayBusiId {
+
+public  final class JsonGrayBusiId {
     public static final int AIO_AV_C2C_NOTICE = 2021;
     public static final int AIO_AV_GROUP_NOTICE = 2022;
     public static final int AIO_C2C_DONT_DISTURB = 2100;

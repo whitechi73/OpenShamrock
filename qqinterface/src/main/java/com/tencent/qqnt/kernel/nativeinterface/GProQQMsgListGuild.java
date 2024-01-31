@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProQQMsgListGuild {
+public  final class GProQQMsgListGuild {
     long avatarSeq;
     long guildId;
     String guildName;

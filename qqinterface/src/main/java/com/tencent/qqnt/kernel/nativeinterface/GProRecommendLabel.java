@@ -3,8 +3,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-/* loaded from: classes2.dex */
-public final class GProRecommendLabel implements Serializable {
+public  final class GProRecommendLabel implements Serializable {
     int bussiLabelType;
     String labelName;
     int labelType;

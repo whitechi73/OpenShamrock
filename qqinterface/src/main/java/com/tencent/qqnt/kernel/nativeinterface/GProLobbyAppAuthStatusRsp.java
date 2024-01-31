@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProLobbyAppAuthStatusRsp {
+public  final class GProLobbyAppAuthStatusRsp {
     String authCode;
     int authStatus;
     String openId;

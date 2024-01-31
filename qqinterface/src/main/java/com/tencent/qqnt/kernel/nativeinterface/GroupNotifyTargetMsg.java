@@ -1,8 +1,7 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* compiled from: P */
-/* loaded from: classes2.dex */
-public final class GroupNotifyTargetMsg {
+
+public  final class GroupNotifyTargetMsg {
     long groupCode;
     String postscript;
     long seq;

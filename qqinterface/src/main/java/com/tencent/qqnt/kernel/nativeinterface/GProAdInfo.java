@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProAdInfo {
+public  final class GProAdInfo {
     int adId;
     int adType;
     String jumpUrl;

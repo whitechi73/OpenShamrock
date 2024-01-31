@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes22.dex */
-public final class GProShareExtendInfo {
+public  final class GProShareExtendInfo {
     String shareCopywriting;
 
     public GProShareExtendInfo() {

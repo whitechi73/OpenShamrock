@@ -1,8 +1,7 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* compiled from: P */
-/* loaded from: classes22.dex */
-public final class LiveGiftMemberInfo {
+
+public  final class LiveGiftMemberInfo {
     String nickName;
     int roleColor;
     long roleId;

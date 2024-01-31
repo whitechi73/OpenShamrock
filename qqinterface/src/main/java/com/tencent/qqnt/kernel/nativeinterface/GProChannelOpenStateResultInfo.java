@@ -3,8 +3,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-/* loaded from: classes2.dex */
-public final class GProChannelOpenStateResultInfo implements Serializable {
+public  final class GProChannelOpenStateResultInfo implements Serializable {
     boolean peakActivityGuildFlag;
     long serialVersionUID;
     ArrayList<GProSwitchInfo> switchInfoList;

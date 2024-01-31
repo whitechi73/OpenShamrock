@@ -2,7 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.util.ArrayList;
 
-/* loaded from: classes.dex */
+
 public final class VASMsgNamePlate {
     ArrayList<Integer> carouselNamePlateIds;
     Integer extendNamePlateId;

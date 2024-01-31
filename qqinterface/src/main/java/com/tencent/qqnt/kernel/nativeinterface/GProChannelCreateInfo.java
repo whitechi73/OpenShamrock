@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.util.ArrayList;
 
-/* loaded from: classes2.dex */
-public final class GProChannelCreateInfo {
+public  final class GProChannelCreateInfo {
     long appid;
     ArrayList<GProAuthControlSwitchInfo> authControlSwitchInfoList;
     ArrayList<GProBindMembers> bindMembersList;

@@ -4,8 +4,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.util.ArrayList;
 
-/* loaded from: classes2.dex */
-public final class GProUnionSearchResult {
+public  final class GProUnionSearchResult {
     byte[] feedInfoCookie;
     ArrayList<GProFeedSearchInfo> feedInfoList;
     long feedInfoTotalCount;

@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.util.ArrayList;
 
-/* loaded from: classes2.dex */
-public final class GProGetHotSearchWordRsp {
+public  final class GProGetHotSearchWordRsp {
     byte[] cookies;
     GProForumBody forums;
     ArrayList<GProHotSearchWord> words;

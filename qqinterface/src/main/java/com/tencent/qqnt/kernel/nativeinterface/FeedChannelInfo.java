@@ -1,8 +1,7 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* compiled from: P */
-/* loaded from: classes2.dex */
-public final class FeedChannelInfo {
+
+public  final class FeedChannelInfo {
     String guildName;
     String iconUrl;
     String name;

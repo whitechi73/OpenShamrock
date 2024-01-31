@@ -1,8 +1,7 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* compiled from: P */
-/* loaded from: classes2.dex */
-public final class GproXWorldInfo {
+
+public  final class GproXWorldInfo {
     boolean allowDisplay;
     long bindTime;
     long guildId;

@@ -3,8 +3,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-/* loaded from: classes2.dex */
-public final class GProGetSubjectGuildsRsp implements Serializable {
+public  final class GProGetSubjectGuildsRsp implements Serializable {
     int allCnt;
     byte[] cookies;
     ArrayList<GProRecommendItem> items;

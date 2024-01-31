@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.util.ArrayList;
 
-/* loaded from: classes2.dex */
-public final class GProRecallReqItem {
+public  final class GProRecallReqItem {
     String channelId;
     int directMsgFlag;
     ArrayList<Long> msgIds;

@@ -1,8 +1,7 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* compiled from: P */
-/* loaded from: classes4.dex */
-public final class ContactTopData {
+
+public  final class ContactTopData {
     int chatType;
     long groupCode;
     String uid;

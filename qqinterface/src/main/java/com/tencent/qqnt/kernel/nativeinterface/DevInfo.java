@@ -1,8 +1,7 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* compiled from: P */
-/* loaded from: classes2.dex */
-public final class DevInfo implements IKernelModel {
+
+public  final class DevInfo implements IKernelModel {
     int clientType;
     String devUid;
     int instanceId;

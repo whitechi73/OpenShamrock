@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.io.Serializable;
 
-/* loaded from: classes2.dex */
-public final class GProGetPrefetchRecommendGuildsReq implements Serializable {
+public  final class GProGetPrefetchRecommendGuildsReq implements Serializable {
     long serialVersionUID;
     GProBottomTabSourceInfo source;
 

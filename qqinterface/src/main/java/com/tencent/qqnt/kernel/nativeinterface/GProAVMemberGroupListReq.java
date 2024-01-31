@@ -3,8 +3,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-/* loaded from: classes2.dex */
-public final class GProAVMemberGroupListReq implements Serializable {
+public  final class GProAVMemberGroupListReq implements Serializable {
     long channelId;
     ArrayList<GProGroupClaim> groupTypes;
     long guildId;

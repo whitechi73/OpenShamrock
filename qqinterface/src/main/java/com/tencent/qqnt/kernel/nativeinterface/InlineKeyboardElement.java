@@ -2,9 +2,8 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.util.ArrayList;
 
-/* compiled from: P */
-/* loaded from: classes2.dex */
-public final class InlineKeyboardElement {
+
+public  final class InlineKeyboardElement {
     long botAppid;
     ArrayList<InlineKeyboardRow> rows;
 

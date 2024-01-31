@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.io.Serializable;
 
-/* loaded from: classes2.dex */
-public final class GProJoinGuildsResult implements Serializable {
+public  final class GProJoinGuildsResult implements Serializable {
     long guildId;
     GProGuild guildInfo;
     GProGuildInit guildInit;

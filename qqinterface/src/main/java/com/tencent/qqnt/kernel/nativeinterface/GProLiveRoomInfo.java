@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.io.Serializable;
 
-/* loaded from: classes2.dex */
-public final class GProLiveRoomInfo implements Serializable {
+public  final class GProLiveRoomInfo implements Serializable {
     GProAnchorInfo anchorInfo;
     String closeTips;
     int closeType;

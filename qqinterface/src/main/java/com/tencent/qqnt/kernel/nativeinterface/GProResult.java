@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProResult {
+public  final class GProResult {
     String errMsg;
     long memberTid;
     int result;

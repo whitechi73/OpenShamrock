@@ -1,8 +1,7 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* compiled from: P */
-/* loaded from: classes22.dex */
-public final class TempChatServiceAssistantSession {
+
+public  final class TempChatServiceAssistantSession {
     long appId;
     int appType;
     String appTypeName;

@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.io.Serializable;
 
-/* loaded from: classes2.dex */
-public final class GProViewerExt implements Serializable {
+public  final class GProViewerExt implements Serializable {
     int fakeNum;
     int realNum;
     int rebotNum;

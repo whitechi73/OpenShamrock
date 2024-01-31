@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.io.Serializable;
 
-/* loaded from: classes2.dex */
-public final class GProClientPresence implements Serializable {
+public  final class GProClientPresence implements Serializable {
     String bigIcon;
     int clientId;
     String clientName;

@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProScheduleGuildSurface {
+public  final class GProScheduleGuildSurface {
     String channelName;
     String coverUrl;
     int fontColor;

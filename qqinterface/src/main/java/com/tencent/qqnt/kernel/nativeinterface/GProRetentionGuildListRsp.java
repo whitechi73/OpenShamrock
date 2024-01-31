@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.util.ArrayList;
 
-/* loaded from: classes2.dex */
-public final class GProRetentionGuildListRsp {
+public  final class GProRetentionGuildListRsp {
     byte[] cookies;
     boolean isEnd;
     int nextTs;

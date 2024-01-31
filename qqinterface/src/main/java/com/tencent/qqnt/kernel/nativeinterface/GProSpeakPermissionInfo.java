@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProSpeakPermissionInfo {
+public  final class GProSpeakPermissionInfo {
     Boolean sendLink;
     Boolean sendQrCode;
     Boolean sendRedPacket;

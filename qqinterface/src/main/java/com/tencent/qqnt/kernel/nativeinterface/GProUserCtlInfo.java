@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProUserCtlInfo {
+public  final class GProUserCtlInfo {
     GProAVDevOptInfo devOpt;
     int nextAVState;
     GProSpeakTimeCtl speakTimeCtl;

@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 
 
-/* loaded from: classes2.dex */
-public final class GProBotFeatureInfo {
+public  final class GProBotFeatureInfo {
     String availableRangeDesc;
     String desc;
     int id;

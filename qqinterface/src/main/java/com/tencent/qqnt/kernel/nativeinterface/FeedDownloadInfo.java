@@ -1,8 +1,7 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* compiled from: P */
-/* loaded from: classes2.dex */
-public final class FeedDownloadInfo {
+
+public  final class FeedDownloadInfo {
     FeedFileType downloadType;
     int errorCode;
     String errorMsg;

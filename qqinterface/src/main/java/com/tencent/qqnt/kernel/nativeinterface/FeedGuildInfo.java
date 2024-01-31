@@ -1,8 +1,7 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* compiled from: P */
-/* loaded from: classes2.dex */
-public final class FeedGuildInfo {
+
+public  final class FeedGuildInfo {
     String guildId;
     long joinTime;
     String name;

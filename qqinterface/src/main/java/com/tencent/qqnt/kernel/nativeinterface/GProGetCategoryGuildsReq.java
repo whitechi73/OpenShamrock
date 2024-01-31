@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.io.Serializable;
 
-/* loaded from: classes2.dex */
-public final class GProGetCategoryGuildsReq implements Serializable {
+public  final class GProGetCategoryGuildsReq implements Serializable {
     int businessType;
     int categoryId;
     byte[] cookies;

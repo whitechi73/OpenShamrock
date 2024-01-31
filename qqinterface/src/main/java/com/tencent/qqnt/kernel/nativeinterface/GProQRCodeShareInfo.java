@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.io.Serializable;
 
-/* loaded from: classes2.dex */
-public final class GProQRCodeShareInfo implements Serializable {
+public  final class GProQRCodeShareInfo implements Serializable {
     String OnlineMembersCount;
     long avTime;
     String channelCopyWriter;

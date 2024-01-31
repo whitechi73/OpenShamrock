@@ -2,8 +2,8 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.util.HashMap;
 
-/* compiled from: P */
-/* loaded from: classes.dex */
+
+
 public final class VideoElement implements IKernelModel {
     int busiType;
     Integer fileBizId;

@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProProfileRoomState {
+public  final class GProProfileRoomState {
     long channelId;
     int channelType;
     GProProfileChannelState feedChannelState;

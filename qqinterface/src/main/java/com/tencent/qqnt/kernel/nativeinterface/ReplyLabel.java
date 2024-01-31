@@ -1,8 +1,7 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* compiled from: P */
-/* loaded from: classes2.dex */
-public final class ReplyLabel {
+
+public  final class ReplyLabel {
     Long createTime;
     String id;
     String likeId;

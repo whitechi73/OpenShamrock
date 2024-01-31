@@ -2,9 +2,8 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.util.ArrayList;
 
-/* compiled from: P */
-/* loaded from: classes2.dex */
-public final class InlineKeyboardButton {
+
+public  final class InlineKeyboardButton {
     boolean atBotShowChannelList;
     int clickLimit;
     String data;

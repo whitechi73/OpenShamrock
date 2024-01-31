@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.util.ArrayList;
 
-/* loaded from: classes2.dex */
-public final class GProAnchorRoomInfo {
+public  final class GProAnchorRoomInfo {
     ArrayList<GProAnchorRoomNoticeItem> beginRoomNoticeTime;
     Integer continueLiveStatus;
     String coverUrl169;

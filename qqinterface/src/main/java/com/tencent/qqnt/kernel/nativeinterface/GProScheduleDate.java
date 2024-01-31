@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProScheduleDate {
+public  final class GProScheduleDate {
     long dateMs;
     int inviteStatus;
 

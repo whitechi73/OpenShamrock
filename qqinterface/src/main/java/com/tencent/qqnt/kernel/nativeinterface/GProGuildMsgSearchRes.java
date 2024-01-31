@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProGuildMsgSearchRes {
+public  final class GProGuildMsgSearchRes {
     String avatar;
     long channelId;
     long guildId;

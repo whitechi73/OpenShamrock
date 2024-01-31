@@ -18,7 +18,7 @@ import moe.fuqiuluo.symbols.OneBotHandler
 internal object GetTroopHonor: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val groupId = session.getString("group_id")
-        val refresh = session.getBooleanOrDefault("refresh", false)
+        val refresh = session.getBooleanOrDefault("refresh", session.getBooleanOrDefault("no_cache", false))
         return invoke(groupId, refresh, session.echo)
     }
 
@@ -53,7 +53,7 @@ internal object GetTroopHonor: IActionHandler() {
         ), echo)
     }
 
-    override val requiredParams: Array<String> = arrayOf("group_id", "refresh")
+    override val requiredParams: Array<String> = arrayOf("group_id")
 
     private external fun nativeDecodeHonor(userId: String, honorId: Int, honorFlag: Byte): GroupMemberHonor?
 }

@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.util.ArrayList;
 
-/* loaded from: classes2.dex */
-public final class GProLiveFrame {
+public  final class GProLiveFrame {
     ArrayList<GProPlayAddress> address;
     Integer codecType;
     String definition;

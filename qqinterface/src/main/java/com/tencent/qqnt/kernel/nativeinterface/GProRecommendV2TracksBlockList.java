@@ -3,8 +3,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-/* loaded from: classes2.dex */
-public final class GProRecommendV2TracksBlockList implements Serializable {
+public  final class GProRecommendV2TracksBlockList implements Serializable {
     String blockName;
     ArrayList<GProRecommendV2Channel> channelList;
     long serialVersionUID;

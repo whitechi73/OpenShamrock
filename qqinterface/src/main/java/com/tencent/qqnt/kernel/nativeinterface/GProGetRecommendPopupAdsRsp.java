@@ -3,8 +3,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-/* loaded from: classes2.dex */
-public final class GProGetRecommendPopupAdsRsp implements Serializable {
+public  final class GProGetRecommendPopupAdsRsp implements Serializable {
     ArrayList<GProRecommendPopupAdsInfo> adsInfoList;
     byte[] cookies;
     int nextTs;

@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.util.ArrayList;
 
-/* loaded from: classes2.dex */
-public final class GProGuildStateReqInfo {
+public  final class GProGuildStateReqInfo {
     ArrayList<Long> channelIdList;
     long guildId;
     long stateSeq;

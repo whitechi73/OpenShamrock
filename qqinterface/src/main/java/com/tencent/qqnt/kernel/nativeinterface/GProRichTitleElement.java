@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 
 
-/* loaded from: classes2.dex */
-public final class GProRichTitleElement {
+public  final class GProRichTitleElement {
     String text;
     Integer type;
     String url;

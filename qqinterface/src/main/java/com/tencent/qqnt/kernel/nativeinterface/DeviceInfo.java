@@ -2,9 +2,8 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.io.Serializable;
 
-/* compiled from: P */
-/* loaded from: classes2.dex */
-public final class DeviceInfo implements IKernelModel, Serializable {
+
+public  final class DeviceInfo implements IKernelModel, Serializable {
     String buildVer;
     String devName;
     String devType;

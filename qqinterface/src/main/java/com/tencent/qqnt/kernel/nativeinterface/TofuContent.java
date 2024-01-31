@@ -1,7 +1,7 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* compiled from: P */
-/* loaded from: classes.dex */
+
+
 public final class TofuContent {
     String color;
     String title;

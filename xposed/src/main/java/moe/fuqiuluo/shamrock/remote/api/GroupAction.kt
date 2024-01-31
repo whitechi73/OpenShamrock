@@ -64,7 +64,7 @@ fun Routing.troopAction() {
     }
 
     getOrPost("/get_group_list") {
-        val refresh = fetchOrNull("refresh")?.toBooleanStrict()
+        val refresh = fetchOrNull("no_cache")?.toBooleanStrict()
             ?: fetchOrNull("refresh")?.toBooleanStrict() ?: true
         call.respondText(GetTroopList(refresh), ContentType.Application.Json)
     }

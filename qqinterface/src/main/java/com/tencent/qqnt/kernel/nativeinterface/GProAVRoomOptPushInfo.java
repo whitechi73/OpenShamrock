@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProAVRoomOptPushInfo {
+public  final class GProAVRoomOptPushInfo {
     long channelId;
     String delRoomId;
     long guildId;

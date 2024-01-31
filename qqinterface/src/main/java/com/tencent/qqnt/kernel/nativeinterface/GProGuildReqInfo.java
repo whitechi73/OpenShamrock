@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProGuildReqInfo {
+public  final class GProGuildReqInfo {
     long channelChangeSeq;
     long guildChangeSeq;
     long guildId;

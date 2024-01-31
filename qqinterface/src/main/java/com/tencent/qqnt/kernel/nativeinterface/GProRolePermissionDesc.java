@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProRolePermissionDesc {
+public  final class GProRolePermissionDesc {
     String desc;
     int rootId;
     String title;

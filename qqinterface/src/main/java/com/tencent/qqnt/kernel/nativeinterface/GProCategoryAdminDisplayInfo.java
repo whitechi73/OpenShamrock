@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes4.dex */
-public final class GProCategoryAdminDisplayInfo {
+public  final class GProCategoryAdminDisplayInfo {
     long categoryAdminNum;
     long categoryId;
     String categoryName;

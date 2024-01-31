@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProGuildBannerBizId {
+public  final class GProGuildBannerBizId {
     int bannerType;
     long channelId;
     long feedCreateTime;

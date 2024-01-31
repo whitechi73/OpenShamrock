@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProStreamIDInfo {
+public  final class GProStreamIDInfo {
     String auxStreamId;
     Boolean isSelfInfo;
     String mainStreamId;

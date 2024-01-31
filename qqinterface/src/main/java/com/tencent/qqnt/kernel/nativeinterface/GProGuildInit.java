@@ -3,8 +3,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-/* loaded from: classes2.dex */
-public final class GProGuildInit {
+public  final class GProGuildInit {
     ArrayList<GProCategoryChannelIdList> categoryList;
     HashMap<Long, GProChannel> channelMap;
     long guildId;

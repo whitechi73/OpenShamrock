@@ -79,9 +79,6 @@ public class TransferRequest {
     public boolean bEnableEnc = false;
     public boolean isQzonePic = false;
     private String mKey = null;
-
-    /* compiled from: P */
-    /* loaded from: classes18.dex */
     public static class AppInfo {
         public String packName;
         public String sourceIconBig;
@@ -91,8 +88,6 @@ public class TransferRequest {
         public int status;
     }
 
-    /* compiled from: P */
-    /* loaded from: classes18.dex */
     public static class AppShare {
         public long mAppShareID;
         public String mShareUrl;
@@ -105,8 +100,6 @@ public class TransferRequest {
         }
     }
 
-    /* compiled from: P */
-    /* loaded from: classes18.dex */
     public static class PicDownExtraInfo {
         public URLDrawableHandler mHandler;
         public int mStartDownOffset;
@@ -120,8 +113,6 @@ public class TransferRequest {
         }
     }
 
-    /* compiled from: P */
-    /* loaded from: classes18.dex */
     public static class PicUpExtraInfo {
         public boolean mIsRaw;
         public boolean mIsShareAppPic;
@@ -138,8 +129,6 @@ public class TransferRequest {
         }
     }
 
-    /* compiled from: P */
-    /* loaded from: classes18.dex */
     public static class PttDownExtraInfo {
         public int mFromType;
         public int mLayer;
@@ -150,8 +139,6 @@ public class TransferRequest {
         }
     }
 
-    /* compiled from: P */
-    /* loaded from: classes18.dex */
     public static class ShareExtraInfo {
         public long appId;
         public AppInfo appInfo;

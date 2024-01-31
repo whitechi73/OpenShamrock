@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProGlobalPrivacySwitchGroup {
+public  final class GProGlobalPrivacySwitchGroup {
     int addFriendSwitch;
     int allSwitch;
     int joinedGuildShowSwitch;

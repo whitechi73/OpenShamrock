@@ -4,8 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-/* loaded from: classes2.dex */
-public final class GProRoomInfo implements Serializable {
+public  final class GProRoomInfo implements Serializable {
     GProViewerExt ViewerExt;
     ArrayList<GProAudienceInfo> audienceInfos;
     String programId;

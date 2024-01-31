@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.util.ArrayList;
 
-/* loaded from: classes2.dex */
-public final class GProGuildData {
+public  final class GProGuildData {
     ArrayList<GProRecommendCategoryInfo> categoryList;
     ArrayList<GProRecommendChannelExtendInfo> channelExtendInfo;
     ArrayList<GProPollingData> dataList;

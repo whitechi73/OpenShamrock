@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProNoticeRedPoint {
+public  final class GProNoticeRedPoint {
     int count;
     int expireTs;
     int muteSwitch;

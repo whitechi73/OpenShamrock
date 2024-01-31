@@ -1,8 +1,7 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* compiled from: P */
-/* loaded from: classes2.dex */
-public final class FoldingInfo {
+
+public  final class FoldingInfo {
     BeatTypeEnum beatType;
     String greyPrompt;
     String toast;

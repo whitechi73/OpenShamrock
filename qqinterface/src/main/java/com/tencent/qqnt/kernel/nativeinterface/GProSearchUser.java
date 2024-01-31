@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProSearchUser {
+public  final class GProSearchUser {
     String avatar;
     String nick;
     long tinyId;

@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProVoiceSmobaGameBaseRoomParams {
+public  final class GProVoiceSmobaGameBaseRoomParams {
     long channelId;
     long guildId;
     int roomType;

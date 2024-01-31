@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProGlobalBannerRep {
+public  final class GProGlobalBannerRep {
     String bannerId;
     int bannerType;
     long channelId;

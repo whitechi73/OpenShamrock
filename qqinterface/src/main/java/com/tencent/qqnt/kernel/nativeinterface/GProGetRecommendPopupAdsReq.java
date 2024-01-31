@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.io.Serializable;
 
-/* loaded from: classes2.dex */
-public final class GProGetRecommendPopupAdsReq implements Serializable {
+public  final class GProGetRecommendPopupAdsReq implements Serializable {
     byte[] cookies;
     long serialVersionUID;
     GProBottomTabSourceInfo source;

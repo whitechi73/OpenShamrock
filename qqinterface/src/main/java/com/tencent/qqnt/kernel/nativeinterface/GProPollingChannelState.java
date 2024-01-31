@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.util.ArrayList;
 
-/* loaded from: classes2.dex */
-public final class GProPollingChannelState {
+public  final class GProPollingChannelState {
     GProActiveChannelInfo activeChannelInfo;
     GProAppChnnPreInfo appChannelPresence;
     long channelId;

@@ -3,8 +3,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-/* loaded from: classes2.dex */
-public final class GProRecommendItem implements Serializable {
+public  final class GProRecommendItem implements Serializable {
     GProStickyFeedChannel activeFeedChannel;
     GProStickyTextChannel activeTextChannel;
     byte[] adFeedModel;

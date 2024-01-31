@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.io.Serializable;
 
-/* loaded from: classes2.dex */
-public final class GProWorldChannelPresence implements Serializable {
+public  final class GProWorldChannelPresence implements Serializable {
     String cover;
     int historyMemberTotal;
     String schema;

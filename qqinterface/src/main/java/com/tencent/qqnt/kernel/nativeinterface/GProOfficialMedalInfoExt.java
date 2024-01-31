@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.io.Serializable;
 
-/* loaded from: classes4.dex */
-public final class GProOfficialMedalInfoExt implements Serializable {
+public  final class GProOfficialMedalInfoExt implements Serializable {
     String iconUrl;
     boolean isOffical;
     long serialVersionUID;

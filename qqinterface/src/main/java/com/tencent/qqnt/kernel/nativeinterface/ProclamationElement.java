@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.io.Serializable;
 
-/* loaded from: classes2.dex */
-public final class ProclamationElement implements Serializable {
+public  final class ProclamationElement implements Serializable {
     int isSetProclamation;
     long serialVersionUID = 1;
 

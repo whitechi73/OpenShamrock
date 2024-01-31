@@ -2,9 +2,8 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.io.Serializable;
 
-/* compiled from: P */
-/* loaded from: classes2.dex */
-public final class Reply implements IKernelModel, Serializable {
+
+public  final class Reply implements IKernelModel, Serializable {
     String content;
     long createTime;
     String id;

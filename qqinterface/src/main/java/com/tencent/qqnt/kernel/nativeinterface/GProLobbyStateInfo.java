@@ -3,8 +3,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-/* loaded from: classes2.dex */
-public final class GProLobbyStateInfo implements Serializable {
+public  final class GProLobbyStateInfo implements Serializable {
     String appId;
     long channelId;
     boolean disableVoiceAnimation;

@@ -1,8 +1,7 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* compiled from: P */
-/* loaded from: classes2.dex */
-public final class LocalAVRecordElement {
+
+public  final class LocalAVRecordElement {
     String avAbstract;
     Integer extraType;
     boolean hasRead;

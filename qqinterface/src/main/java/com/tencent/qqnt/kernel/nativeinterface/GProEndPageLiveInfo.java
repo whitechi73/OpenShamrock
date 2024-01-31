@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProEndPageLiveInfo {
+public  final class GProEndPageLiveInfo {
     GProLiveMetrics liveMetrics;
     GProEndPageLiveTime liveTime;
     int roomId;

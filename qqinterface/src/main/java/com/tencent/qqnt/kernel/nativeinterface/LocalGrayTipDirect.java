@@ -2,9 +2,8 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.io.Serializable;
 
-/* compiled from: P */
-/* loaded from: classes2.dex */
-public final class LocalGrayTipDirect implements Serializable {
+
+public  final class LocalGrayTipDirect implements Serializable {
     String robotName;
     long robotTid;
     long robotUin;

@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.io.Serializable;
 
-/* loaded from: classes2.dex */
-public final class GProHeartbeatRsq implements Serializable {
+public  final class GProHeartbeatRsq implements Serializable {
     GProAVChannelConfig avChannelConfig;
     long channelId;
     int forceExit;

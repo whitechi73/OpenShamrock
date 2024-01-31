@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProGetRecommendMyV2Req {
+public  final class GProGetRecommendMyV2Req {
     byte[] adReq;
     String busiInfo;
     int businessType;

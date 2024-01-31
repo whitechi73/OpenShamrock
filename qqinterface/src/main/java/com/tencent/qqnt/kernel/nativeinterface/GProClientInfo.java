@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProClientInfo {
+public  final class GProClientInfo {
     int clientId;
     String clientName;
     GProIdentityInstruction identityInstruction;

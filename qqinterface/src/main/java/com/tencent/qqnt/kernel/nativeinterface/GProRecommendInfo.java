@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProRecommendInfo {
+public  final class GProRecommendInfo {
     GProRecommendChannel channel;
     GProRecommendFeed feed;
     GProRecommendShareInfo shareInfo;

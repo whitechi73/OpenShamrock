@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProBottomTabSourceInfo {
+public  final class GProBottomTabSourceInfo {
     String bid;
     int bussiSource;
     int sceneId;

@@ -2,9 +2,8 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.util.ArrayList;
 
-/* compiled from: P */
-/* loaded from: classes2.dex */
-public final class GroupGuildNotifyInfo {
+
+public  final class GroupGuildNotifyInfo {
     long channelId;
     int muteSwitch;
     Contact peer;

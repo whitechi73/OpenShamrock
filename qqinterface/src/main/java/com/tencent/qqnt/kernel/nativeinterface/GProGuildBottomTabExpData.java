@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProGuildBottomTabExpData {
+public  final class GProGuildBottomTabExpData {
     long expId;
     String expIndex;
     boolean isHit;

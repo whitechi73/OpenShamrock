@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.io.Serializable;
 
-/* loaded from: classes22.dex */
-public final class GProSendGiftEventData implements Serializable {
+public  final class GProSendGiftEventData implements Serializable {
     long channelId;
     String eventId;
     GProGiftInfo giftInfo;

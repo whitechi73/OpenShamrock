@@ -3,8 +3,8 @@ package com.tencent.qqnt.kernel.nativeinterface;
 import java.io.Serializable;
 import java.util.HashMap;
 
-/* compiled from: P */
-/* loaded from: classes.dex */
+
+
 public final class XmlElement implements Serializable {
     long busiId;
     long busiType;

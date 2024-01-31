@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.util.ArrayList;
 
-/* loaded from: classes2.dex */
-public final class GProLiveEnterRoomRequest {
+public  final class GProLiveEnterRoomRequest {
     String bypassData;
     String channelId;
     String extData;

@@ -3,8 +3,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-/* loaded from: classes2.dex */
-public final class GProMemberInfoInGame implements Serializable {
+public  final class GProMemberInfoInGame implements Serializable {
     String backgroundPic;
     int gameIdentity;
     int gameStatus;

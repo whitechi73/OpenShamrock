@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProGetGuildLabelReq {
+public  final class GProGetGuildLabelReq {
     String code;
 
     public GProGetGuildLabelReq() {

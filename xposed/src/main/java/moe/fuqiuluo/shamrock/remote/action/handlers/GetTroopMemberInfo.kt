@@ -16,7 +16,7 @@ internal object GetTroopMemberInfo : IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val uin = session.getString("user_id")
         val groupId = session.getString("group_id")
-        val refresh = session.getBooleanOrDefault("refresh", false)
+        val refresh = session.getBooleanOrDefault("refresh", session.getBooleanOrDefault("no_cache", false))
 
         return invoke(groupId, uin, refresh, session.echo)
     }

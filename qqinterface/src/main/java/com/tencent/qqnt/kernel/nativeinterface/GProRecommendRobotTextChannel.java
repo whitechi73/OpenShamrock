@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.util.ArrayList;
 
-/* loaded from: classes22.dex */
-public final class GProRecommendRobotTextChannel {
+public  final class GProRecommendRobotTextChannel {
     ArrayList<String> avatars;
     GProRecommendChannelInfo channelInfo;
     ArrayList<MsgAbstract> msgAbstracts;

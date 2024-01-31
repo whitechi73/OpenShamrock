@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProAdminAVReqInfo {
+public  final class GProAdminAVReqInfo {
     GProAVDevOptInfo avDevOptInfo;
     GProAVCommonReqInfo commonInfo;
     long tinyId;

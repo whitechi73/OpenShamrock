@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.util.ArrayList;
 
-/* loaded from: classes2.dex */
-public final class GProUserAVRspInfo {
+public  final class GProUserAVRspInfo {
     GProAVDevOptInfo devOpt;
     ArrayList<GProAVRoomCtrlOptInfo> roomDevOpts;
     GProSecurityResult secResult;

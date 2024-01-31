@@ -2,9 +2,8 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.io.Serializable;
 
-/* compiled from: P */
-/* loaded from: classes2.dex */
-public final class GroupNotifyUser implements Serializable {
+
+public  final class GroupNotifyUser implements Serializable {
     String nickName;
     long serialVersionUID;
     String uid;

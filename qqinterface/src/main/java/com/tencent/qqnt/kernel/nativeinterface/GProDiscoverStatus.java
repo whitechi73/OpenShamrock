@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProDiscoverStatus {
+public  final class GProDiscoverStatus {
     int nextTs;
     int state;
     int type;

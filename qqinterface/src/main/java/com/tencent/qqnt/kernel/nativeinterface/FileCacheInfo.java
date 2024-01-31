@@ -1,8 +1,7 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* compiled from: P */
-/* loaded from: classes2.dex */
-public final class FileCacheInfo {
+
+public  final class FileCacheInfo {
     long elementId;
     String elementIdStr;
     long fileKey;

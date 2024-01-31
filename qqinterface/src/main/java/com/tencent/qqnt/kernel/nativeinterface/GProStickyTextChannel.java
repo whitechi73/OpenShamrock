@@ -3,8 +3,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-/* loaded from: classes2.dex */
-public final class GProStickyTextChannel implements Serializable {
+public  final class GProStickyTextChannel implements Serializable {
     String activeMemberCount;
     ArrayList<GProUser> activeMemberList;
     ArrayList<MsgAbstract> msgAbstracts;

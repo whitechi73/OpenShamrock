@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProEnterRoomReply {
+public  final class GProEnterRoomReply {
     String dispersionUrl;
     Boolean isBigRoom;
     GProLiveEnterRoomInfo roomInfo;

@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProDirectMsgSession {
+public  final class GProDirectMsgSession {
     long channelId;
     int channelType;
     long guildId;

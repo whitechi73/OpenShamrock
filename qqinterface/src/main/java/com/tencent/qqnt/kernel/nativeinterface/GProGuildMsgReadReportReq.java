@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.util.ArrayList;
 
-/* loaded from: classes2.dex */
-public final class GProGuildMsgReadReportReq {
+public  final class GProGuildMsgReadReportReq {
     ArrayList<GProMyChannelInfo> rptMsgMyChannelList;
     int uint32Type;
     long uint64MemberId;

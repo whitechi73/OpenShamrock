@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProURLParam {
+public  final class GProURLParam {
     String key;
     String value;
 

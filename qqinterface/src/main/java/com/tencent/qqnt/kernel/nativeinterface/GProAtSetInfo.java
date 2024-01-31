@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProAtSetInfo {
+public  final class GProAtSetInfo {
     long guildId;
     int remainingAtAllCount;
     int remainingAtOnlCount;

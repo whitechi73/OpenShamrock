@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProArea {
+public  final class GProArea {
     String areaId;
     String desc;
 

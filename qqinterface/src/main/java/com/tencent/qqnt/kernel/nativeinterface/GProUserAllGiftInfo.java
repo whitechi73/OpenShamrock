@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.io.Serializable;
 
-/* loaded from: classes22.dex */
-public final class GProUserAllGiftInfo implements Serializable {
+public  final class GProUserAllGiftInfo implements Serializable {
     GProUserGiftInfo freeGiftInfo;
     GProUserGiftInfo payGiftInfo;
     long serialVersionUID;

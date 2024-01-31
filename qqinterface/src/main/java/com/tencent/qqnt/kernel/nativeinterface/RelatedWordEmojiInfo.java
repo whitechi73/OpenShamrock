@@ -3,9 +3,8 @@ package com.tencent.qqnt.kernel.nativeinterface;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-/* compiled from: P */
-/* loaded from: classes2.dex */
-public final class RelatedWordEmojiInfo {
+
+public  final class RelatedWordEmojiInfo {
     HashMap<String, DownloadRelateEmojiResultInfo> EmojiResultInfo;
     ArrayList<String> emojiMd5s;
     boolean isOver;

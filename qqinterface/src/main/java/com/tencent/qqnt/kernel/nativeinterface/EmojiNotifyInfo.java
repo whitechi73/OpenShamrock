@@ -2,9 +2,8 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.util.HashMap;
 
-/* compiled from: P */
-/* loaded from: classes2.dex */
-public final class EmojiNotifyInfo {
+
+public  final class EmojiNotifyInfo {
     EmojiDownloadType downloadType;
     String dynamicFacePath;
     String emojiId;

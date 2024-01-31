@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProVoiceUserStatus {
+public  final class GProVoiceUserStatus {
     int networkQuality;
     int screenShareMicStatus;
     int sysMicStatus;

@@ -2,7 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.util.ArrayList;
 
-/* loaded from: classes.dex */
+
 public final class SearchGroupMemberProfileItem {
     String nick;
     ArrayList<SearchHitInfo> nickHits;

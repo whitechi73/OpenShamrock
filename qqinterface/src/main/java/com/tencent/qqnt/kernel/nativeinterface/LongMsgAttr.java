@@ -1,8 +1,7 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* compiled from: P */
-/* loaded from: classes5.dex */
-public final class LongMsgAttr {
+
+public  final class LongMsgAttr {
     Integer fetchLongMsgErrCode;
 
     public LongMsgAttr() {

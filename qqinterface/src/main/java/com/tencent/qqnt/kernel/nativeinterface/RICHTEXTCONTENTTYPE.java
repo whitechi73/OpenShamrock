@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public enum RICHTEXTCONTENTTYPE {
+public  enum RICHTEXTCONTENTTYPE {
     UNKNOWN_CONTENT_TYPE,
     TEXT_CONTENT,
     AT_CONTENT,

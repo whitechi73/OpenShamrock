@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.io.Serializable;
 
-/* loaded from: classes22.dex */
-public final class GProGiftInfo implements Serializable {
+public  final class GProGiftInfo implements Serializable {
     int allComboCnt;
     boolean comboOver;
     long comboSeq;

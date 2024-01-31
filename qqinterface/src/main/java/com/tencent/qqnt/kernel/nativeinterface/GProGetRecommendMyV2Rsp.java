@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.util.ArrayList;
 
-/* loaded from: classes2.dex */
-public final class GProGetRecommendMyV2Rsp {
+public  final class GProGetRecommendMyV2Rsp {
     GProGetAtMeMsgRsp atMeMsg;
     byte[] cookies;
     GProRecommendExtInfo extInfo;

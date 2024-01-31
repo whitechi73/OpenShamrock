@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProAuthControlSwitchInfo {
+public  final class GProAuthControlSwitchInfo {
     int Permission;
     int authControlSwitchType;
 

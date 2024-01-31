@@ -2,9 +2,8 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.io.Serializable;
 
-/* compiled from: P */
-/* loaded from: classes2.dex */
-public final class LocalGrayTipRobot implements Serializable {
+
+public  final class LocalGrayTipRobot implements Serializable {
     boolean isBlackRobot;
     long robotTid;
     long serialVersionUID = 1;

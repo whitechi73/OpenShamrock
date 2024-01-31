@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.util.ArrayList;
 
-/* loaded from: classes2.dex */
-public final class GProVoiceSmobaGameUserActionPush {
+public  final class GProVoiceSmobaGameUserActionPush {
     long currentMemberNum;
     long newLeaderId;
     long roomId;

@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProMsgSearchReq {
+public  final class GProMsgSearchReq {
     GProMsgSearchCond cond;
     String cookie;
     Integer count;

@@ -1,8 +1,7 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* compiled from: P */
-/* loaded from: classes2.dex */
-public final class KingHonor {
+
+public  final class KingHonor {
     Integer groupInfoFlagEx4;
     byte[] groupMsgBusiBuf;
     Integer kingHonorLevel;

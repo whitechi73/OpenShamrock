@@ -1,8 +1,7 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* compiled from: P */
-/* loaded from: classes2.dex */
-public final class RecvdOrder {
+
+public  final class RecvdOrder {
     long amount;
     int createTime;
     String recvName;

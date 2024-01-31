@@ -1,8 +1,7 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* compiled from: P */
-/* loaded from: classes22.dex */
-public final class RobotMsgExt {
+
+public  final class RobotMsgExt {
     boolean robotMsgFlag;
 
     public RobotMsgExt() {

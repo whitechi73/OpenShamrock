@@ -1,8 +1,7 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* compiled from: P */
-/* loaded from: classes2.dex */
-public final class FeedForComment {
+
+public  final class FeedForComment {
     long createTime;
     String id;
     String posterId;

@@ -1,8 +1,7 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* compiled from: P */
-/* loaded from: classes2.dex */
-public final class GroupMsgMaskInfo {
+
+public  final class GroupMsgMaskInfo {
     long groupCode;
     GroupMsgMask msgMask;
 

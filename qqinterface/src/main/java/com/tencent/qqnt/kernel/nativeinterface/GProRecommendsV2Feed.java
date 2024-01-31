@@ -3,8 +3,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-/* loaded from: classes2.dex */
-public final class GProRecommendsV2Feed implements Serializable {
+public  final class GProRecommendsV2Feed implements Serializable {
     ArrayList<String> attributeTags;
     String bannerUrl;
     String buttonColor;

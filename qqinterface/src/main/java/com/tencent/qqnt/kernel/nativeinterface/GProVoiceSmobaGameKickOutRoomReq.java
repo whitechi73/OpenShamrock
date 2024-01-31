@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProVoiceSmobaGameKickOutRoomReq {
+public  final class GProVoiceSmobaGameKickOutRoomReq {
     long channelId;
     int forceExit;
     long guildId;

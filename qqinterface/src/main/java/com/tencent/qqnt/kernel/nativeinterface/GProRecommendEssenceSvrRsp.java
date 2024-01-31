@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.util.ArrayList;
 
-/* loaded from: classes2.dex */
-public final class GProRecommendEssenceSvrRsp {
+public  final class GProRecommendEssenceSvrRsp {
     String content;
     ArrayList<GProRecommendChannel0x11bc> recommendChannels;
 

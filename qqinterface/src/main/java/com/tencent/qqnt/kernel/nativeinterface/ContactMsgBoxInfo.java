@@ -2,9 +2,8 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.util.ArrayList;
 
-/* compiled from: P */
-/* loaded from: classes2.dex */
-public final class ContactMsgBoxInfo {
+
+public  final class ContactMsgBoxInfo {
     Contact contact;
     MsgBoxNecessaryMsgInfo firstUnreadMsgInfo;
     ArrayList<SpecificEventTypeInfoInMsgBox> listOfSpecificEventTypeInfosInMsgBox;

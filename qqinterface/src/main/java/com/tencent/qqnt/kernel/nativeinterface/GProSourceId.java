@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProSourceId {
+public  final class GProSourceId {
     int entranceId;
     String flagId;
     String openId;

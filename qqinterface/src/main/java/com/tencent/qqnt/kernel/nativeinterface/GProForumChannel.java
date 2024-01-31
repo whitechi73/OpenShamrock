@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProForumChannel {
+public  final class GProForumChannel {
     long channelId;
     String channelName;
     long endColor;

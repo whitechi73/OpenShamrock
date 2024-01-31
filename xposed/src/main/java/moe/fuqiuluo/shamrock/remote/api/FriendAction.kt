@@ -23,7 +23,8 @@ fun Routing.friendAction() {
     }
 
     getOrPost("/get_friend_list") {
-        val refresh = fetchOrNull("refresh")?.toBooleanStrictOrNull() ?: false
+        val refresh = fetchOrNull("no_cache")?.toBooleanStrict()
+            ?: fetchOrNull("refresh")?.toBooleanStrict() ?: false
         call.respondText(GetFriendList(refresh), ContentType.Application.Json)
     }
 

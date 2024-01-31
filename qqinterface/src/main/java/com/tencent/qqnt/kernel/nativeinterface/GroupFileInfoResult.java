@@ -1,8 +1,7 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* compiled from: P */
-/* loaded from: classes2.dex */
-public final class GroupFileInfoResult {
+
+public  final class GroupFileInfoResult {
     String clientWording;
     GroupFileInfo fileInfo;
     int retCode;

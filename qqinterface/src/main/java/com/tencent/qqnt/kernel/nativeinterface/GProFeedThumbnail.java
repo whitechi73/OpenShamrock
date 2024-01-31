@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.io.Serializable;
 
-/* loaded from: classes2.dex */
-public final class GProFeedThumbnail implements Serializable {
+public  final class GProFeedThumbnail implements Serializable {
     boolean isVideoCover;
     long serialVersionUID;
     String url;

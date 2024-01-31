@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.io.Serializable;
 
-/* loaded from: classes2.dex */
-public final class GProPrefetchRecommendGuildInfo implements Serializable {
+public  final class GProPrefetchRecommendGuildInfo implements Serializable {
     String category;
     String guildIcon;
     long guildId;

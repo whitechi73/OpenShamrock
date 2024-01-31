@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.io.Serializable;
 
-/* loaded from: classes2.dex */
-public final class GProRecommendV2Label implements Serializable {
+public  final class GProRecommendV2Label implements Serializable {
     GProRecommendV2Color edgingColor;
     int labelAttr;
     int labelType;

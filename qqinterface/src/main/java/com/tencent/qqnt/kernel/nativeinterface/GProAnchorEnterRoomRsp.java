@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.util.ArrayList;
 
-/* loaded from: classes2.dex */
-public final class GProAnchorEnterRoomRsp {
+public  final class GProAnchorEnterRoomRsp {
     ArrayList<GProAnchorTlv> exts;
     GProAnchorMediaInfo media;
     GProAnchorRoomInfo room;

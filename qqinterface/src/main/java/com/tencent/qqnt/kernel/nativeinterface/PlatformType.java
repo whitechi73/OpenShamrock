@@ -1,7 +1,7 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
 public final class PlatformType {
-    private static final /* synthetic */ PlatformType[] $VALUES;
+    private static final  PlatformType[] $VALUES;
     public static final PlatformType KANDROID;
     public static final PlatformType KIOS;
     public static final PlatformType KMAC;

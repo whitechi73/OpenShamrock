@@ -11,7 +11,7 @@ import moe.fuqiuluo.symbols.OneBotHandler
 @OneBotHandler("get_group_list")
 internal object GetTroopList : IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
-        val refresh = session.getBooleanOrDefault("refresh", true)
+        val refresh = session.getBooleanOrDefault("refresh", session.getBooleanOrDefault("no_cache", true))
         return invoke(refresh, session.echo)
     }
 

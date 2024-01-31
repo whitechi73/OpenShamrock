@@ -6,10 +6,13 @@ import com.tencent.mobileqq.qqguildsdk.data.genc.IGProNavigationInfo;
 import java.io.Serializable;
 import java.util.ArrayList;
 
+
 public interface IGProGuildInfo extends Serializable {
     public static final long serialVersionUID = 1;
 
     boolean getAllowSearch();
+
+    long getAvatarSeq();
 
     String getAvatarUrl(int i2);
 
@@ -45,6 +48,8 @@ public interface IGProGuildInfo extends Serializable {
 
     int getGuildType();
 
+    int getGuildUnNotifyFlag();
+
     boolean getIsBanned();
 
     boolean getIsFrozen();
@@ -60,8 +65,6 @@ public interface IGProGuildInfo extends Serializable {
     ArrayList<IGProMedalInfo> getMedalInfoList();
 
     int getMedalLevel();
-
-    int getMessageNotifyType();
 
     long getMyShutUpExpireTime();
 
@@ -112,8 +115,4 @@ public interface IGProGuildInfo extends Serializable {
     boolean isTop();
 
     boolean isVisibleForVisitor();
-
-    void setQRCodeSwitch(int i2);
-
-    void setUIData(String str, String str2);
 }

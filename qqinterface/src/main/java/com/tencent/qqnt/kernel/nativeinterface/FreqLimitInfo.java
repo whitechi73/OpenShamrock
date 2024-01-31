@@ -1,8 +1,7 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* compiled from: P */
-/* loaded from: classes2.dex */
-public final class FreqLimitInfo {
+
+public  final class FreqLimitInfo {
     int isLimited;
     int leftCount;
     long limitTimestamp;

@@ -408,8 +408,6 @@ public interface RichProto {
                 return super.toString() + " urlParam:" + this.urlParam + " msgUkey:" + this.msgkey + " ipList:" + this.ipList + " mIpv6List:" + this.mIpv6List + " resId:" + this.resId;
             }
         }
-
-        /* loaded from: classes18.dex */
         public static class MultiMsgUpResp extends RespCommon {
             public int blockSize;
             public ArrayList<ServerAddr> ipList = new ArrayList<>();

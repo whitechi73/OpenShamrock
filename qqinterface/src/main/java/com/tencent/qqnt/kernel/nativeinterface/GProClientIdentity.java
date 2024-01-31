@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.io.Serializable;
 
-/* loaded from: classes2.dex */
-public final class GProClientIdentity implements Serializable {
+public  final class GProClientIdentity implements Serializable {
     int clientId;
     String desc;
     GProClientIdentityBytes identityBytes;

@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.util.ArrayList;
 
-/* loaded from: classes2.dex */
-public final class GProUnionResult {
+public  final class GProUnionResult {
     byte[] feedCookie;
     boolean feedIsEnd;
     long feedTotal;

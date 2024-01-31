@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.io.Serializable;
 
-/* loaded from: classes2.dex */
-public final class GProRecommendChannel0x11bc implements Serializable {
+public  final class GProRecommendChannel0x11bc implements Serializable {
     GProChannelPresence channelPresence;
     GProEssenceChannel essenceInfo;
     int recommendType;

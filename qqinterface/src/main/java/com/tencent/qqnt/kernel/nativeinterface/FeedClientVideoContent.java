@@ -1,8 +1,7 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* compiled from: P */
-/* loaded from: classes2.dex */
-public final class FeedClientVideoContent {
+
+public  final class FeedClientVideoContent {
     String coverUrl;
     String taskId;
     String videoId;

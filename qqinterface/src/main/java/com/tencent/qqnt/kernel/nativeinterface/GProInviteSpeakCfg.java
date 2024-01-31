@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.io.Serializable;
 
-/* loaded from: classes4.dex */
-public final class GProInviteSpeakCfg implements Serializable {
+public  final class GProInviteSpeakCfg implements Serializable {
     int inviteSpeakState;
     long serialVersionUID = 1;
 

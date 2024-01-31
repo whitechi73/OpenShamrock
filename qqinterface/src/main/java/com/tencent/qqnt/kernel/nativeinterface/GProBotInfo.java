@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProBotInfo {
+public  final class GProBotInfo {
     long appid;
     int inlineSearch;
     long mark;

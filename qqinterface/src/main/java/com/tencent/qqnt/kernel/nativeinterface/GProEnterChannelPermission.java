@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProEnterChannelPermission {
+public  final class GProEnterChannelPermission {
     boolean allowEnter;
     boolean allowLive;
     String disallowLiveReason;

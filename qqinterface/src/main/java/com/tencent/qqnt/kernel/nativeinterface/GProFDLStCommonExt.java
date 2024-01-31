@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.util.ArrayList;
 
-/* loaded from: classes4.dex */
-public final class GProFDLStCommonExt {
+public  final class GProFDLStCommonExt {
     ArrayList<GProFDLEntry> mapInfo;
 
     public GProFDLStCommonExt() {

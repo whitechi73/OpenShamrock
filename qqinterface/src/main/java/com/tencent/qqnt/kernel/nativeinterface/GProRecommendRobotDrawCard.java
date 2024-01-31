@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.io.Serializable;
 
-/* loaded from: classes22.dex */
-public final class GProRecommendRobotDrawCard implements Serializable {
+public  final class GProRecommendRobotDrawCard implements Serializable {
     String botMsgId;
     String imgUrl;
     GProRecommendRobotInfo robotInfo;

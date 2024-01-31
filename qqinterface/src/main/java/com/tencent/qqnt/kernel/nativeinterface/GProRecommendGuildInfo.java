@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.util.ArrayList;
 
-/* loaded from: classes2.dex */
-public final class GProRecommendGuildInfo {
+public  final class GProRecommendGuildInfo {
     String cover;
 
     /* renamed from: face  reason: collision with root package name */

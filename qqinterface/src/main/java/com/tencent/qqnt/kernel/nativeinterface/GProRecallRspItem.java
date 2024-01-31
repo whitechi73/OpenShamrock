@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.util.ArrayList;
 
-/* loaded from: classes2.dex */
-public final class GProRecallRspItem {
+public  final class GProRecallRspItem {
     long channelCode;
     String channelId;
     int directMsgFlag;

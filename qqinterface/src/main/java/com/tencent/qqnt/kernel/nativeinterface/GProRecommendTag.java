@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.io.Serializable;
 
-/* loaded from: classes2.dex */
-public final class GProRecommendTag implements Serializable {
+public  final class GProRecommendTag implements Serializable {
     String icon;
     String name;
     long serialVersionUID;

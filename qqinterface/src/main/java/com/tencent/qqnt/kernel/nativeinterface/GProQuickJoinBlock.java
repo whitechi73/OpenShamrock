@@ -3,8 +3,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-/* loaded from: classes4.dex */
-public final class GProQuickJoinBlock implements Serializable {
+public  final class GProQuickJoinBlock implements Serializable {
     ArrayList<String> membersAvatar;
     ArrayList<GProQuickJoinItem> quickJoinItems;
     long serialVersionUID;

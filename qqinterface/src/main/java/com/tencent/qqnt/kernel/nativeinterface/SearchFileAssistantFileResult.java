@@ -2,8 +2,8 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.util.ArrayList;
 
-/* compiled from: P */
-/* loaded from: classes.dex */
+
+
 public final class SearchFileAssistantFileResult {
     boolean hasMore;
     int resultId;

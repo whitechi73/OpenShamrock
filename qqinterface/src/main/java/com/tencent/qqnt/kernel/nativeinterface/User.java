@@ -2,8 +2,8 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.io.Serializable;
 
-/* compiled from: P */
-/* loaded from: classes.dex */
+
+
 public final class User implements Serializable {
     IconInfo icon;
     String id;

@@ -4,8 +4,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.io.Serializable;
 
-/* loaded from: classes2.dex */
-public final class GProGameDownloadLink implements Serializable {
+public  final class GProGameDownloadLink implements Serializable {
     String platform;
     long serialVersionUID;
     String url;

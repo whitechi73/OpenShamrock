@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProMyChannelInfo {
+public  final class GProMyChannelInfo {
     boolean boolHasAtMeMsg;
     byte[] bytesReadMsgMeta;
     GProMsgSeq msgReadCntMsgSeq;

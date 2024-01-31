@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes4.dex */
-public final class GProGetRecommendQuickJoinReq {
+public  final class GProGetRecommendQuickJoinReq {
     int cardType;
     byte[] cookies;
     int scene;

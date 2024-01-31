@@ -1,7 +1,7 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* compiled from: P */
-/* loaded from: classes.dex */
+
+
 public final class SearchHitInfo {
     int end;
     int start;

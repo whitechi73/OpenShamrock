@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.util.ArrayList;
 
-/* loaded from: classes2.dex */
-public final class GProCategoryChannelIdList {
+public  final class GProCategoryChannelIdList {
     long categoryId;
     ArrayList<Long> channelList;
     boolean folded;

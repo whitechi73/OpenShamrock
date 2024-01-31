@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProRecommendResult {
+public  final class GProRecommendResult {
     GProRecommendCardInfo recommendCardInfo;
     GProRecommendGroupInfo recommendGroupInfo;
     GProRecommendInfo recommendInfo;

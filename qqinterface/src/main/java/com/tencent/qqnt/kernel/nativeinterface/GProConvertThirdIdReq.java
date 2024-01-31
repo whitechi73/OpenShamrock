@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.util.ArrayList;
 
-/* loaded from: classes2.dex */
-public final class GProConvertThirdIdReq {
+public  final class GProConvertThirdIdReq {
     long appId;
     ArrayList<String> ids;
     ArrayList<String> stringIds;

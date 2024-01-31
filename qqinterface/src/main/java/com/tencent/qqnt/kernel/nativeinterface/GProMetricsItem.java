@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProMetricsItem {
+public  final class GProMetricsItem {
     String name;
     long num;
     int type;

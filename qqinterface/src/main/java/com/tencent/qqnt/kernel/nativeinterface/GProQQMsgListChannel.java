@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProQQMsgListChannel {
+public  final class GProQQMsgListChannel {
     long appid;
     long avatarSeq;
     long channelId;

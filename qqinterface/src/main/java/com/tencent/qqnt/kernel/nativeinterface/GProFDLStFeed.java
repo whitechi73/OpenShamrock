@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes4.dex */
-public final class GProFDLStFeed {
+public  final class GProFDLStFeed {
     String feedId;
 
     public GProFDLStFeed() {

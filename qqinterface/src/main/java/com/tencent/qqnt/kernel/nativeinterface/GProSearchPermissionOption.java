@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProSearchPermissionOption {
+public  final class GProSearchPermissionOption {
     boolean authorized;
     boolean relatedMember;
     boolean relatedRoleMember;

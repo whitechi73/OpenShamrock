@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.io.Serializable;
 
-/* loaded from: classes2.dex */
-public final class GProMyRecommendMsg implements Serializable {
+public  final class GProMyRecommendMsg implements Serializable {
     int businessType;
     GProDiscoverStatus discoverStatus;
     int flag;

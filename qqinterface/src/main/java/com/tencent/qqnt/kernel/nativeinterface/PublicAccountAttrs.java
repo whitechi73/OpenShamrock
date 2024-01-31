@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class PublicAccountAttrs {
+public  final class PublicAccountAttrs {
     Integer ack;
     Long bitmap;
     byte[] gdtCliData;

@@ -1,8 +1,7 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* compiled from: P */
-/* loaded from: classes2.dex */
-public final class RoleGroupInfo {
+
+public  final class RoleGroupInfo {
     int color;
     String name;
     long roleId;

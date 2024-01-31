@@ -3,8 +3,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-/* loaded from: classes2.dex */
-public final class GProTopRecommendInfo implements Serializable {
+public  final class GProTopRecommendInfo implements Serializable {
     String categoryName;
     ArrayList<Long> recommendedGuildList;
     long serialVersionUID;

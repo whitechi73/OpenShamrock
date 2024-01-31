@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProAnchorTrtcInfo {
+public  final class GProAnchorTrtcInfo {
     String businessInfo;
     String sig;
     GProStreamIDInfo streamInfo;

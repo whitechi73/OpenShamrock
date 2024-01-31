@@ -1,6 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes.dex */
+
 public final class VideoPlayUrlInfo {
     String httpsDomain;
     boolean isHttps;

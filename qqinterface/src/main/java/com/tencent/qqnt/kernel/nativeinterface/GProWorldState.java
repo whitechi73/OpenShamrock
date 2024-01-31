@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProWorldState {
+public  final class GProWorldState {
     long channelId;
     long guildId;
     byte[] roomChange;

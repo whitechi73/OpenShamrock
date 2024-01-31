@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.util.ArrayList;
 
-/* loaded from: classes2.dex */
-public final class GProVersionNews {
+public  final class GProVersionNews {
     String jumpFeedUrl;
     ArrayList<String> newsUrlList;
     String subtitle;

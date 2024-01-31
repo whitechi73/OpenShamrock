@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes4.dex */
-public final class GProTextMedalInfo {
+public  final class GProTextMedalInfo {
     int colorBg;
     int colorText;
     long expireTime;

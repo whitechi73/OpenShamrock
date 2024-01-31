@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.util.ArrayList;
 
-/* loaded from: classes2.dex */
-public final class GProMsgSearchCond {
+public  final class GProMsgSearchCond {
     ArrayList<Long> channelIds;
     ArrayList<Integer> channelTypes;
     ArrayList<Long> fromTinyids;

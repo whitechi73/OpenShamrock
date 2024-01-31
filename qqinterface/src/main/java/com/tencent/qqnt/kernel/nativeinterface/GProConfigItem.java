@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProConfigItem {
+public  final class GProConfigItem {
     int configID;
     int configStatus;
     String desc;

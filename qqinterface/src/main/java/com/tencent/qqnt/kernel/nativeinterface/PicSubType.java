@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public enum PicSubType {
+public  enum PicSubType {
     KNORMAL,
     KCUSTOM,
     KHOT,

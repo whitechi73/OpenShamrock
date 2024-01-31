@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.util.ArrayList;
 
-/* loaded from: classes2.dex */
-public final class GProRecommendCategoryInfo {
+public  final class GProRecommendCategoryInfo {
     long categoryId;
     int categoryIndex;
     String categoryName;

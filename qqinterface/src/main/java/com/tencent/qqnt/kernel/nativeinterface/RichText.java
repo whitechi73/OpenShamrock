@@ -2,9 +2,8 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.util.ArrayList;
 
-/* compiled from: P */
-/* loaded from: classes2.dex */
-public final class RichText {
+
+public  final class RichText {
     ArrayList<RichTextContent> contents;
 
     public RichText() {

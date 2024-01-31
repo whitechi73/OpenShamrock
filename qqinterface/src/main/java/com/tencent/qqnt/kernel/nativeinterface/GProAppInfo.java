@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.util.ArrayList;
 
-/* loaded from: classes2.dex */
-public final class GProAppInfo {
+public  final class GProAppInfo {
     String appDescription;
     long appId;
     String appName;

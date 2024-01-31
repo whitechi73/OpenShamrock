@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 
 
-/* loaded from: classes4.dex */
-public final class GProSignGuildInfo {
+public  final class GProSignGuildInfo {
     String desc;
     long endTime;
     long guildId;

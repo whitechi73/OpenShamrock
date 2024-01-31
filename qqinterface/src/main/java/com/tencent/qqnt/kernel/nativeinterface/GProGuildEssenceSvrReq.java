@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.io.Serializable;
 
-/* loaded from: classes2.dex */
-public final class GProGuildEssenceSvrReq implements Serializable {
+public  final class GProGuildEssenceSvrReq implements Serializable {
     long guildId;
     long serialVersionUID = 1;
     GProUnifiedEssenceInfo unifiedEssenceInfo;

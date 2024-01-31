@@ -2,9 +2,8 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.util.ArrayList;
 
-/* compiled from: P */
-/* loaded from: classes2.dex */
-public final class SearchBuddyItem {
+
+public  final class SearchBuddyItem {
     String categoryName;
     int chatType;
     String nickname;

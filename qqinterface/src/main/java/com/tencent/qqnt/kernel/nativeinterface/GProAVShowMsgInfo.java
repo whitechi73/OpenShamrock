@@ -3,8 +3,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-/* loaded from: classes2.dex */
-public final class GProAVShowMsgInfo implements Serializable {
+public  final class GProAVShowMsgInfo implements Serializable {
     ArrayList<String> buttonMsgs;
     long serialVersionUID;
     String showMsg;

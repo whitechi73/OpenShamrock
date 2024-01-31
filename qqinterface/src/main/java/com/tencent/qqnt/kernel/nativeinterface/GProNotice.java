@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.util.ArrayList;
 
-/* loaded from: classes2.dex */
-public final class GProNotice {
+public  final class GProNotice {
     ArrayList<GProNoticeAction> actionList;
     ArrayList<GProNoticeText> comment;
     GProNoticeCover cover;

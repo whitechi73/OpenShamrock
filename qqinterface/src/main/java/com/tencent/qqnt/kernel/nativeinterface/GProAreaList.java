@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.util.ArrayList;
 
-/* loaded from: classes2.dex */
-public final class GProAreaList {
+public  final class GProAreaList {
     ArrayList<GProArea> areas;
     byte[] cookie;
     boolean isEnd;

@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProChannelPresenceItemInfo {
+public  final class GProChannelPresenceItemInfo {
     int jumpType;
     String jumpUrl;
     String text;

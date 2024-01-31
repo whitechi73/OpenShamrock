@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProLocation {
+public  final class GProLocation {
     String city;
     int cityId;
     String cityZone;

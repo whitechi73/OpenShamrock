@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.io.Serializable;
 
-/* loaded from: classes2.dex */
-public final class GProLiveStreamInfo implements Serializable {
+public  final class GProLiveStreamInfo implements Serializable {
     long anchorId;
     String flvUrl;
     long serialVersionUID;

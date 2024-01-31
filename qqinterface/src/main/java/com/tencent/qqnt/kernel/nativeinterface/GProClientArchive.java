@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProClientArchive {
+public  final class GProClientArchive {
     String archiveName;
     int clientId;
     GProSmobaArchiveTemplate template1;

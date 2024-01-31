@@ -12,7 +12,7 @@ import moe.fuqiuluo.symbols.OneBotHandler
 @OneBotHandler("get_friend_list")
 internal object GetFriendList: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
-        val refresh = session.getBooleanOrDefault("refresh", false)
+        val refresh = session.getBooleanOrDefault("refresh", session.getBooleanOrDefault("no_cache", false))
         return invoke(refresh, session.echo)
     }
 

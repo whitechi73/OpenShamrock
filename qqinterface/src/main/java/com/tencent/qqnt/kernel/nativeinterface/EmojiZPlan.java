@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class EmojiZPlan {
+public  final class EmojiZPlan {
     int actionId;
     String actionName;
     int actionType;

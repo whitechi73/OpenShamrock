@@ -1,8 +1,7 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* compiled from: P */
-/* loaded from: classes4.dex */
-public final class MultiTransInfo {
+
+public  final class MultiTransInfo {
     int friendFlag;
     byte[] fromAnonId;
     String fromFaceUrl;

@@ -3,8 +3,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-/* loaded from: classes2.dex */
-public final class GProChannelState implements Serializable {
+public  final class GProChannelState implements Serializable {
     long channelId;
     int channelState;
     ArrayList<GProChannelStateItemInfo> channelStateList;

@@ -1,7 +1,7 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* compiled from: P */
-/* loaded from: classes.dex */
+
+
 public final class SmallYellowFaceInfo {
     String buf;
     String compatibleText;

@@ -3,8 +3,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-/* loaded from: classes22.dex */
-public final class GProUserFreeGiftInfoRsp implements Serializable {
+public  final class GProUserFreeGiftInfoRsp implements Serializable {
     String checkContext;
     int countdownSecond;
     int currFreeGiftNum;

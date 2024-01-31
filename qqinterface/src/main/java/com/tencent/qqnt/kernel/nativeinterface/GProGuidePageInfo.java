@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProGuidePageInfo {
+public  final class GProGuidePageInfo {
     String desc;
     GProImgPair images;
     String title;

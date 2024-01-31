@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProAnchorMediaInfo {
+public  final class GProAnchorMediaInfo {
     String serverPart;
     String sig;
     String streamParam;

@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProPollingInfo {
+public  final class GProPollingInfo {
     long channelId;
     long guildId;
     int pollingType;

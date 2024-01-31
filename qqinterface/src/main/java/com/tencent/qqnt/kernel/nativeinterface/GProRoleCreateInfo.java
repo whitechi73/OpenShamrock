@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProRoleCreateInfo {
+public  final class GProRoleCreateInfo {
     boolean bHoist;
     long color;
     String name;

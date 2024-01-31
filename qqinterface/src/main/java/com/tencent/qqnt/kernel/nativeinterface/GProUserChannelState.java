@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProUserChannelState {
+public  final class GProUserChannelState {
     long channelId;
     long guildId;
     int platform;

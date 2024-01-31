@@ -1,6 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes.dex */
+
 public final class SearchMsgWithKeywordsParams {
     int chatType;
     int pageLimit;

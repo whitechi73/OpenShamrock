@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 
 
-/* loaded from: classes2.dex */
-public final class GProNoticeJump {
+public  final class GProNoticeJump {
     String iconUrl;
     int iconUrlIndex;
     int placeHolderIndex;

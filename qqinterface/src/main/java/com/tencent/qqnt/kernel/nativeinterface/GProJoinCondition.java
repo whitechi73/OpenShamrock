@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProJoinCondition {
+public  final class GProJoinCondition {
     GProAccountCondition accountCondition;
 
     public GProJoinCondition() {

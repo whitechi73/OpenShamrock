@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.util.ArrayList;
 
-/* loaded from: classes2.dex */
-public final class GProFetchShareInfo0x10c3Req {
+public  final class GProFetchShareInfo0x10c3Req {
     byte[] businessParam;
     int businessType;
     GProCmd0x10c3Filter filter;

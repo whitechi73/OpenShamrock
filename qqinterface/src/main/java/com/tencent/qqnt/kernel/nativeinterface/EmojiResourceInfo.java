@@ -1,8 +1,7 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* compiled from: P */
-/* loaded from: classes2.dex */
-public final class EmojiResourceInfo {
+
+public  final class EmojiResourceInfo {
     String errMsg;
     String path;
     int result;

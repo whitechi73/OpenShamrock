@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes4.dex */
-public final class GProFDLStComment {
+public  final class GProFDLStComment {
     String commentId;
     GProFDLStLike like;
 

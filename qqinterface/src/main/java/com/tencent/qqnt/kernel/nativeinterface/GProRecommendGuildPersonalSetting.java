@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProRecommendGuildPersonalSetting {
+public  final class GProRecommendGuildPersonalSetting {
     int exitOption;
 
     public GProRecommendGuildPersonalSetting() {

@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.util.HashMap;
 
-/* loaded from: classes2.dex */
-public final class PicElement implements IKernelModel {
+public  final class PicElement implements IKernelModel {
     String downloadIndex;
     EmojiAD emojiAd;
     Integer emojiFrom;

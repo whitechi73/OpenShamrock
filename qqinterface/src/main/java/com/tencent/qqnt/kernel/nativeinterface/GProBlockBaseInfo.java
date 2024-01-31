@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.io.Serializable;
 
-/* loaded from: classes2.dex */
-public final class GProBlockBaseInfo implements Serializable {
+public  final class GProBlockBaseInfo implements Serializable {
     GProRecommendV2Channel channel;
     GProRecommendsV2Feed feed;
     long serialVersionUID;

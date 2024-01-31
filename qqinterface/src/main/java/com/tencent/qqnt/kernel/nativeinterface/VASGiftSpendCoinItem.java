@@ -2,8 +2,8 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.io.Serializable;
 
-/* compiled from: P */
-/* loaded from: classes.dex */
+
+
 public final class VASGiftSpendCoinItem implements Serializable {
     int amt;
     int coinType;

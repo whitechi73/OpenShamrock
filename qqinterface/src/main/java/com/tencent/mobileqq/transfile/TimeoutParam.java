@@ -50,7 +50,7 @@ public class TimeoutParam {
     }
 
     //public TimeoutParam clone() {
-    //    IPatchRedirector iPatchRedirector = $redirector_;
+    //    
     //    return (iPatchRedirector == null || !iPatchRedirector.hasPatch((short) 4)) ? new TimeoutParam(this) : (TimeoutParam) iPatchRedirector.redirect((short) 4, (Object) this);
     //}
 

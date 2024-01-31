@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProScreenShareUser {
+public  final class GProScreenShareUser {
     int state;
     long tinyId;
 

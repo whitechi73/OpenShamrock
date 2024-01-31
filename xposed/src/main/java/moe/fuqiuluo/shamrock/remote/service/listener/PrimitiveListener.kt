@@ -119,6 +119,7 @@ internal object PrimitiveListener {
         richMsg: RichMessage
     ) {
         val event = ProtoBuf.decodeFromByteArray<FriendApplyEvent>(richMsg.rawBuffer!!)
+        if (event.head == null) return
         val head = event.head!!
         val applierUid = head.applierUid
         val msg = head.applyMsg ?: ""

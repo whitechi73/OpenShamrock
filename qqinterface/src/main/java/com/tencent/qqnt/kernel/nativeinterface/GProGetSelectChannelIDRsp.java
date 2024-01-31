@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.util.ArrayList;
 
-/* loaded from: classes2.dex */
-public final class GProGetSelectChannelIDRsp {
+public  final class GProGetSelectChannelIDRsp {
     ArrayList<Long> guildIds;
     ArrayList<GProGuildInfoInLabel> guildInfos;
 

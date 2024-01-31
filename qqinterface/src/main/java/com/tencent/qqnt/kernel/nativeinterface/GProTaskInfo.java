@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProTaskInfo {
+public  final class GProTaskInfo {
     String icon;
     String id;
     String name;

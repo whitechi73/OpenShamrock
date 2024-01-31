@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProRecommendNewCardReq {
+public  final class GProRecommendNewCardReq {
     int businessType;
     byte[] cookies;
     GProBottomTabSourceInfo source;

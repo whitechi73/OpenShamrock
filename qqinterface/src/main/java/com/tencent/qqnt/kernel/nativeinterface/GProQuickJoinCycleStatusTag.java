@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.io.Serializable;
 
-/* loaded from: classes4.dex */
-public final class GProQuickJoinCycleStatusTag implements Serializable {
+public  final class GProQuickJoinCycleStatusTag implements Serializable {
     String highlightedText;
     String iconUrl;
     long serialVersionUID;

@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProAnchorTlv {
+public  final class GProAnchorTlv {
     String str;
     Integer tid;
     Long value;

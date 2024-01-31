@@ -3,8 +3,8 @@ package com.tencent.qqnt.kernel.nativeinterface;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-/* compiled from: P */
-/* loaded from: classes.dex */
+
+
 public final class TextGiftElement implements Serializable {
     String bgImageUrl;
     int charmValue;

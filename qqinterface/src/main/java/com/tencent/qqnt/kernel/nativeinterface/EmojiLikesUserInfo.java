@@ -1,8 +1,7 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* compiled from: P */
-/* loaded from: classes2.dex */
-public final class EmojiLikesUserInfo {
+
+public  final class EmojiLikesUserInfo {
     String headUrl;
     String nickName;
     long tinyId;

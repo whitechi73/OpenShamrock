@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.util.ArrayList;
 
-/* loaded from: classes4.dex */
-public final class GProSuggestedSearch {
+public  final class GProSuggestedSearch {
     ArrayList<String> contentList;
     String title;
 

@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GproEmojiDownloadParams {
+public  final class GproEmojiDownloadParams {
     String md5;
     String resId;
     String url;

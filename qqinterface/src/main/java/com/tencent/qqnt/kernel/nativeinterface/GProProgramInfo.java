@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.io.Serializable;
 
-/* loaded from: classes2.dex */
-public final class GProProgramInfo implements Serializable {
+public  final class GProProgramInfo implements Serializable {
     String anchorName;
     String liveTitle;
     String programId;

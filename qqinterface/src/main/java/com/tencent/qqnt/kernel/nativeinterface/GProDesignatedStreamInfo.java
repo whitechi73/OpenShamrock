@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.util.ArrayList;
 
-/* loaded from: classes2.dex */
-public final class GProDesignatedStreamInfo {
+public  final class GProDesignatedStreamInfo {
     ArrayList<GProLiveGearInfo> GearLIst;
     ArrayList<Integer> LevelList;
     Integer isSwitch;

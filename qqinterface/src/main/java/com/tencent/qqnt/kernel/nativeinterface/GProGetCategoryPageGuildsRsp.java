@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.util.ArrayList;
 
-/* loaded from: classes4.dex */
-public final class GProGetCategoryPageGuildsRsp {
+public  final class GProGetCategoryPageGuildsRsp {
     ArrayList<GProRecommendCategory> categories;
     boolean isEnd;
     ArrayList<GProRecommendItem> items;

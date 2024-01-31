@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.io.Serializable;
 
-/* loaded from: classes2.dex */
-public final class GProGroupClaim implements Serializable {
+public  final class GProGroupClaim implements Serializable {
     int groupType;
     int number;
     long serialVersionUID = 1;

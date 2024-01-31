@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 
 
-/* loaded from: classes2.dex */
-public final class GProNoticeCover {
+public  final class GProNoticeCover {
     long linkId;
     int type;
     String url;

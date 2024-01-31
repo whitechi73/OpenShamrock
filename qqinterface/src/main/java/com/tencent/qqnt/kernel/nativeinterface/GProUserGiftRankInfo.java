@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.io.Serializable;
 
-/* loaded from: classes22.dex */
-public final class GProUserGiftRankInfo implements Serializable {
+public  final class GProUserGiftRankInfo implements Serializable {
     long channelId;
     long guildId;
     String jumpUrl;

@@ -1,8 +1,7 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* compiled from: P */
-/* loaded from: classes2.dex */
-public final class GroupFolderInfo {
+
+public  final class GroupFolderInfo {
     int createTime;
     long createUin;
     String creatorName;

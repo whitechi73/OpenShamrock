@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProMsgSeq {
+public  final class GProMsgSeq {
     long uint64Seq;
     long uint64Time;
 

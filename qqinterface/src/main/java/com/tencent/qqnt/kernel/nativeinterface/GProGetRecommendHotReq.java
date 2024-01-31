@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.io.Serializable;
 
-/* loaded from: classes2.dex */
-public final class GProGetRecommendHotReq implements Serializable {
+public  final class GProGetRecommendHotReq implements Serializable {
     byte[] adReq;
     String busiInfo;
     byte[] cookies;

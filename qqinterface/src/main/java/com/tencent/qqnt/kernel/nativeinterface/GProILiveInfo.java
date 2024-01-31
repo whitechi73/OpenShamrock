@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.util.ArrayList;
 
-/* loaded from: classes2.dex */
-public final class GProILiveInfo {
+public  final class GProILiveInfo {
     long anchorUid;
     ArrayList<GProLiveDataItem> metricsData;
     String programId;

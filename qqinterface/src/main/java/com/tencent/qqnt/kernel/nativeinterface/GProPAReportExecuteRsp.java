@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProPAReportExecuteRsp {
+public  final class GProPAReportExecuteRsp {
 
     /* renamed from: msg  reason: collision with root package name */
     String f305537msg;

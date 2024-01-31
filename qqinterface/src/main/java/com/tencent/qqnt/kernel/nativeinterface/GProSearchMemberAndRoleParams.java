@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class GProSearchMemberAndRoleParams {
+public  final class GProSearchMemberAndRoleParams {
     long channelId;
     long count;
     long guildId;

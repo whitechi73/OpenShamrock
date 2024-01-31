@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.util.ArrayList;
 
-/* loaded from: classes2.dex */
-public final class PttElement implements IKernelModel {
+public  final class PttElement implements IKernelModel {
     int autoConvertText;
     boolean canConvert2Text;
     int duration;

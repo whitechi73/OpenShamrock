@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.util.ArrayList;
 
-/* loaded from: classes2.dex */
-public final class GProLiveAnchorPlayInfo {
+public  final class GProLiveAnchorPlayInfo {
     String errMsg;
     Integer result;
     ArrayList<GProLiveAnchorPlayStream> streams;

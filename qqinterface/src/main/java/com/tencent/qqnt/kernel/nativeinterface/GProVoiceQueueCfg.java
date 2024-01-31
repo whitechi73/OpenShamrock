@@ -2,8 +2,7 @@ package com.tencent.qqnt.kernel.nativeinterface;
 
 import java.io.Serializable;
 
-/* loaded from: classes2.dex */
-public final class GProVoiceQueueCfg implements Serializable {
+public  final class GProVoiceQueueCfg implements Serializable {
     long serialVersionUID = 1;
     int voiceQueueState;
 

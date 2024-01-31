@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes4.dex */
-public final class GProDoLikeCommentForFeedReq {
+public  final class GProDoLikeCommentForFeedReq {
     String commentId;
     GProFDLStCommonExt extInfo;
     String feedId;

@@ -1,7 +1,6 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
-/* loaded from: classes2.dex */
-public final class FileAssistantListParams {
+public  final class FileAssistantListParams {
     int count;
     FileAssistantType fileType;
     Long groupCode;
