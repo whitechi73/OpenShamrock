@@ -22,7 +22,7 @@ internal object GetGuildServiceProfile : IActionHandler() {
             return error(it.message ?: "unable to fetch self guild info", echo)
         }
         val info = result.getOrThrow()
-        LogCenter.log(info.toString())
+        //LogCenter.log(info.toString())
         return ok(GuildServiceProfile(
             nickName = info.nickName ?: info.memberName ?: "",
             tinyId = info.memberTinyid,

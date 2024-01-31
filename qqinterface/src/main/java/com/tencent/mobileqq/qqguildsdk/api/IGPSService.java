@@ -502,7 +502,7 @@ public interface IGPSService extends IRuntimeService {
 
      String getGuildIdOf(String str);
 
-    @Nullable
+     @Nullable
      IGProGuildInfo getGuildInfo(String str);
 
      //void getGuildLableInfo(com.tencent.mobileqq.qqguildsdk.data.genc.ak akVar, com.tencent.mobileqq.i2.a.a.bi biVar);
