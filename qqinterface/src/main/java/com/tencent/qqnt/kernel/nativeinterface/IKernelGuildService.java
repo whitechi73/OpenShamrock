@@ -34,4 +34,14 @@ public interface IKernelGuildService {
     void refreshGuildInfo(long guildId, boolean force, int appId);
 
     void refreshGuildInfoOnly(long j2, boolean z, int i2);
+
+    void fetchUserInfo(long j2, long j3, ArrayList<Long> tinyIdList, int i2, IGProGetUserInfoCallback iGProGetUserInfoCallback);
+
+    GProSimpleProfile getSimpleProfile(long guildId, long tinyId, int aid);
+
+    GProFaceAuthInfo getFaceAuthInfo();
+
+    String getGuildUserAvatarUrl(long guildId, long tinyId, int aid);
+
+    String getGuildUserNickname(long guildId);
 }

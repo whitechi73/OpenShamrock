@@ -3,6 +3,8 @@ package moe.fuqiuluo.shamrock.remote.action.handlers
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
+import moe.fuqiuluo.qqinterface.servlet.GProSvc
+import moe.fuqiuluo.qqinterface.servlet.structures.GuildInfo
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
@@ -20,59 +22,12 @@ internal object GetGuildList : IActionHandler() {
     }
 
     operator fun invoke(refresh: Boolean = true, echo: JsonElement = EmptyJsonString): String {
-        PlatformUtils.requireMinQQVersion(version = PlatformUtils.QQ_9_0_8_VER)
-
-        val kernelGProService = NTServiceFetcher.kernelService.wrapperSession.guildService
-        if (refresh) {
-            kernelGProService.refreshGuildList(true)
-            kernelGProService.guildListFromCache.forEach {
-                kernelGProService.refreshGuildInfo(it.guildId, true, 1)
-            }
-        }
-        val result = arrayListOf<GuildInfo>()
-        kernelGProService.guildListFromCache.forEach {
-            if (it.result != 0) return@forEach
-            val guildInfo = it.guildInfo
-            result.add(
-                GuildInfo(
-                guildId = it.guildId,
-                guildName = guildInfo.guildName ?: "",
-                guildDisplayId = guildInfo.guildNumber ?: "",
-                profile = guildInfo.profile ?: "",
-                status = GuildStatus(
-                    isEnable = guildInfo.guildStatus?.isEnable == 1,
-                    isBanned = guildInfo.guildStatus?.isBanned == 1,
-                    isFrozen = guildInfo.guildStatus?.isFrozen == 1
-                ),
-                ownerId = guildInfo.ownerTinyid,
-                shutUpTime = guildInfo.shutupExpireTime
-            ))
-        }
-        return ok(GuildListResult(
-            result
-        ), echo, "success")
+        val result = GProSvc.getGuildList(refresh)
+        return ok(GuildListResult(result), echo, "success")
     }
 
     @Serializable
     data class GuildListResult(
         @SerialName("guild_list") var guildList: List<GuildInfo> = arrayListOf()
-    )
-
-    @Serializable
-    data class GuildInfo(
-        @SerialName("guild_id") var guildId: Long,
-        @SerialName("guild_name") var guildName: String,
-        @SerialName("guild_display_id") var guildDisplayId: String,
-        @SerialName("profile") var profile: String,
-        @SerialName("status") var status: GuildStatus,
-        @SerialName("owner_id") var ownerId: Long,
-        @SerialName("shutup_expire_time") var shutUpTime: Long,
-    )
-
-    @Serializable
-    data class GuildStatus(
-        @SerialName("is_enable") var isEnable: Boolean,
-        @SerialName("is_banned") var isBanned: Boolean,
-        @SerialName("is_frozen") var isFrozen: Boolean
     )
 }

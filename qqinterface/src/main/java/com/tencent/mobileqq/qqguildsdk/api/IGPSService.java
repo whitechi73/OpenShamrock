@@ -712,7 +712,7 @@ public interface IGPSService extends IRuntimeService {
      int getShareButtonFromCache(long j2, long j3, boolean z);
 
     @Nullable
-     IGProSimpleProfile getSimpleProfile(String str, String str2, int i2);
+     IGProSimpleProfile getSimpleProfile(String guildId, String tinyId, int appId);
 
      List<IGProGuildInfo> getSortedGuildList();
 
@@ -819,7 +819,7 @@ public interface IGPSService extends IRuntimeService {
 
      void refreshGuildList(boolean z);
 
-     void refreshGuildUserProfileInfo(String str, String str2);
+     void refreshGuildUserProfileInfo(String guildId, String userTinyId);
 
      void refreshPollingData();
 
