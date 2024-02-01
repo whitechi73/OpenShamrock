@@ -4,11 +4,15 @@ package moe.fuqiuluo.qqinterface.servlet
 
 import com.tencent.mobileqq.qqguildsdk.api.IGPSService
 import com.tencent.qqnt.kernel.nativeinterface.GProRoleMemberList
+import com.tencent.qqnt.kernel.nativeinterface.IGProFetchMemberListWithRoleCallback
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
 import kotlinx.serialization.protobuf.ProtoBuf
 import moe.fuqiuluo.qqinterface.servlet.structures.GProChannelInfo
+import moe.fuqiuluo.qqinterface.servlet.structures.GetGuildMemberListNextToken
 import moe.fuqiuluo.qqinterface.servlet.structures.GuildInfo
 import moe.fuqiuluo.qqinterface.servlet.structures.GuildStatus
 import moe.fuqiuluo.qqinterface.servlet.structures.SlowModeInfo
@@ -29,6 +33,7 @@ import moe.whitechi73.protobuf.oidb.cmx0xf57.Oidb0xf57Rsp
 import moe.whitechi73.protobuf.oidb.cmx0xf57.Oidb0xf57U1
 import moe.whitechi73.protobuf.oidb.cmx0xf57.Oidb0xf57U2
 import tencent.im.oidb.oidb_sso
+import kotlin.coroutines.resume
 
 internal object GProSvc: BaseSvc() {
     fun getSelfTinyId(): ULong {
@@ -94,13 +99,40 @@ internal object GProSvc: BaseSvc() {
         kernelGProService.refreshGuildInfo(guildId.toLong(), true, 1)
     }
 
-    suspend fun getGuildMemberList(guildId: ULong): Result<List<GProRoleMemberList>> {
+    suspend fun getGuildMemberList(
+        guildId: ULong,
+        startIndex: Long = 0,
+        roleIndex: Long = 1,
+        count: Int = 50,
+        fetchAll: Boolean = false,
+        result: ArrayList<GProRoleMemberList> = arrayListOf()
+    ): Result<Pair<GetGuildMemberListNextToken, ArrayList<GProRoleMemberList>>> {
         val kernelGProService = NTServiceFetcher.kernelService.wrapperSession.guildService
-        //kernelGProService.fetchMemberListWithRole()
+        val fetchGuildMemberListResult: Pair<GetGuildMemberListNextToken, ArrayList<GProRoleMemberList>> = (withTimeoutOrNull(5000) {
+            suspendCancellableCoroutine {
+                kernelGProService.fetchMemberListWithRole(guildId.toLong(), 0, startIndex, roleIndex, count, 0) { code, reason, finish, nextIndex, nextRoleIdIndex, _, seq, roleList ->
+                    if (code == 0) {
+                        it.resume(GetGuildMemberListNextToken(nextIndex, nextRoleIdIndex, seq, finish) to roleList)
+                    } else {
+                        LogCenter.log("fetchMemberListWithRole failed: $code($reason)", Level.WARN)
+                        it.resume(null)
+                    }
+                }
+            }
+        }) ?: return Result.failure(Exception("unable to fetch guild member list"))
 
-
-
-        return Result.failure(Exception("todo"))
+        val nextToken = fetchGuildMemberListResult.first
+        val roleList = fetchGuildMemberListResult.second
+        result.addAll(roleList)
+        return if (fetchAll) {
+            if (!fetchGuildMemberListResult.first.finish) {
+                getGuildMemberList(guildId, nextToken.startIndex, nextToken.roleIndex, count, true, result)
+            } else {
+                Result.success(nextToken.copy(finish = true) to result)
+            }
+        } else {
+            Result.success(nextToken to result)
+        }
     }
 
     suspend fun getSelfGuildInfo(): Result<GProUserInfo> {

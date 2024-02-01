@@ -26,7 +26,8 @@ fun Routing.guildAction() {
 
     getOrPost("/get_guild_member_list") {
         val guildId = fetchOrThrow("guild_id")
-        call.respondText(GetGuildMemberList(guildId.toULong()), ContentType.Application.Json)
+        val all = fetchGetOrNull("all")?.toBoolean() ?: false
+        call.respondText(GetGuildMemberList(guildId.toULong(), all, fetchOrNull("next_token") ?: ""), ContentType.Application.Json)
     }
 
     getOrPost("/get_guild_meta_by_guest") {

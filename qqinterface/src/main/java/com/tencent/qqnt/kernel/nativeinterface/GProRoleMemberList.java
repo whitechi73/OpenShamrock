@@ -24,8 +24,6 @@ public  final class GProRoleMemberList {
     }
 
     public GProRoleMemberList(GProGuildRole gProGuildRole, ArrayList<GProUser> arrayList) {
-        this.role = new GProGuildRole();
-        this.members = new ArrayList<>();
         this.role = gProGuildRole;
         this.members = arrayList;
     }

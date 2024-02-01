@@ -52,3 +52,27 @@ data class SlowModeInfo(
     @SerialName("speak_frequency") val speakFrequency: Int,
     @SerialName("slow_mode_circle") val slowModeCircle: Int
 )
+
+@Serializable
+data class GetGuildMemberListNextToken(
+    @SerialName("start_index") val startIndex: Long,
+    @SerialName("role_index") val roleIndex: Long,
+    @SerialName("seq") val seq: Int,
+    @SerialName("finish") val finish: Boolean
+)
+
+@Serializable
+data class GuildMemberInfo(
+    @SerialName("tiny_id") val tinyId: Long,
+    @SerialName("title") val title: String,
+    @SerialName("nickname") val nickname: String,
+    @SerialName("role_id") val roleId: Long,
+    @SerialName("role_name") val roleName: String,
+    @SerialName("role_color") val roleColor: Long,
+    @SerialName("join_time") val joinTime: Long,
+    @SerialName("robot_type") val robotType: Int,
+    @SerialName("type") val type: Int,
+    @SerialName("in_black") val inBlack: Boolean,
+    @SerialName("platform") val platform: Int,
+)
+
