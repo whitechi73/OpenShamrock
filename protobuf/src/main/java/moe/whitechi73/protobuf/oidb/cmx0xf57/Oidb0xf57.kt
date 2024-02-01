@@ -37,6 +37,7 @@ data class Oidb0xf57Meta(
     @ProtoNumber(18) val ownerId: ULong = ULong.MIN_VALUE,
     @ProtoNumber(19) val coverSeq: Long = Long.MIN_VALUE,
     @ProtoNumber(20) val clientId: Int = Int.MIN_VALUE,
+    @ProtoNumber(27) val displayId: String? = null,
 )
 
 @Serializable
@@ -72,7 +73,10 @@ data class Oidb0xf57U1(
     @ProtoNumber(5003) val u18: UInt = UInt.MIN_VALUE,
     @ProtoNumber(5004) val u19: UInt = UInt.MIN_VALUE,
     @ProtoNumber(5005) val u20: UInt = UInt.MIN_VALUE,
+    @ProtoNumber(5006) val u23: UInt = UInt.MIN_VALUE,
     @ProtoNumber(10007) val u21: UInt = UInt.MIN_VALUE,
+    @ProtoNumber(15) val u22: UInt = UInt.MIN_VALUE,
+    @ProtoNumber(30001) val u24: UInt = UInt.MIN_VALUE,
 )
 
 @Serializable
@@ -85,4 +89,11 @@ data class Oidb0xf57U2(
     @ProtoNumber(15) val u6: UInt = UInt.MIN_VALUE,
     @ProtoNumber(16) val u7: UInt = UInt.MIN_VALUE,
     @ProtoNumber(17) val u8: UInt = UInt.MIN_VALUE,
+    @ProtoNumber(32) val u9: UInt = UInt.MIN_VALUE,
+    @ProtoNumber(31) val u10: UInt = UInt.MIN_VALUE,
+    @ProtoNumber(29) val u11: UInt = UInt.MIN_VALUE,
+    @ProtoNumber(26) val u12: UInt = UInt.MIN_VALUE,
+    @ProtoNumber(23) val u13: UInt = UInt.MIN_VALUE,
+    @ProtoNumber(22) val u14: UInt = UInt.MIN_VALUE,
+    @ProtoNumber(18) val u15: UInt = UInt.MIN_VALUE,
 )

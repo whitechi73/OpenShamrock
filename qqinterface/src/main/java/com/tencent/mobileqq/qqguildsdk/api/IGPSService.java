@@ -440,7 +440,7 @@ public interface IGPSService extends IRuntimeService {
      void getChannelInvisibleRoleList(String str, String str2, @NonNull com.tencent.mobileqq.qqguildsdk.data.type.e eVar);*/
 
     @NonNull
-     List<IGProChannelInfo> getChannelList(String str);
+    List<IGProChannelInfo> getChannelList(String str);
 
     /*
     @Nullable

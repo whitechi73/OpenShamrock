@@ -3,6 +3,7 @@ package moe.fuqiuluo.shamrock.remote.action.handlers
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.protobuf.ProtoNumber
 import moe.fuqiuluo.qqinterface.servlet.GProSvc
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
@@ -35,7 +36,8 @@ internal object GetGuildMetaByGuest: IActionHandler() {
             maxRobotCount = meta.robotMaxNum,
             maxAdminCount = meta.adminMaxNum,
             memberCount = meta.memberCount,
-            ownerId = meta.ownerId
+            ownerId = meta.ownerId,
+            guildDisplayId = meta.displayId ?: ""
         ), echo)
     }
 
@@ -52,5 +54,6 @@ internal object GetGuildMetaByGuest: IActionHandler() {
         @SerialName("max_admin_count") val maxAdminCount: Int,
         @SerialName("member_count") val memberCount: Long,
         @SerialName("owner_id") val ownerId: ULong,
+        @SerialName("guild_display_id") val guildDisplayId: String
     )
 }

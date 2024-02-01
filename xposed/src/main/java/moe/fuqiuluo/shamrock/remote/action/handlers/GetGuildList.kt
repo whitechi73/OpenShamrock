@@ -18,11 +18,13 @@ import mqq.app.MobileQQ
 @OneBotHandler("get_guild_list")
 internal object GetGuildList : IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
-        return invoke(echo = session.echo)
+        val oldSdk = session.getBooleanOrDefault("old_sdk", false)
+        val refresh = session.getBooleanOrDefault("refresh", session.getBooleanOrDefault("no_cache", false))
+        return invoke(refresh, oldSdk, echo = session.echo)
     }
 
-    operator fun invoke(refresh: Boolean = true, echo: JsonElement = EmptyJsonString): String {
-        val result = GProSvc.getGuildList(refresh)
+    operator fun invoke(refresh: Boolean = true, oldSdk: Boolean, echo: JsonElement = EmptyJsonString): String {
+        val result = GProSvc.getGuildList(refresh, oldSdk)
         return ok(GuildListResult(result), echo, "success")
     }
 
