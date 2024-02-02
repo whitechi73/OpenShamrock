@@ -31,7 +31,7 @@
 
         <provider
             android:name=".ui.service.internal.MultifunctionalProvider"
-            android:authorities="moe.fuqiuluo.xqbot.provider"
+            android:authorities="moe.fuqiuluo.108.provider"
             android:exported="true"
             android:grantUriPermissions="true"
             tools:ignore="ExportedContentProvider" />

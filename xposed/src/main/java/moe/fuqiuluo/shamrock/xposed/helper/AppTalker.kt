@@ -3,9 +3,11 @@ package moe.fuqiuluo.shamrock.xposed.helper
 import android.content.ContentValues
 import android.net.Uri
 import mqq.app.MobileQQ
+import kotlin.random.Random
 
 internal object AppTalker {
-    private val URI = Uri.parse("content://moe.fuqiuluo.xqbot.provider")
+    val uriName = "content://moe.fuqiuluo.108.provider" // 你是真的闲，这都上个检测
+    val URI = Uri.parse(uriName)
 
     fun talk(values: ContentValues, onFailure: ((Throwable) -> Unit)? = null) {
         val ctx = MobileQQ.getContext()
