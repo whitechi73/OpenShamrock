@@ -296,4 +296,13 @@ internal object GProSvc: BaseSvc() {
         } ?: return Result.failure(Exception("unable to fetch guild roles"))
         return Result.success(roles)
     }
+
+    fun deleteGuildRole(guildId: ULong, roleId: ULong) {
+        val kernelGProService = NTServiceFetcher.kernelService.wrapperSession.guildService
+        kernelGProService.deleteRole(guildId.toLong(), roleId.toLong()) { code, msg, result ->
+            if (code != 0) {
+                LogCenter.log("deleteGuildRole failed: $code($msg) => $result", Level.WARN)
+            }
+        }
+    }
 }

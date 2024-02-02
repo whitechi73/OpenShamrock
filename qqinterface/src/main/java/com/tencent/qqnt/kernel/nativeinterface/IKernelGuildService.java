@@ -65,4 +65,8 @@ public interface IKernelGuildService {
     String getGuildUserAvatarUrl(long guildId, long tinyId, int seq);
 
     String getGuildUserNickname(long guildId);
+
+    void deleteRole(long guild, long role, IGProResultCallback cb);
+
+
 }

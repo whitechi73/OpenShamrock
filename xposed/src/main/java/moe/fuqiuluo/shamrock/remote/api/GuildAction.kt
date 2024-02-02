@@ -8,6 +8,7 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import moe.fuqiuluo.shamrock.helper.MessageHelper
+import moe.fuqiuluo.shamrock.remote.action.handlers.DeleteGuildRole
 import moe.fuqiuluo.shamrock.remote.action.handlers.GetGProChannelList
 import moe.fuqiuluo.shamrock.remote.action.handlers.GetGuildFeeds
 import moe.fuqiuluo.shamrock.remote.action.handlers.GetGuildList
@@ -122,5 +123,11 @@ fun Routing.guildAction() {
     getOrPost("/get_guild_roles") {
         val guildId = fetchOrThrow("guild_id").toULong()
         call.respondText(GetGuildRoles(guildId), ContentType.Application.Json)
+    }
+
+    getOrPost("/delete_guild_role") {
+        val guildId = fetchOrThrow("guild_id").toULong()
+        val roleId = fetchOrThrow("role_id").toULong()
+        call.respondText(DeleteGuildRole(guildId, roleId), ContentType.Application.Json)
     }
 }
