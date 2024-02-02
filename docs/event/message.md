@@ -33,6 +33,14 @@ icon: comment
 
 当 `message_type` 为 `group` 时，表示收到了群消息。
 
+## 私聊消息
+
+当 `message_type` 为 `less` 时，表示收到了群消息。
+
+## 频道消息
+
+当 `message_type` 为 `guild` 时，表示收到了群消息。
+
 ## 快速回复
 
 Shamrock 提供了快速回复的功能，可以在收到消息时快速回复消息。

@@ -101,6 +101,12 @@ icon: database
 | role  | string | 发送者角色   |
 | title | string | 发送者头衔   |
 
+如果是频道消息，则会包含以下字段：
+
+| 字段  | 类型   | 说明         |
+| ----- | ------ | ------------ |
+| tiny_id | string | 发送者TinyId   |
+
 ### Post_Message_TempSource
 
 | 类型 | 来源 |

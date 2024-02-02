@@ -13,6 +13,7 @@ icon: laptop-code
 - [资源相关](./resources.md)
 - [处理相关](./dispose.md)
 - [群聊相关](./group.md)
+- [频道相关](./guild.md)
 - [文件相关](./file.md)
 - [QQ收藏](./fav.md)
 - [Shamrock相关](./shamrock.md)
