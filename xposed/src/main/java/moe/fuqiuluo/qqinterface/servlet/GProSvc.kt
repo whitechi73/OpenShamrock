@@ -305,4 +305,16 @@ internal object GProSvc: BaseSvc() {
             }
         }
     }
+
+    fun setMemberRole(guildId: ULong, tinyId: ULong, roleId: ULong, isSet: Boolean) {
+        val kernelGProService = NTServiceFetcher.kernelService.wrapperSession.guildService
+        val addList = arrayListOf<Long>()
+        val rmList = arrayListOf<Long>()
+        (if (isSet) addList else rmList).add(roleId.toLong())
+        kernelGProService.setMemberRoles(guildId.toLong(), 0, 0, tinyId.toLong(), addList, rmList) { code, msg, result ->
+            if (code != 0) {
+                LogCenter.log("setMemberRole failed: $code($msg) => $result", Level.WARN)
+            }
+        }
+    }
 }

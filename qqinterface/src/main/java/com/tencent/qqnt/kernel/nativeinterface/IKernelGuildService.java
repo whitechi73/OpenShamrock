@@ -68,5 +68,6 @@ public interface IKernelGuildService {
 
     void deleteRole(long guild, long role, IGProResultCallback cb);
 
+    void setMemberRoles(long guild, long u1, long u2, long tinyId, ArrayList<Long> addRoles, ArrayList<Long> removeRoles, IGProResultCallback cb);
 
 }

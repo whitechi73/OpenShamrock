@@ -19,12 +19,14 @@ import moe.fuqiuluo.shamrock.remote.action.handlers.GetGuildRoles
 import moe.fuqiuluo.shamrock.remote.action.handlers.GetGuildServiceProfile
 import moe.fuqiuluo.shamrock.remote.action.handlers.SendGuildMessage
 import moe.fuqiuluo.shamrock.remote.action.handlers.SendMessage
+import moe.fuqiuluo.shamrock.remote.action.handlers.SetGuildMemberRole
 import moe.fuqiuluo.shamrock.tools.fetchGetOrNull
 import moe.fuqiuluo.shamrock.tools.fetchGetOrThrow
 import moe.fuqiuluo.shamrock.tools.fetchOrNull
 import moe.fuqiuluo.shamrock.tools.fetchOrThrow
 import moe.fuqiuluo.shamrock.tools.fetchPostJsonArray
 import moe.fuqiuluo.shamrock.tools.fetchPostJsonObject
+import moe.fuqiuluo.shamrock.tools.fetchPostJsonString
 import moe.fuqiuluo.shamrock.tools.fetchPostOrNull
 import moe.fuqiuluo.shamrock.tools.fetchPostOrThrow
 import moe.fuqiuluo.shamrock.tools.getOrPost
@@ -129,5 +131,23 @@ fun Routing.guildAction() {
         val guildId = fetchOrThrow("guild_id").toULong()
         val roleId = fetchOrThrow("role_id").toULong()
         call.respondText(DeleteGuildRole(guildId, roleId), ContentType.Application.Json)
+    }
+
+    getOrPost("/set_guild_member_role") {
+        val guildId = fetchOrThrow("guild_id").toULong()
+        val roleId = fetchOrThrow("role_id").toULong()
+        val set = fetchOrNull("set")?.toBoolean() ?: false
+        val userId = fetchOrNull("user_id")?.toULong()
+        val users = fetchOrNull("users")?.split(",")?.map { it.toULong() }
+        call.respondText(
+            if (userId != null) {
+                SetGuildMemberRole(guildId, userId, roleId, set)
+            } else if (users != null) {
+                SetGuildMemberRole(guildId, users, roleId, set)
+            } else {
+                throw IllegalArgumentException("missing user_id or users")
+            },
+            ContentType.Application.Json
+        )
     }
 }
