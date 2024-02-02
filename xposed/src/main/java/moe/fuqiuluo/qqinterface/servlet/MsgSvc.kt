@@ -61,7 +61,7 @@ internal object MsgSvc: BaseSvc() {
             ?: return Result.failure(Exception("没有对应消息映射，消息获取失败"))
 
         val peerId = mapping.peerId
-        val contact = MessageHelper.generateContact(mapping.chatType, peerId)
+        val contact = MessageHelper.generateContact(mapping.chatType, peerId, mapping.subPeerId ?: "")
 
         val msg = withTimeoutOrNull(5000) {
             val service = QRoute.api(IMsgService::class.java)
@@ -89,11 +89,11 @@ internal object MsgSvc: BaseSvc() {
     suspend fun getMsgByQMsgId(
         chatType: Int,
         peerId: String,
-        qqMsgId: Long
+        qqMsgId: Long,
+        subPeerId: String = ""
     ): Result<MsgRecord> {
-        val contact = MessageHelper.generateContact(chatType, peerId)
-        val service = QRoute.api(IMsgService::class.java) ?:
-            return Result.failure(Exception("获取消息服务"))
+        val contact = MessageHelper.generateContact(chatType, peerId, subPeerId)
+        val service = QRoute.api(IMsgService::class.java)
 
         val msg = withTimeoutOrNull(5000) {
             suspendCoroutine { continuation ->
@@ -152,7 +152,7 @@ internal object MsgSvc: BaseSvc() {
         val mapping = MessageHelper.getMsgMappingByHash(msgHash)
             ?: return -1 to "无法找到消息映射"
 
-        val contact = MessageHelper.generateContact(mapping.chatType, mapping.peerId)
+        val contact = MessageHelper.generateContact(mapping.chatType, mapping.peerId, mapping.subPeerId ?: "")
 
         return suspendCancellableCoroutine { continuation ->
             msgService.recallMsg(contact, arrayListOf(mapping.qqMsgId)) { code, why ->
@@ -184,7 +184,7 @@ internal object MsgSvc: BaseSvc() {
         }
         val result = MessageHelper.sendMessageWithoutMsgId(chatType, peedId, message, fromId, MessageCallback(peedId, 0))
         result.onFailure {
-            LogCenter.log(it.stackTraceToString(), Level.ERROR)
+            LogCenter.log("sendToAio: " + it.stackTraceToString(), Level.ERROR)
             return result
         }
         val sendResult = result.getOrThrow()
@@ -192,7 +192,7 @@ internal object MsgSvc: BaseSvc() {
             // 发送失败，可能网络问题出现红色感叹号，重试
             // 例如 rich media transfer failed
             delay(100)
-            MessageHelper.resendMsg(chatType, peedId, fromId, sendResult.qqMsgId, 3, sendResult.msgHashId)
+            MessageHelper.resendMsg(chatType, peedId, fromId, sendResult.qqMsgId, retryCnt, sendResult.msgHashId)
         } else {
             result
         }

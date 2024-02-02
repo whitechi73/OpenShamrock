@@ -97,4 +97,5 @@ internal data class Sender(
     @SerialName("role") val role: MemberRole?,
     @SerialName("title") val title: String,
     @SerialName("level") val level: String,
+    @SerialName("tiny_id") val tinyId: String = "0",
 )

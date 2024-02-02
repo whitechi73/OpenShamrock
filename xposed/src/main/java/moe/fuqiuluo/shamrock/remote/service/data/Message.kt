@@ -35,6 +35,7 @@ internal data class MessageSender(
     @SerialName("sex") val sex: String,
     @SerialName("age") val age: Int,
     @SerialName("uid") val uid: String,
+    @SerialName("tiny_id") val tinyId: String,
 )
 
 @Serializable

@@ -81,9 +81,6 @@ internal object SendMessage: IActionHandler() {
         recallDuration: Long?,
         echo: JsonElement = EmptyJsonString
     ): String {
-        //if (!ContactHelper.checkContactAvailable(chatType, peerId)) {
-        //    return logic("contact is not found", echo = echo)
-        //}
         val result = if (autoEscape) {
             MsgSvc.sendToAio(chatType, peerId, listOf(
                 mapOf(

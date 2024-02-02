@@ -34,7 +34,10 @@ internal object GetMsg: IActionHandler() {
                 msg.senderUin, msg.sendNickName
                     .ifEmpty { msg.sendMemberName }
                     .ifEmpty { msg.sendRemarkName }
-                    .ifEmpty { msg.peerName }, "unknown", 0, msg.senderUid
+                    .ifEmpty { msg.peerName }, "unknown",
+                0,
+                msg.senderUid,
+                msg.senderUid
             ),
             message = MessageConvert.convertMessageRecordToMsgSegment(msg).map {
                 it.toJson()

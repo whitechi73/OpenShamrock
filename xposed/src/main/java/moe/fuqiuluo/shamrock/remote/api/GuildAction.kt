@@ -4,16 +4,31 @@ import io.ktor.http.ContentType
 import io.ktor.server.application.call
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.Routing
+import io.ktor.server.routing.get
+import io.ktor.server.routing.post
+import io.ktor.server.routing.route
+import moe.fuqiuluo.shamrock.helper.MessageHelper
 import moe.fuqiuluo.shamrock.remote.action.handlers.GetGProChannelList
 import moe.fuqiuluo.shamrock.remote.action.handlers.GetGuildList
 import moe.fuqiuluo.shamrock.remote.action.handlers.GetGuildMemberList
 import moe.fuqiuluo.shamrock.remote.action.handlers.GetGuildMemberProfile
 import moe.fuqiuluo.shamrock.remote.action.handlers.GetGuildMetaByGuest
 import moe.fuqiuluo.shamrock.remote.action.handlers.GetGuildServiceProfile
+import moe.fuqiuluo.shamrock.remote.action.handlers.SendGuildMessage
+import moe.fuqiuluo.shamrock.remote.action.handlers.SendMessage
 import moe.fuqiuluo.shamrock.tools.fetchGetOrNull
+import moe.fuqiuluo.shamrock.tools.fetchGetOrThrow
 import moe.fuqiuluo.shamrock.tools.fetchOrNull
 import moe.fuqiuluo.shamrock.tools.fetchOrThrow
+import moe.fuqiuluo.shamrock.tools.fetchPostJsonArray
+import moe.fuqiuluo.shamrock.tools.fetchPostJsonObject
+import moe.fuqiuluo.shamrock.tools.fetchPostOrNull
+import moe.fuqiuluo.shamrock.tools.fetchPostOrThrow
 import moe.fuqiuluo.shamrock.tools.getOrPost
+import moe.fuqiuluo.shamrock.tools.isJsonData
+import moe.fuqiuluo.shamrock.tools.isJsonObject
+import moe.fuqiuluo.shamrock.tools.isJsonString
+import moe.fuqiuluo.shamrock.tools.jsonArray
 
 fun Routing.guildAction() {
     getOrPost("/get_guild_service_profile") {
@@ -46,5 +61,52 @@ fun Routing.guildAction() {
         val guildId = fetchOrThrow("guild_id")
         val userId = fetchOrThrow("user_id")
         call.respondText(GetGuildMemberProfile(guildId.toULong(), userId.toULong()), ContentType.Application.Json)
+    }
+
+    route("/(send_guild_channel_msg|send_guild_message|send_guild_msg)".toRegex()) {
+        get {
+            val guildId = fetchGetOrThrow("guild_id").toULong()
+            val channelId = fetchGetOrThrow("channel_id").toULong()
+            val message = fetchGetOrThrow("message")
+            val autoEscape = fetchGetOrNull("auto_escape")?.toBoolean() ?: false
+            val retryCnt = fetchGetOrNull("retry_cnt")?.toInt() ?: 3
+            val recallDuration = fetchGetOrNull("recall_duration")?.toLong()
+            call.respondText(SendGuildMessage(guildId, channelId, message, autoEscape, retryCnt, recallDuration), ContentType.Application.Json)
+        }
+        post {
+            val retryCnt = fetchOrNull("retry_cnt")?.toInt() ?: 3
+            val recallDuration = fetchOrNull("recall_duration")?.toLong()
+            val guildId = fetchOrThrow("guild_id").toULong()
+            val channelId = fetchOrThrow("channel_id").toULong()
+            call.respondText(if (isJsonData() && !isJsonString("message")) {
+                if (isJsonObject("message")) {
+                    SendGuildMessage(
+                        guildId = guildId,
+                        channelId = channelId,
+                        message = listOf(fetchPostJsonObject("message")).jsonArray,
+                        retryCnt = retryCnt,
+                        recallDuration = recallDuration
+                    )
+                } else {
+                    SendGuildMessage(
+                        guildId = guildId,
+                        channelId = channelId,
+                        message = fetchPostJsonArray("message"),
+                        retryCnt = retryCnt,
+                        recallDuration = recallDuration
+                    )
+                }
+            } else {
+                val autoEscape = fetchPostOrNull("auto_escape")?.toBooleanStrict() ?: false
+                SendGuildMessage(
+                    guildId = guildId,
+                    channelId = channelId,
+                    message = fetchOrThrow("message"),
+                    autoEscape = autoEscape,
+                    retryCnt = retryCnt,
+                    recallDuration = recallDuration
+                )
+            }, ContentType.Application.Json)
+        }
     }
 }

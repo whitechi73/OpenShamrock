@@ -12,7 +12,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import mqq.app.MobileQQ
 
-@Entity(tableName = "message_mapping")
+@Entity(tableName = "message_mapping_v2")
 data class MessageMapping (
     @PrimaryKey
     val msgHashId: Int,
@@ -21,7 +21,8 @@ data class MessageMapping (
     val subChatType: Int, // 细化各种事件消息
     val peerId: String,
     val time: Long,
-    val msgSeq: Int
+    val msgSeq: Int,
+    val subPeerId: String,
 )
 
 @Dao
@@ -29,25 +30,25 @@ interface MessageMappingDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insert(mapping: MessageMapping)
 
-    @Query("UPDATE message_mapping SET msgSeq = :msgSeq WHERE msgHashId = :hash")
+    @Query("UPDATE message_mapping_v2 SET msgSeq = :msgSeq WHERE msgHashId = :hash")
     fun updateMsgSeqByMsgHash(hash: Int, msgSeq: Int)
 
-    @Query("DELETE FROM message_mapping WHERE msgHashId = :hash")
+    @Query("DELETE FROM message_mapping_v2 WHERE msgHashId = :hash")
     fun deleteByMsgHash(hash: Int)
 
-    @Query("SELECT * FROM message_mapping WHERE msgHashId = :msgHashId")
+    @Query("SELECT * FROM message_mapping_v2 WHERE msgHashId = :msgHashId")
     fun queryByMsgHashId(msgHashId: Int): MessageMapping?
 
-    @Query("SELECT * FROM message_mapping WHERE qqMsgId = :qqMsgId AND chatType = :chatType")
+    @Query("SELECT * FROM message_mapping_v2 WHERE qqMsgId = :qqMsgId AND chatType = :chatType")
     fun queryByQqMsgId(chatType: Int, qqMsgId: Long): MessageMapping?
 
-    @Query("SELECT * FROM message_mapping WHERE chatType = :chatType")
+    @Query("SELECT * FROM message_mapping_v2 WHERE chatType = :chatType")
     fun queryByChatType(chatType: Int): List<MessageMapping>
 
-    @Query("SELECT * FROM message_mapping WHERE subChatType = :subChatType AND chatType = :chatType")
+    @Query("SELECT * FROM message_mapping_v2 WHERE subChatType = :subChatType AND chatType = :chatType")
     fun queryBySubChatType(chatType: Int, subChatType: Int): List<MessageMapping>
 
-    @Query("SELECT * FROM message_mapping WHERE peerId = :peerId AND chatType = :chatType")
+    @Query("SELECT * FROM message_mapping_v2 WHERE peerId = :peerId AND chatType = :chatType")
     fun queryByPeerId(chatType: Int, peerId: String): List<MessageMapping>
 
     //@Query("SELECT * FROM message_mapping WHERE msgSeq = :msgSeq AND chatType = :chatType")
@@ -55,7 +56,7 @@ interface MessageMappingDao {
     // 不要调用这个，seq不唯一啊，老哥！！！！！！！！！！！！！
     // 我就说怎么这么多bug
 
-    @Query("SELECT * FROM message_mapping WHERE msgSeq = :msgSeq AND chatType = :chatType AND peerId = :peerId")
+    @Query("SELECT * FROM message_mapping_v2 WHERE msgSeq = :msgSeq AND chatType = :chatType AND peerId = :peerId")
     fun queryByMsgSeq(chatType: Int, peerId: String, msgSeq: Int): MessageMapping?
 }
 
@@ -64,7 +65,7 @@ internal abstract class MessageDB: RoomDatabase() {
     abstract fun messageMappingDao(): MessageMappingDao
 
     companion object {
-        private const val DB_NAME = "message_mapping.db"
+        private const val DB_NAME = "message_mapping_v2.db"
 
         @Volatile
         private var instance: MessageDB? = null

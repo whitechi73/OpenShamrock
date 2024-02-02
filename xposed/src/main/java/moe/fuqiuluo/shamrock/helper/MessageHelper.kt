@@ -107,12 +107,7 @@ internal object MessageHelper {
         val sendRet = withTimeoutOrNull<Pair<Int, String>>(estimateTime) {
             suspendCancellableCoroutine {
                 GlobalScope.launch {
-                    sendResult = sendMessageWithoutMsgId(
-                        chatType,
-                        peerId,
-                        msg,
-                        fromId
-                    ) { code, message ->
+                    sendResult = sendMessageWithoutMsgId(chatType, peerId, msg, fromId) { code, message ->
                         callback.onResult(code, message)
                         it.resume(code to message)
                     }
@@ -248,10 +243,17 @@ internal object MessageHelper {
     }
 
     suspend fun generateContact(chatType: Int, id: String, subId: String = ""): Contact {
-        val peerId = if (MsgConstant.KCHATTYPEC2C == chatType || MsgConstant.KCHATTYPETEMPC2CFROMGROUP == chatType) {
-            ContactHelper.getUidByUinAsync(id.toLong())
-        } else id
-        return Contact(chatType, peerId, subId)
+        val peerId = when(chatType) {
+            MsgConstant.KCHATTYPEC2C, MsgConstant.KCHATTYPETEMPC2CFROMGROUP -> {
+                ContactHelper.getUidByUinAsync(id.toLong())
+            }
+            else -> id
+        }
+        return if (chatType == MsgConstant.KCHATTYPEGUILD) {
+            Contact(chatType, subId, peerId)
+        } else {
+            Contact(chatType, peerId, subId)
+        }
     }
 
     fun obtainMessageTypeByDetailType(detailType: String): Int {
@@ -342,11 +344,12 @@ internal object MessageHelper {
         time: Long,
         chatType: Int,
         peerId: String,
+        subPeerId: String,
         msgSeq: Int,
         subChatType: Int = chatType
     ) {
         val database = MessageDB.getInstance()
-        val mapping = MessageMapping(hash, qqMsgId, chatType, subChatType, peerId, time, msgSeq)
+        val mapping = MessageMapping(hash, qqMsgId, chatType, subChatType, peerId, time, msgSeq, subPeerId)
         database.messageMappingDao().insert(mapping)
     }
 

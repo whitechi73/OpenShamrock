@@ -189,6 +189,7 @@ internal object GlobalEventTransmitter: BaseSvc() {
                         role = MemberRole.Member,
                         title = record.sendNickName,
                         level = record.roleId.toString(),
+                        tinyId = record.senderUid
                     ),
                 )
             )

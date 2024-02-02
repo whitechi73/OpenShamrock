@@ -65,7 +65,7 @@ internal object GetHistoryMsg: IActionHandler() {
                     msgId = msgHash,
                     realId = msg.msgSeq.toInt(),
                     sender = MessageSender(
-                        msg.senderUin, msg.sendNickName, "unknown", 0, msg.senderUid
+                        msg.senderUin, msg.sendNickName, "unknown", 0, msg.senderUid, msg.senderUid
                     ),
                     message = MessageConvert.convertMessageRecordToMsgSegment(msg).map {
                         it.toJson()
@@ -89,7 +89,7 @@ internal object GetHistoryMsg: IActionHandler() {
                         msg.senderUin, msg.sendNickName
                             .ifEmpty { msg.sendMemberName }
                             .ifEmpty { msg.sendRemarkName }
-                            .ifEmpty { msg.peerName }, "unknown", 0, msg.senderUid
+                            .ifEmpty { msg.peerName }, "unknown", 0, msg.senderUid, msg.senderUid
                     ),
                     message = MessageConvert.convertMessageRecordToMsgSegment(msg).map {
                         it.toJson()
