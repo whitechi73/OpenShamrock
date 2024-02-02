@@ -47,6 +47,8 @@ public interface IKernelGuildService {
 
     void fetchUserInfo(long guildId, long channelId, ArrayList<Long> tinyIdList, int seq, IGProGetUserInfoCallback cb);
 
+    void fetchTopFeeds(long guildId, long channelId, IGProFetchTopFeedsCallback cb);
+
     GProSimpleProfile getSimpleProfile(long guildId, long tinyId, int seq);
 
     GProFaceAuthInfo getFaceAuthInfo();

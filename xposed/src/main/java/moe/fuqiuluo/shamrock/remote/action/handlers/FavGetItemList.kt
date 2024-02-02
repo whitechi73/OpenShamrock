@@ -13,7 +13,7 @@ import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
 import moe.fuqiuluo.shamrock.utils.DeflateTools
 import moe.fuqiuluo.symbols.OneBotHandler
-import moe.whitechi73.protobuf.fav.WeiyunComm
+import protobuf.fav.WeiyunComm
 
 @OneBotHandler("fav.get_item_list")
 internal object FavGetItemList: IActionHandler() {

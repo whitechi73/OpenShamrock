@@ -18,6 +18,10 @@ import kotlin.random.Random
 internal object PlatformUtils {
     const val QQ_9_0_8_VER = 5540
 
+    fun getQUA(): String {
+        return "V1_AND_SQ_${getQQVersion(MobileQQ.getContext())}_${getQQVersionCode()}_YYB_D"
+    }
+
     fun getQQVersion(context: Context): String {
         val packageInfo: PackageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
         return packageInfo.versionName

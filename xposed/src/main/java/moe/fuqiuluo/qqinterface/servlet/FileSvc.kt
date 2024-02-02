@@ -12,27 +12,29 @@ import moe.fuqiuluo.shamrock.tools.EMPTY_BYTE_ARRAY
 import moe.fuqiuluo.shamrock.tools.slice
 import moe.fuqiuluo.shamrock.tools.toHexString
 import moe.fuqiuluo.shamrock.utils.DeflateTools
-import moe.whitechi73.protobuf.oidb.cmd0x6d7.CreateFolderReq
-import moe.whitechi73.protobuf.oidb.cmd0x6d7.DeleteFolderReq
-import moe.whitechi73.protobuf.oidb.cmd0x6d7.MoveFolderReq
-import moe.whitechi73.protobuf.oidb.cmd0x6d7.Oidb0x6d7ReqBody
-import moe.whitechi73.protobuf.oidb.cmd0x6d7.Oidb0x6d7RespBody
-import moe.whitechi73.protobuf.oidb.cmd0x6d7.RenameFolderReq
+import protobuf.oidb.cmd0x6d7.CreateFolderReq
+import protobuf.oidb.cmd0x6d7.DeleteFolderReq
+import protobuf.oidb.cmd0x6d7.MoveFolderReq
+import protobuf.oidb.cmd0x6d7.Oidb0x6d7ReqBody
+import protobuf.oidb.cmd0x6d7.Oidb0x6d7RespBody
+import protobuf.oidb.cmd0x6d7.RenameFolderReq
 import tencent.im.oidb.cmd0x6d6.oidb_0x6d6
 import tencent.im.oidb.cmd0x6d8.oidb_0x6d8
 import tencent.im.oidb.oidb_sso
-import moe.whitechi73.protobuf.group_file_common.FolderInfo as GroupFileCommonFolderInfo
+import protobuf.group_file_common.FolderInfo as GroupFileCommonFolderInfo
 
 internal object FileSvc: BaseSvc() {
     suspend fun createFileFolder(groupId: String, folderName: String, parentFolderId: String = "/"): Result<GroupFileCommonFolderInfo> {
-        val data = ProtoBuf.encodeToByteArray(Oidb0x6d7ReqBody(
+        val data = ProtoBuf.encodeToByteArray(
+            Oidb0x6d7ReqBody(
             createFolder = CreateFolderReq(
                 groupCode = groupId.toULong(),
                 appId = 3u,
                 parentFolderId = parentFolderId,
                 folderName = folderName
             )
-        ))
+        )
+        )
         val resultBuffer = sendOidbAW("OidbSvc.0x6d7_0", 1751, 0, data)
             ?: return Result.failure(Exception("unable to fetch result"))
         val oidbPkg = oidb_sso.OIDBSSOPkg()
@@ -45,13 +47,15 @@ internal object FileSvc: BaseSvc() {
     }
 
     suspend fun deleteGroupFolder(groupId: String, folderUid: String): Boolean {
-        val buffer = sendOidbAW("OidbSvc.0x6d7_1", 1751, 1, ProtoBuf.encodeToByteArray(Oidb0x6d7ReqBody(
+        val buffer = sendOidbAW("OidbSvc.0x6d7_1", 1751, 1, ProtoBuf.encodeToByteArray(
+            Oidb0x6d7ReqBody(
             deleteFolder = DeleteFolderReq(
                 groupCode = groupId.toULong(),
                 appId = 3u,
                 folderId = folderUid
             )
-        ))) ?: return false
+        )
+        )) ?: return false
         val oidbPkg = oidb_sso.OIDBSSOPkg()
         oidbPkg.mergeFrom(buffer.slice(4))
         val rsp = ProtoBuf.decodeFromByteArray<Oidb0x6d7RespBody>(oidbPkg.bytes_bodybuffer.get().toByteArray())
@@ -59,14 +63,16 @@ internal object FileSvc: BaseSvc() {
     }
 
     suspend fun moveGroupFolder(groupId: String, folderUid: String, newParentFolderUid: String): Boolean {
-        val buffer = sendOidbAW("OidbSvc.0x6d7_2", 1751, 2, ProtoBuf.encodeToByteArray(Oidb0x6d7ReqBody(
+        val buffer = sendOidbAW("OidbSvc.0x6d7_2", 1751, 2, ProtoBuf.encodeToByteArray(
+            Oidb0x6d7ReqBody(
             moveFolder = MoveFolderReq(
                 groupCode = groupId.toULong(),
                 appId = 3u,
                 folderId = folderUid,
                 parentFolderId = "/"
             )
-        ))) ?: return false
+        )
+        )) ?: return false
         val oidbPkg = oidb_sso.OIDBSSOPkg()
         oidbPkg.mergeFrom(buffer.slice(4))
         val rsp = ProtoBuf.decodeFromByteArray<Oidb0x6d7RespBody>(oidbPkg.bytes_bodybuffer.get().toByteArray())
@@ -74,14 +80,16 @@ internal object FileSvc: BaseSvc() {
     }
 
     suspend fun renameFolder(groupId: String, folderUid: String, name: String): Boolean {
-        val buffer = sendOidbAW("OidbSvc.0x6d7_3", 1751, 3, ProtoBuf.encodeToByteArray(Oidb0x6d7ReqBody(
+        val buffer = sendOidbAW("OidbSvc.0x6d7_3", 1751, 3, ProtoBuf.encodeToByteArray(
+            Oidb0x6d7ReqBody(
             renameFolder = RenameFolderReq(
                 groupCode = groupId.toULong(),
                 appId = 3u,
                 folderId = folderUid,
                 folderName = name
             )
-        ))) ?: return false
+        )
+        )) ?: return false
         val oidbPkg = oidb_sso.OIDBSSOPkg()
         oidbPkg.mergeFrom(buffer.slice(4))
         val rsp = ProtoBuf.decodeFromByteArray<Oidb0x6d7RespBody>(oidbPkg.bytes_bodybuffer.get().toByteArray())

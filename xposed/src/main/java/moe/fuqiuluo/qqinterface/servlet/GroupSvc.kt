@@ -14,7 +14,6 @@ import com.tencent.mobileqq.pb.ByteStringMicro
 import com.tencent.mobileqq.troop.api.ITroopInfoService
 import com.tencent.mobileqq.troop.api.ITroopMemberInfoService
 import com.tencent.protofile.join_group_link.join_group_link
-import com.tencent.qphone.base.remote.FromServiceMsg
 import com.tencent.qphone.base.remote.ToServiceMsg
 import com.tencent.qqnt.kernel.nativeinterface.MemberInfo
 import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
@@ -75,8 +74,8 @@ import moe.fuqiuluo.shamrock.utils.FileUtils
 import moe.fuqiuluo.shamrock.utils.PlatformUtils
 import moe.fuqiuluo.shamrock.xposed.helper.AppRuntimeFetcher
 import moe.fuqiuluo.shamrock.xposed.helper.NTServiceFetcher
-import moe.whitechi73.protobuf.oidb.cmd0xf16.Oidb0xf16
-import moe.whitechi73.protobuf.oidb.cmd0xf16.SetGroupRemarkReq
+import protobuf.oidb.cmd0xf16.Oidb0xf16
+import protobuf.oidb.cmd0xf16.SetGroupRemarkReq
 import mqq.app.MobileQQ
 import tencent.im.group.group_member_info
 import tencent.im.oidb.cmd0x88d.oidb_0x88d
@@ -272,13 +271,15 @@ internal object GroupSvc: BaseSvc() {
     }
 
     fun modifyGroupRemark(groupId: Long, remark: String): Boolean {
-        sendOidb("OidbSvc.0xf16_1", 3862, 1, ProtoBuf.encodeToByteArray(Oidb0xf16(
+        sendOidb("OidbSvc.0xf16_1", 3862, 1, ProtoBuf.encodeToByteArray(
+            Oidb0xf16(
             setGroupRemarkReq = SetGroupRemarkReq(
                 groupCode = groupId.toULong(),
                 groupUin = groupCode2GroupUin(groupId).toULong(),
                 groupRemark = remark
             )
-        )))
+        )
+        ))
         return true
     }
 

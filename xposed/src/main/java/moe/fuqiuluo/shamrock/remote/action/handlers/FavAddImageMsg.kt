@@ -16,7 +16,7 @@ import moe.fuqiuluo.shamrock.utils.CryptTools
 import moe.fuqiuluo.shamrock.utils.DeflateTools
 import moe.fuqiuluo.shamrock.utils.FileUtils
 import moe.fuqiuluo.symbols.OneBotHandler
-import moe.whitechi73.protobuf.fav.WeiyunComm
+import protobuf.fav.WeiyunComm
 
 @OneBotHandler("fav.add_image_msg")
 internal object FavAddImageMsg: IActionHandler() {

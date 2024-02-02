@@ -19,10 +19,10 @@ import moe.fuqiuluo.shamrock.tools.slice
 import moe.fuqiuluo.shamrock.tools.toHexString
 import moe.fuqiuluo.shamrock.utils.PlatformUtils
 import moe.fuqiuluo.shamrock.xposed.helper.AppRuntimeFetcher
-import moe.whitechi73.protobuf.oidb.cmd0xfc2.Oidb0xfc2ChannelInfo
-import moe.whitechi73.protobuf.oidb.cmd0xfc2.Oidb0xfc2MsgApplyDownloadReq
-import moe.whitechi73.protobuf.oidb.cmd0xfc2.Oidb0xfc2ReqBody
-import moe.whitechi73.protobuf.oidb.cmd0xfc2.Oidb0xfc2RspBody
+import protobuf.oidb.cmd0xfc2.Oidb0xfc2ChannelInfo
+import protobuf.oidb.cmd0xfc2.Oidb0xfc2MsgApplyDownloadReq
+import protobuf.oidb.cmd0xfc2.Oidb0xfc2ReqBody
+import protobuf.oidb.cmd0xfc2.Oidb0xfc2RspBody
 import mqq.app.MobileQQ
 import tencent.im.cs.cmd0x346.cmd0x346
 import tencent.im.oidb.cmd0x6d6.oidb_0x6d6
@@ -32,7 +32,8 @@ import kotlin.coroutines.resume
 
 internal object RichProtoSvc: BaseSvc() {
     suspend fun getGuildFileDownUrl(peerId: String, channelId: String, fileId: String, bizId: Int): String {
-        val buffer = sendOidbAW("OidbSvcTrpcTcp.0xfc2_0", 4034, 0, ProtoBuf.encodeToByteArray(Oidb0xfc2ReqBody(
+        val buffer = sendOidbAW("OidbSvcTrpcTcp.0xfc2_0", 4034, 0, ProtoBuf.encodeToByteArray(
+            Oidb0xfc2ReqBody(
             msgCmd = 1200,
             msgBusType = 4202,
             msgChannelInfo = Oidb0xfc2ChannelInfo(
@@ -44,7 +45,8 @@ internal object RichProtoSvc: BaseSvc() {
                 fieldId = fileId,
                 supportEncrypt = 0
             )
-        ))) ?: return ""
+        )
+        )) ?: return ""
         val body = oidb_sso.OIDBSSOPkg()
         body.mergeFrom(buffer.slice(4))
         ProtoBuf.decodeFromByteArray<Oidb0xfc2RspBody>(body.bytes_bodybuffer.get().toByteArray()).msgApplyDownloadRsp?.let {

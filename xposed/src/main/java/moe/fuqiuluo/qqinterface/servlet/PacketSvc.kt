@@ -1,6 +1,5 @@
 package moe.fuqiuluo.qqinterface.servlet
 
-import com.tencent.mobileqq.msf.core.MsfCore
 import com.tencent.qqnt.kernel.nativeinterface.Contact
 import com.tencent.qqnt.kernel.nativeinterface.IKernelMsgService
 import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
@@ -16,14 +15,14 @@ import moe.fuqiuluo.shamrock.remote.action.handlers.GetHistoryMsg
 import moe.fuqiuluo.shamrock.remote.service.listener.AioListener
 import moe.fuqiuluo.shamrock.tools.broadcast
 import moe.fuqiuluo.shamrock.utils.DeflateTools
-import moe.whitechi73.protobuf.message.JsonElement
-import moe.whitechi73.protobuf.message.MessageBody
-import moe.whitechi73.protobuf.message.MessageContentHead
-import moe.whitechi73.protobuf.message.MessageElement
-import moe.whitechi73.protobuf.message.MessageElementList
-import moe.whitechi73.protobuf.message.MessageHead
-import moe.whitechi73.protobuf.message.RichMessage
-import moe.whitechi73.protobuf.push.MessagePush
+import protobuf.message.JsonElement
+import protobuf.message.MessageBody
+import protobuf.message.MessageContentHead
+import protobuf.message.MessageElement
+import protobuf.message.MessageElementList
+import protobuf.message.MessageHead
+import protobuf.message.RichMessage
+import protobuf.push.MessagePush
 import mqq.app.MobileQQ
 import kotlin.coroutines.resume
 
@@ -33,9 +32,11 @@ internal object PacketSvc: BaseSvc() {
      */
     suspend fun fakeSelfRecvJsonMsg(msgService: IKernelMsgService, content: String): Long {
         return fakeReceiveSelfMsg(msgService) {
-            listOf(MessageElement(
+            listOf(
+                MessageElement(
                     json = JsonElement((byteArrayOf(1) + DeflateTools.compress(content.toByteArray())))
-            ))
+            )
+            )
         }
     }
 

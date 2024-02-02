@@ -31,8 +31,21 @@ import moe.fuqiuluo.shamrock.tools.asJsonObject
 import moe.fuqiuluo.shamrock.tools.asString
 import moe.fuqiuluo.shamrock.tools.readBuf32Long
 import moe.fuqiuluo.shamrock.xposed.helper.PacketHandler
-import moe.whitechi73.protobuf.message.*
-import moe.whitechi73.protobuf.push.*
+import protobuf.message.MessageContentHead
+import protobuf.message.MessageHead
+import protobuf.message.RichMessage
+import protobuf.push.C2CCommonTipsEvent
+import protobuf.push.C2CRecallEvent
+import protobuf.push.FriendApplyEvent
+import protobuf.push.GroupAdminChangeEvent
+import protobuf.push.GroupApplyEvent
+import protobuf.push.GroupBanEvent
+import protobuf.push.GroupCommonTipsEvent
+import protobuf.push.GroupInviteEvent
+import protobuf.push.GroupInvitedApplyEvent
+import protobuf.push.GroupListChangeEvent
+import protobuf.push.MessagePush
+import protobuf.push.MessagePushClientInfo
 
 internal object PrimitiveListener {
     fun registerListener() {
@@ -579,7 +592,7 @@ internal object PrimitiveListener {
         }
     }
 
-    private suspend fun onInviteGroup(time: Long, msgHead: MessageHead,richMsg: RichMessage) {
+    private suspend fun onInviteGroup(time: Long, msgHead: MessageHead, richMsg: RichMessage) {
         val event = ProtoBuf.decodeFromByteArray<GroupInviteEvent>(richMsg.rawBuffer!!)
         val groupCode = event.groupCode
         val invitorUid = event.inviterUid

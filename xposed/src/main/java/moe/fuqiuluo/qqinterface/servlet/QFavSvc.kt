@@ -2,7 +2,6 @@
 
 package moe.fuqiuluo.qqinterface.servlet
 
-import android.graphics.BitmapFactory
 import com.tencent.mobileqq.app.QQAppInterface
 import com.tencent.mobileqq.transfile.HttpNetReq
 import com.tencent.mobileqq.transfile.INetEngineListener
@@ -24,18 +23,18 @@ import moe.fuqiuluo.shamrock.tools.toHexString
 import moe.fuqiuluo.shamrock.utils.DeflateTools
 import moe.fuqiuluo.shamrock.utils.MD5
 import moe.fuqiuluo.shamrock.xposed.helper.AppRuntimeFetcher
-import moe.whitechi73.protobuf.fav.WeiyunAddRichMediaReq
-import moe.whitechi73.protobuf.fav.WeiyunAuthor
-import moe.whitechi73.protobuf.fav.WeiyunCollectCommInfo
-import moe.whitechi73.protobuf.fav.WeiyunComm
-import moe.whitechi73.protobuf.fav.WeiyunCommonReq
-import moe.whitechi73.protobuf.fav.WeiyunFastUploadResourceReq
-import moe.whitechi73.protobuf.fav.WeiyunGetFavContentReq
-import moe.whitechi73.protobuf.fav.WeiyunGetFavListReq
-import moe.whitechi73.protobuf.fav.WeiyunMsgHead
-import moe.whitechi73.protobuf.fav.WeiyunPicInfo
-import moe.whitechi73.protobuf.fav.WeiyunRichMediaContent
-import moe.whitechi73.protobuf.fav.WeiyunRichMediaSummary
+import protobuf.fav.WeiyunAddRichMediaReq
+import protobuf.fav.WeiyunAuthor
+import protobuf.fav.WeiyunCollectCommInfo
+import protobuf.fav.WeiyunComm
+import protobuf.fav.WeiyunCommonReq
+import protobuf.fav.WeiyunFastUploadResourceReq
+import protobuf.fav.WeiyunGetFavContentReq
+import protobuf.fav.WeiyunGetFavListReq
+import protobuf.fav.WeiyunMsgHead
+import protobuf.fav.WeiyunPicInfo
+import protobuf.fav.WeiyunRichMediaContent
+import protobuf.fav.WeiyunRichMediaSummary
 import mqq.manager.TicketManager
 import oicq.wlogin_sdk.request.Ticket
 import oicq.wlogin_sdk.request.WtTicketPromise
@@ -95,7 +94,8 @@ internal object QFavSvc: BaseSvc() {
             getFavContentReq = WeiyunGetFavContentReq(
                 cidList = arrayListOf(id)
             )
-        ))
+        )
+        )
     }
 
     suspend fun addImageMsg(
@@ -147,9 +147,11 @@ internal object QFavSvc: BaseSvc() {
                     ),
                     contentType = 1u
                 ),
-                richMediaContent = listOf(WeiyunRichMediaContent(
+                richMediaContent = listOf(
+                    WeiyunRichMediaContent(
                     rawData = """<img src="$picUrl" />""".toByteArray(),
-                    picList = listOf(WeiyunPicInfo(
+                    picList = listOf(
+                        WeiyunPicInfo(
                         uri = picUrl,
                         md5 = md5Bytes,
                         sha1 = md5.toByteArray(),
@@ -160,10 +162,13 @@ internal object QFavSvc: BaseSvc() {
                         size = size.toULong(),
                         type = 0u,
                         picId = pid
-                    ))
-                ))
+                    )
+                    )
+                )
+                )
             )
-        ))
+        )
+        )
     }
 
     suspend fun applyUpImageMsg(
@@ -180,7 +185,8 @@ internal object QFavSvc: BaseSvc() {
         val md5 = MD5.genFileMd5(image.absolutePath)
         return sendWeiyunReq(20010, WeiyunCommonReq(
             fastUploadResourceReq = WeiyunFastUploadResourceReq(
-                picInfoList = listOf(WeiyunPicInfo(
+                picInfoList = listOf(
+                    WeiyunPicInfo(
                     md5 = md5,
                     name = md5.toHexString(),
                     width = width.toUInt(),
@@ -195,9 +201,11 @@ internal object QFavSvc: BaseSvc() {
                         groupId = groupId.toULong(),
                         groupName = groupName
                     )
-                )),
+                )
+                ),
             )
-        ))
+        )
+        )
     }
 
     suspend fun addRichMediaMsg(
@@ -229,11 +237,14 @@ internal object QFavSvc: BaseSvc() {
                     brief = content,
                     contentType = 1u
                 ),
-                richMediaContent = listOf(WeiyunRichMediaContent(
+                richMediaContent = listOf(
+                    WeiyunRichMediaContent(
                     rawData = content.textToHtml().toByteArray(),
-                ))
+                )
+                )
             )
-        ))
+        )
+        )
     }
 
     private fun String.textToHtml(): String {
@@ -318,7 +329,9 @@ internal object QFavSvc: BaseSvc() {
             }
             val pSKey = getWeiYunPSKey()
             httpNetReq.mHttpMethod = HttpNetReq.HTTP_POST
-            httpNetReq.mSendData = DeflateTools.gzip(packData(packHead(cmd, pSKey), ProtoBuf.encodeToByteArray(WeiyunComm(req = req))))
+            httpNetReq.mSendData = DeflateTools.gzip(packData(packHead(cmd, pSKey), ProtoBuf.encodeToByteArray(
+                WeiyunComm(req = req)
+            )))
             httpNetReq.mOutStream = outputStream
             httpNetReq.mStartDownOffset = 0L
             httpNetReq.mReqProperties["Shamrock"] = "true"
@@ -338,7 +351,8 @@ internal object QFavSvc: BaseSvc() {
     }
 
     private fun packHead(cmd: Int, pskey: String): ByteArray {
-        return ProtoBuf.encodeToByteArray(WeiyunMsgHead(
+        return ProtoBuf.encodeToByteArray(
+            WeiyunMsgHead(
             uin = app.longAccountUin.toULong(),
             seq = seq++.toUInt(),
             type = 1u,
@@ -350,7 +364,8 @@ internal object QFavSvc: BaseSvc() {
             key = pskey.toByteArray(),
             majorVersion = MAJOR_VERSION.toUInt(),
             minorVersion = MINOR_VERSION.toUInt(),
-        ))
+        )
+        )
     }
 
     private fun packData(head: ByteArray, body: ByteArray): ByteArray {
