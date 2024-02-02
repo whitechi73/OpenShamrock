@@ -91,7 +91,7 @@ fun LabFragment() {
         ActionBox(
             modifier = Modifier.padding(top = 12.dp),
             painter = painterResource(id = R.drawable.round_logo_dev_24),
-            title = "实验功能"
+            title = "基础设置"
         ) { color ->
             Column {
                 Divider(
@@ -139,6 +139,16 @@ fun LabFragment() {
                     isSwitch = ShamrockConfig.enableAutoStart(ctx)
                 ) {
                     ShamrockConfig.setAutoStart(ctx, it)
+                    return@Function true
+                }
+
+                Function(
+                    title = "禁止Shamrock同步设置",
+                    desc = "禁止Shamrock同步设置，防止恢复手动修改后的配置文件。",
+                    descColor = color,
+                    isSwitch = ShamrockConfig.disableAutoSyncSetting(ctx)
+                ) {
+                    ShamrockConfig.setDisableAutoSyncSetting(ctx, it)
                     return@Function true
                 }
 

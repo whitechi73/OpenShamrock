@@ -74,7 +74,7 @@ internal object GlobalEventTransmitter: BaseSvc() {
                     peerId = uin,
                     userId = record.senderUin,
                     message = if(ShamrockConfig.useCQ()) rawMsg.json
-                    else elements.toSegments(record.chatType, record.peerUin.toString()).map {
+                    else elements.toSegments(record.chatType, record.peerUin.toString(), "0").map {
                         it.toJson()
                     }.json,
                     rawMessage = rawMsg,
@@ -129,7 +129,7 @@ internal object GlobalEventTransmitter: BaseSvc() {
                     peerId = botUin,
                     userId = record.senderUin,
                     message = if(ShamrockConfig.useCQ()) rawMsg.json
-                    else elements.toSegments(record.chatType, record.peerUin.toString()).map {
+                    else elements.toSegments(record.chatType, record.peerUin.toString(), "0").map {
                         it.toJson()
                     }.json,
                     rawMessage = rawMsg,
@@ -143,6 +143,53 @@ internal object GlobalEventTransmitter: BaseSvc() {
                         level = "",
                     ),
                     tmpSource = tempSource.id
+                )
+            )
+            return true
+        }
+
+        /**
+         * 推送私聊消息
+         */
+        suspend fun transGuildMessage(
+            record: MsgRecord,
+            elements: ArrayList<MsgElement>,
+            rawMsg: String,
+            msgHash: Int,
+            postType: PostType,
+        ): Boolean {
+            val botUin = app.longAccountUin
+            var nickName = record.sendNickName
+            if (nickName.isNullOrEmpty()) {
+                CardSvc.getProfileCard(record.senderUin.toString()).onSuccess {
+                    nickName = it.strNick ?: record.peerName
+                }
+            }
+            transMessageEvent(record,
+                MessageEvent(
+                    time = record.msgTime,
+                    selfId = botUin,
+                    postType = postType,
+                    messageType = MsgType.Guild,
+                    subType = MsgSubType.Channel,
+                    messageId = msgHash,
+                    targetId = record.peerUin,
+                    peerId = botUin,
+                    userId = record.senderUid.toLong(),
+                    message = if(ShamrockConfig.useCQ()) rawMsg.json
+                    else elements.toSegments(record.chatType, record.guildId, record.channelId).map {
+                        it.toJson()
+                    }.json,
+                    rawMessage = rawMsg,
+                    font = 0,
+                    sender = Sender(
+                        userId = record.senderUid.toLong(),
+                        nickname = nickName,
+                        card = record.sendMemberName,
+                        role = MemberRole.Member,
+                        title = record.sendNickName,
+                        level = record.roleId.toString(),
+                    ),
                 )
             )
             return true

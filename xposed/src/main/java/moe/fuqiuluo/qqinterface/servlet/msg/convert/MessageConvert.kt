@@ -32,12 +32,12 @@ internal suspend fun MsgRecord.toCQCode(): String {
     return MessageConvert.convertMessageRecordToCQCode(this)
 }
 
-internal suspend fun List<MsgElement>.toSegments(chatType: Int, peerId: String): MessageSegmentList {
-    return MessageConvert.convertMessageElementsToMsgSegment(chatType, this, peerId)
+internal suspend fun List<MsgElement>.toSegments(chatType: Int, peerId: String, subPeer: String): MessageSegmentList {
+    return MessageConvert.convertMessageElementsToMsgSegment(chatType, this, peerId, subPeer)
 }
 
-internal suspend fun List<MsgElement>.toCQCode(chatType: Int, peerId: String): String {
-    return MessageConvert.convertMsgElementsToCQCode(this, chatType, peerId)
+internal suspend fun List<MsgElement>.toCQCode(chatType: Int, peerId: String, subPeer: String): String {
+    return MessageConvert.convertMsgElementsToCQCode(this, chatType, peerId, subPeer)
 }
 
 
@@ -64,14 +64,15 @@ internal object MessageConvert {
     suspend fun convertMessageElementsToMsgSegment(
         chatType: Int,
         elements: List<MsgElement>,
-        peerId: String
+        peerId: String,
+        subPeer: String
     ): ArrayList<MessageSegment> {
         val messageData = arrayListOf<MessageSegment>()
         elements.forEach { msg ->
             kotlin.runCatching {
                 val elementId = msg.elementType
                 val converter = convertMap[elementId]
-                converter?.convert(chatType, peerId, msg)
+                converter?.convert(chatType, peerId, subPeer, msg)
                     ?: throw UnsupportedOperationException("不支持的消息element类型：$elementId")
             }.onSuccess {
                 messageData.add(it)
@@ -87,35 +88,45 @@ internal object MessageConvert {
     }
 
     suspend fun convertMessageRecordToMsgSegment(record: MsgRecord, chatType: Int = record.chatType): ArrayList<MessageSegment> {
-        return convertMessageElementsToMsgSegment(chatType, record.elements, record.peerUin.toString())
+        val peerId = when(chatType) {
+            MsgConstant.KCHATTYPEGUILD -> record.guildId
+            else -> record.peerUin.toString()
+        }
+        return convertMessageElementsToMsgSegment(chatType, record.elements, peerId, record.channelId ?: peerId)
     }
 
     suspend fun convertMsgElementsToCQCode(
         elements: List<MsgElement>,
         chatType: Int,
-        peerId: String
+        peerId: String,
+        subPeer: String
     ): String {
         if(elements.isEmpty()) {
             return ""
         }
-        val msgList = convertMessageElementsToMsgSegment(chatType, elements, peerId).map {
+        val msgList = convertMessageElementsToMsgSegment(chatType, elements, peerId, subPeer).map {
             it.toJson()
         }
         return MessageHelper.encodeCQCode(msgList)
     }
 
     suspend fun convertMessageRecordToCQCode(record: MsgRecord, chatType: Int = record.chatType): String {
+        val peerId = when(chatType) {
+            MsgConstant.KCHATTYPEGUILD -> record.guildId
+            else -> record.peerUin.toString()
+        }
         return MessageHelper.encodeCQCode(
             convertMessageElementsToMsgSegment(
                 chatType,
                 record.elements,
-                record.peerUin.toString()
+                peerId,
+                record.channelId ?: peerId
             ).map { it.toJson() }
         )
     }
 }
 
 internal fun interface IMessageConvert {
-    suspend fun convert(chatType: Int, peerId: String, element: MsgElement): MessageSegment
+    suspend fun convert(chatType: Int, peerId: String, subPeer: String, element: MsgElement): MessageSegment
 }
 

@@ -38,8 +38,6 @@ internal object AioListener : IKernelMsgListener {
 
     private suspend fun handleMsg(record: MsgRecord) {
         try {
-            if (record.chatType == MsgConstant.KCHATTYPEGUILD) return // TODO: 频道消息暂不处理
-
             messageLessListenerMap.firstNotNullOfOrNull {
                 if (it.key == record.msgSeq) it else null
             }?.let {
@@ -60,7 +58,12 @@ internal object AioListener : IKernelMsgListener {
                 time = record.msgTime
             )
 
-            val rawMsg = record.elements.toCQCode(record.chatType, record.peerUin.toString())
+            val peerId = when(record.chatType) {
+                MsgConstant.KCHATTYPEGUILD -> record.guildId
+                else -> record.peerUin.toString()
+            }
+
+            val rawMsg = record.elements.toCQCode(record.chatType, peerId, record.channelId ?: peerId)
             if (rawMsg.isEmpty()) return
 
             if (ShamrockConfig.aliveReply() && rawMsg == "ping") {
@@ -119,6 +122,16 @@ internal object AioListener : IKernelMsgListener {
                         LogCenter.log("私聊临时消息推送失败 -> MessageTransmitter", Level.WARN)
                     }
                 }
+
+                MsgConstant.KCHATTYPEGUILD -> {
+                    LogCenter.log("频道消息(guildId = ${record.guildId}, id = [$msgHash | ${record.msgId}], msg = $rawMsg)")
+                    if(!GlobalEventTransmitter.MessageTransmitter
+                        .transGuildMessage(record, record.elements, rawMsg, msgHash, postType = postType)
+                        ) {
+                        LogCenter.log("频道消息推送失败 -> MessageTransmitter", Level.WARN)
+                    }
+                }
+
                 else -> LogCenter.log("不支持PUSH事件: ${record.chatType}")
             }
         } catch (e: Throwable) {
@@ -190,7 +203,12 @@ internal object AioListener : IKernelMsgListener {
                     || record.peerUin == TicketSvc.getLongUin()
                 ) return@launch
 
-                val rawMsg = record.elements.toCQCode(record.chatType, record.peerUin.toString())
+                val peerId = when(record.chatType) {
+                    MsgConstant.KCHATTYPEGUILD -> record.guildId
+                    else -> record.peerUin.toString()
+                }
+
+                val rawMsg = record.elements.toCQCode(record.chatType, peerId, record.channelId ?: peerId)
                 if (rawMsg.isEmpty()) return@launch
                 LogCenter.log("自发消息(target = ${record.peerUin}, id = $msgHash, msg = $rawMsg)")
 

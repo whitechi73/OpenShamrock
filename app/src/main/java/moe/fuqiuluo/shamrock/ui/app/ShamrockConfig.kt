@@ -249,6 +249,11 @@ object ShamrockConfig {
         return preferences.getBoolean("enable_auto_start", false)
     }
 
+    fun disableAutoSyncSetting(ctx: Context): Boolean {
+        val preferences = ctx.getSharedPreferences("config", 0)
+        return preferences.getBoolean("disable_auto_sync_setting", false)
+    }
+
     fun enableAliveReply(ctx: Context): Boolean {
         val preferences = ctx.getSharedPreferences("config", 0)
         return preferences.getBoolean("alive_reply", false)
@@ -262,6 +267,11 @@ object ShamrockConfig {
     fun setAutoStart(ctx: Context, v: Boolean) {
         val preferences = ctx.getSharedPreferences("config", 0)
         preferences.edit().putBoolean("enable_auto_start", v).apply()
+    }
+
+    fun setDisableAutoSyncSetting(ctx: Context, v: Boolean) {
+        val preferences = ctx.getSharedPreferences("config", 0)
+        preferences.edit().putBoolean("disable_auto_sync_setting", v).apply()
     }
 
     fun setAliveReply(ctx: Context, v: Boolean) {
@@ -322,6 +332,7 @@ object ShamrockConfig {
             "shell" to preferences.getBoolean("shell", false),
             "alive_reply" to preferences.getBoolean("alive_reply", false),
             "enable_sync_msg_as_sent_msg" to preferences.getBoolean("enable_sync_msg_as_sent_msg", false),
+            "disable_auto_sync_setting" to preferences.getBoolean("disable_auto_sync_setting", false),
         )
     }
 

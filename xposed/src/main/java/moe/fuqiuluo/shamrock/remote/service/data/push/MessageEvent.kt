@@ -21,12 +21,15 @@ internal enum class MsgSubType {
     @SerialName("group") GroupLess,
     @SerialName("friend") Friend,
     @SerialName("other") Other,
+
+    @SerialName("channel") Channel
 }
 
 @Serializable
 internal enum class MsgType {
     @SerialName("group") Group,
-    @SerialName("private") Private
+    @SerialName("private") Private,
+    @SerialName("guild") Guild
 }
 
 @Serializable

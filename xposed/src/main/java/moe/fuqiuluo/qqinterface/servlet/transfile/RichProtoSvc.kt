@@ -1,3 +1,4 @@
+@file:OptIn(ExperimentalSerializationApi::class)
 package moe.fuqiuluo.qqinterface.servlet.transfile
 
 import com.tencent.mobileqq.pb.ByteStringMicro
@@ -6,6 +7,10 @@ import com.tencent.mobileqq.transfile.api.IProtoReqManager
 import com.tencent.mobileqq.transfile.protohandler.RichProto
 import com.tencent.mobileqq.transfile.protohandler.RichProtoProc
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.decodeFromByteArray
+import kotlinx.serialization.encodeToByteArray
+import kotlinx.serialization.protobuf.ProtoBuf
 import moe.fuqiuluo.qqinterface.servlet.BaseSvc
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
@@ -14,6 +19,10 @@ import moe.fuqiuluo.shamrock.tools.slice
 import moe.fuqiuluo.shamrock.tools.toHexString
 import moe.fuqiuluo.shamrock.utils.PlatformUtils
 import moe.fuqiuluo.shamrock.xposed.helper.AppRuntimeFetcher
+import moe.whitechi73.protobuf.oidb.cmd0xfc2.Oidb0xfc2ChannelInfo
+import moe.whitechi73.protobuf.oidb.cmd0xfc2.Oidb0xfc2MsgApplyDownloadReq
+import moe.whitechi73.protobuf.oidb.cmd0xfc2.Oidb0xfc2ReqBody
+import moe.whitechi73.protobuf.oidb.cmd0xfc2.Oidb0xfc2RspBody
 import mqq.app.MobileQQ
 import tencent.im.cs.cmd0x346.cmd0x346
 import tencent.im.oidb.cmd0x6d6.oidb_0x6d6
@@ -22,6 +31,30 @@ import tencent.im.oidb.oidb_sso
 import kotlin.coroutines.resume
 
 internal object RichProtoSvc: BaseSvc() {
+    suspend fun getGuildFileDownUrl(peerId: String, channelId: String, fileId: String, bizId: Int): String {
+        val buffer = sendOidbAW("OidbSvcTrpcTcp.0xfc2_0", 4034, 0, ProtoBuf.encodeToByteArray(Oidb0xfc2ReqBody(
+            msgCmd = 1200,
+            msgBusType = 4202,
+            msgChannelInfo = Oidb0xfc2ChannelInfo(
+                guildId = peerId.toULong(),
+                channelId = channelId.toULong()
+            ),
+            msgTerminalType = 2,
+            msgApplyDownloadReq = Oidb0xfc2MsgApplyDownloadReq(
+                fieldId = fileId,
+                supportEncrypt = 0
+            )
+        ))) ?: return ""
+        val body = oidb_sso.OIDBSSOPkg()
+        body.mergeFrom(buffer.slice(4))
+        ProtoBuf.decodeFromByteArray<Oidb0xfc2RspBody>(body.bytes_bodybuffer.get().toByteArray()).msgApplyDownloadRsp?.let {
+            it.msgDownloadInfo?.let {
+                return "https://${it.downloadDomain}${it.downloadUrl}&fname=$fileId&isthumb=0"
+            }
+        }
+        return ""
+    }
+
     suspend fun getGroupFileDownUrl(
         peerId: Long,
         fileId: String,
@@ -34,27 +67,23 @@ internal object RichProtoSvc: BaseSvc() {
                 uint32_bus_id.set(bizId)
                 str_file_id.set(fileId)
             })
-        }.toByteArray())
-        if (buffer == null) {
+        }.toByteArray()) ?: return ""
+        val body = oidb_sso.OIDBSSOPkg()
+        body.mergeFrom(buffer.slice(4))
+        val result = oidb_0x6d6.RspBody().mergeFrom(body.bytes_bodybuffer.get().toByteArray())
+        if (body.uint32_result.get() != 0
+            || result.download_file_rsp.int32_ret_code.get() != 0) {
             return ""
-        } else {
-            val body = oidb_sso.OIDBSSOPkg()
-            body.mergeFrom(buffer.slice(4))
-            val result = oidb_0x6d6.RspBody().mergeFrom(body.bytes_bodybuffer.get().toByteArray())
-            if (body.uint32_result.get() != 0
-                || result.download_file_rsp.int32_ret_code.get() != 0) {
-                return ""
-            }
-
-            val domain = if (!result.download_file_rsp.str_download_dns.has())
-                    ("https://" + result.download_file_rsp.str_download_ip.get())
-            else ("http://" + result.download_file_rsp.str_download_dns.get())
-            val downloadUrl = result.download_file_rsp.bytes_download_url.get().toByteArray().toHexString()
-            val appId = MobileQQ.getMobileQQ().appId
-            val version = PlatformUtils.getQQVersion(MobileQQ.getContext())
-
-            return "$domain/ftn_handler/$downloadUrl/?fname=$fileId&client_proto=qq&client_appid=$appId&client_type=android&client_ver=$version&client_down_type=auto&client_aio_type=unk"
         }
+
+        val domain = if (!result.download_file_rsp.str_download_dns.has())
+                ("https://" + result.download_file_rsp.str_download_ip.get())
+        else ("http://" + result.download_file_rsp.str_download_dns.get())
+        val downloadUrl = result.download_file_rsp.bytes_download_url.get().toByteArray().toHexString()
+        val appId = MobileQQ.getMobileQQ().appId
+        val version = PlatformUtils.getQQVersion(MobileQQ.getContext())
+
+        return "$domain/ftn_handler/$downloadUrl/?fname=$fileId&client_proto=qq&client_appid=$appId&client_type=android&client_ver=$version&client_down_type=auto&client_aio_type=unk"
     }
 
     suspend fun getC2CFileDownUrl(
@@ -83,7 +112,7 @@ internal object RichProtoSvc: BaseSvc() {
         }.toByteArray())
 
         if (buffer == null) {
-            if (retryCnt < 3) {
+            if (retryCnt < 5) {
                 return getC2CFileDownUrl(fileId, subId, retryCnt + 1)
             }
             return ""
@@ -120,6 +149,10 @@ internal object RichProtoSvc: BaseSvc() {
         md5: String
     ): String {
         return "https://c2cpicdw.qpic.cn/offpic_new/0/123-0-${md5.uppercase()}/0?term=2"
+    }
+
+    fun getGuildPicDownUrl(md5: String): String {
+        return "https://gchat.qpic.cn/qmeetpic/0/0-0-${md5.uppercase()}/0?term=2"
     }
 
     suspend fun getC2CVideoDownUrl(
@@ -287,4 +320,11 @@ internal object RichProtoSvc: BaseSvc() {
         }
     }
 
+    suspend fun getGuildPttDownUrl(
+        peerId: String,
+        md5Hex: String,
+        fileUUId: String
+    ): String {
+        return "unsupported"
+    }
 }

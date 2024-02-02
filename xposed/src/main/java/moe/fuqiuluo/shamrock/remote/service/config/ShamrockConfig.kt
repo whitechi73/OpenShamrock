@@ -39,19 +39,46 @@ internal object ShamrockConfig {
     fun updateConfig(intent: Intent) {
         val mmkv = MMKVFetcher.mmkvWithId("shamrock_config")
         mmkv.apply {
-            putBoolean(  "tablet",     intent.getBooleanExtra("tablet", false))                 // 强制平板模式
-            putInt(      "port",       intent.getIntExtra("port", 5700))                        // 主动HTTP端口
-            putBoolean(  "ws",         intent.getBooleanExtra("ws", false))                     // 主动WS开关
-            putBoolean(  "http",       intent.getBooleanExtra("http", false))                   // HTTP回调开关
-            putString(   "http_addr",  intent.getStringExtra("http_addr"))                                // WebHook回调地址
-            putBoolean(  "ws_client",  intent.getBooleanExtra("ws_client", false))              // 被动WS开关
-            putBoolean(  "use_cqcode", intent.getBooleanExtra("use_cqcode", false))             // 使用CQ码
-            putBoolean(  "inject_packet",    intent.getBooleanExtra("inject_packet", false))    // 拦截无用包
-            putBoolean(  "debug",      intent.getBooleanExtra("debug", false))                  // 调试模式
-
+            if (!intent.getBooleanExtra("disable_auto_sync_setting", false)) {
+                putBoolean(
+                    "tablet",
+                    intent.getBooleanExtra("tablet", false)
+                )                 // 强制平板模式
+                putInt("port", intent.getIntExtra("port", 5700))                        // 主动HTTP端口
+                putBoolean("ws", intent.getBooleanExtra("ws", false))                     // 主动WS开关
+                putBoolean(
+                    "http",
+                    intent.getBooleanExtra("http", false)
+                )                   // HTTP回调开关
+                putString(
+                    "http_addr",
+                    intent.getStringExtra("http_addr")
+                )                                // WebHook回调地址
+                putBoolean(
+                    "ws_client",
+                    intent.getBooleanExtra("ws_client", false)
+                )              // 被动WS开关
+                putBoolean(
+                    "use_cqcode",
+                    intent.getBooleanExtra("use_cqcode", false)
+                )             // 使用CQ码
+                putBoolean(
+                    "inject_packet",
+                    intent.getBooleanExtra("inject_packet", false)
+                )    // 拦截无用包
+                putBoolean("debug", intent.getBooleanExtra("debug", false))                  // 调试模式
+                putString(  "key_store",   intent.getStringExtra("key_store"))                                // 证书路径
+                putString(  "ssl_pwd",     intent.getStringExtra("ssl_pwd"))                                  // 证书密码
+                putString(  "ssl_private_pwd",   intent.getStringExtra("ssl_private_pwd"))                    // 证书私钥密码
+                putString(  "ssl_alias",   intent.getStringExtra("ssl_alias"))                                // 证书别名
+                putInt(     "ssl_port",    intent.getIntExtra("ssl_port", 5701))                    // 主动HTTP端口
+                putBoolean("alive_reply",   intent.getBooleanExtra("alive_reply", false))             // 自回复测试
+                putBoolean("enable_self_msg",    intent.getBooleanExtra("enable_self_msg", false))  // 推送自己发的消息
+                putBoolean("shell",        intent.getBooleanExtra("shell", false))                  // 开启Shell接口
+                putBoolean("enable_sync_msg_as_sent_msg", intent.getBooleanExtra("enable_sync_msg_as_sent_msg", false)) // 推送同步消息
+            }
             Config.defaultToken = intent.getStringExtra("token")
             Config.antiTrace = intent.getBooleanExtra("anti_qq_trace", true)
-
             val wsPort = intent.getIntExtra("ws_port", 5800)
             Config.activeWebSocket = if (Config.activeWebSocket == null) ConnectionConfig(
                 address = "0.0.0.0",
@@ -59,28 +86,17 @@ internal object ShamrockConfig {
             ) else Config.activeWebSocket?.also {
                 it.port = wsPort
             }
-
             Config.passiveWebSocket = intent.getStringExtra("ws_addr")?.split(",", "|", "，")?.filter { address ->
                 address.isNotBlank() && (address.startsWith("ws://") || address.startsWith("wss://"))
             }?.map {
                 ConnectionConfig(address = it)
             }?.toMutableList()
 
-            putString(  "key_store",   intent.getStringExtra("key_store"))                                // 证书路径
-            putString(  "ssl_pwd",     intent.getStringExtra("ssl_pwd"))                                  // 证书密码
-            putString(  "ssl_private_pwd",   intent.getStringExtra("ssl_private_pwd"))                    // 证书私钥密码
-            putString(  "ssl_alias",   intent.getStringExtra("ssl_alias"))                                // 证书别名
-            putInt(     "ssl_port",    intent.getIntExtra("ssl_port", 5701))                    // 主动HTTP端口
-
-            putBoolean("alive_reply",   intent.getBooleanExtra("alive_reply", false))             // 自回复测试
-
-            putBoolean("enable_self_msg",    intent.getBooleanExtra("enable_self_msg", false))  // 推送自己发的消息
-            putBoolean("shell",        intent.getBooleanExtra("shell", false))                  // 开启Shell接口
-            putBoolean("enable_sync_msg_as_sent_msg", intent.getBooleanExtra("enable_sync_msg_as_sent_msg", false)) // 推送同步消息
-
             putBoolean("isInit", true)
         }
-        updateConfig()
+        if (!intent.getBooleanExtra("disable_auto_sync_setting", false)) {
+            updateConfig()
+        }
     }
 
     private val mmkv: MMKV

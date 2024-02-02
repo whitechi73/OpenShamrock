@@ -19,7 +19,12 @@ internal sealed class MessageElemConverter: IMessageConvert {
      * 文本 / 艾特 消息转换消息段
      */
     data object TextConverter: MessageElemConverter() {
-        override suspend fun convert(chatType: Int, peerId: String, element: MsgElement): MessageSegment {
+        override suspend fun convert(
+            chatType: Int,
+            peerId: String,
+            subPeer: String,
+            element: MsgElement
+        ): MessageSegment {
             val text = element.textElement
             return if (text.atType != MsgConstant.ATTYPEUNKNOWN) {
                 MessageSegment(
@@ -43,7 +48,12 @@ internal sealed class MessageElemConverter: IMessageConvert {
      * 小表情 / 戳一戳 消息转换消息段
      */
     data object FaceConverter: MessageElemConverter() {
-        override suspend fun convert(chatType: Int, peerId: String, element: MsgElement): MessageSegment {
+        override suspend fun convert(
+            chatType: Int,
+            peerId: String,
+            subPeer: String,
+            element: MsgElement
+        ): MessageSegment {
             val face = element.faceElement
 
             if (face.faceType == 5) {
@@ -112,6 +122,7 @@ internal sealed class MessageElemConverter: IMessageConvert {
         override suspend fun convert(
             chatType: Int,
             peerId: String,
+            subPeer: String,
             element: MsgElement
         ): MessageSegment {
             val image = element.picElement
@@ -131,6 +142,7 @@ internal sealed class MessageElemConverter: IMessageConvert {
                     "url" to when(chatType) {
                         MsgConstant.KCHATTYPEGROUP -> RichProtoSvc.getGroupPicDownUrl(md5)
                         MsgConstant.KCHATTYPEC2C -> RichProtoSvc.getC2CPicDownUrl(md5)
+                        MsgConstant.KCHATTYPEGUILD -> RichProtoSvc.getGuildPicDownUrl(md5)
                         else -> unknownChatType(chatType)
                     },
                     "subType" to image.picSubType,
@@ -147,6 +159,7 @@ internal sealed class MessageElemConverter: IMessageConvert {
         override suspend fun convert(
             chatType: Int,
             peerId: String,
+            subPeer: String,
             element: MsgElement
         ): MessageSegment {
             val record = element.pttElement
@@ -162,6 +175,7 @@ internal sealed class MessageElemConverter: IMessageConvert {
                     "url" to when(chatType) {
                         MsgConstant.KCHATTYPEGROUP -> RichProtoSvc.getGroupPttDownUrl("0", record.md5HexStr, record.fileUuid)
                         MsgConstant.KCHATTYPEC2C -> RichProtoSvc.getC2CPttDownUrl("0", record.fileUuid)
+                        MsgConstant.KCHATTYPEGUILD -> RichProtoSvc.getGroupPttDownUrl("0", record.md5HexStr, record.fileUuid)
                         else -> unknownChatType(chatType)
                     }
                 ).also {
@@ -183,6 +197,7 @@ internal sealed class MessageElemConverter: IMessageConvert {
         override suspend fun convert(
             chatType: Int,
             peerId: String,
+            subPeer: String,
             element: MsgElement
         ): MessageSegment {
             val video = element.videoElement
@@ -195,6 +210,7 @@ internal sealed class MessageElemConverter: IMessageConvert {
                     "url" to when(chatType) {
                         MsgConstant.KCHATTYPEGROUP -> RichProtoSvc.getGroupVideoDownUrl("0", md5, video.fileUuid)
                         MsgConstant.KCHATTYPEC2C -> RichProtoSvc.getC2CVideoDownUrl("0", md5, video.fileUuid)
+                        MsgConstant.KCHATTYPEGUILD -> RichProtoSvc.getGroupVideoDownUrl(peerId, md5, video.fileUuid)
                         else -> unknownChatType(chatType)
                     }
                 ).also {
@@ -212,6 +228,7 @@ internal sealed class MessageElemConverter: IMessageConvert {
         override suspend fun convert(
             chatType: Int,
             peerId: String,
+            subPeer: String,
             element: MsgElement
         ): MessageSegment {
             val face = element.marketFaceElement
@@ -235,6 +252,7 @@ internal sealed class MessageElemConverter: IMessageConvert {
         override suspend fun convert(
             chatType: Int,
             peerId: String,
+            subPeer: String,
             element: MsgElement
         ): MessageSegment {
             val data = element.arkElement.bytesData.asJsonObject
@@ -297,6 +315,7 @@ internal sealed class MessageElemConverter: IMessageConvert {
         override suspend fun convert(
             chatType: Int,
             peerId: String,
+            subPeer: String,
             element: MsgElement
         ): MessageSegment {
             val reply = element.replyElement
@@ -329,6 +348,7 @@ internal sealed class MessageElemConverter: IMessageConvert {
         override suspend fun convert(
             chatType: Int,
             peerId: String,
+            subPeer: String,
             element: MsgElement
         ): MessageSegment {
             val tip = element.grayTipElement
@@ -364,6 +384,7 @@ internal sealed class MessageElemConverter: IMessageConvert {
         override suspend fun convert(
             chatType: Int,
             peerId: String,
+            subPeer: String,
             element: MsgElement
         ): MessageSegment {
             val fileMsg = element.fileElement
@@ -373,8 +394,11 @@ internal sealed class MessageElemConverter: IMessageConvert {
             val fileId = fileMsg.fileUuid
             val bizId = fileMsg.fileBizId  ?: 0
             val fileSubId = fileMsg.fileSubId ?: ""
-            val url = if (chatType == MsgConstant.KCHATTYPEC2C) RichProtoSvc.getC2CFileDownUrl(fileId, fileSubId)
-            else RichProtoSvc.getGroupFileDownUrl(peerId.toLong(), fileId, bizId)
+            val url = when (chatType) {
+                MsgConstant.KCHATTYPEC2C -> RichProtoSvc.getC2CFileDownUrl(fileId, fileSubId)
+                MsgConstant.KCHATTYPEGUILD -> RichProtoSvc.getGuildFileDownUrl(peerId, subPeer, fileId, bizId)
+                else -> RichProtoSvc.getGroupFileDownUrl(peerId.toLong(), fileId, bizId)
+            }
 
             return MessageSegment(
                 type = "file",
@@ -398,6 +422,7 @@ internal sealed class MessageElemConverter: IMessageConvert {
         override suspend fun convert(
             chatType: Int,
             peerId: String,
+            subPeer: String,
             element: MsgElement
         ): MessageSegment {
             val multiMsg = element.multiForwardMsgElement
@@ -414,6 +439,7 @@ internal sealed class MessageElemConverter: IMessageConvert {
         override suspend fun convert(
             chatType: Int,
             peerId: String,
+            subPeer: String,
             element: MsgElement
         ): MessageSegment {
             val longMsg = element.structLongMsgElement
@@ -430,6 +456,7 @@ internal sealed class MessageElemConverter: IMessageConvert {
         override suspend fun convert(
             chatType: Int,
             peerId: String,
+            subPeer: String,
             element: MsgElement
         ): MessageSegment {
             val markdown = element.markdownElement
@@ -446,6 +473,7 @@ internal sealed class MessageElemConverter: IMessageConvert {
         override suspend fun convert(
             chatType: Int,
             peerId: String,
+            subPeer: String,
             element: MsgElement
         ): MessageSegment {
             val bubbleElement = element.faceBubbleElement

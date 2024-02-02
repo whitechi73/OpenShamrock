@@ -308,6 +308,7 @@ internal object MessageHelper {
             MsgConstant.KCHATTYPEGROUP -> "grp$msgId"
             MsgConstant.KCHATTYPEC2C -> "c2c$msgId"
             MsgConstant.KCHATTYPETEMPC2CFROMGROUP -> "tmpgrp$msgId"
+            MsgConstant.KCHATTYPEGUILD -> "guild$msgId"
             else -> error("不支持的消息来源类型 | generateMsgIdHash: $chatType")
         }
         return abs(key.hashCode())
