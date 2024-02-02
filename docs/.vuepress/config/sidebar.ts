@@ -12,6 +12,7 @@ const children = {
     'resources',
     'dispose',
     'group',
+    "guild",
     'file',
     'shamrock',
     'other'
