@@ -90,7 +90,7 @@ internal object MessageHelper {
 
         // ActionMsg No Care
         if (msg.isEmpty()) {
-            return Result.success(uniseq.copy(msgTime = System.currentTimeMillis(), msgHashId = 0))
+            return Result.success(uniseq.copy(msgTime = System.currentTimeMillis()))
         }
 
         val totalSize = msg.filter {
