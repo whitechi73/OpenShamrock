@@ -138,7 +138,6 @@ char * __cdecl my_strstr(const char *lhs, const char *rhs) {
 }
 
 int fake_memcmp(const void* __lhs, const void* __rhs, size_t __n) {
-    int fake_memcmp(const void* __lhs, const void* __rhs, size_t __n) {
     if (__lhs == nullptr || __rhs == nullptr) {
         if (__n != 0) {
             LOGI("[Shamrock] undefined behaviour in fake_memcmp");
