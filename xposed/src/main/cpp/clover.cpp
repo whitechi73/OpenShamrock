@@ -138,6 +138,13 @@ char * __cdecl my_strstr(const char *lhs, const char *rhs) {
 }
 
 int fake_memcmp(const void* __lhs, const void* __rhs, size_t __n) {
+    int fake_memcmp(const void* __lhs, const void* __rhs, size_t __n) {
+    if (__lhs == nullptr || __rhs == nullptr) {
+        if (__n != 0) {
+            LOGI("[Shamrock] undefined behaviour in fake_memcmp");
+        }
+        return 0;
+    }
     if (my_strstr((const char*) __rhs, "shamrock") && my_strstr((const char*) __lhs, "shamrock")) {
         if (backup_memcmp(__lhs, __rhs, __n) == 0) {
             // 底层广播判断
