@@ -44,7 +44,7 @@ internal abstract class BaseSvc {
 
         suspend fun sendOidbAW(cmd: String, cmdId: Int, serviceId: Int, data: ByteArray, trpc: Boolean = false, timeout: Long = 5000L): ByteArray? {
             val seq = MsfCore.getNextSeq()
-            return withTimeoutOrNull(timeout) {
+            val buffer = withTimeoutOrNull(timeout) {
                 suspendCancellableCoroutine { continuation ->
                     GlobalScope.launch(Dispatchers.Default) {
                         DynamicReceiver.register(IPCRequest(cmd, seq) {
@@ -59,6 +59,16 @@ internal abstract class BaseSvc {
                 if (it == null)
                     DynamicReceiver.unregister(seq)
             }?.copyOf()
+            try {
+                if (buffer != null && buffer.size >= 5 && buffer[4] == 120.toByte()) {
+                    val builder = BytePacketBuilder()
+                    val deBuffer = DeflateTools.uncompress(buffer.slice(4))
+                    builder.writeInt(deBuffer.size)
+                    builder.writeFully(deBuffer)
+                    return builder.build().readBytes()
+                }
+            } catch (_: Exception) { }
+            return buffer
         }
 
         suspend fun sendBufferAW(cmd: String, isPb: Boolean, data: ByteArray, timeout: Long = 5000L): ByteArray? {
@@ -141,7 +151,7 @@ internal abstract class BaseSvc {
 
     protected suspend fun sendAW(toServiceMsg: ToServiceMsg, timeout: Long = 5000L): ByteArray? {
         val seq = MsfCore.getNextSeq()
-        return withTimeoutOrNull<ByteArray?>(timeout) {
+        val buffer = withTimeoutOrNull<ByteArray?>(timeout) {
             suspendCancellableCoroutine { continuation ->
                 GlobalScope.launch(Dispatchers.Default) {
                     DynamicReceiver.register(IPCRequest(toServiceMsg.serviceCmd, seq) {
@@ -155,6 +165,16 @@ internal abstract class BaseSvc {
         }.also {
             if (it == null) DynamicReceiver.unregister(seq)
         }?.copyOf()
+        try {
+            if (buffer != null && buffer.size >= 5 && buffer[4] == 120.toByte()) {
+                val builder = BytePacketBuilder()
+                val deBuffer = DeflateTools.uncompress(buffer.slice(4))
+                builder.writeInt(deBuffer.size)
+                builder.writeFully(deBuffer)
+                return builder.build().readBytes()
+            }
+        } catch (_: Exception) { }
+        return buffer
     }
 
     protected fun sendExtra(cmd: String, builder: (Bundle) -> Unit) {

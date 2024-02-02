@@ -9,10 +9,12 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import moe.fuqiuluo.shamrock.helper.MessageHelper
 import moe.fuqiuluo.shamrock.remote.action.handlers.GetGProChannelList
+import moe.fuqiuluo.shamrock.remote.action.handlers.GetGuildFeeds
 import moe.fuqiuluo.shamrock.remote.action.handlers.GetGuildList
 import moe.fuqiuluo.shamrock.remote.action.handlers.GetGuildMemberList
 import moe.fuqiuluo.shamrock.remote.action.handlers.GetGuildMemberProfile
 import moe.fuqiuluo.shamrock.remote.action.handlers.GetGuildMetaByGuest
+import moe.fuqiuluo.shamrock.remote.action.handlers.GetGuildRoles
 import moe.fuqiuluo.shamrock.remote.action.handlers.GetGuildServiceProfile
 import moe.fuqiuluo.shamrock.remote.action.handlers.SendGuildMessage
 import moe.fuqiuluo.shamrock.remote.action.handlers.SendMessage
@@ -108,5 +110,17 @@ fun Routing.guildAction() {
                 )
             }, ContentType.Application.Json)
         }
+    }
+
+    getOrPost("/get_guild_feeds") {
+        val guildId = fetchOrThrow("guild_id").toULong()
+        val channelId = fetchOrNull("channel_id")?.toULong() ?: 0uL
+        val from = fetchOrNull("from")?.toInt() ?: 0
+        call.respondText(GetGuildFeeds(guildId, channelId, from), ContentType.Application.Json)
+    }
+
+    getOrPost("/get_guild_roles") {
+        val guildId = fetchOrThrow("guild_id").toULong()
+        call.respondText(GetGuildRoles(guildId), ContentType.Application.Json)
     }
 }

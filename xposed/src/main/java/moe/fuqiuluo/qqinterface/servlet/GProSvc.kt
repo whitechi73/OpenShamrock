@@ -284,4 +284,16 @@ internal object GProSvc: BaseSvc() {
 
         return result
     }
+
+    suspend fun getGuildRoles(guildId: ULong): Result<List<GProGuildRole>> {
+        val kernelGProService = NTServiceFetcher.kernelService.wrapperSession.guildService
+        val roles: List<GProGuildRole> = withTimeoutOrNull(5000) {
+            suspendCancellableCoroutine {
+                kernelGProService.fetchRoleListWithPermission(guildId.toLong(), 1) { code, _, roles, _, _, _ ->
+                    if (code != 0) it.resume(null) else it.resume(roles)
+                }
+            }
+        } ?: return Result.failure(Exception("unable to fetch guild roles"))
+        return Result.success(roles)
+    }
 }
