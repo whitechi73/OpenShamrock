@@ -41,7 +41,11 @@ public interface IKernelGuildService {
 
     void refreshGuildInfoOnly(long j2, boolean z, int i2);
 
-    void fetchUserInfo(long j2, long j3, ArrayList<Long> tinyIdList, int i2, IGProGetUserInfoCallback iGProGetUserInfoCallback);
+    void fetchMemberRoles(long guildId, long channelId, long tinyId, int seq, IGProFetchMemberRolesCallback cb);
+
+    void refreshGuildUserProfileInfo(long guildId, long tinyId, int seq);
+
+    void fetchUserInfo(long guildId, long channelId, ArrayList<Long> tinyIdList, int seq, IGProGetUserInfoCallback cb);
 
     GProSimpleProfile getSimpleProfile(long guildId, long tinyId, int seq);
 

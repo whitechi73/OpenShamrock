@@ -3,6 +3,7 @@
 package moe.fuqiuluo.qqinterface.servlet
 
 import com.tencent.mobileqq.qqguildsdk.api.IGPSService
+import com.tencent.qqnt.kernel.nativeinterface.GProGuildRole
 import com.tencent.qqnt.kernel.nativeinterface.GProRoleMemberList
 import com.tencent.qqnt.kernel.nativeinterface.IGProFetchMemberListWithRoleCallback
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -108,6 +109,7 @@ internal object GProSvc: BaseSvc() {
         result: ArrayList<GProRoleMemberList> = arrayListOf()
     ): Result<Pair<GetGuildMemberListNextToken, ArrayList<GProRoleMemberList>>> {
         val kernelGProService = NTServiceFetcher.kernelService.wrapperSession.guildService
+
         val fetchGuildMemberListResult: Pair<GetGuildMemberListNextToken, ArrayList<GProRoleMemberList>> = (withTimeoutOrNull(5000) {
             suspendCancellableCoroutine {
                 kernelGProService.fetchMemberListWithRole(guildId.toLong(), 0, startIndex, roleIndex, count, 0) { code, reason, finish, nextIndex, nextRoleIdIndex, _, seq, roleList ->
@@ -201,6 +203,21 @@ internal object GProSvc: BaseSvc() {
                 allowSearch = guildInfo.allowSearch == 1
             ))
         }
+    }
+
+    suspend fun fetchGuildMemberRoles(guildId: ULong, tinyId: ULong, refresh: Boolean = false): Result<ArrayList<GProGuildRole>> {
+        val kernelGProService = NTServiceFetcher.kernelService.wrapperSession.guildService
+        if (refresh) {
+            kernelGProService.refreshGuildUserProfileInfo(guildId.toLong(), tinyId.toLong(), 1)
+        }
+        val result: ArrayList<GProGuildRole> = withTimeoutOrNull(5000) {
+            suspendCancellableCoroutine {
+                kernelGProService.fetchMemberRoles(guildId.toLong(), 0, tinyId.toLong(), 2) { code, reason, roles ->
+                    it.resume(roles)
+                }
+            }
+        } ?: return Result.failure(Exception("unable to fetch guild member roles"))
+        return Result.success(result)
     }
 
     fun getGuildList(refresh: Boolean = false, forceOldApi: Boolean): ArrayList<GuildInfo> {

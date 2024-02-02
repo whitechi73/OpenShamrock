@@ -7,6 +7,7 @@ import io.ktor.server.routing.Routing
 import moe.fuqiuluo.shamrock.remote.action.handlers.GetGProChannelList
 import moe.fuqiuluo.shamrock.remote.action.handlers.GetGuildList
 import moe.fuqiuluo.shamrock.remote.action.handlers.GetGuildMemberList
+import moe.fuqiuluo.shamrock.remote.action.handlers.GetGuildMemberProfile
 import moe.fuqiuluo.shamrock.remote.action.handlers.GetGuildMetaByGuest
 import moe.fuqiuluo.shamrock.remote.action.handlers.GetGuildServiceProfile
 import moe.fuqiuluo.shamrock.tools.fetchGetOrNull
@@ -39,5 +40,11 @@ fun Routing.guildAction() {
         val guildId = fetchOrThrow("guild_id")
         val refresh = fetchGetOrNull("refresh") ?: fetchOrNull("no_cache")
         call.respondText(GetGProChannelList(guildId.toULong(), refresh?.toBoolean() ?: false), ContentType.Application.Json)
+    }
+
+    getOrPost("/get_guild_member_profile") {
+        val guildId = fetchOrThrow("guild_id")
+        val userId = fetchOrThrow("user_id")
+        call.respondText(GetGuildMemberProfile(guildId.toULong(), userId.toULong()), ContentType.Application.Json)
     }
 }
