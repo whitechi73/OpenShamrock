@@ -638,3 +638,20 @@ icon: user-group
 ### 响应
 
 > 该 API 无响应数据
+
+## 设置用户在频道中的角色
+
+设置用户身份组。
+
+### API端点
+
+`/set_guild_member_role`
+
+### 参数
+
+| 字段      | 类型     | 说明     |
+|---------|--------|--------|
+| guild_id | uint64  | 频道ID     |
+| role_id | uint64  | 角色ID     |
+| set | bool | 设置还是移除，默认`false` |
+| users | string or `array<long>` | 批量设置用户s |
