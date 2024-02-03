@@ -8,6 +8,7 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import moe.fuqiuluo.shamrock.helper.MessageHelper
+import moe.fuqiuluo.shamrock.remote.action.handlers.CreateGuildRole
 import moe.fuqiuluo.shamrock.remote.action.handlers.DeleteGuildRole
 import moe.fuqiuluo.shamrock.remote.action.handlers.GetGProChannelList
 import moe.fuqiuluo.shamrock.remote.action.handlers.GetGuildFeeds
@@ -20,6 +21,7 @@ import moe.fuqiuluo.shamrock.remote.action.handlers.GetGuildServiceProfile
 import moe.fuqiuluo.shamrock.remote.action.handlers.SendGuildMessage
 import moe.fuqiuluo.shamrock.remote.action.handlers.SendMessage
 import moe.fuqiuluo.shamrock.remote.action.handlers.SetGuildMemberRole
+import moe.fuqiuluo.shamrock.remote.action.handlers.UpdateGuildRole
 import moe.fuqiuluo.shamrock.tools.fetchGetOrNull
 import moe.fuqiuluo.shamrock.tools.fetchGetOrThrow
 import moe.fuqiuluo.shamrock.tools.fetchOrNull
@@ -149,5 +151,21 @@ fun Routing.guildAction() {
             },
             ContentType.Application.Json
         )
+    }
+
+    getOrPost("/update_guild_role") {
+        val guildId = fetchOrThrow("guild_id").toULong()
+        val roleId = fetchOrThrow("role_id").toULong()
+        val name = fetchOrThrow("name")
+        val color = fetchOrThrow("color").toLong()
+        call.respondText(UpdateGuildRole(guildId, roleId, name, color), ContentType.Application.Json)
+    }
+
+    getOrPost("/create_guild_role") {
+        val guildId = fetchOrThrow("guild_id").toULong()
+        val name = fetchOrThrow("name")
+        val color = fetchOrThrow("color").toLong()
+        val initialUsers = fetchOrThrow("initial_users").split(",").map { it.toULong() }
+        call.respondText(CreateGuildRole(guildId, color, name, initialUsers), ContentType.Application.Json)
     }
 }

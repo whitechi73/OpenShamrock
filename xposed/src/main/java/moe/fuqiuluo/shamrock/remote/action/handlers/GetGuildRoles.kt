@@ -24,11 +24,11 @@ internal object GetGuildRoles: IActionHandler() {
         return ok(GetGuildRolesResult(result.map {
             GuildRole(
                 color = it.color,
-                disabled = it.count <= 0,
+                disabled = it.bHoist,
                 independent = it.isChannelRole,
                 maxCount = it.memberLimit,
                 memberCount = it.count,
-                owned = it.bHoist,
+                owned = it.isNotSort,
                 roleId = it.roleId,
                 roleName = it.name,
                 permission = it.rolePermissions.permissionList.map {

@@ -4,7 +4,9 @@ package moe.fuqiuluo.qqinterface.servlet
 
 import com.tencent.mobileqq.qqguildsdk.api.IGPSService
 import com.tencent.qqnt.kernel.nativeinterface.GProGuildRole
+import com.tencent.qqnt.kernel.nativeinterface.GProRoleCreateInfo
 import com.tencent.qqnt.kernel.nativeinterface.GProRoleMemberList
+import com.tencent.qqnt.kernel.nativeinterface.GProRolePermission
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.core.readBytes
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -316,5 +318,53 @@ internal object GProSvc: BaseSvc() {
                 LogCenter.log("setMemberRole failed: $code($msg) => $result", Level.WARN)
             }
         }
+    }
+
+    suspend fun getGuildRolePermission(guildId: ULong, roleId: ULong): Result<GProGuildRole> {
+        val kernelGProService = NTServiceFetcher.kernelService.wrapperSession.guildService
+        val role:GProGuildRole = withTimeoutOrNull(5000) {
+            suspendCancellableCoroutine {
+                kernelGProService.fetchRoleWithPermission(guildId.toLong(), roleId.toLong(), 1) { code, msg, role, _, _, _ ->
+                    if (code != 0) {
+                        LogCenter.log("getGuildRolePermission failed: $code($msg)", Level.WARN)
+                        it.resume(null)
+                    } else it.resume(role)
+                }
+            }
+        } ?: return Result.failure(Exception("unable to fetch guild role permission"))
+        return Result.success(role)
+    }
+
+    suspend fun updateGuildRole(guildId: ULong, roleId: ULong, name: String, color: Long): Result<Unit> {
+        val oldInfo = getGuildRolePermission(guildId, roleId).onFailure {
+            return Result.failure(it)
+        }.getOrThrow()
+        val kernelGProService = NTServiceFetcher.kernelService.wrapperSession.guildService
+        val info = GProRoleCreateInfo(
+            name, color, oldInfo.bHoist, oldInfo.rolePermissions
+        )
+        kernelGProService.setRoleInfo(guildId.toLong(), roleId.toLong(), info) { code, msg, result ->
+            if (code != 0) {
+                LogCenter.log("updateGuildRole failed: $code($msg) => $result", Level.WARN)
+            }
+        }
+        return Result.success(Unit)
+    }
+
+    suspend fun createGuildRole(guildId: ULong, name: String, color: Long, initialUsers: ArrayList<Long>): Result<GProGuildRole> {
+        val kernelGProService = NTServiceFetcher.kernelService.wrapperSession.guildService
+        val permission = GProRolePermission(false, arrayListOf())
+        val info = GProRoleCreateInfo(name, color, false, permission)
+        val role: GProGuildRole = withTimeoutOrNull(5000) {
+            suspendCancellableCoroutine {
+                kernelGProService.createRole(guildId.toLong(), info, initialUsers) { code, msg, result, role ->
+                    if (code != 0) {
+                        LogCenter.log("createGuildRole failed: $code($msg) => $result", Level.WARN)
+                        it.resume(null)
+                    } else it.resume(role)
+                }
+            }
+        } ?: return Result.failure(Exception("unable to create guild role"))
+        return Result.success(role)
     }
 }

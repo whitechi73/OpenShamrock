@@ -31,12 +31,8 @@ public  final class GProRoleCreateInfo {
         return "GProRoleCreateInfo{name=" + this.name + ",color=" + this.color + ",bHoist=" + this.bHoist + ",rolePermissions=" + this.rolePermissions + ",}";
     }
 
-    public GProRoleCreateInfo(String str, long j2, boolean z, GProRolePermission gProRolePermission) {
+    public GProRoleCreateInfo(String name, long color, boolean hoist, GProRolePermission permissions) {
         this.name = "";
         this.rolePermissions = new GProRolePermission();
-        this.name = str;
-        this.color = j2;
-        this.bHoist = z;
-        this.rolePermissions = gProRolePermission;
     }
 }

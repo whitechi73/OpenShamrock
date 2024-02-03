@@ -70,4 +70,7 @@ public interface IKernelGuildService {
 
     void setMemberRoles(long guild, long u1, long u2, long tinyId, ArrayList<Long> addRoles, ArrayList<Long> removeRoles, IGProResultCallback cb);
 
+    void setRoleInfo(long guild, long role, GProRoleCreateInfo info, IGProResultCallback cb);
+
+    void createRole(long guildId, GProRoleCreateInfo info, ArrayList<Long> initialUsers, IGProCreateRoleCallback cb);
 }
