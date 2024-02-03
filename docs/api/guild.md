@@ -601,7 +601,7 @@ icon: user-group
     "roles": [
       {
         "argb_color": 4286151052,
-        "disabled": true,
+        "disabled": false,
         "independent": false,
         "max_count": 1000,
         "member_count": 0,
@@ -654,4 +654,54 @@ icon: user-group
 | guild_id | uint64  | 频道ID     |
 | role_id | uint64  | 角色ID     |
 | set | bool | 设置还是移除，默认`false` |
-| users | string or `array<long>` | 批量设置用户s |
+| users | string or `vector<int64>` | 批量设置用户s |
+| user_id | int64 | 单独设置某个用户的身份 |
+
+> 如果users是字符串那么其格式为`123456,6656656526,2652656`，以逗号分隔每个`tinyId`。
+
+
+## 修改频道角色
+
+修改频道角色，暂不支持设置权限，如有需要请提交`issue`。
+
+### API 端点
+
+`/update_guild_role`
+
+### 参数
+
+| 字段      | 类型     | 说明     |
+|---------|--------|--------|
+| guild_id | uint64  | 频道ID     |
+| role_id | uint64  | 角色ID     |
+| name | string | 名称 |
+| color | int64 | 颜色ARGB |
+
+### 响应
+
+> 该 API 无响应数据
+
+## 创建频道角色
+
+创建频道身份组。
+
+### API 端点
+
+`/create_guild_role`
+
+### 参数
+
+| 字段      | 类型     | 说明     |
+|---------|--------|--------|
+| guild_id | uint64  | 频道ID     |
+| name | string | 名称 |
+| color | int64 | 颜色ARGB |
+| initial_users | vector<int64> | 默认身份组成员 |
+
+> 如果是`HTTP`请求，则`initial_users`使用字符串，以`,`为用户`tiny_id`分隔。
+
+### 响应
+
+| 字段      | 类型     | 说明     |
+|---------|--------|--------|
+| role_id | uint64  | 角色ID     |
