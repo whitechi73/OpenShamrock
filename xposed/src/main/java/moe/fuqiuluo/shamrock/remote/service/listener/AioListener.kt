@@ -174,8 +174,6 @@ internal object AioListener : IKernelMsgListener {
 
     override fun onMsgInfoListUpdate(msgList: ArrayList<MsgRecord>?) {
         msgList?.forEach { record ->
-            if (record.chatType == MsgConstant.KCHATTYPEGUILD) return@forEach// TODO: 频道消息暂不处理
-
             if (record.sendStatus == MsgConstant.KSENDSTATUSFAILED
                 || record.sendStatus == MsgConstant.KSENDSTATUSSENDING
             ) {

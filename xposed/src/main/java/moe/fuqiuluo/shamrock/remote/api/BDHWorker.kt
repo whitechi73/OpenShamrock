@@ -5,6 +5,7 @@ import com.tencent.mobileqq.transfile.TransferRequest
 import com.tencent.mobileqq.transfile.api.ITransFileController
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.post
+import moe.fuqiuluo.shamrock.remote.service.config.ShamrockConfig
 import moe.fuqiuluo.shamrock.remote.structures.Status
 import moe.fuqiuluo.shamrock.tools.fetchPost
 import moe.fuqiuluo.shamrock.tools.respond
@@ -15,7 +16,7 @@ import kotlin.random.Random
 import kotlin.random.nextLong
 
 fun Routing.registerBDH() {
-    post("/upload_group_image") {
+    if(ShamrockConfig.isDev()) post("/upload_group_image") {
         val troop = fetchPost("troop")
         val picBytes = Base64.decode(fetchPost("pic"), Base64.DEFAULT)
         val md5Str = MD5.getMd5Hex(picBytes)
@@ -46,5 +47,4 @@ fun Routing.registerBDH() {
             .transferAsync(transferRequest)
         respond(isOk = true, Status.Ok, "$md5Str.jpg")
     }
-
 }
