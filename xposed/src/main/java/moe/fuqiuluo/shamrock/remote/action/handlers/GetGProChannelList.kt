@@ -1,5 +1,6 @@
 package moe.fuqiuluo.shamrock.remote.action.handlers
 
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
@@ -18,8 +19,10 @@ internal object GetGProChannelList: IActionHandler() {
         return invoke(guildId.toULong(), refresh, echo = session.echo)
     }
 
-    operator fun invoke(guildId: ULong, refresh: Boolean, echo: JsonElement = EmptyJsonString): String {
-        val result = GProSvc.getChannelList(guildId, refresh)
+    suspend operator fun invoke(guildId: ULong, refresh: Boolean, echo: JsonElement = EmptyJsonString): String {
+        val result = withTimeoutOrNull(5000) {
+            GProSvc.getChannelList(guildId, refresh)
+        } ?: return error("timeout", echo)
         result.onFailure {
             return error(it.message ?: "unable to fetch channel list", echo)
         }
