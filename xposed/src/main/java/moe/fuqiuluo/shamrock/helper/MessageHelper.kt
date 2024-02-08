@@ -353,6 +353,21 @@ internal object MessageHelper {
         database.messageMappingDao().insert(mapping)
     }
 
+    fun saveMsgMappingNotExist(
+        hash: Int,
+        qqMsgId: Long,
+        time: Long,
+        chatType: Int,
+        peerId: String,
+        subPeerId: String,
+        msgSeq: Int,
+        subChatType: Int = chatType
+    ) {
+        val database = MessageDB.getInstance()
+        val mapping = MessageMapping(hash, qqMsgId, chatType, subChatType, peerId, time, msgSeq, subPeerId)
+        database.messageMappingDao().insertNotExist(mapping)
+    }
+
     external fun createMessageUniseq(chatType: Int, time: Long): Long
 
     fun decodeCQCode(code: String): JsonArray {

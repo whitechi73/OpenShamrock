@@ -30,6 +30,9 @@ interface MessageMappingDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insert(mapping: MessageMapping)
 
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    fun insertNotExist(mapping: MessageMapping)
+
     @Query("UPDATE message_mapping_v2 SET msgSeq = :msgSeq WHERE msgHashId = :hash")
     fun updateMsgSeqByMsgHash(hash: Int, msgSeq: Int)
 

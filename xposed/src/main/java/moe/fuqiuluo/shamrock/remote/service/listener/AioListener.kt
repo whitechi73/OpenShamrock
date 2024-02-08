@@ -44,11 +44,11 @@ internal object AioListener : IKernelMsgListener {
                 it.value(record)
                 messageLessListenerMap.remove(it.key)
             }
-           if (record.msgSeq < 0) return
+            if (record.msgSeq < 0) return
 
             val msgHash = MessageHelper.generateMsgIdHash(record.chatType, record.msgId)
 
-            val peerId = when(record.chatType) {
+            val peerId = when (record.chatType) {
                 MsgConstant.KCHATTYPEGUILD -> record.guildId
                 else -> record.peerUin.toString()
             }
@@ -87,12 +87,14 @@ internal object AioListener : IKernelMsgListener {
                         if (!rule.white.isNullOrEmpty() && !rule.white.contains(record.senderUin)) return
                     }
 
-                    if(!GlobalEventTransmitter.MessageTransmitter.transGroupMessage(
+                    if (!GlobalEventTransmitter.MessageTransmitter.transGroupMessage(
                             record, record.elements, rawMsg, msgHash, postType
-                    )) {
+                        )
+                    ) {
                         LogCenter.log("群消息推送失败 -> 推送目标可能不存在", Level.WARN)
                     }
                 }
+
                 MsgConstant.KCHATTYPEC2C -> {
                     LogCenter.log("私聊消息(private = ${record.senderUin}, id = [$msgHash | ${record.msgId} | ${record.msgSeq}], msg = $rawMsg)")
                     ShamrockConfig.getPrivateRule()?.let { rule ->
@@ -100,9 +102,10 @@ internal object AioListener : IKernelMsgListener {
                         if (!rule.white.isNullOrEmpty() && !rule.white.contains(record.senderUin)) return
                     }
 
-                    if(!GlobalEventTransmitter.MessageTransmitter.transPrivateMessage(
+                    if (!GlobalEventTransmitter.MessageTransmitter.transPrivateMessage(
                             record, record.elements, rawMsg, msgHash, postType
-                    )) {
+                        )
+                    ) {
                         LogCenter.log("私聊消息推送失败 -> MessageTransmitter", Level.WARN)
                     }
                 }
@@ -116,18 +119,24 @@ internal object AioListener : IKernelMsgListener {
                         if (!rule.white.isNullOrEmpty() && !rule.white.contains(record.senderUin)) return
                     }
 
-                    if(!GlobalEventTransmitter.MessageTransmitter.transPrivateMessage(
-                            record, record.elements, rawMsg, msgHash, tempSource = MessageTempSource.Group, postType = postType
-                        )) {
+                    if (!GlobalEventTransmitter.MessageTransmitter.transPrivateMessage(
+                            record,
+                            record.elements,
+                            rawMsg,
+                            msgHash,
+                            tempSource = MessageTempSource.Group,
+                            postType = postType
+                        )
+                    ) {
                         LogCenter.log("私聊临时消息推送失败 -> MessageTransmitter", Level.WARN)
                     }
                 }
 
                 MsgConstant.KCHATTYPEGUILD -> {
                     LogCenter.log("频道消息(guildId = ${record.guildId}, sender=${record.senderUid}, id = [$msgHash | ${record.msgId}], msg = $rawMsg)")
-                    if(!GlobalEventTransmitter.MessageTransmitter
-                        .transGuildMessage(record, record.elements, rawMsg, msgHash, postType = postType)
-                        ) {
+                    if (!GlobalEventTransmitter.MessageTransmitter
+                            .transGuildMessage(record, record.elements, rawMsg, msgHash, postType = postType)
+                    ) {
                         LogCenter.log("频道消息推送失败 -> MessageTransmitter", Level.WARN)
                     }
                 }
@@ -150,7 +159,7 @@ internal object AioListener : IKernelMsgListener {
             try {
                 val msgHash = MessageHelper.generateMsgIdHash(record.chatType, record.msgId)
 
-                val peerId = when(record.chatType) {
+                val peerId = when (record.chatType) {
                     MsgConstant.KCHATTYPEGUILD -> record.guildId
                     else -> record.peerUin.toString()
                 }
@@ -182,7 +191,7 @@ internal object AioListener : IKernelMsgListener {
 
             GlobalScope.launch {
                 val msgHash = MessageHelper.generateMsgIdHash(record.chatType, record.msgId)
-                val peerId = when(record.chatType) {
+                val peerId = when (record.chatType) {
                     MsgConstant.KCHATTYPEGUILD -> record.guildId
                     else -> record.peerUin.toString()
                 }
@@ -447,6 +456,7 @@ internal object AioListener : IKernelMsgListener {
     override fun onGuildMsgAbFlagChanged(guildMsgAbFlag: GuildMsgAbFlag?) {
 
     }
+
     override fun onGuildNotificationAbstractUpdate(guildNotificationAbstractInfo: GuildNotificationAbstractInfo?) {
 
     }

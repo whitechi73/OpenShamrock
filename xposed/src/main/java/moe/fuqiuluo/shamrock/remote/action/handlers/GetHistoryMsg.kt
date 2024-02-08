@@ -59,6 +59,16 @@ internal object GetHistoryMsg: IActionHandler() {
         val msgList = ArrayList<MessageDetail>().apply {
             addAll(result.data!!.map { msg ->
                 val msgHash = MessageHelper.generateMsgIdHash(msg.chatType, msg.msgId)
+                MessageHelper.saveMsgMappingNotExist(
+                    hash = msgHash,
+                    qqMsgId = msg.msgId,
+                    chatType = msg.chatType,
+                    subChatType = msg.chatType,
+                    peerId = peerId,
+                    msgSeq = msg.msgSeq.toInt(),
+                    time = msg.msgTime,
+                    subPeerId = msg.channelId ?: peerId
+                )
                 MessageDetail(
                     time = msg.msgTime.toInt(),
                     msgType = MessageHelper.obtainDetailTypeByMsgType(msg.chatType),
