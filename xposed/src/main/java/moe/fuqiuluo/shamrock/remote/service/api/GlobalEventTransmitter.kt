@@ -172,6 +172,8 @@ internal object GlobalEventTransmitter: BaseSvc() {
                     postType = postType,
                     messageType = MsgType.Guild,
                     subType = MsgSubType.Channel,
+                    guildId = record.guildId,
+                    channelId = record.channelId,
                     messageId = msgHash,
                     targetId = record.peerUin,
                     peerId = botUin,
