@@ -53,6 +53,8 @@ internal data class MessageEvent (
     @SerialName("sub_type") val subType: MsgSubType,
     @SerialName("message_id") val messageId: Int,
     @SerialName("group_id") val groupId: Long = 0,
+    @SerialName("guild_id") val guildId: String? = null,
+    @SerialName("channel_id") val channelId: String? = null,
     @SerialName("target_id") val targetId: Long = 0,
     @SerialName("peer_id") val peerId: Long,
     @SerialName("user_id") val userId: Long,
