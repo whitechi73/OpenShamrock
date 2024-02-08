@@ -534,12 +534,11 @@ internal object PrimitiveListener {
                 val groupCode = event.groupCode
                 val applierUid = event.applierUid
                 val reason = event.applyMsg ?: ""
-                val applier = ContactHelper.getUinByUidAsync(applierUid).toLong()
+                var applier = ContactHelper.getUinByUidAsync(applierUid).toLong()
                 if (applier == getLongUin()) {
                     return
                 }
                 val msgSeq = contentHead.msgSeq
-                LogCenter.log("入群申请($groupCode) $applier: \"$reason\", seq: $msgSeq")
                 val flag = try {
                     var reqs = requestGroupSystemMsgNew(10, 1)
                     val riskReqs = requestGroupSystemMsgNew(5, 2)
@@ -548,10 +547,14 @@ internal object PrimitiveListener {
                         it.msg_time.get() == time && it.msg?.group_code?.get() == groupCode
                     }
                     val seq = req?.msg_seq?.get() ?: time
+                    if (applier == 0L) {
+                        applier = req?.req_uin?.get() ?: 0L
+                    }
                     "$seq;$groupCode;$applier"
                 } catch (err: Throwable) {
                     "$time;$groupCode;$applier"
                 }
+                LogCenter.log("入群申请($groupCode) $applier: \"$reason\", seq: $msgSeq")
                 if (!GlobalEventTransmitter.RequestTransmitter
                         .transGroupApply(time, applier, applierUid, reason, groupCode, flag, RequestSubType.Add)
                 ) {
@@ -562,7 +565,7 @@ internal object PrimitiveListener {
                 val event = ProtoBuf.decodeFromByteArray<GroupInvitedApplyEvent>(richMsg.rawBuffer!!)
                 val groupCode = event.applyInfo?.groupCode ?: return
                 val applierUid = event.applyInfo?.applierUid ?: return
-                val applier = ContactHelper.getUinByUidAsync(applierUid).toLong()
+                var applier = ContactHelper.getUinByUidAsync(applierUid).toLong()
                 if (applier == getLongUin()) {
                     return
                 }
@@ -570,7 +573,6 @@ internal object PrimitiveListener {
                     // todo
                     return
                 }
-                LogCenter.log("邀请入群申请($groupCode): $applier")
                 val flag = try {
                     var reqs = requestGroupSystemMsgNew(10, 1)
                     val riskReqs = requestGroupSystemMsgNew(5, 2)
@@ -579,10 +581,14 @@ internal object PrimitiveListener {
                         it.msg_time.get() == time
                     }
                     val seq = req?.msg_seq?.get() ?: time
+                    if (applier == 0L) {
+                        applier = req?.req_uin?.get() ?: 0L
+                    }
                     "$seq;$groupCode;$applier"
                 } catch (err: Throwable) {
                     "$time;$groupCode;$applier"
                 }
+                LogCenter.log("邀请入群申请($groupCode): $applier")
                 if (!GlobalEventTransmitter.RequestTransmitter
                         .transGroupApply(time, applier, applierUid, "", groupCode, flag, RequestSubType.Add)
                 ) {
