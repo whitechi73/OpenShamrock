@@ -2,6 +2,7 @@ package moe.fuqiuluo.shamrock.remote.action.handlers
 
 import kotlinx.serialization.json.JsonElement
 import moe.fuqiuluo.qqinterface.servlet.GroupSvc
+import moe.fuqiuluo.qqinterface.servlet.TicketSvc
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
@@ -17,7 +18,7 @@ internal object ModifyTroopMemberName: IActionHandler() {
     }
 
     operator fun invoke(groupId: String, userId: String, card: String, echo: JsonElement = EmptyJsonString): String {
-        if (!GroupSvc.isAdmin(groupId)) {
+        if (!GroupSvc.isAdmin(groupId) && userId != TicketSvc.getUin()) {
             return logic("you are not admin", echo)
         }
         return if(GroupSvc.modifyGroupMemberCard(groupId.toLong(), userId.toLong(), card))
