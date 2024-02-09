@@ -41,6 +41,10 @@ internal abstract class WebSocketTransmitServlet(
     private val sendLock = Mutex()
     protected val eventReceivers: MutableList<WebSocket> = Collections.synchronizedList(mutableListOf<WebSocket>())
 
+    init {
+        connectionLostTimeout = 0
+    }
+
     override val address: String
         get() = "-"
 
