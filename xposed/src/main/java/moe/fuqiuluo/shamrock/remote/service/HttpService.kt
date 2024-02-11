@@ -52,7 +52,6 @@ internal object HttpService: HttpTransmitServlet() {
             GlobalEventTransmitter.onNoticeEvent { event ->
                 pushTo(event)
             }
-
         })
         submitFlowJob(GlobalScope.launch {
             GlobalEventTransmitter.onRequestEvent {

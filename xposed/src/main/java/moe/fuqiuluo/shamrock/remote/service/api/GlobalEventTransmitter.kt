@@ -32,13 +32,13 @@ import java.util.ArrayList
 
 internal object GlobalEventTransmitter: BaseSvc() {
     private val messageEventFlow by lazy {
-        MutableSharedFlow<Pair<MsgRecord, MessageEvent>>()
+        MutableSharedFlow<Pair<MsgRecord, MessageEvent>>(3)
     }
     private val noticeEventFlow by lazy {
-        MutableSharedFlow<NoticeEvent>()
+        MutableSharedFlow<NoticeEvent>(3)
     }
     private val requestEventFlow by lazy {
-        MutableSharedFlow<RequestEvent>()
+        MutableSharedFlow<RequestEvent>(3)
     }
 
     private suspend fun pushNotice(noticeEvent: NoticeEvent) = noticeEventFlow.emit(noticeEvent)
@@ -556,7 +556,8 @@ internal object GlobalEventTransmitter: BaseSvc() {
 
     @ShamrockDsl
     suspend inline fun onMessageEvent(collector: FlowCollector<Pair<MsgRecord, MessageEvent>>) {
-        messageEventFlow.collect(collector)
+        messageEventFlow
+            .collect(collector)
     }
 
     @ShamrockDsl
