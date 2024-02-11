@@ -2,6 +2,7 @@ package moe.fuqiuluo.shamrock.remote.service.api
 
 import com.tencent.qqnt.kernel.nativeinterface.MsgElement
 import com.tencent.qqnt.kernel.nativeinterface.MsgRecord
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableSharedFlow
 import moe.fuqiuluo.qqinterface.servlet.BaseSvc
