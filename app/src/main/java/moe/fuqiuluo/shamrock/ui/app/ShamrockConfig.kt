@@ -229,6 +229,16 @@ object ShamrockConfig {
         return preferences.getBoolean("anti_qq_trace", true)
     }
 
+    fun isForbidUselessProcess(ctx: Context): Boolean {
+        val preferences = ctx.getSharedPreferences("config", 0)
+        return preferences.getBoolean("forbid_useless_process", false)
+    }
+
+    fun setForbidUselessProcess(ctx: Context, v: Boolean) {
+        val preferences = ctx.getSharedPreferences("config", 0)
+        preferences.edit().putBoolean("forbid_useless_process", v).apply()
+    }
+
     fun setAntiTrace(ctx: Context, v: Boolean) {
         val preferences = ctx.getSharedPreferences("config", 0)
         preferences.edit().putBoolean("anti_qq_trace", v).apply()
@@ -333,6 +343,7 @@ object ShamrockConfig {
             "alive_reply" to preferences.getBoolean("alive_reply", false),
             "enable_sync_msg_as_sent_msg" to preferences.getBoolean("enable_sync_msg_as_sent_msg", false),
             "disable_auto_sync_setting" to preferences.getBoolean("disable_auto_sync_setting", false),
+            "forbid_useless_process" to preferences.getBoolean("forbid_useless_process", false)
         )
     }
 

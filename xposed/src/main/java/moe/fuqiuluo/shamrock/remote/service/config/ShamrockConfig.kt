@@ -76,6 +76,7 @@ internal object ShamrockConfig {
                 putBoolean("enable_self_msg",    intent.getBooleanExtra("enable_self_msg", false))  // 推送自己发的消息
                 putBoolean("shell",        intent.getBooleanExtra("shell", false))                  // 开启Shell接口
                 putBoolean("enable_sync_msg_as_sent_msg", intent.getBooleanExtra("enable_sync_msg_as_sent_msg", false)) // 推送同步消息
+                putBoolean("forbid_useless_process", intent.getBooleanExtra("forbid_useless_process", false)) // 禁用QQ生成无用进程
             }
             Config.defaultToken = intent.getStringExtra("token")
             Config.antiTrace = intent.getBooleanExtra("anti_qq_trace", true)
@@ -124,6 +125,10 @@ internal object ShamrockConfig {
 
     fun enableSelfMsg(): Boolean {
         return mmkv.getBoolean("enable_self_msg", false)
+    }
+
+    fun forbidUselessProcess(): Boolean {
+        return mmkv.getBoolean("forbid_useless_process", false)
     }
 
     fun openWebSocketClient(): Boolean {

@@ -1,10 +1,14 @@
 package moe.fuqiuluo.shamrock.xposed
 
 import android.content.Context
+import android.os.Process
 import de.robv.android.xposed.IXposedHookLoadPackage
 import de.robv.android.xposed.XposedBridge
 import de.robv.android.xposed.callbacks.XC_LoadPackage
 import de.robv.android.xposed.XposedBridge.log
+import moe.fuqiuluo.shamrock.helper.Level
+import moe.fuqiuluo.shamrock.helper.LogCenter
+import moe.fuqiuluo.shamrock.remote.service.config.ShamrockConfig
 import moe.fuqiuluo.shamrock.utils.MMKVFetcher
 import moe.fuqiuluo.shamrock.xposed.loader.KeepAlive
 import moe.fuqiuluo.shamrock.xposed.loader.LuoClassloader
@@ -15,12 +19,14 @@ import moe.fuqiuluo.shamrock.xposed.hooks.runFirstActions
 import mqq.app.MobileQQ
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
+import kotlin.system.exitProcess
 
-internal const val PACKAGE_NAME_QQ = "com.tencent.mobileqq"
-internal const val PACKAGE_NAME_QQ_INTERNATIONAL = "com.tencent.mobileqqi"
-internal const val PACKAGE_NAME_QQ_LITE = "com.tencent.qqlite"
-internal const val PACKAGE_NAME_TIM = "com.tencent.tim"
+private const val PACKAGE_NAME_QQ = "com.tencent.mobileqq"
+private const val PACKAGE_NAME_QQ_INTERNATIONAL = "com.tencent.mobileqqi"
+private const val PACKAGE_NAME_QQ_LITE = "com.tencent.qqlite"
+private const val PACKAGE_NAME_TIM = "com.tencent.tim"
 
+private val uselessProcess = listOf("peak", "tool", "mini", "qzone")
 
 internal class XposedEntry: IXposedHookLoadPackage {
     companion object {
@@ -121,9 +127,7 @@ internal class XposedEntry: IXposedHookLoadPackage {
                 System.setProperty("qxbot_flag", "1")
             } else return
 
-            log("Process Name = " + MobileQQ.getMobileQQ().qqProcessName)
-
-            PlatformUtils.isTim()
+            val processName = MobileQQ.getMobileQQ().qqProcessName
 
             // MSG LISTENER 进程运行在主进程
             // API 也应该开放在主进程
@@ -133,6 +137,20 @@ internal class XposedEntry: IXposedHookLoadPackage {
             if (PlatformUtils.isTim()) {
                 MMKVFetcher.initMMKV(ctx)
             }
+
+            if (ShamrockConfig.forbidUselessProcess()) {
+                if(uselessProcess.any {
+                    processName.contains(it, ignoreCase = true)
+                }) {
+                    log("[Shamrock] Useless process detected: $processName, exit.")
+                    Process.killProcess(Process.myPid())
+                    exitProcess(0)
+                }
+            } else {
+                log("[Shamrock] Useless process detection is disabled.")
+            }
+
+            log("Process Name = $processName")
 
             runFirstActions(ctx)
         }

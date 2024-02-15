@@ -100,17 +100,16 @@ fun LabFragment() {
                     thickness = 0.2.dp
                 )
 
-                /*
                 Function(
-                    title = "自动清理QQ垃圾",
-                    desc = "也许会导致奇怪的问题（无效）。",
+                    title = "禁止无用进程",
+                    desc = "禁止QQ生成无用进程浪费内存",
                     descColor = color,
-                    isSwitch = ShamrockConfig.isAutoClean(ctx)
+                    isSwitch = ShamrockConfig.isForbidUselessProcess(ctx)
                 ) {
-                    ShamrockConfig.setAutoClean(ctx, it)
+                    ShamrockConfig.setForbidUselessProcess(ctx, it)
                     ShamrockConfig.pushUpdate(ctx)
-                    return@Function false
-                }*/
+                    return@Function true
+                }
 
                 Function(
                     title = "自回复测试",
