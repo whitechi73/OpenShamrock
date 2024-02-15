@@ -670,7 +670,7 @@ internal object MessageMaker {
                 at.atNtUid = "0"
             }
             else -> {
-                val info = GroupSvc.getTroopMemberInfoByUin(peerId, qq, true).onFailure {
+                val info = GroupSvc.getTroopMemberInfoByUinV2(peerId, qq, true).onFailure {
                     LogCenter.log("无法获取群成员信息: $qq", Level.ERROR)
                 }.getOrNull()
                 if (info != null) {
