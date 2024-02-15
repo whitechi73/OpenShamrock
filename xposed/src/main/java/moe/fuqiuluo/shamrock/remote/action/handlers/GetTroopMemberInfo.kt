@@ -52,11 +52,7 @@ internal object GetTroopMemberInfo : IActionHandler() {
                 area = info.alias ?: "",
                 lastSentTime = info.last_active_time,
                 level = info.level,
-                role = when {
-                    GroupSvc.getOwner(groupId).toString() == uin -> MemberRole.Owner
-                    uin.toLong() in GroupSvc.getAdminList(groupId) -> MemberRole.Admin
-                    else -> MemberRole.Member
-                },
+                role = GroupSvc.getMemberRole(groupId.toLong(), uin.toLong()),
                 unfriendly = false,
                 title = info.mUniqueTitle ?: "",
                 titleExpireTime = info.mUniqueTitleExpire,

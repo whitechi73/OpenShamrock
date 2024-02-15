@@ -59,6 +59,7 @@ import moe.fuqiuluo.shamrock.remote.service.data.EssenceMessage
 import moe.fuqiuluo.shamrock.remote.service.data.GroupAnnouncement
 import moe.fuqiuluo.shamrock.remote.service.data.GroupAnnouncementMessage
 import moe.fuqiuluo.shamrock.remote.service.data.GroupAnnouncementMessageImage
+import moe.fuqiuluo.shamrock.remote.service.data.push.MemberRole
 import moe.fuqiuluo.shamrock.tools.EmptyJsonArray
 import moe.fuqiuluo.shamrock.tools.GlobalClient
 import moe.fuqiuluo.shamrock.tools.asInt
@@ -394,6 +395,20 @@ internal object GroupSvc: BaseSvc() {
             .filter { it != 0L }
     }
 
+    suspend fun getMemberRole(groupId: Long, memberUin: Long): MemberRole {
+        return when(getTroopMemberInfoByUinViaNt(groupId.toString(), memberUin, 3000).getOrNull()?.role) {
+            com.tencent.qqnt.kernel.nativeinterface.MemberRole.STRANGER -> MemberRole.Stranger
+            com.tencent.qqnt.kernel.nativeinterface.MemberRole.MEMBER -> MemberRole.Member
+            com.tencent.qqnt.kernel.nativeinterface.MemberRole.ADMIN -> MemberRole.Admin
+            com.tencent.qqnt.kernel.nativeinterface.MemberRole.OWNER -> MemberRole.Owner
+            com.tencent.qqnt.kernel.nativeinterface.MemberRole.UNSPECIFIED, null -> when (memberUin) {
+                getOwner(groupId.toString()) -> MemberRole.Owner
+                in getAdminList(groupId.toString()) -> MemberRole.Admin
+                else -> MemberRole.Member
+            }
+        }
+    }
+
     fun getOwner(groupId: String): Long {
         val groupInfo = getGroupInfo(groupId)
         return groupInfo.troopowneruin?.toLong() ?: 0
@@ -574,7 +589,7 @@ internal object GroupSvc: BaseSvc() {
         val service = app.getRuntimeService(ITroopMemberInfoService::class.java, "all")
         var info = service.getTroopMember(groupId, uin)
         if (refresh || !service.isMemberInCache(groupId, uin) || info == null || info.troopnick == null) {
-            info = requestTroopMemberInfo(service, groupId.toLong(), uin.toLong()).getOrNull()
+            info = requestTroopMemberInfo(service, groupId.toLong(), uin.toLong(), timeout = 2000).getOrNull()
         }
         if (info == null) {
             info = getTroopMemberInfoByUinViaNt(groupId, uin.toLong(), timeout = 2000L).getOrNull()?.let {
@@ -621,7 +636,7 @@ internal object GroupSvc: BaseSvc() {
         }
     }
 
-    private suspend fun getTroopMemberInfoByUinViaNt(
+    suspend fun getTroopMemberInfoByUinViaNt(
         groupId: String,
         qq: Long,
         timeout: Long = 5000L
@@ -809,7 +824,7 @@ internal object GroupSvc: BaseSvc() {
         }
     }
 
-    private suspend fun requestTroopMemberInfo(service: ITroopMemberInfoService, groupId: Long, memberUin: Long): Result<TroopMemberInfo> {
+    private suspend fun requestTroopMemberInfo(service: ITroopMemberInfoService, groupId: Long, memberUin: Long, timeout: Long = 10_000): Result<TroopMemberInfo> {
         val info = RefreshTroopMemberInfoLock.withLock {
             val groupIdStr = groupId.toString()
             val memberUinStr = memberUin.toString()
@@ -819,7 +834,7 @@ internal object GroupSvc: BaseSvc() {
             requestMemberInfoV2(groupId, memberUin)
             requestMemberInfo(groupId, memberUin)
 
-            withTimeoutOrNull(10000) {
+            withTimeoutOrNull(timeout) {
                 while (!service.isMemberInCache(groupIdStr, memberUinStr)) {
                     delay(200)
                 }

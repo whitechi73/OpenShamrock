@@ -54,12 +54,13 @@ internal object GetTroopMemberList : IActionHandler() {
                             area = info.alias ?: "",
                             lastSentTime = info.last_active_time,
                             level = info.level,
-                            role = when {
+                            role = GroupSvc.getMemberRole(groupId.toLong(), info.memberuin.toLong())
+                            /*when {
                                 GroupSvc.getOwner(groupId)
                                     .toString() == info.memberuin -> MemberRole.Owner
                                 info.memberuin.toLong() in GroupSvc.getAdminList(groupId) -> MemberRole.Admin
                                 else -> MemberRole.Member
-                            },
+                            }*/,
                             unfriendly = false,
                             title = info.mUniqueTitle ?: "",
                             titleExpireTime = info.mUniqueTitleExpire,

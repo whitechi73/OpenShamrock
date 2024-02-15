@@ -92,11 +92,11 @@ internal object GlobalEventTransmitter: BaseSvc() {
                             .ifEmpty { record.sendMemberName }
                             .ifEmpty { record.peerName },
                         card = record.sendMemberName,
-                        role = when (record.senderUin) {
+                        role = GroupSvc.getMemberRole(record.peerUin, record.senderUin)/*when (record.senderUin) {
                             GroupSvc.getOwner(record.peerUin.toString()) -> MemberRole.Owner
                             in GroupSvc.getAdminList(record.peerUin.toString()) -> MemberRole.Admin
                             else -> MemberRole.Member
-                        },
+                        }*/,
                         title = "",
                         level = "",
                     )
@@ -194,7 +194,7 @@ internal object GlobalEventTransmitter: BaseSvc() {
                         userId = record.senderUid.toLong(),
                         nickname = nickName,
                         card = record.sendMemberName,
-                        role = MemberRole.Member,
+                        role = MemberRole.Member, // TODO(GUILD ROLE)
                         title = record.sendNickName,
                         level = record.roleId.toString(),
                         tinyId = record.senderUid

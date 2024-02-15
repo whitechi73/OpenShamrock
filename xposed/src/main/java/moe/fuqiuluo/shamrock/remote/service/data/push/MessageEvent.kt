@@ -88,7 +88,9 @@ internal data class Anonymous(
 internal enum class MemberRole {
     @SerialName("owner") Owner,
     @SerialName("admin") Admin,
-    @SerialName("member") Member
+    @SerialName("member") Member,
+    @SerialName("stranger") Stranger,
+    @SerialName("unknown") Unknown
 }
 
 @Serializable
