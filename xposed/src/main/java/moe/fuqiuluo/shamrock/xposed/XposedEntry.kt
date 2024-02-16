@@ -138,16 +138,18 @@ internal class XposedEntry: IXposedHookLoadPackage {
                 MMKVFetcher.initMMKV(ctx)
             }
 
-            if (ShamrockConfig.forbidUselessProcess()) {
-                if(uselessProcess.any {
-                    processName.contains(it, ignoreCase = true)
-                }) {
-                    log("[Shamrock] Useless process detected: $processName, exit.")
-                    Process.killProcess(Process.myPid())
-                    exitProcess(0)
+            runCatching {
+                if (ShamrockConfig.forbidUselessProcess()) {
+                    if(uselessProcess.any {
+                            processName.contains(it, ignoreCase = true)
+                        }) {
+                        log("[Shamrock] Useless process detected: $processName, exit.")
+                        Process.killProcess(Process.myPid())
+                        exitProcess(0)
+                    }
+                } else {
+                    log("[Shamrock] Useless process detection is disabled.")
                 }
-            } else {
-                log("[Shamrock] Useless process detection is disabled.")
             }
 
             log("Process Name = $processName")

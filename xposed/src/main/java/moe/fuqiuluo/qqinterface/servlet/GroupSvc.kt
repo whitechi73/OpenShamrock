@@ -97,6 +97,8 @@ import java.nio.ByteBuffer
 import kotlin.coroutines.resume
 
 internal object GroupSvc: BaseSvc() {
+    private const val GET_MEMBER_ROLE_BY_NT = false
+
     private val RefreshTroopMemberInfoLock by lazy {
         Mutex()
     }
@@ -396,6 +398,13 @@ internal object GroupSvc: BaseSvc() {
     }
 
     suspend fun getMemberRole(groupId: Long, memberUin: Long): MemberRole {
+        if (!GET_MEMBER_ROLE_BY_NT) {
+            return when (memberUin) {
+                getOwner(groupId.toString()) -> MemberRole.Owner
+                in getAdminList(groupId.toString()) -> MemberRole.Admin
+                else -> MemberRole.Member
+            }
+        }
         return when(getTroopMemberInfoByUinViaNt(groupId.toString(), memberUin, 3000).getOrNull()?.role) {
             com.tencent.qqnt.kernel.nativeinterface.MemberRole.STRANGER -> MemberRole.Stranger
             com.tencent.qqnt.kernel.nativeinterface.MemberRole.MEMBER -> MemberRole.Member
@@ -641,30 +650,32 @@ internal object GroupSvc: BaseSvc() {
         qq: Long,
         timeout: Long = 5000L
     ): Result<MemberInfo> {
-        val kernelService = NTServiceFetcher.kernelService
-        val sessionService = kernelService.wrapperSession
-        val groupService = sessionService.groupService
-        val info = withTimeoutOrNull(timeout) {
-            suspendCancellableCoroutine {
-                groupService.getTransferableMemberInfo(groupId.toLong()) { code, _, data ->
-                    if (code != 0) {
-                        it.resume(null)
-                        return@getTransferableMemberInfo
-                    }
-                    data.forEach { (_, info) ->
-                        if (info.uin == qq) {
-                            it.resume(info)
-                            return@forEach
+        return runCatching {
+            val kernelService = NTServiceFetcher.kernelService
+            val sessionService = kernelService.wrapperSession
+            val groupService = sessionService.groupService
+            val info = withTimeoutOrNull(timeout) {
+                suspendCancellableCoroutine {
+                    groupService.getTransferableMemberInfo(groupId.toLong()) { code, _, data ->
+                        if (code != 0) {
+                            it.resume(null)
+                            return@getTransferableMemberInfo
                         }
+                        data.forEach { (_, info) ->
+                            if (info.uin == qq) {
+                                it.resume(info)
+                                return@forEach
+                            }
+                        }
+                        it.resume(null)
                     }
-                    it.resume(null)
                 }
             }
-        }
-        return if (info != null) {
-            Result.success(info)
-        } else {
-            Result.failure(Exception("获取群成员信息失败"))
+            return if (info != null) {
+                Result.success(info)
+            } else {
+                Result.failure(Exception("获取群成员信息失败"))
+            }
         }
     }
 

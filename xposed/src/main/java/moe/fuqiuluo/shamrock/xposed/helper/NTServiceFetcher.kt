@@ -2,24 +2,17 @@ package moe.fuqiuluo.shamrock.xposed.helper
 
 import com.tencent.qqnt.kernel.api.IKernelService
 import com.tencent.qqnt.kernel.api.impl.MsgService
-import com.tencent.qqnt.kernel.nativeinterface.IKernelGroupService
-import com.tencent.qqnt.kernel.nativeinterface.IKernelGuildService
 import com.tencent.qqnt.kernel.nativeinterface.IOperateCallback
 import com.tencent.qqnt.kernel.nativeinterface.IQQNTWrapperSession
-import de.robv.android.xposed.XC_MethodHook
-import de.robv.android.xposed.XposedBridge
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.remote.service.PacketReceiver
 import moe.fuqiuluo.shamrock.remote.service.listener.AioListener
-import moe.fuqiuluo.shamrock.remote.service.listener.GroupEventListener
-import moe.fuqiuluo.shamrock.remote.service.listener.KernelGuildListener
 import moe.fuqiuluo.shamrock.remote.service.listener.PrimitiveListener
 import moe.fuqiuluo.shamrock.tools.hookMethod
 import moe.fuqiuluo.shamrock.utils.PlatformUtils
-import kotlin.reflect.jvm.javaMethod
 
 internal object NTServiceFetcher {
     private lateinit var iKernelService: IKernelService
@@ -30,7 +23,7 @@ internal object NTServiceFetcher {
         lock.withLock {
             val msgService = service.msgService ?: return
             val sessionService = service.wrapperSession ?: return
-            val groupService = sessionService.groupService ?: return
+            //val groupService = sessionService.groupService ?: return
 
             val curHash = service.hashCode() + msgService.hashCode()
             if (isInitForNt(curHash)) return
@@ -43,7 +36,7 @@ internal object NTServiceFetcher {
             this.iKernelService = service
 
 
-            initNTKernelListener(msgService, groupService)
+            initNTKernelListener(msgService)
             antiBackgroundMode(sessionService)
             //hookGuildListener(sessionService)
         }
@@ -66,7 +59,7 @@ internal object NTServiceFetcher {
         return hash == curKernelHash
     }
 
-    private fun initNTKernelListener(msgService: MsgService, groupService: IKernelGroupService) {
+    private fun initNTKernelListener(msgService: MsgService) {
         if (!PlatformUtils.isMainProcess()) return
 
         try {
