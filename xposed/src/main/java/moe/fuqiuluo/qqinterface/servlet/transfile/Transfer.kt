@@ -6,6 +6,7 @@ import com.tencent.mobileqq.transfile.TransferRequest
 import moe.fuqiuluo.shamrock.utils.MD5
 import java.io.File
 import moe.fuqiuluo.qqinterface.servlet.transfile.ResourceType.*
+import moe.fuqiuluo.shamrock.helper.TransfileHelper
 
 internal object Transfer: FileTransfer() {
     private val ROUTE = mapOf<ContactType, Map<ResourceType, suspend TransTarget.(Resource) -> Boolean>>(
@@ -84,11 +85,14 @@ internal object Transfer: FileTransfer() {
         file: File,
         wait: Boolean = true
     ): Boolean {
-        return transC2CResource(peerId, file, FileMsg.TRANSFILE_TYPE_PIC, SEND_MSG_BUSINESS_TYPE_PIC_SHARE, wait) {
+        return transC2CResource(peerId, file, FileMsg.TRANSFILE_TYPE_PIC, SEND_MSG_BUSINESS_TYPE_PIC_CAMERA, wait) {
             val picUpExtraInfo = TransferRequest.PicUpExtraInfo()
-            picUpExtraInfo.mIsRaw = true
+            picUpExtraInfo.mIsRaw = false
+            picUpExtraInfo.mUinType = FileMsg.UIN_BUDDY
             it.mPicSendSource = 8
             it.mExtraObj = picUpExtraInfo
+            it.mIsPresend = true
+            it.delayShowProgressTimeInMs = 2000
         }
     }
 
@@ -97,10 +101,13 @@ internal object Transfer: FileTransfer() {
         file: File,
         wait: Boolean = true
     ): Boolean {
-        return transTroopResource(groupId, file, FileMsg.TRANSFILE_TYPE_PIC, SEND_MSG_BUSINESS_TYPE_PIC_SHARE, wait) {
+        return transTroopResource(groupId, file, FileMsg.TRANSFILE_TYPE_PIC, SEND_MSG_BUSINESS_TYPE_PIC_CAMERA, wait) {
             val picUpExtraInfo = TransferRequest.PicUpExtraInfo()
-            picUpExtraInfo.mIsRaw = true
+            //picUpExtraInfo.mIsRaw = !TransfileHelper.isGifFile(file)
+            picUpExtraInfo.mIsRaw = false
+            picUpExtraInfo.mUinType = FileMsg.UIN_TROOP
             it.mPicSendSource = 8
+            it.delayShowProgressTimeInMs = 2000
             it.mExtraObj = picUpExtraInfo
         }
     }

@@ -205,8 +205,8 @@ internal object MsgSvc: BaseSvc() {
             }
         }
         val result = MessageHelper.sendMessageWithoutMsgId(chatType, peedId, message, fromId, MessageCallback(peedId, 0))
-        result.onFailure {
-            LogCenter.log("sendToAio: " + it.stackTraceToString(), Level.ERROR)
+        if (result.isFailure) {
+            LogCenter.log("sendToAio: " + result.exceptionOrNull()?.stackTraceToString(), Level.ERROR)
             return result
         }
         val sendResult = result.getOrThrow()

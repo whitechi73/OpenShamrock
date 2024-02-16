@@ -1,6 +1,8 @@
 package moe.fuqiuluo.shamrock.helper
 
 import java.io.File
+import java.io.IOException
+import java.io.RandomAccessFile
 
 internal object TransfileHelper {
     private val extensionMap = mapOf(
@@ -93,5 +95,16 @@ internal object TransfileHelper {
         if (index == -1) return 0
         val extension = name.substring(index)
         return extensionMap[extension] ?: -1
+    }
+
+    fun isGifFile(picFile: File): Boolean {
+        if (picFile.exists() && picFile.length() > 3) {
+            return RandomAccessFile(picFile, "r").use {
+                val bArr = ByteArray(3)
+                it.read(bArr)
+                if (bArr[0].toInt() == 71 && bArr[1].toInt() == 73 && bArr[2].toInt() == 70) { return true } else false
+            }
+        }
+        return false
     }
 }
