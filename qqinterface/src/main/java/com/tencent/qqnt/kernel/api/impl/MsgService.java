@@ -1,5 +1,6 @@
 package com.tencent.qqnt.kernel.api.impl;
 
+import com.tencent.qqnt.kernel.nativeinterface.IGetTempChatInfoCallback;
 import com.tencent.qqnt.kernel.nativeinterface.IKernelMsgListener;
 import com.tencent.qqnt.kernel.nativeinterface.IOperateCallback;
 import com.tencent.qqnt.kernel.nativeinterface.RichMediaFilePathInfo;
@@ -22,6 +23,10 @@ public class MsgService {
     }
 
     public void prepareTempChat(TempChatPrepareInfo tempChatPrepareInfo, IOperateCallback cb) {
+
+    }
+
+    public void getTempChatInfo(int chatType, @Nullable String uid, @Nullable IGetTempChatInfoCallback cb) {
 
     }
 }

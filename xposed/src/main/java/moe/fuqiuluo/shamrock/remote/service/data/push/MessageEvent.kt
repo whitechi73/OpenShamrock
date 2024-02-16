@@ -52,10 +52,10 @@ internal data class MessageEvent (
     @SerialName("message_type") val messageType: MsgType,
     @SerialName("sub_type") val subType: MsgSubType,
     @SerialName("message_id") val messageId: Int,
-    @SerialName("group_id") val groupId: Long = 0,
+    @SerialName("group_id") val groupId: Long = Long.MIN_VALUE,
     @SerialName("guild_id") val guildId: String? = null,
     @SerialName("channel_id") val channelId: String? = null,
-    @SerialName("target_id") val targetId: Long = 0,
+    @SerialName("target_id") val targetId: Long = Long.MIN_VALUE,
     @SerialName("peer_id") val peerId: Long,
     @SerialName("user_id") val userId: Long,
     @SerialName("anonymous") val anonymous: Anonymous? = null,
@@ -63,7 +63,8 @@ internal data class MessageEvent (
     @SerialName("raw_message") val rawMessage: String,
     @SerialName("font") val font: Int,
     @SerialName("sender") val sender: Sender,
-    @SerialName("temp_source") val tmpSource: Int = -1
+    @SerialName("temp_source") val tmpSource: Int = Int.MIN_VALUE,
+    @SerialName("from_nick") val fromNickName: String? = null
 )
 
 enum class MessageTempSource(val id: Int) {

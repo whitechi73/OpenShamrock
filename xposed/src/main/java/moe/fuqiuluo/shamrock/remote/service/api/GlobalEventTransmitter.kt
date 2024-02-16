@@ -114,7 +114,9 @@ internal object GlobalEventTransmitter: BaseSvc() {
             rawMsg: String,
             msgHash: Int,
             postType: PostType,
-            tempSource: MessageTempSource = MessageTempSource.Unknown
+            tempSource: MessageTempSource = MessageTempSource.Unknown,
+            groupId: Long = Long.MIN_VALUE,
+            fromNick: String? = null
         ): Boolean {
             val botUin = app.longAccountUin
             var nickName = record.sendNickName
@@ -148,7 +150,9 @@ internal object GlobalEventTransmitter: BaseSvc() {
                         title = "",
                         level = "",
                     ),
-                    tmpSource = tempSource.id
+                    tmpSource = tempSource.id,
+                    groupId = groupId,
+                    fromNickName = fromNick
                 )
             )
             return true

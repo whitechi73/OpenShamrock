@@ -7,6 +7,7 @@ import com.tencent.qqnt.kernel.nativeinterface.*
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import moe.fuqiuluo.qqinterface.servlet.MsgSvc
 import moe.fuqiuluo.qqinterface.servlet.TicketSvc
 import moe.fuqiuluo.qqinterface.servlet.msg.convert.toCQCode
 import moe.fuqiuluo.qqinterface.servlet.transfile.RichProtoSvc
@@ -119,13 +120,22 @@ internal object AioListener : IKernelMsgListener {
                         if (!rule.white.isNullOrEmpty() && !rule.white.contains(record.senderUin)) return
                     }
 
+
+                    var groupCode = 0L
+                    var fromNick = ""
+                    MsgSvc.getTempChatInfo(record.chatType, record.senderUid).onSuccess {
+                        groupCode = it.groupCode.toLong()
+                        fromNick = it.fromNick
+                    }
                     if (!GlobalEventTransmitter.MessageTransmitter.transPrivateMessage(
                             record,
                             record.elements,
                             rawMsg,
                             msgHash,
                             tempSource = MessageTempSource.Group,
-                            postType = postType
+                            postType = postType,
+                            groupId = groupCode,
+                            fromNick = fromNick
                         )
                     ) {
                         LogCenter.log("私聊临时消息推送失败 -> MessageTransmitter", Level.WARN)

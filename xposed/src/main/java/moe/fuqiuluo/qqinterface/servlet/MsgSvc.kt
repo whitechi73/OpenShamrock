@@ -9,6 +9,7 @@ import com.tencent.qqnt.kernel.nativeinterface.IOperateCallback
 import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
 import com.tencent.qqnt.kernel.nativeinterface.MsgRecord
 import com.tencent.qqnt.kernel.nativeinterface.TempChatGameSession
+import com.tencent.qqnt.kernel.nativeinterface.TempChatInfo
 import com.tencent.qqnt.kernel.nativeinterface.TempChatPrepareInfo
 import com.tencent.qqnt.msg.api.IMsgService
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -42,15 +43,36 @@ internal object MsgSvc: BaseSvc() {
         msgService.prepareTempChat(TempChatPrepareInfo(
             MsgConstant.KCHATTYPETEMPC2CFROMGROUP,
             ContactHelper.getUidByUinAsync(peerId = peerId.toLong()),
-            app.getRuntimeService(ITroopMemberNameService::class.java, "all")
-                .getTroopMemberNameRemarkFirst(groupId, peerId),
-            groupId, EMPTY_BYTE_ARRAY, app.currentUid, "", TempChatGameSession()
+            app.getRuntimeService(ITroopMemberNameService::class.java, "all").getTroopMemberNameRemarkFirst(groupId, peerId),
+            groupId,
+            EMPTY_BYTE_ARRAY,
+            app.currentUid,
+            "",
+            TempChatGameSession()
         )) { code, reason ->
             if (code != 0) {
                 LogCenter.log("临时会话创建失败: $code, $reason", Level.ERROR)
             }
         }
         return Result.success(Unit)
+    }
+
+    suspend fun getTempChatInfo(chatType: Int, uid: String): Result<TempChatInfo> {
+        val msgService = app.getRuntimeService(IKernelService::class.java, "all").msgService
+            ?: return Result.failure(Exception("获取消息服务失败"))
+        val info: TempChatInfo = withTimeoutOrNull(5000) {
+            suspendCancellableCoroutine {
+                msgService.getTempChatInfo(chatType, uid) { code, msg, tempChatInfo ->
+                    if (code == 0) {
+                        it.resume(tempChatInfo)
+                    } else {
+                        LogCenter.log("获取临时会话信息失败: $code:$msg", Level.ERROR)
+                        it.resume(null)
+                    }
+                }
+            }
+        } ?: return Result.failure(Exception("获取临时会话信息失败"))
+        return Result.success(info)
     }
 
     /**
