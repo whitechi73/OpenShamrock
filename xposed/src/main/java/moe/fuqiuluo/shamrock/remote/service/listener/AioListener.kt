@@ -114,12 +114,10 @@ internal object AioListener : IKernelMsgListener {
                 MsgConstant.KCHATTYPETEMPC2CFROMGROUP -> {
                     if (!ShamrockConfig.allowTempSession()) return
 
-                    LogCenter.log("私聊临时消息(private = ${record.senderUin}, id = $msgHash, msg = $rawMsg)")
                     ShamrockConfig.getPrivateRule()?.let { rule ->
                         if (!rule.black.isNullOrEmpty() && rule.black.contains(record.senderUin)) return
                         if (!rule.white.isNullOrEmpty() && !rule.white.contains(record.senderUin)) return
                     }
-
 
                     var groupCode = 0L
                     var fromNick = ""
@@ -127,6 +125,9 @@ internal object AioListener : IKernelMsgListener {
                         groupCode = it.groupCode.toLong()
                         fromNick = it.fromNick
                     }
+
+                    LogCenter.log("私聊临时消息(private = ${record.senderUin}, groupId=$groupCode, id = $msgHash, msg = $rawMsg)")
+
                     if (!GlobalEventTransmitter.MessageTransmitter.transPrivateMessage(
                             record,
                             record.elements,
