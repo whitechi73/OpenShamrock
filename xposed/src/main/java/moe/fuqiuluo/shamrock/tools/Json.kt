@@ -22,7 +22,7 @@ val GlobalJson = Json {
     ignoreUnknownKeys = true // 忽略未知key
     isLenient = true // 宽松模式
     allowSpecialFloatingPointValues = true // 允许特殊浮点数值（如NaN）
-    encodeDefaults = false // 不编码默认值
+    encodeDefaults = true // 编码默认值
     prettyPrint = false // 格式化输出
     coerceInputValues = true // 强制输入值
 }
