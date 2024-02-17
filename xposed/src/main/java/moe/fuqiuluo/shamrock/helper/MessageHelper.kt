@@ -233,7 +233,7 @@ internal object MessageHelper {
         return if (!message.isEmpty()) {
             val service = QRoute.api(IMsgService::class.java)
             return suspendCancellableCoroutine {
-                service.sendMsg(contact, uniseq.qqMsgId, msg) { code, why ->
+                service.sendMsg(contact, uniseq.qqMsgId, msg) { _, _ ->
                     it.resume(uniseq.copy(msgTime = System.currentTimeMillis()))
                 }
             }

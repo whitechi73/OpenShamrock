@@ -15,13 +15,13 @@ import moe.fuqiuluo.shamrock.remote.action.handlers.GetHistoryMsg
 import moe.fuqiuluo.shamrock.remote.service.listener.AioListener
 import moe.fuqiuluo.shamrock.tools.broadcast
 import moe.fuqiuluo.shamrock.utils.DeflateTools
-import protobuf.message.JsonElement
-import protobuf.message.MessageBody
-import protobuf.message.MessageContentHead
+import protobuf.message.element.JsonElement
+import protobuf.message.NtMessage
+import protobuf.message.MessageContent
 import protobuf.message.MessageElement
-import protobuf.message.MessageElementList
-import protobuf.message.MessageHead
 import protobuf.message.RichMessage
+import protobuf.message.MessageHead
+import protobuf.message.MessageBody
 import protobuf.push.MessagePush
 import mqq.app.MobileQQ
 import kotlin.coroutines.resume
@@ -51,7 +51,7 @@ internal object PacketSvc: BaseSvc() {
         val msgSeq = (latestMsg?.msgSeq ?: 0) + 1
 
         val msgPush = MessagePush(
-            msgBody = MessageBody(
+            msgBody = NtMessage(
                 msgHead = MessageHead(
                     peer = app.longAccountUin,
                     peerUid = app.currentUid,
@@ -59,7 +59,7 @@ internal object PacketSvc: BaseSvc() {
                     receiver = app.longAccountUin,
                     receiverUid = app.currentUid
                 ),
-                contentHead = MessageContentHead(
+                contentHead = MessageContent(
                     msgType = 166,
                     msgSubType = 11,
                     msgSeq = msgSeq,
@@ -71,7 +71,7 @@ internal object PacketSvc: BaseSvc() {
                     u4 = msgSeq - 2,
                     u5 = msgSeq
                 ),
-                richMsg = RichMessage(MessageElementList(builder()))
+                body = MessageBody(RichMessage(builder()))
             )
         )
 

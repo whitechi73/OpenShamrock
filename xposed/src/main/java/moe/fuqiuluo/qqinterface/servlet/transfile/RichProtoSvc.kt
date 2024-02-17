@@ -40,6 +40,7 @@ private const val GPRO_PIC_NT = "multimedia.nt.qq.com.cn"
 private const val C2C_PIC = "c2cpicdw.qpic.cn"
 
 internal object RichProtoSvc: BaseSvc() {
+    var multiMediaRKey = "CAQSKAB6JWENi5LMk0kc62l8Pm3Jn1dsLZHyRLAnNmHGoZ3y_gDZPqZt-64"
     /*@Deprecated("Use RichProtoSvc.getQQDns instead", ReplaceWith("getQQDns(domain)"))
     fun getQQDns(domain: String) {
         val bundle = Bundle()
@@ -169,7 +170,7 @@ internal object RichProtoSvc: BaseSvc() {
         val domain = if (originalUrl.startsWith("/download")) GPRO_PIC_NT else GPRO_PIC
         if (originalUrl.isNotEmpty()) {
             if (!originalUrl.contains("rkey=")) {
-                return "https://$domain$originalUrl&rkey=CAQSKAB6JWENi5LMk0kc62l8Pm3Jn1dsLZHyRLAnNmHGoZ3y_gDZPqZt-64"
+                return "https://$domain$originalUrl&rkey=$multiMediaRKey"
             }
             return "https://$domain$originalUrl"
         }
@@ -190,10 +191,11 @@ internal object RichProtoSvc: BaseSvc() {
         originalUrl: String,
         md5: String
     ): String {
-        val domain = if (originalUrl.startsWith("/download") ||
-            originalUrl.contains("rkey=")) GPRO_PIC_NT
-        else GPRO_PIC
+        val domain = if (originalUrl.startsWith("/download")) GPRO_PIC_NT else GPRO_PIC
         if (originalUrl.isNotEmpty()) {
+            if (!originalUrl.contains("rkey=")) {
+                return "https://$domain$originalUrl&rkey=$multiMediaRKey"
+            }
             return "https://$domain$originalUrl"
         }
         return "https://$domain/qmeetpic/0/0-0-${md5.uppercase()}/0?term=2"
