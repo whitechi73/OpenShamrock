@@ -34,7 +34,7 @@ Shamrock 提供了一个图形化的配置界面，可进行简单的配置操�
 将下方 JSON 文件创建在 `Shamrock 主目录 + /config.json`  
 请确保 JSON 格式正确。
 
-```json
+```json5
 {
     "rules": {
         "group_rule": {
@@ -50,6 +50,7 @@ Shamrock 提供了一个图形化的配置界面，可进行简单的配置操�
     "active_websocket": {
         "port": 5800, // 主动WS监听的端口
         "token": "aaaa1111,bbbb1111", // 同时允许两个token可使用|或,作为分割
+        "tokens": ["aaaa1111", "aaaa2222"], // 使用tokens实现多token，优先级比上面那个高
         "heartbeat_interval": 15000 // 设置为null则默认15000毫秒作为心跳间隔，0则为无心跳
     },
     "passive_websocket": [
