@@ -1,9 +1,12 @@
 package moe.fuqiuluo.shamrock.remote.action.handlers
 
+import com.tencent.guild.api.transfile.IGuildTransFileApi
+import com.tencent.mobileqq.qroute.QRoute
 import kotlinx.serialization.json.JsonElement
 import moe.fuqiuluo.qqinterface.servlet.TicketSvc
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
+import moe.fuqiuluo.shamrock.remote.service.data.BigDataTicket
 import moe.fuqiuluo.shamrock.remote.service.data.Credentials
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
 import moe.fuqiuluo.symbols.OneBotHandler
@@ -17,10 +20,20 @@ internal object GetCookies: IActionHandler() {
     }
 
     operator fun invoke(echo: JsonElement = EmptyJsonString): String {
-        return ok(Credentials(cookie = TicketSvc.getCookie()), echo)
+        return ok(Credentials(
+            cookie = TicketSvc.getCookie(),
+            bigDataTicket = QRoute.api(IGuildTransFileApi::class.java).bigDataTicket?.let {
+                BigDataTicket(it.sessionKey, it.sessionSig)
+            }
+        ), echo)
     }
 
     suspend operator fun invoke(domain: String, echo: JsonElement = EmptyJsonString): String {
-        return ok(Credentials(cookie = TicketSvc.getCookie(domain)), echo)
+        return ok(Credentials(
+            cookie = TicketSvc.getCookie(domain),
+            bigDataTicket = QRoute.api(IGuildTransFileApi::class.java).bigDataTicket?.let {
+                BigDataTicket(it.sessionKey, it.sessionSig)
+            }
+        ), echo)
     }
 }

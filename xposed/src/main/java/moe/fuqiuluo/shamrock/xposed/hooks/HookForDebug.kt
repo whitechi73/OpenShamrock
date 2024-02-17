@@ -5,11 +5,14 @@ package moe.fuqiuluo.shamrock.xposed.hooks
 import android.content.Context
 import com.tencent.mobileqq.perf.block.BinderMethodProxy
 import com.tencent.mobileqq.qmmkv.MMKVOptionEntity
+import com.tencent.mobileqq.qroute.QRoute
+import com.tencent.qqnt.aio.api.IAIOPicDownloaderProvider
 import de.robv.android.xposed.XposedBridge
 import epic.EIPCClient
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.tools.beforeHook
 import moe.fuqiuluo.shamrock.tools.hookMethod
+import moe.fuqiuluo.shamrock.tools.toInnerValuesString
 import moe.fuqiuluo.shamrock.xposed.loader.LuoClassloader
 import moe.fuqiuluo.symbols.Process
 import moe.fuqiuluo.symbols.XposedHook
@@ -18,7 +21,15 @@ import java.lang.reflect.Modifier
 @XposedHook(priority = -1, process = Process.ALL)
 internal class HookForDebug: IAction {
     override fun invoke(ctx: Context) {
-        /*val NtDnsManager = LuoClassloader.load("com.tencent.qqnt.dns.NtDnsManager")!!
+        //val LibraDownloader = QRoute.api(IAIOPicDownloaderProvider::class.java).provideDownloader().javaClass
+        //LibraDownloader.hookMethod("downLoad").before {
+        //    val option = it.args[0]
+        //    LogCenter.log("LibraDownloader.downLoad(${option.toInnerValuesString()})")
+        //}
+    }
+}
+
+/*val NtDnsManager = LuoClassloader.load("com.tencent.qqnt.dns.NtDnsManager")!!
         val NtDnsInternal = NtDnsManager.declaredMethods.first {
             !Modifier.isStatic(it.modifiers) && it.parameterCount == 0
         }.returnType
@@ -33,9 +44,6 @@ internal class HookForDebug: IAction {
             LogCenter.log("NtDnsManager: reqDomain2IpList($domain, $type)")
             LogCenter.log(Exception().stackTraceToString())
         })*/
-    }
-}
-
 /*
         val httpEngineService = AppRuntimeFetcher.appRuntime
             .getRuntimeService(IHttpEngineService::class.java, "all")

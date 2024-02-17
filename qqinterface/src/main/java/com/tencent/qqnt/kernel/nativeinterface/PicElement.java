@@ -264,6 +264,10 @@ public  final class PicElement implements IKernelModel {
         this.transferStatus = num;
     }
 
+    public int getStoreID() {
+        return 0;
+    }
+
     public String toString() {
         return "PicElement{picSubType=" + this.picSubType + ",fileName=" + this.fileName + ",fileSize=" + this.fileSize + ",picWidth=" + this.picWidth + ",picHeight=" + this.picHeight + ",original=" + this.original + ",md5HexStr=" + this.md5HexStr + ",sourcePath=" + this.sourcePath + ",thumbPath=" + this.thumbPath + ",transferStatus=" + this.transferStatus + ",progress=" + this.progress + ",picType=" + this.picType + ",invalidState=" + this.invalidState + ",fileUuid=" + this.fileUuid + ",fileSubId=" + this.fileSubId + ",thumbFileSize=" + this.thumbFileSize + ",fileBizId=" + this.fileBizId + ",downloadIndex=" + this.downloadIndex + ",summary=" + this.summary + ",emojiFrom=" + this.emojiFrom + ",emojiWebUrl=" + this.emojiWebUrl + ",emojiAd=" + this.emojiAd + ",emojiMall=" + this.emojiMall + ",emojiZplan=" + this.emojiZplan + ",originImageMd5=" + this.originImageMd5 + ",originImageUrl=" + this.originImageUrl + ",importRichMediaContext=" + this.importRichMediaContext + ",isFlashPic=" + this.isFlashPic + ",}";
     }

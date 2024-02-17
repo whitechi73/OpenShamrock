@@ -141,8 +141,7 @@ internal sealed class MessageElemConverter: IMessageConvert {
             //LogCenter.log(image.toString())
 
             val originalUrl = image.originImageUrl ?: ""
-
-            LogCenter.log("receive image: $image", Level.DEBUG)
+            //LogCenter.log({ "receive image: $image" }, Level.DEBUG)
 
             return MessageSegment(
                 type = "image",

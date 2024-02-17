@@ -5,7 +5,9 @@ import moe.fuqiuluo.qqinterface.servlet.TicketSvc
 import io.ktor.server.application.call
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.Routing
+import kotlinx.serialization.json.JsonElement
 import moe.fuqiuluo.shamrock.remote.action.handlers.*
+import moe.fuqiuluo.shamrock.remote.service.config.ShamrockConfig
 import moe.fuqiuluo.shamrock.remote.structures.Status
 import moe.fuqiuluo.shamrock.tools.*
 
@@ -44,20 +46,36 @@ fun Routing.ticketActions() {
         }
     }
 
+    fun getTicket(uin: String, id: Int, debug: Boolean = false) = TicketSvc.getTicket(uin, id)?.let {
+        mutableMapOf(
+            "sig" to (it._sig?.toHexString() ?: "null"),
+            "key" to (it._sig_key?.toHexString() ?: "null")
+        ).also { map ->
+            if (debug)
+                map["content"] = ((it._sig?.decodeToString() ?: "") + ":" + (it._sig_key?.decodeToString() ?: "null"))
+        }.json.asJsonObject
+    } ?: EmptyJsonObject
+
     getOrPost("/get_ticket") {
         val uin = fetchOrThrow("uin")
         val ticket = when(val id = fetchOrThrow("id").toInt()) {
             32 -> TicketSvc.getStWeb(uin)
             else -> {
-                respond(true, Status.Ok, data = TicketSvc.getTicket(uin, id)?.let {
-                    mapOf(
-                        "sig" to (it._sig?.toHexString() ?: "null"),
-                        "key" to (it._sig_key?.toHexString() ?: "null")
-                    ).json.asJsonObject
-                } ?: EmptyJsonObject)
+                respond(true, Status.Ok, data = getTicket(uin, id))
                 return@getOrPost
             }
         }
         respond(true, Status.Ok, data = ticket)
+    }
+
+    if (ShamrockConfig.isDev()) getOrPost("/get_all_ticket") {
+        val uin = fetchOrThrow("uin")
+
+        val ticketMap = mutableMapOf<Int, JsonElement>()
+        TicketSvc.SigType.ALL_TICKET.forEach {
+            ticketMap[it] = getTicket(uin, it, true)
+        }
+
+        respond(true, Status.Ok, data = ticketMap)
     }
 }
