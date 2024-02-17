@@ -60,8 +60,10 @@ internal class WebSocketService(
     }
 
     override fun onOpen(conn: WebSocket, handshake: ClientHandshake) {
-        val token = ShamrockConfig.getActiveWebSocketConfig()?.token ?: ShamrockConfig.getToken()
-        if (token.isNotBlank()) {
+        val token = ShamrockConfig.getActiveWebSocketConfig()?.tokens
+            ?: ShamrockConfig.getActiveWebSocketConfig()?.token?.split(",", "|", "，")
+            ?: listOf(ShamrockConfig.getToken())
+        if (token.isNotEmpty()) {
             var accessToken = handshake.getFieldValue("access_token")
                 .ifNullOrEmpty(handshake.getFieldValue("ticket"))
                 .ifNullOrEmpty(handshake.getFieldValue("Authorization"))
@@ -69,8 +71,7 @@ internal class WebSocketService(
             if (accessToken.startsWith("Bearer ", ignoreCase = true)) {
                 accessToken = accessToken.substring(7)
             }
-            val tokenList = token.split(",", "|", "，")
-            if (!tokenList.contains(accessToken)) {
+            if (!token.contains(accessToken)) {
                 conn.close()
                 LogCenter.log({ "WSServer连接错误(${conn.remoteSocketAddress.address.hostAddress}:${conn.remoteSocketAddress.port}) 没有提供正确的token, $accessToken。" }, Level.ERROR)
                 return
