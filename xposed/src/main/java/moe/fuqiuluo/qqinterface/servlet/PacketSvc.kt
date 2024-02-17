@@ -63,7 +63,7 @@ internal object PacketSvc: BaseSvc() {
                     msgType = 166,
                     msgSubType = 11,
                     msgSeq = msgSeq,
-                    u1 = msgSeq,
+                    msgViaRandom = msgSeq,
                     msgTime = System.currentTimeMillis() / 1000,
                     u2 = 1,
                     u3 = msgSeq,
@@ -71,7 +71,9 @@ internal object PacketSvc: BaseSvc() {
                     u4 = msgSeq - 2,
                     u5 = msgSeq
                 ),
-                body = MessageBody(RichMessage(builder()))
+                body = MessageBody(RichMessage(
+                    elements = builder()
+                ))
             )
         )
 
