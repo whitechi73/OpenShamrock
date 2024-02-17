@@ -1,9 +1,13 @@
 @file:OptIn(ExperimentalSerializationApi::class)
 package moe.fuqiuluo.qqinterface.servlet.transfile
 
+import android.os.Bundle
 import com.tencent.mobileqq.pb.ByteStringMicro
+import com.tencent.mobileqq.perf.block.BinderMethodProxy
+import com.tencent.mobileqq.qipc.QIPCClientHelper
 import com.tencent.mobileqq.transfile.FileMsg
 import com.tencent.mobileqq.transfile.api.IProtoReqManager
+import com.tencent.mobileqq.transfile.dns.IpData
 import com.tencent.mobileqq.transfile.protohandler.RichProto
 import com.tencent.mobileqq.transfile.protohandler.RichProtoProc
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -19,18 +23,35 @@ import moe.fuqiuluo.shamrock.tools.slice
 import moe.fuqiuluo.shamrock.tools.toHexString
 import moe.fuqiuluo.shamrock.utils.PlatformUtils
 import moe.fuqiuluo.shamrock.xposed.helper.AppRuntimeFetcher
+import mqq.app.MobileQQ
 import protobuf.oidb.cmd0xfc2.Oidb0xfc2ChannelInfo
 import protobuf.oidb.cmd0xfc2.Oidb0xfc2MsgApplyDownloadReq
 import protobuf.oidb.cmd0xfc2.Oidb0xfc2ReqBody
 import protobuf.oidb.cmd0xfc2.Oidb0xfc2RspBody
-import mqq.app.MobileQQ
 import tencent.im.cs.cmd0x346.cmd0x346
 import tencent.im.oidb.cmd0x6d6.oidb_0x6d6
 import tencent.im.oidb.cmd0xe37.cmd0xe37
 import tencent.im.oidb.oidb_sso
+import java.util.ArrayList
 import kotlin.coroutines.resume
 
+private const val GPRO_PIC = "gchat.qpic.cn"
+private const val GPRO_PIC_NT = "multimedia.nt.qq.com.cn"
+private const val C2C_PIC = "c2cpicdw.qpic.cn"
+
 internal object RichProtoSvc: BaseSvc() {
+    /*@Deprecated("Use RichProtoSvc.getQQDns instead", ReplaceWith("getQQDns(domain)"))
+    fun getQQDns(domain: String) {
+        val bundle = Bundle()
+        bundle.putString("domain", "xxx")
+        bundle.putInt("businessType", 1)
+        val result = BinderMethodProxy
+            .callServer(QIPCClientHelper.getInstance().client, "InnerDnsModule", "reqDomain2IpList", bundle)
+        if (result.isSuccess) {
+            val ipList: ArrayList<IpData> = result.data.getParcelableArrayList("ip")!!
+        }
+    }*/
+
     suspend fun getGuildFileDownUrl(peerId: String, channelId: String, fileId: String, bizId: Int): String {
         val buffer = sendOidbAW("OidbSvcTrpcTcp.0xfc2_0", 4034, 0, ProtoBuf.encodeToByteArray(
             Oidb0xfc2ReqBody(
@@ -142,19 +163,35 @@ internal object RichProtoSvc: BaseSvc() {
     }
 
     fun getGroupPicDownUrl(
+        originalUrl: String,
         md5: String
     ): String {
-        return "http://gchat.qpic.cn/gchatpic_new/0/0-0-${md5.uppercase()}/0?term=2"
+        val domain = if (originalUrl.contains("rkey=")) GPRO_PIC_NT else GPRO_PIC
+        if (originalUrl.isNotEmpty()) {
+            return "https://$domain$originalUrl"
+        }
+        return "https://$domain/gchatpic_new/0/0-0-${md5.uppercase()}/0?term=2"
     }
 
     fun getC2CPicDownUrl(
+        originalUrl: String,
         md5: String
     ): String {
-        return "https://c2cpicdw.qpic.cn/offpic_new/0/123-0-${md5.uppercase()}/0?term=2"
+        if (originalUrl.isNotEmpty()) {
+            return "https://$C2C_PIC$originalUrl"
+        }
+        return "https://$C2C_PIC/offpic_new/0/123-0-${md5.uppercase()}/0?term=2"
     }
 
-    fun getGuildPicDownUrl(md5: String): String {
-        return "https://gchat.qpic.cn/qmeetpic/0/0-0-${md5.uppercase()}/0?term=2"
+    fun getGuildPicDownUrl(
+        originalUrl: String,
+        md5: String
+    ): String {
+        val domain = if (originalUrl.contains("rkey=")) GPRO_PIC_NT else GPRO_PIC
+        if (originalUrl.isNotEmpty()) {
+            return "https://$domain$originalUrl"
+        }
+        return "https://$domain/qmeetpic/0/0-0-${md5.uppercase()}/0?term=2"
     }
 
     suspend fun getC2CVideoDownUrl(
@@ -320,13 +357,5 @@ internal object RichProtoSvc: BaseSvc() {
             richProtoReq.protoReqMgr = runtime.getRuntimeService(IProtoReqManager::class.java, "all")
             RichProtoProc.procRichProtoReq(richProtoReq)
         }
-    }
-
-    suspend fun getGuildPttDownUrl(
-        peerId: String,
-        md5Hex: String,
-        fileUUId: String
-    ): String {
-        return "unsupported"
     }
 }

@@ -1,5 +1,6 @@
 package moe.fuqiuluo.qqinterface.servlet.msg.convert
 
+import com.tencent.mobileqq.qmmkv.QMMKV
 import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
 import com.tencent.qqnt.kernel.nativeinterface.MsgElement
 import moe.fuqiuluo.qqinterface.servlet.transfile.RichProtoSvc
@@ -13,6 +14,8 @@ import moe.fuqiuluo.shamrock.helper.db.MessageDB
 import moe.fuqiuluo.shamrock.tools.asJsonObject
 import moe.fuqiuluo.shamrock.tools.asString
 import moe.fuqiuluo.shamrock.tools.json
+import mqq.app.MobileQQ
+import kotlin.jvm.internal.Intrinsics
 
 internal sealed class MessageElemConverter: IMessageConvert {
     /**
@@ -135,14 +138,16 @@ internal sealed class MessageElemConverter: IMessageConvert {
                 ImageMapping(md5.uppercase(), chatType, image.fileSize)
             )
 
+            //LogCenter.log(image.toString())
+
             return MessageSegment(
                 type = "image",
                 data = hashMapOf(
                     "file" to md5,
                     "url" to when(chatType) {
-                        MsgConstant.KCHATTYPEGROUP -> RichProtoSvc.getGroupPicDownUrl(md5)
-                        MsgConstant.KCHATTYPEC2C -> RichProtoSvc.getC2CPicDownUrl(md5)
-                        MsgConstant.KCHATTYPEGUILD -> RichProtoSvc.getGuildPicDownUrl(md5)
+                        MsgConstant.KCHATTYPEDISC, MsgConstant.KCHATTYPEGROUP -> RichProtoSvc.getGroupPicDownUrl(image.originImageUrl, md5)
+                        MsgConstant.KCHATTYPEC2C -> RichProtoSvc.getC2CPicDownUrl(image.originImageUrl, md5)
+                        MsgConstant.KCHATTYPEGUILD -> RichProtoSvc.getGuildPicDownUrl(image.originImageUrl, md5)
                         else -> unknownChatType(chatType)
                     },
                     "subType" to image.picSubType,

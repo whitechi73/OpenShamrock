@@ -103,7 +103,7 @@ internal object UploadGroupFile : IActionHandler() {
 
         // 根据文件大小调整超时时间
         val msgIdPair = MessageHelper.generateMsgId(MsgConstant.KCHATTYPEGROUP)
-        val info = (withTimeoutOrNull((srcFile.length() / (300 * 1024)) * 1000 + 5000) {
+        val info = (withTimeoutOrNull((srcFile.length() / (125 * 1024)) * 1000 + 5000) {
             val msgService = QRoute.api(IMsgService::class.java)
             val contact = MessageHelper.generateContact(MsgConstant.KCHATTYPEGROUP, groupId)
             suspendCancellableCoroutine<FileTransNotifyInfo?> {
