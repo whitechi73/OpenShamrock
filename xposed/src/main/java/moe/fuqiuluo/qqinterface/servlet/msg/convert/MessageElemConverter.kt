@@ -140,14 +140,18 @@ internal sealed class MessageElemConverter: IMessageConvert {
 
             //LogCenter.log(image.toString())
 
+            val originalUrl = image.originImageUrl ?: ""
+
+            LogCenter.log("receive image: $image", Level.DEBUG)
+
             return MessageSegment(
                 type = "image",
                 data = hashMapOf(
                     "file" to md5,
                     "url" to when(chatType) {
-                        MsgConstant.KCHATTYPEDISC, MsgConstant.KCHATTYPEGROUP -> RichProtoSvc.getGroupPicDownUrl(image.originImageUrl, md5)
-                        MsgConstant.KCHATTYPEC2C -> RichProtoSvc.getC2CPicDownUrl(image.originImageUrl, md5)
-                        MsgConstant.KCHATTYPEGUILD -> RichProtoSvc.getGuildPicDownUrl(image.originImageUrl, md5)
+                        MsgConstant.KCHATTYPEDISC, MsgConstant.KCHATTYPEGROUP -> RichProtoSvc.getGroupPicDownUrl(originalUrl, md5)
+                        MsgConstant.KCHATTYPEC2C -> RichProtoSvc.getC2CPicDownUrl(originalUrl, md5)
+                        MsgConstant.KCHATTYPEGUILD -> RichProtoSvc.getGuildPicDownUrl(originalUrl, md5)
                         else -> unknownChatType(chatType)
                     },
                     "subType" to image.picSubType,
