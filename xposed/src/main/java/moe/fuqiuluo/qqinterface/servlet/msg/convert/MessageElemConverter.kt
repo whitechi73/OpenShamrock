@@ -222,7 +222,7 @@ internal sealed class MessageElemConverter: IMessageConvert {
                 }
             } else video.fileName.split(".")[0].hex2ByteArray()
 
-            LogCenter.log({ "receive video msg: $video" }, Level.DEBUG)
+            //LogCenter.log({ "receive video msg: $video" }, Level.DEBUG)
 
             return MessageSegment(
                 type = "video",
