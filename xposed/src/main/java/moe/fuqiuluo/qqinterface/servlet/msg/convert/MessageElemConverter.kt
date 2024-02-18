@@ -215,6 +215,8 @@ internal sealed class MessageElemConverter: IMessageConvert {
             val video = element.videoElement
             val md5 = video.fileName.split(".")[0]
 
+            LogCenter.log({ "receive video msg: $video" }, Level.DEBUG)
+
             return MessageSegment(
                 type = "video",
                 data = hashMapOf(
