@@ -1,6 +1,5 @@
 package moe.fuqiuluo.qqinterface.servlet.msg.convert
 
-import com.tencent.mobileqq.qmmkv.QMMKV
 import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
 import com.tencent.qqnt.kernel.nativeinterface.MsgElement
 import kotlinx.serialization.json.add
@@ -19,8 +18,6 @@ import moe.fuqiuluo.shamrock.tools.asJsonObject
 import moe.fuqiuluo.shamrock.tools.asString
 import moe.fuqiuluo.shamrock.tools.hex2ByteArray
 import moe.fuqiuluo.shamrock.tools.json
-import mqq.app.MobileQQ
-import kotlin.jvm.internal.Intrinsics
 
 internal sealed class MessageElemConverter: IMessageConvert {
     /**

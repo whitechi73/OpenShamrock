@@ -16,7 +16,8 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
 import moe.fuqiuluo.qqinterface.servlet.MsgSvc
-import moe.fuqiuluo.qqinterface.servlet.msg.MessageMaker
+import moe.fuqiuluo.qqinterface.servlet.msg.MessageElementMaker
+import moe.fuqiuluo.qqinterface.servlet.msg.MsgElementMaker
 import moe.fuqiuluo.shamrock.helper.db.MessageDB
 import moe.fuqiuluo.shamrock.helper.db.MessageMapping
 import moe.fuqiuluo.shamrock.remote.structures.SendMsgResult
@@ -26,8 +27,8 @@ import moe.fuqiuluo.shamrock.tools.asJsonObjectOrNull
 import moe.fuqiuluo.shamrock.tools.asString
 import moe.fuqiuluo.shamrock.tools.json
 import moe.fuqiuluo.shamrock.tools.jsonArray
+import protobuf.message.MessageElement
 import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 import kotlin.math.abs
 
 internal object MessageHelper {
@@ -39,7 +40,7 @@ internal object MessageHelper {
         fromId: String = peerId
     ): SendMsgResult {
         val uniseq = generateMsgId(chatType)
-        val msg = messageArrayToMessageElements(chatType, uniseq.qqMsgId, peerId, decodeCQCode(message)).also {
+        val msg = messageArrayToMsgElements(chatType, uniseq.qqMsgId, peerId, decodeCQCode(message)).also {
             if (it.second.isEmpty() && !it.first) {
                 error("消息合成失败，请查看日志或者检查输入。")
             } else if (it.second.isEmpty()) {
@@ -82,7 +83,7 @@ internal object MessageHelper {
         callback: IOperateCallback
     ): Result<SendMsgResult> {
         val uniseq = generateMsgId(chatType)
-        val msg = messageArrayToMessageElements(chatType, uniseq.qqMsgId, peerId, message).also {
+        val msg = messageArrayToMsgElements(chatType, uniseq.qqMsgId, peerId, message).also {
             if (it.second.isEmpty() && !it.first) error("消息合成失败，请查看日志或者检查输入。")
         }.second.filter {
             it.elementType != -1
@@ -166,7 +167,7 @@ internal object MessageHelper {
         fromId: String = peerId
     ): SendMsgResult {
         val uniseq = generateMsgId(chatType)
-        val msg = messageArrayToMessageElements(chatType, uniseq.qqMsgId, peerId, message).also {
+        val msg = messageArrayToMsgElements(chatType, uniseq.qqMsgId, peerId, message).also {
             if (it.second.isEmpty() && !it.first) error("消息合成失败，请查看日志或者检查输入。")
         }.second.filter {
             it.elementType != -1
@@ -224,7 +225,7 @@ internal object MessageHelper {
         fromId: String = peerId
     ): SendMsgResult {
         val uniseq = generateMsgId(chatType)
-        val msg = messageArrayToMessageElements(chatType, uniseq.qqMsgId, peerId, message).also {
+        val msg = messageArrayToMsgElements(chatType, uniseq.qqMsgId, peerId, message).also {
             if (it.second.isEmpty() && !it.first) error("消息合成失败，请查看日志或者检查输入。")
         }.second.filter {
             it.elementType != -1
@@ -276,12 +277,41 @@ internal object MessageHelper {
         }
     }
 
-    suspend fun messageArrayToMessageElements(chatType: Int, msgId: Long, targetUin: String, messageList: JsonArray): Pair<Boolean, ArrayList<MsgElement>> {
+    suspend fun messageArrayToMsgElements(chatType: Int, msgId: Long, targetUin: String, messageList: JsonArray): Pair<Boolean, ArrayList<MsgElement>> {
         val msgList = arrayListOf<MsgElement>()
         var hasActionMsg = false
         messageList.forEach {
             val msg = it.jsonObject
-            val maker = MessageMaker[msg["type"].asString]
+            val maker = MsgElementMaker[msg["type"].asString]
+            if (maker != null) {
+                try {
+                    val data = msg["data"].asJsonObjectOrNull ?: EmptyJsonObject
+                    maker(chatType, msgId, targetUin, data).onSuccess { msgElem ->
+                        msgList.add(msgElem)
+                    }.onFailure {
+                        if (it.javaClass != ActionMsgException::class.java) {
+                            throw it
+                        } else {
+                            hasActionMsg = true
+                        }
+                    }
+                } catch (e: Throwable) {
+                    LogCenter.log(e.stackTraceToString(), Level.ERROR)
+                }
+            } else {
+                LogCenter.log("不支持的消息类型: ${msg["type"].asString}", Level.ERROR)
+                return false to arrayListOf()
+            }
+        }
+        return hasActionMsg to msgList
+    }
+
+    suspend fun messageArrayToMessageElements(chatType: Int, msgId: Long, targetUin: String, messageList: JsonArray): Pair<Boolean, ArrayList<MessageElement>> {
+        val msgList = arrayListOf<MessageElement>()
+        var hasActionMsg = false
+        messageList.forEach {
+            val msg = it.jsonObject
+            val maker = MessageElementMaker[msg["type"].asString]
             if (maker != null) {
                 try {
                     val data = msg["data"].asJsonObjectOrNull ?: EmptyJsonObject

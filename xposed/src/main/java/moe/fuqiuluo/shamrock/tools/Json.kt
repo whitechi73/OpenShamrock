@@ -65,16 +65,14 @@ val Map<String, Any>.json: JsonObject
     get() {
         val map = hashMapOf<String, JsonElement>()
         forEach { (key, any) ->
-            if (any != null) {
-                when (any) {
-                    is JsonElement -> map[key] = any
-                    is Number -> map[key] = any.json
-                    is String -> map[key] = any.json
-                    is Boolean -> map[key] = any.json
-                    is Map<*, *> -> map[key] = (any as Map<String, Any>).json
-                    is Collection<*> -> map[key] = (any as Collection<Any>).json
-                    else -> error("unknown object type: ${any::class.java}")
-                }
+            when (any) {
+                is JsonElement -> map[key] = any
+                is Number -> map[key] = any.json
+                is String -> map[key] = any.json
+                is Boolean -> map[key] = any.json
+                is Map<*, *> -> map[key] = (any as Map<String, Any>).json
+                is Collection<*> -> map[key] = (any as Collection<Any>).json
+                else -> error("unknown object type: ${any::class.java}")
             }
         }
         return map.jsonObject

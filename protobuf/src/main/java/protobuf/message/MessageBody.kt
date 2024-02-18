@@ -7,4 +7,5 @@ import kotlinx.serialization.protobuf.ProtoNumber
 data class MessageBody(
     @ProtoNumber(1) val rich: RichMessage? = null,
     @ProtoNumber(2) val rawBuffer: ByteArray? = null,
+    @ProtoNumber(3) val MsgEncryptContent: ByteArray? = null
 )

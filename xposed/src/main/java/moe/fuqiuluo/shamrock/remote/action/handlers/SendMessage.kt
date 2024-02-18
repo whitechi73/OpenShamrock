@@ -120,18 +120,14 @@ internal object SendMessage: IActionHandler() {
         //if (!ContactHelper.checkContactAvailable(chatType, peerId)) {
         //    return logic("contact is not found", echo = echo)
         //}
-        val result = MsgSvc.sendToAio(chatType, peerId, message, fromId = fromId, retryCnt)
-        if (result.isFailure) {
-            return logic(result.exceptionOrNull()?.message ?: "", echo)
-        }
-        val sendMsgResult = result.getOrThrow()
-        if (sendMsgResult.msgHashId <= 0) {
+        val result = MsgSvc.sendToAio(chatType, peerId, message, fromId = fromId, retryCnt).getOrElse { return logic(it.message ?: "", echo) }
+        if (result.msgHashId <= 0) {
             return logic("send message failed", echo = echo)
         }
-        recallDuration?.let { autoRecall(sendMsgResult.msgHashId, it) }
+        recallDuration?.let { autoRecall(result.msgHashId, it) }
         return ok(MessageResult(
-            msgId = sendMsgResult.msgHashId,
-            time = (sendMsgResult.msgTime * 0.001).toLong()
+            msgId = result.msgHashId,
+            time = (result.msgTime * 0.001).toLong()
         ), echo)
     }
 

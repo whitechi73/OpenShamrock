@@ -144,7 +144,7 @@ internal object AioListener : IKernelMsgListener {
                 }
 
                 MsgConstant.KCHATTYPEGUILD -> {
-                    LogCenter.log("频道消息(guildId = ${record.guildId}, sender=${record.senderUid}, id = [$msgHash | ${record.msgId}], msg = $rawMsg)")
+                    LogCenter.log("频道消息(guildId = ${record.guildId}, sender = ${record.senderUid}, id = [$msgHash | ${record.msgId}], msg = $rawMsg)")
                     if (!GlobalEventTransmitter.MessageTransmitter
                             .transGuildMessage(record, record.elements, rawMsg, msgHash, postType = postType)
                     ) {
@@ -169,7 +169,6 @@ internal object AioListener : IKernelMsgListener {
         GlobalScope.launch {
             try {
                 val msgHash = MessageHelper.generateMsgIdHash(record.chatType, record.msgId)
-
                 val peerId = when (record.chatType) {
                     MsgConstant.KCHATTYPEGUILD -> record.guildId
                     else -> record.peerUin.toString()
