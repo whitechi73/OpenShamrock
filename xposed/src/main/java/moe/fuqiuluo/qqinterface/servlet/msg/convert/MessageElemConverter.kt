@@ -17,6 +17,7 @@ import moe.fuqiuluo.shamrock.helper.db.ImageMapping
 import moe.fuqiuluo.shamrock.helper.db.MessageDB
 import moe.fuqiuluo.shamrock.tools.asJsonObject
 import moe.fuqiuluo.shamrock.tools.asString
+import moe.fuqiuluo.shamrock.tools.hex2ByteArray
 import moe.fuqiuluo.shamrock.tools.json
 import mqq.app.MobileQQ
 import kotlin.jvm.internal.Intrinsics
@@ -213,7 +214,13 @@ internal sealed class MessageElemConverter: IMessageConvert {
             element: MsgElement
         ): MessageSegment {
             val video = element.videoElement
-            val md5 = video.fileName.split(".")[0]
+            val md5 = if (video.fileName.contains("/")) {
+                video.videoMd5.takeIf {
+                    !it.isNullOrEmpty()
+                }?.hex2ByteArray() ?: video.fileName.split("/").let {
+                    it[it.size - 2].hex2ByteArray()
+                }
+            } else video.fileName.split(".")[0].hex2ByteArray()
 
             LogCenter.log({ "receive video msg: $video" }, Level.DEBUG)
 

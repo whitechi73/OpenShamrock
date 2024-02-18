@@ -205,7 +205,7 @@ internal object RichProtoSvc: BaseSvc() {
 
     suspend fun getC2CVideoDownUrl(
         peerId: String,
-        md5Hex: String,
+        md5: ByteArray,
         fileUUId: String
     ): String {
         return suspendCancellableCoroutine {
@@ -221,7 +221,7 @@ internal object RichProtoSvc: BaseSvc() {
             downReq.troopUin = peerId
             downReq.clientType = 2
             downReq.fileId = fileUUId
-            downReq.md5 = md5Hex.hex2ByteArray()
+            downReq.md5 = md5
             downReq.busiType = FileTransfer.BUSI_TYPE_SHORT_VIDEO
             downReq.subBusiType = 0
             downReq.fileType = FileTransfer.VIDEO_FORMAT_MP4
@@ -248,7 +248,7 @@ internal object RichProtoSvc: BaseSvc() {
 
     suspend fun getGroupVideoDownUrl(
         peerId: String,
-        md5Hex: String,
+        md5: ByteArray,
         fileUUId: String
     ): String {
         return suspendCancellableCoroutine {
@@ -264,7 +264,7 @@ internal object RichProtoSvc: BaseSvc() {
             downReq.troopUin = peerId
             downReq.clientType = 2
             downReq.fileId = fileUUId
-            downReq.md5 = md5Hex.hex2ByteArray()
+            downReq.md5 = md5
             downReq.busiType = FileTransfer.BUSI_TYPE_SHORT_VIDEO
             downReq.subBusiType = 0
             downReq.fileType = FileTransfer.VIDEO_FORMAT_MP4
