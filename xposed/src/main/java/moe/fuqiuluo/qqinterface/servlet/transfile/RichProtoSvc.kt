@@ -167,9 +167,10 @@ internal object RichProtoSvc: BaseSvc() {
         originalUrl: String,
         md5: String,
     ): String {
-        val domain = if (originalUrl.startsWith("/download")) GPRO_PIC_NT else GPRO_PIC
+        val isNtServer = originalUrl.startsWith("/download")
+        val domain = if (isNtServer) GPRO_PIC_NT else GPRO_PIC
         if (originalUrl.isNotEmpty()) {
-            if (!originalUrl.contains("rkey=")) {
+            if (isNtServer && !originalUrl.contains("rkey=")) {
                 return "https://$domain$originalUrl&rkey=$multiMediaRKey"
             }
             return "https://$domain$originalUrl"
@@ -191,9 +192,10 @@ internal object RichProtoSvc: BaseSvc() {
         originalUrl: String,
         md5: String
     ): String {
-        val domain = if (originalUrl.startsWith("/download")) GPRO_PIC_NT else GPRO_PIC
+        val isNtServer = originalUrl.startsWith("/download")
+        val domain = if (isNtServer) GPRO_PIC_NT else GPRO_PIC
         if (originalUrl.isNotEmpty()) {
-            if (!originalUrl.contains("rkey=")) {
+            if (isNtServer && !originalUrl.contains("rkey=")) {
                 return "https://$domain$originalUrl&rkey=$multiMediaRKey"
             }
             return "https://$domain$originalUrl"

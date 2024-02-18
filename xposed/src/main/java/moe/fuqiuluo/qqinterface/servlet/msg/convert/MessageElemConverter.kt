@@ -218,7 +218,7 @@ internal sealed class MessageElemConverter: IMessageConvert {
                     "url" to when(chatType) {
                         MsgConstant.KCHATTYPEGROUP -> RichProtoSvc.getGroupVideoDownUrl("0", md5, video.fileUuid)
                         MsgConstant.KCHATTYPEC2C -> RichProtoSvc.getC2CVideoDownUrl("0", md5, video.fileUuid)
-                        MsgConstant.KCHATTYPEGUILD -> RichProtoSvc.getGroupVideoDownUrl(peerId, md5, video.fileUuid)
+                        MsgConstant.KCHATTYPEGUILD -> RichProtoSvc.getGroupVideoDownUrl("0", md5, video.fileUuid)
                         else -> unknownChatType(chatType)
                     }
                 ).also {
