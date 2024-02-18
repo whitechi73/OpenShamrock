@@ -58,6 +58,7 @@ internal object MessageConvert {
             //MsgConstant.KELEMTYPEMULTIFORWARD to XmlMultiMsgConverter,
             //MsgConstant.KELEMTYPESTRUCTLONGMSG to XmlLongMsgConverter,
             MsgConstant.KELEMTYPEFACEBUBBLE to BubbleFaceConverter,
+            MsgConstant.KELEMTYPEINLINEKEYBOARD to InlineKeyboardConverter,
         )
     }
 

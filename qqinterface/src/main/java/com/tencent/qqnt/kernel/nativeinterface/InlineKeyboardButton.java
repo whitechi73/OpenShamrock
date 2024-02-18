@@ -79,6 +79,10 @@ public  final class InlineKeyboardButton {
         return "InlineKeyboardButton{id=" + this.id + ",label=" + this.label + ",visitedLabel=" + this.visitedLabel + ",style=" + this.style + ",type=" + this.type + ",clickLimit=" + this.clickLimit + ",unsupportTips=" + this.unsupportTips + ",data=" + this.data + ",atBotShowChannelList=" + this.atBotShowChannelList + ",permissionType=" + this.permissionType + ",specifyRoleIds=" + this.specifyRoleIds + ",specifyTinyids=" + this.specifyTinyids + ",}";
     }
 
+    public InlineKeyboardButton(String str, String str2, String str3, int i, int i2, int i3, String str4, String str5, boolean z, int i4, ArrayList<String> arrayList, ArrayList<String> arrayList2, boolean z2, int i5, boolean z3, ArrayList<SubscribeMsgTemplateID> arrayList3) {
+
+    }
+
     public InlineKeyboardButton(String str, String str2, String str3, int i2, int i3, int i4, String str4, String str5, boolean z, int i5, ArrayList<String> arrayList, ArrayList<String> arrayList2) {
         this.id = "";
         this.label = "";

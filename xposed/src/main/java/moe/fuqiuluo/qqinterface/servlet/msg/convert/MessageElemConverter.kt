@@ -3,6 +3,10 @@ package moe.fuqiuluo.qqinterface.servlet.msg.convert
 import com.tencent.mobileqq.qmmkv.QMMKV
 import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
 import com.tencent.qqnt.kernel.nativeinterface.MsgElement
+import kotlinx.serialization.json.add
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+import kotlinx.serialization.json.putJsonArray
 import moe.fuqiuluo.qqinterface.servlet.transfile.RichProtoSvc
 import moe.fuqiuluo.shamrock.helper.ContactHelper
 import moe.fuqiuluo.shamrock.helper.Level
@@ -490,6 +494,53 @@ internal sealed class MessageElemConverter: IMessageConvert {
                 data = mapOf(
                     "id" to bubbleElement.yellowFaceInfo.index,
                     "count" to (bubbleElement.faceCount ?: 1),
+                )
+            )
+        }
+    }
+
+    data object InlineKeyboardConverter: MessageElemConverter() {
+        override suspend fun convert(
+            chatType: Int,
+            peerId: String,
+            subPeer: String,
+            element: MsgElement
+        ): MessageSegment {
+            val keyboard = element.inlineKeyboardElement
+            return MessageSegment(
+                type = "inline_keyboard",
+                data = mapOf(
+                    "data" to buildJsonObject {
+                        putJsonArray("rows") {
+                            keyboard.rows.forEach {  row ->
+                                add(buildJsonObject row@{
+                                    putJsonArray("buttons") {
+                                        row.buttons.forEach { button ->
+                                            add(buildJsonObject {
+                                                put("id", button.id ?: "")
+                                                put("label", button.label ?: "")
+                                                put("visited_label", button.visitedLabel ?: "")
+                                                put("style", button.style)
+                                                put("type", button.type)
+                                                put("click_limit", button.clickLimit)
+                                                put("unsupport_tips", button.unsupportTips ?: "")
+                                                put("data", button.data)
+                                                put("at_bot_show_channel_list", button.atBotShowChannelList)
+                                                put("permission_type", button.permissionType)
+                                                putJsonArray("specify_role_ids") {
+                                                    button.specifyRoleIds?.forEach { add(it) }
+                                                }
+                                                putJsonArray("specify_tinyids") {
+                                                    button.specifyTinyids?.forEach { add(it) }
+                                                }
+                                            })
+                                        }
+                                    }
+                                })
+                            }
+                        }
+                        put("bot_appid", keyboard.botAppid)
+                    }
                 )
             )
         }

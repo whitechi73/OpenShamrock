@@ -11,6 +11,9 @@ import com.tencent.qqnt.aio.adapter.api.IAIOPttApi
 import com.tencent.qqnt.kernel.nativeinterface.ArkElement
 import com.tencent.qqnt.kernel.nativeinterface.FaceBubbleElement
 import com.tencent.qqnt.kernel.nativeinterface.FaceElement
+import com.tencent.qqnt.kernel.nativeinterface.InlineKeyboardButton
+import com.tencent.qqnt.kernel.nativeinterface.InlineKeyboardElement
+import com.tencent.qqnt.kernel.nativeinterface.InlineKeyboardRow
 import com.tencent.qqnt.kernel.nativeinterface.MarkdownElement
 import com.tencent.qqnt.kernel.nativeinterface.MarketFaceElement
 import com.tencent.qqnt.kernel.nativeinterface.MarketFaceSupportSize
@@ -53,9 +56,11 @@ import moe.fuqiuluo.shamrock.helper.LogicException
 import moe.fuqiuluo.shamrock.helper.MessageHelper
 import moe.fuqiuluo.shamrock.helper.MusicHelper
 import moe.fuqiuluo.shamrock.helper.ParamsException
+import moe.fuqiuluo.shamrock.tools.asBoolean
 import moe.fuqiuluo.shamrock.tools.asBooleanOrNull
 import moe.fuqiuluo.shamrock.tools.asInt
 import moe.fuqiuluo.shamrock.tools.asIntOrNull
+import moe.fuqiuluo.shamrock.tools.asJsonArray
 import moe.fuqiuluo.shamrock.tools.asJsonObject
 import moe.fuqiuluo.shamrock.tools.asLong
 import moe.fuqiuluo.shamrock.tools.asString
@@ -108,7 +113,59 @@ internal object MessageMaker {
         //"node" to MessageMaker::createNodeElem,
         //"multi_msg" to MessageMaker::createLongMsgStruct,
         "bubble_face" to MessageMaker::createBubbleFaceElem,
+        "inline_keyboard" to MessageMaker::createInlineKeywordElem
     )
+
+    private suspend fun createInlineKeywordElem(chatType: Int, msgId: Long, peerId: String, data: JsonObject): Result<MsgElement> {
+        fun tryNewKeyboardButton(btn: JsonObject): InlineKeyboardButton {
+            return runCatching {
+                InlineKeyboardButton(
+                    btn["id"].asString,
+                    btn["label"].asString,
+                    btn["visited_label"].asString,
+                    btn["style"].asInt,
+                    btn["type"].asInt,
+                    btn["click_limit"].asInt,
+                    btn["unsupport_tips"].asString,
+                    btn["data"].asString,
+                    btn["at_bot_show_channel_list"].asBoolean,
+                    btn["permission_type"].asInt,
+                    ArrayList(btn["specify_role_ids"].asJsonArray.map { it.asString }),
+                    ArrayList(btn["specify_tinyids"].asJsonArray.map { it.asString }),
+                    false, 0, false, arrayListOf()
+                )
+            }.getOrElse {
+                InlineKeyboardButton(
+                    btn["id"].asString,
+                    btn["label"].asString,
+                    btn["visited_label"].asString,
+                    btn["style"].asInt,
+                    btn["type"].asInt,
+                    btn["click_limit"].asInt,
+                    btn["unsupport_tips"].asString,
+                    btn["data"].asString,
+                    btn["at_bot_show_channel_list"].asBoolean,
+                    btn["permission_type"].asInt,
+                    ArrayList(btn["specify_role_ids"].asJsonArray.map { it.asString }),
+                    ArrayList(btn["specify_tinyids"].asJsonArray.map { it.asString }),
+                )
+            }
+        }
+        val elem = MsgElement()
+        elem.elementType = MsgConstant.KELEMTYPEINLINEKEYBOARD
+        val rows = arrayListOf<InlineKeyboardRow>()
+        data["rows"].asJsonArray.forEach {
+            val row = it.asJsonObject
+            val buttons = arrayListOf<InlineKeyboardButton>()
+            row["buttons"].asJsonArray.forEach { button ->
+                val btn = button.asJsonObject
+                buttons.add(tryNewKeyboardButton(btn))
+            }
+            rows.add(InlineKeyboardRow(buttons))
+        }
+        elem.inlineKeyboardElement = InlineKeyboardElement(rows, data["bot_appid"].asLong)
+        return Result.success(elem)
+    }
 
     private suspend fun createBubbleFaceElem(chatType: Int, msgId: Long, peerId: String, data: JsonObject): Result<MsgElement> {
         data.checkAndThrow("id", "count")
