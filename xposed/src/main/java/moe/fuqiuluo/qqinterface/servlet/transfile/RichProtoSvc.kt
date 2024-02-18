@@ -1,13 +1,9 @@
 @file:OptIn(ExperimentalSerializationApi::class)
 package moe.fuqiuluo.qqinterface.servlet.transfile
 
-import android.os.Bundle
 import com.tencent.mobileqq.pb.ByteStringMicro
-import com.tencent.mobileqq.perf.block.BinderMethodProxy
-import com.tencent.mobileqq.qipc.QIPCClientHelper
 import com.tencent.mobileqq.transfile.FileMsg
 import com.tencent.mobileqq.transfile.api.IProtoReqManager
-import com.tencent.mobileqq.transfile.dns.IpData
 import com.tencent.mobileqq.transfile.protohandler.RichProto
 import com.tencent.mobileqq.transfile.protohandler.RichProtoProc
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -32,7 +28,6 @@ import tencent.im.cs.cmd0x346.cmd0x346
 import tencent.im.oidb.cmd0x6d6.oidb_0x6d6
 import tencent.im.oidb.cmd0xe37.cmd0xe37
 import tencent.im.oidb.oidb_sso
-import java.util.ArrayList
 import kotlin.coroutines.resume
 
 private const val GPRO_PIC = "gchat.qpic.cn"
