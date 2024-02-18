@@ -8,5 +8,5 @@ import protobuf.message.element.*
 data class MessageElement(
     @ProtoNumber(1) val text: TextElement? = null,
     @ProtoNumber(51) val json: JsonElement? = null,
-    @ProtoNumber(53) val richMedia: RichMediaElement? = null,
+    @ProtoNumber(53) val commElem: CommonElement? = null,
 )

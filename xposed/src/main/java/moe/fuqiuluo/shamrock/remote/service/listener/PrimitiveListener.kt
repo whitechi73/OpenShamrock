@@ -109,19 +109,22 @@ internal object PrimitiveListener {
     }
 
     private fun onGroupMessage(msgTime: Long, body: MessageBody) {
-        body.rich?.elements?.filter {
-            it.richMedia != null
-        }?.map {
-            ProtoBuf.decodeFromByteArray<RichMediaForPicData>(it.richMedia!!.data!!)
-        }?.forEach {
-            it.display?.show?.download?.url?.let {
-                RKEY_PATTERN.matcher(it).takeIf {
-                    it.find()
-                }?.group(1)?.let { rkey ->
-                    LogCenter.log("更新NT RKEY成功：$rkey")
-                    RichProtoSvc.multiMediaRKey = rkey
+        runCatching {
+            body.rich?.elements?.filter {
+                it.commElem != null && it.commElem!!.type == 48
+            }?.map {
+                ProtoBuf.decodeFromByteArray<RichMediaForPicData>(it.commElem!!.data!!)
+            }?.forEach {
+                it.display?.show?.download?.url?.let {
+                    RKEY_PATTERN.matcher(it).takeIf {
+                        it.find()
+                    }?.group(1)?.let { rkey ->
+                        LogCenter.log("更新NT RKEY成功：$rkey")
+                        RichProtoSvc.multiMediaRKey = rkey
+                    }
                 }
             }
+
         }
     }
 
