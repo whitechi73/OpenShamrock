@@ -154,7 +154,9 @@ internal object MessageMaker {
         val elem = MsgElement()
         elem.elementType = MsgConstant.KELEMTYPEINLINEKEYBOARD
         val rows = arrayListOf<InlineKeyboardRow>()
-        data["rows"].asJsonArray.forEach {
+
+        val keyboard = Json.parseToJsonElement(data["data"].asString).asJsonObject
+        keyboard["rows"].asJsonArray.forEach {
             val row = it.asJsonObject
             val buttons = arrayListOf<InlineKeyboardButton>()
             row["buttons"].asJsonArray.forEach { button ->
@@ -163,7 +165,7 @@ internal object MessageMaker {
             }
             rows.add(InlineKeyboardRow(buttons))
         }
-        elem.inlineKeyboardElement = InlineKeyboardElement(rows, data["bot_appid"].asLong)
+        elem.inlineKeyboardElement = InlineKeyboardElement(rows, keyboard["bot_appid"].asLong)
         return Result.success(elem)
     }
 
@@ -626,10 +628,10 @@ internal object MessageMaker {
     }
 
     private suspend fun createMarkdownElem(chatType: Int, msgId: Long, peerId: String, data: JsonObject): Result<MsgElement> {
-        data.checkAndThrow("text")
+        data.checkAndThrow("content")
         val elem = MsgElement()
         elem.elementType = MsgConstant.KELEMTYPEMARKDOWN
-        val markdown = MarkdownElement(data["text"].asString)
+        val markdown = MarkdownElement(data["content"].asString)
         elem.markdownElement = markdown
         return Result.success(elem)
     }

@@ -540,7 +540,7 @@ internal sealed class MessageElemConverter: IMessageConvert {
                             }
                         }
                         put("bot_appid", keyboard.botAppid)
-                    }
+                    }.toString()
                 )
             )
         }
