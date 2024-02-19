@@ -37,27 +37,27 @@ icon: bell
 
 当 `notice_type` 为 `group_increase` 时，表示收到了群组成员增加事件。
 
-| 字段        | 类型   | 说明                   |
-| ----------- | ------ | ---------------------- |
-| group_id    | int64  | 群号                   |
-| user_id     | int64  | 新增成员 QQ            |
-| operator_id | int64  | 操作者 QQ 号           |
-| operator_uid | string  | 操作者 UID           |
-| user_uid | string  | 新成员 UID           |
-| sub_type    | string | 子类型(approve/invite) |
+| 字段         | 类型   | 说明                   |
+| ------------ | ------ | ---------------------- |
+| group_id     | int64  | 群号                   |
+| user_id      | int64  | 新增成员 QQ            |
+| operator_id  | int64  | 操作者 QQ 号           |
+| operator_uid | string | 操作者 UID             |
+| user_uid     | string | 新成员 UID             |
+| sub_type     | string | 子类型(approve/invite) |
 
 ## 群组成员减少
 
 当 `notice_type` 为 `group_decrease` 时，表示收到了群组成员减少事件。
 
-| 字段        | 类型   | 说明                       |
-| ----------- | ------ | -------------------------- |
-| group_id    | int64  | 群号                       |
-| user_id     | int64  | 减少成员 QQ                |
-| operator_id | int64  | 操作者 QQ 号               |
-| operator_uid | string  | 操作者 UID           |
-| user_uid | string  | 新成员 UID           |
-| sub_type    | string | 子类型(leave/kick/kick_me) |
+| 字段         | 类型   | 说明                       |
+| ------------ | ------ | -------------------------- |
+| group_id     | int64  | 群号                       |
+| user_id      | int64  | 减少成员 QQ                |
+| operator_id  | int64  | 操作者 QQ 号               |
+| operator_uid | string | 操作者 UID                 |
+| user_uid     | string | 新成员 UID                 |
+| sub_type     | string | 子类型(leave/kick/kick_me) |
 
 ## 群组管理员变动
 
@@ -73,42 +73,42 @@ icon: bell
 
 当 `notice_type` 为 `group_upload` 时，表示收到了群文件上传事件。
 
-| 字段     | 类型   | 说明      |
-| -------- | ------ | --------- |
-| group_id | int64  | 群号      |
-| user_id  | int64  | 上传者 QQ |
-| file     | object | 群文件信息  |
+| 字段     | 类型   | 说明       |
+| -------- | ------ | ---------- |
+| group_id | int64  | 群号       |
+| user_id  | int64  | 上传者 QQ  |
+| file     | object | 群文件信息 |
 
 ### 群文件信息结构体
 
-| 字段名 | 数据类型 | 说明 |
-| ------- | ------- | ---- |
-| id | string | 文件 ID |
-| name | string | 文件名 |
-| size | int64 | 文件大小 ( 字节数 ) |
-| busid | int64 | busid ( 目前不清楚有什么作用 ) |
-| url | string | 下载地址 |
+| 字段名 | 数据类型 | 说明                           |
+| ------ | -------- | ------------------------------ |
+| id     | string   | 文件 ID                        |
+| name   | string   | 文件名                         |
+| size   | int64    | 文件大小 ( 字节数 )            |
+| busid  | int64    | busid ( 目前不清楚有什么作用 ) |
+| url    | string   | 下载地址                       |
 
 ## 私聊文件上传
 
 当 `notice_type` 为 `private_upload` 时，表示收到了群文件上传事件。
 
-| 字段     | 类型   | 说明      |
-| -------- | ------ | --------- |
-| user_id  | int64  | 上传者 QQ |
-| sender  | int64  | 上传者 QQ |
-| private_file     | object | 私聊文件信息  |
+| 字段         | 类型   | 说明         |
+| ------------ | ------ | ------------ |
+| user_id      | int64  | 上传者 QQ    |
+| sender       | int64  | 上传者 QQ    |
+| private_file | object | 私聊文件信息 |
 
 ### 私聊文件信息结构体
 
-| 字段名 | 数据类型 | 说明 |
-| ------- | ------- | ---- |
-| id | string | 文件 ID |
-| name | string | 文件名 |
-| size | int64 | 文件大小 ( 字节数 ) |
-| url | string | 下载地址 |
-| sub_id | string | 子文件ID |
-| exppire | int64 | 文件过期时间 |
+| 字段名  | 数据类型 | 说明                |
+| ------- | -------- | ------------------- |
+| id      | string   | 文件 ID             |
+| name    | string   | 文件名              |
+| size    | int64    | 文件大小 ( 字节数 ) |
+| url     | string   | 下载地址            |
+| sub_id  | string   | 子文件ID            |
+| exppire | int64    | 文件过期时间        |
 
 ## 群禁言
 
@@ -117,8 +117,8 @@ icon: bell
 | 字段        | 类型   | 说明                 |
 | ----------- | ------ | -------------------- |
 | group_id    | int64  | 群号                 |
-| user_id     | int64  | 被禁言成员 QQ         |
-| operator_id | int64  | 操作者 QQ        |
+| user_id     | int64  | 被禁言成员 QQ        |
+| operator_id | int64  | 操作者 QQ            |
 | duration    | int64  | 禁言时长(秒)         |
 | sub_type    | string | 子类型(ban/lift_ban) |
 
@@ -183,22 +183,21 @@ icon: bell
 
 当 `notice_type` 为 `notify` 且 `sub_type` 为 `poke` 时，表示收到了头像戳一戳事件。
 
-| 字段      | 类型  | 说明             |
-| --------- | ----- | ---------------- |
-| user_id   | int64 | 发送者 QQ        |
-| sender_id | int64 | 好友 QQ (仅私聊) |
-| group_id  | int64 | 群号(仅群聊)     |
-| target_id | int64 | 被戳者 QQ        |
-| poke_detail | PokeDetail | 戳一戳的详细信息  |
+| 字段        | 类型       | 说明             |
+| ----------- | ---------- | ---------------- |
+| user_id     | int64      | 发送者 QQ        |
+| sender_id   | int64      | 好友 QQ (仅私聊) |
+| group_id    | int64      | 群号(仅群聊)     |
+| target_id   | int64      | 被戳者 QQ        |
+| poke_detail | PokeDetail | 戳一戳的详细信息 |
 
-#### PokeDetail
+### PokeDetail
 
-| 字段     | 类型   | 说明  |
-| -------- | ------ | ----- |
-| action  | string  | 操作名称，如“戳了戳” |
-| suffix | string | 后缀，未设置则未空  |
-| action_img_url      | string | 操作图标  |
-
+| 字段           | 类型   | 说明                 |
+| -------------- | ------ | -------------------- |
+| action         | string | 操作名称，如“戳了戳” |
+| suffix         | string | 后缀，未设置则未空   |
+| action_img_url | string | 操作图标             |
 
 ## 群红包运气王 <Badge text="未实现" type="danger" />
 
