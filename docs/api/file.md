@@ -21,11 +21,11 @@ icon: file
 
 ### 参数
 
-| 字段      | 类型     | 说明     |
-|---------|--------|--------|
-| user_id | int64  | 目标     |
+| 字段    | 类型   | 说明         |
+| ------- | ------ | ------------ |
+| user_id | int64  | 目标         |
 | file    | string | 本地文件路径 |
-| name    | string | 文件名称   |
+| name    | string | 文件名称     |
 
 ### 响应
 
@@ -33,12 +33,12 @@ icon: file
 
 @tab 响应字段
 
-| 字段             | 类型         | 说明       |
-| ---------------- | ------------ | ---------- |
-| msg_id         | int32        | 消息id       |
-| bizid       | int32       |      |
-| md5     | string       | MD5     |
-| file_id        | string        | 文件uuid     |
+| 字段    | 类型   | 说明     |
+| ------- | ------ | -------- |
+| msg_id  | int32  | 消息id   |
+| bizid   | int32  |          |
+| md5     | string | MD5      |
+| file_id | string | 文件uuid |
 
 @tab 响应示例
 
@@ -59,7 +59,6 @@ icon: file
 ```
 
 :::
-
 
 ## 上传群文件
 
@@ -75,11 +74,11 @@ icon: file
 
 ### 参数
 
-| 字段       | 类型     | 说明     |
-|----------|--------|--------|
-| group_id | int64  | 群号     |
+| 字段     | 类型   | 说明         |
+| -------- | ------ | ------------ |
+| group_id | int64  | 群号         |
 | file     | string | 本地文件路径 |
-| name     | string | 文件名称   |
+| name     | string | 文件名称     |
 
 ### 响应
 
@@ -87,12 +86,12 @@ icon: file
 
 @tab 响应字段
 
-| 字段             | 类型         | 说明       |
-| ---------------- | ------------ | ---------- |
-| msg_id         | int32        | 消息id       |
-| bizid       | int32       |      |
-| md5     | string       | MD5     |
-| file_id        | string        | 文件uuid     |
+| 字段    | 类型   | 说明     |
+| ------- | ------ | -------- |
+| msg_id  | int32  | 消息id   |
+| bizid   | int32  |          |
+| md5     | string | MD5      |
+| file_id | string | 文件uuid |
 
 @tab 响应示例
 
@@ -115,7 +114,7 @@ icon: file
 :::
 
 ::: warning 注意
-参数 `folder`在Shamrock不受支持。 
+参数 `folder`在Shamrock不受支持。
 :::
 
 ## 删除群文件
@@ -128,10 +127,10 @@ icon: file
 
 ### 参数
 
-| 字段       | 类型     | 说明                       |
-|----------|--------|--------------------------|
-| group_id | int64  | 群号                       |
-| file_id  | string | 文件ID 参考 [File](#file) 对象 |
+| 字段     | 类型   | 说明                             |
+| -------- | ------ | -------------------------------- |
+| group_id | int64  | 群号                             |
+| file_id  | string | 文件ID 参考 [File](#file) 对象   |
 | busid    | int32  | 文件类型 参考 [File](#file) 对象 |
 
 ::: tip 提示
@@ -152,10 +151,10 @@ icon: file
 
 ### 参数
 
-| 字段        | 类型     | 说明                            |
-|-----------|--------|-------------------------------|
-| group_id  | int64  | 群号      |
-| name | string | 群文件夹名字 |
+| 字段     | 类型   | 说明         |
+| -------- | ------ | ------------ |
+| group_id | int64  | 群号         |
+| name     | string | 群文件夹名字 |
 
 ### 响应示例
 
@@ -185,11 +184,11 @@ icon: file
 
 `/rename_group_folder`
 
-| 字段        | 类型     | 说明                            |
-|-----------|--------|-------------------------------|
-| group_id  | int64  | 群号      |
-| folder_id | string | 群文件夹ID |
-| name | string | 群文件夹名字 |
+| 字段      | 类型   | 说明         |
+| --------- | ------ | ------------ |
+| group_id  | int64  | 群号         |
+| folder_id | string | 群文件夹ID   |
+| name      | string | 群文件夹名字 |
 
 ### 响应解释
 
@@ -205,9 +204,9 @@ icon: file
 
 ### 参数
 
-| 字段        | 类型     | 说明                            |
-|-----------|--------|-------------------------------|
-| group_id  | int64  | 群号                            |
+| 字段      | 类型   | 说明                                 |
+| --------- | ------ | ------------------------------------ |
+| group_id  | int64  | 群号                                 |
 | folder_id | string | 文件夹ID 参考 [Folder](#folder) 对象 |
 
 ### 响应解释
@@ -224,18 +223,18 @@ icon: file
 
 ### 参数
 
-| 字段       | 类型    | 说明 |
-|----------|-------|----|
+| 字段     | 类型  | 说明 |
+| -------- | ----- | ---- |
 | group_id | int64 | 群号 |
 
 ### 响应
 
-| 字段          | 类型    | 说明    |
-|-------------|-------|-------|
-| file_count  | int32 | 文件总数  |
-| limit_count | int32 | 文件上限  |
+| 字段        | 类型  | 说明       |
+| ----------- | ----- | ---------- |
+| file_count  | int32 | 文件总数   |
+| limit_count | int32 | 文件上限   |
 | used_space  | int64 | 已使用空间 |
-| total_space | int64 | 空间上限  |
+| total_space | int64 | 空间上限   |
 
 ## 获取群根目录文件列表
 
@@ -247,45 +246,45 @@ icon: file
 
 ### 参数
 
-| 字段       | 类型    | 说明 |
-|----------|-------|----|
+| 字段     | 类型  | 说明 |
+| -------- | ----- | ---- |
 | group_id | int64 | 群号 |
 
 ### 响应
 
-| 字段      | 类型                      | 说明    |
-|---------|-------------------------|-------|
-| files   | List<[File](#file)>     | 文件列表  |
+| 字段    | 类型                    | 说明       |
+| ------- | ----------------------- | ---------- |
+| files   | List<[File](#file)>     | 文件列表   |
 | folders | List<[Folder](#folder)> | 文件夹列表 |
 
 #### File
 
-| 字段             | 类型     | 说明           |
-|----------------|--------|--------------|
-| group_id       | int32  | 群号           |
-| file_id        | string | 文件ID         |
-| file_name      | string | 文件名          |
-| busid          | int32  | 文件类型         |
-| file_size      | int64  | 文件大小         |
-| upload_time    | int64  | 上传时间         |
+| 字段           | 类型   | 说明                    |
+| -------------- | ------ | ----------------------- |
+| group_id       | int32  | 群号                    |
+| file_id        | string | 文件ID                  |
+| file_name      | string | 文件名                  |
+| busid          | int32  | 文件类型                |
+| file_size      | int64  | 文件大小                |
+| upload_time    | int64  | 上传时间                |
 | dead_time      | int64  | 过期时间，永久文件恒为0 |
-| modify_time    | int64  | 最后修改时间       |
-| download_times | int32  | 下载次数         |
-| uploader       | int64  | 上传者ID        |
-| uploader_name  | string | 上传者名字        |
-| md5            | string | md5        |
-| sha            | string | sha        |
-| sha3           | string | sha3 可能获取不到        |
+| modify_time    | int64  | 最后修改时间            |
+| download_times | int32  | 下载次数                |
+| uploader       | int64  | 上传者ID                |
+| uploader_name  | string | 上传者名字              |
+| md5            | string | md5                     |
+| sha            | string | sha                     |
+| sha3           | string | sha3 可能获取不到       |
 
 #### Folder
 
-| 字段               | 类型     | 说明    |
-|------------------|--------|-------|
-| group_id         | int32  | 群号    |
-| folder_id        | string | 文件夹ID |
-| folder_name      | string | 文件名   |
-| create_time      | int64  | 创建时间  |
-| creator          | int64  | 创建者   |
+| 字段             | 类型   | 说明       |
+| ---------------- | ------ | ---------- |
+| group_id         | int32  | 群号       |
+| folder_id        | string | 文件夹ID   |
+| folder_name      | string | 文件名     |
+| create_time      | int64  | 创建时间   |
+| creator          | int64  | 创建者     |
 | creator_name     | string | 创建者名字 |
 | total_file_count | int32  | 子文件数量 |
 
@@ -299,16 +298,16 @@ icon: file
 
 ### 参数
 
-| 字段        | 类型     | 说明                            |
-|-----------|--------|-------------------------------|
-| group_id  | int64  | 群号                            |
+| 字段      | 类型   | 说明                                 |
+| --------- | ------ | ------------------------------------ |
+| group_id  | int64  | 群号                                 |
 | folder_id | string | 文件夹ID 参考 [Folder](#folder) 对象 |
 
 ### 响应
 
-| 字段      | 类型       | 说明    |
-|---------|----------|-------|
-| files   | File[]   | 文件列表  |
+| 字段    | 类型     | 说明       |
+| ------- | -------- | ---------- |
+| files   | File[]   | 文件列表   |
 | folders | Folder[] | 文件夹列表 |
 
 ## 获取群文件资源链接
@@ -321,14 +320,14 @@ icon: file
 
 ### 参数
 
-| 字段       | 类型     | 说明                       |
-|----------|--------|--------------------------|
-| group_id | int64  | 群号                       |
-| file_id  | string | 文件ID 参考 [File](#file) 对象 |
+| 字段     | 类型   | 说明                             |
+| -------- | ------ | -------------------------------- |
+| group_id | int64  | 群号                             |
+| file_id  | string | 文件ID 参考 [File](#file) 对象   |
 | busid    | int32  | 文件类型 参考 [File](#file) 对象 |
 
 ### 响应
 
-| 字段  | 类型     | 说明     |
-|-----|--------|--------|
-| url | string | 文件下载链接 |
+| 字段 | 类型   | 说明         |
+| ---- | ------ | ------------ |
+| url  | string | 文件下载链接 |

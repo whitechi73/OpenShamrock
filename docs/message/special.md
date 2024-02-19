@@ -7,15 +7,15 @@ icon: paper-plane
 
 ### 参数
 
-| 字段     | 类型 | 收  | 发  | 必填 | 说明                  |
-| -------- | ---- | --- | --- | ---- | --------------------- |
-| id       | int  | ✓   | x   | 是   | 5 没中, 4 擦边没中, 3 卡框, 2 擦边中, 1 正中        |
+| 字段 | 类型 | 收  | 发  | 必填 | 说明                                         |
+| ---- | ---- | --- | --- | ---- | -------------------------------------------- |
+| id   | int  | ✓   | x   | 是   | 5 没中, 4 擦边没中, 3 卡框, 2 擦边中, 1 正中 |
 
 ::: tabs
 
 @tab CQ 码
 
-```
+```text
 [CQ:basketball,id=1]
 ```
 
@@ -36,15 +36,15 @@ icon: paper-plane
 
 ### 参数
 
-| 字段     | 类型 | 收  | 发  | 必填 | 说明                  |
-| -------- | ---- | --- | --- | ---- | --------------------- |
-| id       | int  | ✓   | x   | 是   | 锤 3 剪 2 布 1        |
+| 字段 | 类型 | 收  | 发  | 必填 | 说明           |
+| ---- | ---- | --- | --- | ---- | -------------- |
+| id   | int  | ✓   | x   | 是   | 锤 3 剪 2 布 1 |
 
 ::: tabs
 
 @tab CQ 码
 
-```
+```text
 [CQ:new_rps,id=1]
 ```
 
@@ -65,15 +65,15 @@ icon: paper-plane
 
 ### 参数
 
-| 字段     | 类型 | 收  | 发  | 必填 | 说明                  |
-| -------- | ---- | --- | --- | ---- | --------------------- |
-| id       | int  | ✓   | x   | 是   | 点数 ID             |
+| 字段 | 类型 | 收  | 发  | 必填 | 说明    |
+| ---- | ---- | --- | --- | ---- | ------- |
+| id   | int  | ✓   | x   | 是   | 点数 ID |
 
 ::: tabs
 
 @tab CQ 码
 
-```
+```text
 [CQ:new_dice,id=1]
 ```
 
@@ -96,7 +96,7 @@ icon: paper-plane
 
 @tab CQ 码
 
-```
+```text
 [CQ:dice]
 ```
 
@@ -105,8 +105,7 @@ icon: paper-plane
 ```json
 {
   "type": "dice",
-  "data": {
-  }
+  "data": {}
 }
 ```
 
@@ -118,7 +117,7 @@ icon: paper-plane
 
 @tab CQ 码
 
-```
+```text
 [CQ:rps]
 ```
 
@@ -127,8 +126,7 @@ icon: paper-plane
 ```json
 {
   "type": "rps",
-  "data": {
-  }
+  "data": {}
 }
 ```
 
@@ -152,7 +150,7 @@ Shamrock 对于戳一戳的定义与 `go-cqhttp` 不同。
 
 @tab CQ 码
 
-```
+```text
 [CQ:poke,type=1,id=10000]
 ```
 
@@ -183,7 +181,7 @@ Shamrock 对于戳一戳的定义与 `go-cqhttp` 不同。
 
 @tab CQ 码
 
-```
+```text
 [CQ:touch,id=123456]
 ```
 
@@ -213,7 +211,7 @@ Shamrock 对于戳一戳的定义与 `go-cqhttp` 不同。
 
 @tab CQ 码
 
-```
+```text
 [CQ:music,type=qq,id=123456]
 ```
 
@@ -248,7 +246,7 @@ Shamrock 对于戳一戳的定义与 `go-cqhttp` 不同。
 
 @tab CQ 码
 
-```
+```text
 [CQ:music,type=custom,url=https://example.com,audio=https://example.com/music.mp3,title=Music,singer=Music,image=https://example.com/image.jpg]
 ```
 
@@ -283,7 +281,7 @@ Shamrock 对于戳一戳的定义与 `go-cqhttp` 不同。
 
 @tab CQ 码
 
-```
+```text
 [CQ:weather,city=上海]
 ```
 
@@ -315,7 +313,7 @@ Shamrock 对于戳一戳的定义与 `go-cqhttp` 不同。
 
 @tab CQ 码
 
-```
+```text
 [CQ:location,lat=39.915168,lon=116.403875]
 ```
 
@@ -349,7 +347,7 @@ Shamrock 对于戳一戳的定义与 `go-cqhttp` 不同。
 
 @tab CQ 码
 
-```
+```text
 [CQ:share,url=https://example.com,title=Example,content=Example,image=https://example.com/image.jpg,file=https://example.com/file.zip]
 ```
 
@@ -383,7 +381,7 @@ Shamrock 对于戳一戳的定义与 `go-cqhttp` 不同。
 
 @tab CQ 码
 
-```
+```text
 [CQ:gift,qq=123456,id=10000]
 ```
 

@@ -9,6 +9,7 @@ lerna-debug.log*
 
 node_modules
 .temp
+dist
 .cache
 
 # Editor directories and files

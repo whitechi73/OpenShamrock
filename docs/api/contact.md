@@ -31,13 +31,13 @@ icon: address-book
 
 @tab 响应字段
 
-| 字段     | 类型   | 说明  |
-| -------- | ------ | ----- |
-| user_id  | int64  | QQ 号 |
-| nickname | string | 昵称  |
-| age      | int32  | 年龄  |
-| sex      | string | 性别  |
-| ext      | object | 扩展字段（一堆垃圾）  |
+| 字段     | 类型   | 说明                 |
+| -------- | ------ | -------------------- |
+| user_id  | int64  | QQ 号                |
+| nickname | string | 昵称                 |
+| age      | int32  | 年龄                 |
+| sex      | string | 性别                 |
+| ext      | object | 扩展字段（一堆垃圾） |
 
 @tab 响应示例
 
@@ -187,7 +187,6 @@ icon: address-book
 
 :::
 
-
 ## 获取单向好友列表 <Badge text="未实现" type="danger" />
 
 该接口用于获取单向好友列表。
@@ -273,7 +272,6 @@ icon: address-book
 ```
 
 :::
-
 
 ## 获取群列表
 
@@ -549,17 +547,17 @@ icon: address-book
 
 #### InvitedRequest
 
-| 字段         | 类型   | 说明              |
-| ------------ | ------ | ----------------- |
-| request_id   | int64  | 请求ID            |
-| invitor_uin  | int64  | 邀请者            |
-| invitor_nick | string | 邀请者昵称        |
-| group_id     | int64  | 群号              |
-| group_name   | string | 群名              |
-| checked      | bool   | 是否已被处理      |
-| actor        | int64  | 处理者, 未处理为0 |
-| requester_uin| int64  | 被邀请者ID        |
-| flag         | string | flag,用于处理请求 |
+| 字段          | 类型   | 说明              |
+| ------------- | ------ | ----------------- |
+| request_id    | int64  | 请求ID            |
+| invitor_uin   | int64  | 邀请者            |
+| invitor_nick  | string | 邀请者昵称        |
+| group_id      | int64  | 群号              |
+| group_name    | string | 群名              |
+| checked       | bool   | 是否已被处理      |
+| actor         | int64  | 处理者, 未处理为0 |
+| requester_uin | int64  | 被邀请者ID        |
+| flag          | string | flag,用于处理请求 |
 
 #### JoinRequest
 
@@ -591,20 +589,20 @@ icon: address-book
 
 @tab 响应字段
 
-| 字段             | 类型   | 说明     |
-| ---------------- | ------ | -------- |
-| request_id          | int64  | 请求id    |
-| requester_uin        | int64 | 请求者QQ号     |
-| requester_nick | string | 请求者昵称   |
-| source      | string | 来源     |
-| message              | string  | 附加消息     |
-| source_group_name           | string  | 来源群名称，仅当从群添加好友时存在     |
-| source_group_id         | int64  | 来源群号，仅当从群添加好友时存在  |
-| sex         | string | 请求者性别     |
-| age         | string | 请求者年龄     |
-| msg_detail         | string | 处理结果     |
-| status         | string | 可选值：`已同意`、`已拒绝`，为空则表示尚未处理     |
-| flag        | string | flag,用于处理请求 |
+| 字段              | 类型   | 说明                                           |
+| ----------------- | ------ | ---------------------------------------------- |
+| request_id        | int64  | 请求id                                         |
+| requester_uin     | int64  | 请求者QQ号                                     |
+| requester_nick    | string | 请求者昵称                                     |
+| source            | string | 来源                                           |
+| message           | string | 附加消息                                       |
+| source_group_name | string | 来源群名称，仅当从群添加好友时存在             |
+| source_group_id   | int64  | 来源群号，仅当从群添加好友时存在               |
+| sex               | string | 请求者性别                                     |
+| age               | string | 请求者年龄                                     |
+| msg_detail        | string | 处理结果                                       |
+| status            | string | 可选值：`已同意`、`已拒绝`，为空则表示尚未处理 |
+| flag              | string | flag,用于处理请求                              |
 
 @tab 响应示例
 
@@ -614,36 +612,37 @@ icon: address-book
   "retcode": 0,
   "data": [
     {
-        "request_id": 1702011024000000,
-        "requester_uin": 1234567890,
-        "requester_nick": "流月e",
-        "source": "QQ群-群名称",
-        "message": "我是流月e",
-        "source_group_name": "群名称",
-        "source_group_id": 1234567890,
-        "flag": "1702011024000000;3004;3;1234567890",
-        "sex": "female",
-        "age": 23,
-        "msg_detail": "",
-        "status": ""
+      "request_id": 1702011024000000,
+      "requester_uin": 1234567890,
+      "requester_nick": "流月e",
+      "source": "QQ群-群名称",
+      "message": "我是流月e",
+      "source_group_name": "群名称",
+      "source_group_id": 1234567890,
+      "flag": "1702011024000000;3004;3;1234567890",
+      "sex": "female",
+      "age": 23,
+      "msg_detail": "",
+      "status": ""
     },
     {
-        "request_id": 1702010997000000,
-        "requester_uin": 1234567891,
-        "requester_nick": "是铃音啦",
-        "source": "QQ群",
-        "message": "",
-        "source_group_name": "",
-        "source_group_id": 0,
-        "flag": "1702010997000000;6;1;1234567891",
-        "sex": "male",
-        "age": 0,
-        "msg_detail": "",
-        "status": ""
+      "request_id": 1702010997000000,
+      "requester_uin": 1234567891,
+      "requester_nick": "是铃音啦",
+      "source": "QQ群",
+      "message": "",
+      "source_group_name": "",
+      "source_group_id": 0,
+      "flag": "1702010997000000;6;1;1234567891",
+      "sex": "male",
+      "age": 0,
+      "msg_detail": "",
+      "status": ""
     }
   ]
 }
 ```
+
 :::
 
 ## 获取精华消息列表
@@ -664,17 +663,16 @@ icon: address-book
 
 响应内容为 JSON 数组，每个元素如下：
 
-| 字段名        | 数据类型 | 说明         |
-| ------------- | -------- | ------------ |
-| sender_id     | int64    | 发送者QQ 号  |
-| sender_nick   | string   | 发送者昵称   |
-| sender_time   | int64    | 消息发送时间 |
-| operator_id   | int64    | 操作者QQ 号  |
-| operator_nick | string   | 操作者昵称   |
-| operator_time | int64    | 精华设置时间 |
-| message_id    | int32    | 消息ID，可能为0表示找不到消息映射       |
-| message_seq   | int32    | 消息seq      |
-
+| 字段名        | 数据类型 | 说明                              |
+| ------------- | -------- | --------------------------------- |
+| sender_id     | int64    | 发送者QQ 号                       |
+| sender_nick   | string   | 发送者昵称                        |
+| sender_time   | int64    | 消息发送时间                      |
+| operator_id   | int64    | 操作者QQ 号                       |
+| operator_nick | string   | 操作者昵称                        |
+| operator_time | int64    | 精华设置时间                      |
+| message_id    | int32    | 消息ID，可能为0表示找不到消息映射 |
+| message_seq   | int32    | 消息seq                           |
 
 ## QQ是否在黑名单内
 
