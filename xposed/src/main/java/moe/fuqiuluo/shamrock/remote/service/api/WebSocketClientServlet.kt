@@ -45,7 +45,7 @@ internal abstract class WebSocketClientServlet(
     private var firstOpen = true
     private val sendLock = Mutex()
 
-    override fun allowTransmit(): Boolean {
+    override fun transmitAccess(): Boolean {
         return ShamrockConfig.openWebSocketClient()
     }
 
@@ -90,9 +90,9 @@ internal abstract class WebSocketClientServlet(
         if (firstOpen) {
             firstOpen = false
         } else {
-            cancelFlowJobs()
+            unsubscribe()
         }
-        initTransmitter()
+        init()
     }
 
     override fun onClose(code: Int, reason: String?, remote: Boolean) {
@@ -105,18 +105,18 @@ internal abstract class WebSocketClientServlet(
             }
         }
         LogCenter.log("WebSocketClient onClose: $code, $reason, $remote")
-        cancelFlowJobs()
+        unsubscribe()
         connectedClients.remove(url)
     }
 
     override fun onError(ex: Exception?) {
         LogCenter.log("WebSocketClient onError: ${ex?.message}")
-        cancelFlowJobs()
+        unsubscribe()
         connectedClients.remove(url)
     }
 
     protected suspend inline fun <reified T> pushTo(body: T) {
-        if (!allowTransmit() || isClosed || isClosing) return
+        if (!transmitAccess() || isClosed || isClosing) return
         try {
             sendLock.withLock {
                 send(GlobalJson.encodeToString(body))

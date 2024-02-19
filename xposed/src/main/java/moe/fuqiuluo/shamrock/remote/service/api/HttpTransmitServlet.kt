@@ -8,7 +8,6 @@ import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
-import kotlinx.coroutines.Job
 import moe.fuqiuluo.shamrock.remote.service.config.ShamrockConfig
 import moe.fuqiuluo.shamrock.tools.GlobalClient
 import moe.fuqiuluo.shamrock.helper.Level
@@ -22,12 +21,12 @@ import java.net.SocketException
 internal abstract class HttpTransmitServlet : BaseTransmitServlet {
     override val address: String  by lazy { ShamrockConfig.getWebHookAddress() }
 
-    override fun allowTransmit(): Boolean {
+    override fun transmitAccess(): Boolean {
         return ShamrockConfig.allowWebHook()
     }
 
     protected suspend inline fun <reified T> pushTo(body: T): HttpResponse? {
-        if (!allowTransmit()) return null
+        if (!transmitAccess()) return null
         try {
             if (address.startsWith("http://") || address.startsWith("https://")) {
                 val response = GlobalClient.post(address) {

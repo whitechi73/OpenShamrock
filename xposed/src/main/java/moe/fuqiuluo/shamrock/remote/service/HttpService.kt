@@ -26,34 +26,33 @@ import moe.fuqiuluo.shamrock.remote.action.handlers.QuickOperation.quicklyReply
 import moe.fuqiuluo.shamrock.remote.service.api.GlobalEventTransmitter
 
 internal object HttpService: HttpTransmitServlet() {
-    private val jobList = arrayListOf<Job>()
+    private val subscribes = arrayListOf<Job>()
 
-    override fun submitFlowJob(job: Job) {
-        // HTTP 回调不会触发断连，无需释放之前的JOB
-        jobList.add(job)
+    override fun subscribe(job: Job) {
+        subscribes.add(job)
     }
 
-    override fun cancelFlowJobs() {
-        jobList.removeIf {
+    override fun unsubscribe() {
+        subscribes.removeIf {
             it.cancel()
             return@removeIf true
         }
     }
 
-    override fun initTransmitter() {
-        if (jobList.isNotEmpty()) return
-        submitFlowJob(GlobalScope.launch {
+    override fun init() {
+        if (subscribes.isNotEmpty()) return
+        subscribe(GlobalScope.launch {
             GlobalEventTransmitter.onMessageEvent { (record, event) ->
                 val respond = pushTo(event) ?: return@onMessageEvent
                 handleQuicklyReply(record, event.messageId, respond.bodyAsText())
             }
         })
-        submitFlowJob(GlobalScope.launch {
+        subscribe(GlobalScope.launch {
             GlobalEventTransmitter.onNoticeEvent { event ->
                 pushTo(event)
             }
         })
-        submitFlowJob(GlobalScope.launch {
+        subscribe(GlobalScope.launch {
             GlobalEventTransmitter.onRequestEvent {
                 pushTo(it)
             }

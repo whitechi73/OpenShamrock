@@ -38,7 +38,7 @@ internal class InitRemoteService : IAction {
 
 
         if (ShamrockConfig.allowWebHook()) {
-            HttpService.initTransmitter()
+            HttpService.init()
         }
 
         val runtime = AppRuntimeFetcher.appRuntime

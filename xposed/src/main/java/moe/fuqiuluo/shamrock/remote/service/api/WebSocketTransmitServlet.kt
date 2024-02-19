@@ -48,7 +48,7 @@ internal abstract class WebSocketTransmitServlet(
     override val address: String
         get() = "-"
 
-     override fun allowTransmit(): Boolean {
+     override fun transmitAccess(): Boolean {
          return ShamrockConfig.openWebSocket()
      }
 
@@ -129,16 +129,16 @@ internal abstract class WebSocketTransmitServlet(
 
     override fun onError(conn: WebSocket, ex: Exception?) {
         LogCenter.log("WSServer Error: " + ex?.stackTraceToString(), Level.ERROR)
-        cancelFlowJobs()
+        unsubscribe()
     }
 
     override fun onStart() {
         LogCenter.log("WSServer start running on ws://${getAddress()}!")
-        initTransmitter()
+        init()
     }
 
     protected suspend inline fun <reified T> pushTo(body: T) {
-        if(!allowTransmit()) return
+        if(!transmitAccess()) return
         try {
             sendLock.withLock {
                 broadcastTextEvent(GlobalJson.encodeToString(body))

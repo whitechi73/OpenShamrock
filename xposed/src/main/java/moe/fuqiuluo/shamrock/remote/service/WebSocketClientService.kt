@@ -16,28 +16,28 @@ internal class WebSocketClientService(
     heartbeatInterval: Long,
     wsHeaders: Map<String, String>
 ) : WebSocketClientServlet(address, heartbeatInterval, wsHeaders) {
-    private val eventJobList = mutableSetOf<Job>()
+    private val subscribes = mutableSetOf<Job>()
 
     init {
         startHeartbeatTimer()
     }
 
-    override fun submitFlowJob(job: Job) {
-        eventJobList.add(job)
+    override fun subscribe(job: Job) {
+        subscribes.add(job)
     }
 
-    override fun initTransmitter() {
-        submitFlowJob(GlobalScope.launch {
+    override fun init() {
+        subscribe(GlobalScope.launch {
             GlobalEventTransmitter.onMessageEvent { (_, event) ->
                 pushTo(event)
             }
         })
-        submitFlowJob(GlobalScope.launch {
+        subscribe(GlobalScope.launch {
             GlobalEventTransmitter.onNoticeEvent { event ->
                 pushTo(event)
             }
         })
-        submitFlowJob(GlobalScope.launch {
+        subscribe(GlobalScope.launch {
             GlobalEventTransmitter.onRequestEvent { event ->
                 pushTo(event)
             }
@@ -45,8 +45,8 @@ internal class WebSocketClientService(
         LogCenter.log("WebSocketClientService: 初始化服务", Level.WARN)
     }
 
-    override fun cancelFlowJobs() {
-        eventJobList.removeIf { job ->
+    override fun unsubscribe() {
+        subscribes.removeIf { job ->
             job.cancel()
             return@removeIf true
         }
