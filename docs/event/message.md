@@ -10,20 +10,21 @@ icon: comment
 
 ## 消息事件
 
-| 字段         | 类型   | 说明                                   |
-| ------------ | ------ | -------------------------------------- |
-| message_type | string | 消息类型                               |
-| sub_type     | string | 消息子类型                             |
-| message_id   | int64  | 消息 ID                                |
-| user_id      | int64  | 发送者 QQ 号                           |
-| message      | object | 消息内容                               |
-| raw_message  | string | CQ 码格式消息                          |
-| font         | int32  | 字体                                   |
-| sender       | object | 发送人信息                             |
-| group_id     | int64  | 群号                                   |
-| target_id    | int64  | 消息目标（私聊）                       |
-| temp_source  | int32  | 临时聊天来源（私聊）                   |
-| peer_id      | int64  | 消息接收者，群聊是群号，私聊时是目标QQ |
+| 字段         | 类型   | 说明                                      |
+| ------------ | ------ | ---------------------------------------- |
+| message_type | string | 消息类型                                  |
+| sub_type     | string | 消息子类型                                |
+| message_id   | int64  | 消息 ID                                   |
+| user_id      | int64  | 发送者 QQ 号（在频道中，则为发送者的Tiny ID）|
+| tiny_id      | int64  | 发送者的Tiny ID（频道）                    |
+| message      | object | 消息内容                                  |
+| raw_message  | string | CQ 码格式消息                             |
+| font         | int32  | 字体                                      |
+| sender       | object | 发送人信息                                |
+| group_id     | int64  | 群号                                      |
+| target_id    | int64  | 消息目标（私聊）                           |
+| temp_source  | int32  | 临时聊天来源（私聊）                       |
+| peer_id      | int64  | 消息接收者，群聊是群号，私聊时是目标QQ       |
 
 ## 私聊消息
 
