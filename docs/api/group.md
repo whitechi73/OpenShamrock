@@ -337,7 +337,9 @@ data 的响应内容为 json 数组，每个元素内容如下：
 
 ### API 端点
 
-`/group_touch`
+`/group_touch` - 用于HTTP
+
+`/poke` - 用于主动WebSocket与被动WebSocket
 
 ### 参数
 
