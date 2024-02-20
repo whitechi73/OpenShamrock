@@ -107,7 +107,13 @@ internal object SendForwardMessage : IActionHandler() {
                             ) else null
                         ),
                         content = MessageContent(
-                            msgType = record.msgType,
+                            msgType = when (record.chatType) {
+                                MsgConstant.KCHATTYPEC2C -> 529
+                                MsgConstant.KCHATTYPEGROUP -> 82
+                                else -> throw UnsupportedOperationException(
+                                    "Unsupported chatType: $chatType"
+                                )
+                            },
                             msgViaRandom = record.msgId,
                             msgSeq = record.msgSeq,
                             msgTime = record.msgTime,
@@ -160,7 +166,7 @@ internal object SendForwardMessage : IActionHandler() {
                             peerUid = data["uid"]?.asString ?: TicketSvc.getUid()
                         ),
                         content = MessageContent(
-                            msgType = 166,
+                            msgType = 529,
                             msgViaRandom = 4,
                             msgSeq = data["seq"]?.asLong ?: Random.nextLong(),
                             msgTime = data["time"]?.asLong ?: (System.currentTimeMillis() / 1000),

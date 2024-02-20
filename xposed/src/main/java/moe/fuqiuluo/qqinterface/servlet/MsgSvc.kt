@@ -239,6 +239,7 @@ internal object MsgSvc : BaseSvc() {
                 )
             )
         )
+        LogCenter.log(ProtoBuf.encodeToByteArray(payload).toHexString(), Level.DEBUG)
 
         val req = LongMsgReq(
             sendInfo = SendLongMsgInfo(
@@ -292,7 +293,7 @@ internal object MsgSvc : BaseSvc() {
             if (it.command == "MultiMsg") {
                 return Result.success(it.data?.body?.map { msg ->
                     val chatType =
-                        if (msg.content!!.msgType == 1) MsgConstant.KCHATTYPEC2C else MsgConstant.KCHATTYPEGROUP
+                        if (msg.content!!.msgType == 82) MsgConstant.KCHATTYPEGROUP else MsgConstant.KCHATTYPEC2C
                     MessageDetail(
                         time = msg.content?.msgTime?.toInt() ?: 0,
                         msgType = MessageHelper.obtainDetailTypeByMsgType(chatType),
