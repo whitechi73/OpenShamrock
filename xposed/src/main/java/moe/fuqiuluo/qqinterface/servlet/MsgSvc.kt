@@ -8,36 +8,29 @@ import com.tencent.qqnt.kernel.api.IKernelService
 import com.tencent.qqnt.kernel.nativeinterface.*
 import com.tencent.qqnt.msg.api.IMsgService
 import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
 import kotlinx.serialization.json.JsonArray
-import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.protobuf.ProtoBuf
-import moe.fuqiuluo.qqinterface.servlet.msg.convert.toSegments
+import moe.fuqiuluo.qqinterface.servlet.msg.messageelement.toSegments
+import moe.fuqiuluo.qqinterface.servlet.msg.toListMap
 import moe.fuqiuluo.shamrock.helper.ContactHelper
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.helper.MessageHelper
-import moe.fuqiuluo.shamrock.helper.MessageHelper.messageArrayToMessageElements
+import moe.fuqiuluo.shamrock.remote.service.data.MessageDetail
+import moe.fuqiuluo.shamrock.remote.service.data.MessageSender
 import moe.fuqiuluo.shamrock.remote.structures.SendMsgResult
 import moe.fuqiuluo.shamrock.tools.*
 import moe.fuqiuluo.shamrock.utils.DeflateTools
 import moe.fuqiuluo.shamrock.xposed.helper.NTServiceFetcher
 import moe.fuqiuluo.shamrock.xposed.helper.msgService
-import protobuf.message.*
 import protobuf.message.longmsg.*
-import tencent.mobileim.structmsg.structmsg.SystemMsg
-import java.util.UUID
-import kotlin.collections.slice
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
-import kotlin.random.Random
-import kotlin.random.nextLong
 
 internal object MsgSvc : BaseSvc() {
     suspend fun prepareTempChatFromGroup(
@@ -237,10 +230,12 @@ internal object MsgSvc : BaseSvc() {
         messages: List<PushMsgBody>,
     ): Result<String> {
         val payload = LongMsgPayload(
-            action = LongMsgAction(
-                command = "MultiMsg",
-                data = LongMsgContent(
-                    messages
+            action = listOf(
+                LongMsgAction(
+                    command = "MultiMsg",
+                    data = LongMsgContent(
+                        body = messages
+                    )
                 )
             )
         )
@@ -265,49 +260,64 @@ internal object MsgSvc : BaseSvc() {
             ProtoBuf.encodeToByteArray(req)
         ) ?: return Result.failure(Exception("unable to upload multi message"))
         val rsp = ProtoBuf.decodeFromByteArray<LongMsgRsp>(buffer.slice(4))
-        return rsp.sendResult?.resId?.let { Result.success(it) } ?: Result.failure(Exception("unable to upload multi message"))
+        return rsp.sendResult?.resId?.let { Result.success(it) }
+            ?: Result.failure(Exception("unable to upload multi message"))
     }
 
-    suspend fun getMultiMsg(resId: String): Result<List<MsgRecord>> {
-        // trpc.group.long_msg_interface.MsgService.SsoRecvLongMsg
-        // 00 00 00 70 0A 60 0A 1A 12 18 75 5F 35 5A 5A 53 6F 38 63 4D 71 70 49 79 63 75 57 5F 78 43 4C 48 6E 77 12 40 4D 6F 61 44 38 77 2B 55 74 43 42 55 45 4C 4F 66 7A 61 72 69 43 7A 4F 5A 44 57 4B 43 6D 68 45 74 4F 65 54 6C 46 66 44 70 2F 73 61 56 77 50 2F 44 52 37 72 4A 2B 4B 4B 47 30 65 71 2B 6C 4B 58 34 18 03 7A 08 08 02 10 02 18 09 20 00
-
-        val kernelService = NTServiceFetcher.kernelService
-        val sessionService = kernelService.wrapperSession
-        val msgService = sessionService.msgService
-        val contact = MessageHelper.generateContact(MsgConstant.KCHATTYPEC2C, TicketSvc.getUin())
-
-        val content =
-            "{\"app\":\"com.tencent.multimsg\",\"config\":{\"autosize\":1,\"forward\":1,\"round\":1,\"type\":\"normal\",\"width\":300},\"desc\":\"[聊天记录]\",\"extra\":\"\",\"meta\":{\"detail\":{\"news\":[{\"text\":\"Shamrock: 这是条假消息！\"}],\"resid\":\"$resId\",\"source\":\"聊天记录\",\"summary\":\"转发消息\",\"uniseq\":\"${UUID.randomUUID()}\"}},\"prompt\":\"[聊天记录]\",\"ver\":\"0.0.0.5\",\"view\":\"contact\"}"
-        val msgId = PacketSvc.fakeSelfRecvJsonMsg(msgService, content)
-        if (msgId < 0) {
-            return Result.failure(Exception("获取合并转发消息ID失败"))
-        }
-        val msgList = withTimeoutOrNull(5000L) {
-            suspendCancellableCoroutine<ArrayList<MsgRecord>> {
-                val job = GlobalScope.launch {
-                    var hasResult = false
-                    while (!hasResult) {
-                        msgService.getMultiMsg(contact, msgId, msgId) { code, why, msgList ->
-                            if (code == 0) {
-                                it.resume(msgList)
-                                hasResult = true
-                            } else {
-                                LogCenter.log("获取合并转发消息失败: $code($why): $msgId", Level.ERROR)
-                            }
-                        }
-                        delay(200)
-                    }
+    suspend fun getMultiMsg(resId: String): Result<List<MessageDetail>> {
+        val req = LongMsgReq(
+            recvInfo = RecvLongMsgInfo(
+                uid = LongMsgUid(TicketSvc.getUid()),
+                resId = resId,
+                u1 = 3
+            ),
+            setting = LongMsgSettings(
+                field1 = 2,
+                field2 = 2,
+                field3 = 9,
+                field4 = 0
+            )
+        )
+        val buffer = sendBufferAW(
+            "trpc.group.long_msg_interface.MsgService.SsoRecvLongMsg",
+            true,
+            ProtoBuf.encodeToByteArray(req)
+        ) ?: return Result.failure(Exception("unable to get multi message"))
+        val rsp = ProtoBuf.decodeFromByteArray<LongMsgRsp>(buffer.slice(4))
+        val msg = DeflateTools.ungzip(
+            rsp.recvResult?.payload ?: return Result.failure(Exception("unable to get multi message"))
+        )
+        val payload = ProtoBuf.decodeFromByteArray<LongMsgPayload>(msg)
+        payload.action?.forEach {
+            if (it.command == "MultiMsg") {
+                return Result.success(it.data?.body?.map { msg ->
+                    val chatType =
+                        if (msg.content!!.msgType == 1) MsgConstant.KCHATTYPEC2C else MsgConstant.KCHATTYPEGROUP
+                    MessageDetail(
+                        time = msg.content?.msgTime?.toInt() ?: 0,
+                        msgType = MessageHelper.obtainDetailTypeByMsgType(chatType),
+                        msgId = MessageHelper.generateMsgIdHash(chatType, msg.content!!.msgViaRandom),
+                        realId = msg.content!!.msgSeq.toInt(),
+                        sender = MessageSender(
+                            msg.head?.peer ?: 0,
+                            msg.head!!.groupInfo!!.memberCard ?: "",
+                            "unknown",
+                            0,
+                            msg.head!!.peerUid!!,
+                            msg.head!!.peerUid!!
+                        ),
+                        message = msg.body?.rich?.elements?.toSegments(chatType, msg.head?.peer.toString(), "0")
+                            ?.toListMap() ?: emptyList(),
+                        peerId = msg.head?.peer ?: 0,
+                        groupId = if (chatType == MsgConstant.KCHATTYPEGROUP) msg.head?.groupInfo?.groupCode?.toLong()
+                            ?: 0 else 0,
+                        targetId = if (chatType != MsgConstant.KCHATTYPEGROUP) msg.head?.peer ?: 0 else 0
+                    )
                 }
-                it.invokeOnCancellation {
-                    job.cancel()
-                }
+                    ?: return Result.failure(Exception("Msg is empty")))
             }
-        } ?: return Result.failure(Exception("获取合并转发消息失败"))
-
-        //msgService.deleteMsg(contact, arrayListOf(msgId), null)
-
-        return Result.success(msgList)
+        }
+        return Result.failure(Exception("Can't find msg"))
     }
 
     class MessageCallback(

@@ -8,7 +8,8 @@ import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.shamrock.remote.service.data.MessageDetail
 import moe.fuqiuluo.shamrock.remote.service.data.MessageSender
 import moe.fuqiuluo.qqinterface.servlet.MsgSvc
-import moe.fuqiuluo.qqinterface.servlet.msg.convert.MessageConvert
+import moe.fuqiuluo.qqinterface.servlet.msg.msgelement.toSegments
+import moe.fuqiuluo.qqinterface.servlet.msg.toListMap
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
 import moe.fuqiuluo.symbols.OneBotHandler
 
@@ -39,9 +40,11 @@ internal object GetMsg: IActionHandler() {
                 msg.senderUid,
                 msg.senderUid
             ),
-            message = MessageConvert.convertMessageRecordToMsgSegment(msg).map {
-                it.toJson()
-            },
+            message = msg.elements.toSegments(
+                msg.chatType,
+                if (msg.chatType == MsgConstant.KCHATTYPEGUILD) msg.guildId else msg.peerUin.toString(),
+                msg.channelId ?: msg.peerUin.toString()
+            ).toListMap(),
             peerId = msg.peerUin,
             groupId = if (msg.chatType == MsgConstant.KCHATTYPEGROUP) msg.peerUin else 0,
             targetId = if (msg.chatType != MsgConstant.KCHATTYPEGROUP) msg.peerUin else 0

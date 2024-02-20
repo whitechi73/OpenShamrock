@@ -23,7 +23,7 @@ data class LongMsgUid(
 data class RecvLongMsgInfo(
     @ProtoNumber(1) val uid: LongMsgUid? = null,
     @ProtoNumber(2) val resId: String? = null,
-    @ProtoNumber(3) val acquire: Boolean? = null,
+    @ProtoNumber(3) val u1: Int? = null,
 )
 
 @Serializable

@@ -28,5 +28,5 @@ data class LongMsgAction(
 )
 @Serializable
 data class LongMsgPayload(
-    @ProtoNumber(2) val action: LongMsgAction? = null
+    @ProtoNumber(2) val action: List<LongMsgAction>? = null
 )

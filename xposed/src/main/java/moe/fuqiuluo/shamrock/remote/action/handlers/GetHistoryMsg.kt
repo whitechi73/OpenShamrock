@@ -6,7 +6,8 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 import moe.fuqiuluo.qqinterface.servlet.MsgSvc
-import moe.fuqiuluo.qqinterface.servlet.msg.convert.MessageConvert
+import moe.fuqiuluo.qqinterface.servlet.msg.msgelement.toSegments
+import moe.fuqiuluo.qqinterface.servlet.msg.toListMap
 import moe.fuqiuluo.shamrock.helper.MessageHelper
 import moe.fuqiuluo.shamrock.helper.db.MessageDB
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
@@ -21,7 +22,7 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 @OneBotHandler("get_history_msg")
-internal object GetHistoryMsg: IActionHandler() {
+internal object GetHistoryMsg : IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val msgType = session.getString("message_type")
         val peerId = session.getString(if (msgType == "group") "group_id" else "user_id")
@@ -64,10 +65,10 @@ internal object GetHistoryMsg: IActionHandler() {
                     qqMsgId = msg.msgId,
                     chatType = msg.chatType,
                     subChatType = msg.chatType,
-                    peerId = peerId,
+                    peerId = msg.peerUin.toString(),
                     msgSeq = msg.msgSeq.toInt(),
                     time = msg.msgTime,
-                    subPeerId = msg.channelId ?: peerId
+                    subPeerId = msg.channelId ?: msg.peerUin.toString()
                 )
                 MessageDetail(
                     time = msg.msgTime.toInt(),
@@ -77,9 +78,11 @@ internal object GetHistoryMsg: IActionHandler() {
                     sender = MessageSender(
                         msg.senderUin, msg.sendNickName, "unknown", 0, msg.senderUid, msg.senderUid
                     ),
-                    message = MessageConvert.convertMessageRecordToMsgSegment(msg).map {
-                        it.toJson()
-                    },
+                    message = msg.elements.toSegments(
+                        msg.chatType,
+                        if (msg.chatType == MsgConstant.KCHATTYPEGUILD) msg.guildId else msg.peerUin.toString(),
+                        msg.channelId ?: msg.peerUin.toString()
+                    ).toListMap(),
                     peerId = msg.peerUin,
                     groupId = if (msg.chatType == MsgConstant.KCHATTYPEGROUP) msg.peerUin else 0,
                     targetId = if (msg.chatType != MsgConstant.KCHATTYPEGROUP) msg.peerUin else 0
@@ -101,13 +104,15 @@ internal object GetHistoryMsg: IActionHandler() {
                             .ifEmpty { msg.sendRemarkName }
                             .ifEmpty { msg.peerName }, "unknown", 0, msg.senderUid, msg.senderUid
                     ),
-                    message = MessageConvert.convertMessageRecordToMsgSegment(msg).map {
-                        it.toJson()
-                    },
+                    message = msg.elements.toSegments(
+                        chatType,
+                        if (chatType == MsgConstant.KCHATTYPEGUILD) msg.guildId else msg.peerUin.toString(),
+                        msg.channelId ?: peerId).toListMap(),
                     peerId = msg.peerUin,
                     groupId = if (msg.chatType == MsgConstant.KCHATTYPEGROUP) msg.peerUin else 0,
                     targetId = if (msg.chatType != MsgConstant.KCHATTYPEGROUP) msg.peerUin else 0
-                ))
+                )
+                )
             }
         }
 

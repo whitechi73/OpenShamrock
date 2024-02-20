@@ -1,4 +1,4 @@
-package moe.fuqiuluo.qqinterface.servlet.msg
+package moe.fuqiuluo.qqinterface.servlet.msg.messageelement
 
 import kotlinx.serialization.json.JsonObject
 import moe.fuqiuluo.shamrock.helper.ParamsException
@@ -7,10 +7,10 @@ import moe.fuqiuluo.shamrock.tools.asString
 import moe.fuqiuluo.shamrock.utils.DeflateTools
 import protobuf.message.MessageElement
 import protobuf.message.element.FaceElement
+import protobuf.message.element.JsonElement
 import protobuf.message.element.TextElement
 
-
-internal typealias IMessageMaker = suspend (Int, Long, String, JsonObject) -> Result<MessageElement>
+internal typealias IMessageElementMaker = suspend (Int, Long, String, JsonObject) -> Result<MessageElement>
 
 internal object MessageElementMaker {
     private val makerArray = hashMapOf(
@@ -42,6 +42,8 @@ internal object MessageElementMaker {
         //"multi_msg" to MessageMaker::createLongMsgStruct,
         //"bubble_face" to MessageElementMaker::createBubbleFaceElem,
     )
+
+    operator fun get(type: String): IMessageElementMaker? = makerArray[type]
 
     private suspend fun createTextElem(
         chatType: Int,
@@ -78,7 +80,7 @@ internal object MessageElementMaker {
         data.checkAndThrow("data")
 
         val elem = MessageElement(
-            json = protobuf.message.element.JsonElement(
+            json = JsonElement(
                 data = DeflateTools.compress(data.toString().toByteArray())
             )
         )
@@ -90,7 +92,4 @@ internal object MessageElementMaker {
             if (!containsKey(it)) throw ParamsException(it)
         }
     }
-
-    operator fun get(type: String): IMessageMaker? = makerArray[type]
-
 }

@@ -6,14 +6,14 @@ import com.tencent.qqnt.kernel.nativeinterface.MsgElement
 import com.tencent.qqnt.kernel.nativeinterface.MsgRecord
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import moe.fuqiuluo.qqinterface.servlet.BaseSvc
 import moe.fuqiuluo.qqinterface.servlet.CardSvc
 import moe.fuqiuluo.qqinterface.servlet.GroupSvc
-import moe.fuqiuluo.qqinterface.servlet.msg.convert.toSegments
+import moe.fuqiuluo.qqinterface.servlet.msg.msgelement.toSegments
+import moe.fuqiuluo.qqinterface.servlet.msg.toJson
 import moe.fuqiuluo.shamrock.remote.service.config.ShamrockConfig
 import moe.fuqiuluo.shamrock.remote.service.data.push.GroupFileMsg
 import moe.fuqiuluo.shamrock.remote.service.data.push.MemberRole
@@ -80,9 +80,7 @@ internal object GlobalEventTransmitter: BaseSvc() {
                     peerId = uin,
                     userId = record.senderUin,
                     message = if(ShamrockConfig.useCQ()) rawMsg.json
-                    else elements.toSegments(record.chatType, record.peerUin.toString(), "0").map {
-                        it.toJson()
-                    }.json,
+                    else elements.toSegments(record.chatType, record.peerUin.toString(), "0").toJson(),
                     rawMessage = rawMsg,
                     font = 0,
                     sender = Sender(
@@ -137,9 +135,7 @@ internal object GlobalEventTransmitter: BaseSvc() {
                     peerId = botUin,
                     userId = record.senderUin,
                     message = if(ShamrockConfig.useCQ()) rawMsg.json
-                    else elements.toSegments(record.chatType, record.peerUin.toString(), "0").map {
-                        it.toJson()
-                    }.json,
+                    else elements.toSegments(record.chatType, record.peerUin.toString(), "0").toJson(),
                     rawMessage = rawMsg,
                     font = 0,
                     sender = Sender(
@@ -187,15 +183,13 @@ internal object GlobalEventTransmitter: BaseSvc() {
                     messageId = msgHash,
                     targetId = record.peerUin,
                     peerId = botUin,
-                    userId = record.senderUid.toLong(),
+                    userId = record.senderUin,
                     message = if(ShamrockConfig.useCQ()) rawMsg.json
-                    else elements.toSegments(record.chatType, record.guildId, record.channelId).map {
-                        it.toJson()
-                    }.json,
+                    else elements.toSegments(record.chatType, record.guildId, record.channelId).toJson(),
                     rawMessage = rawMsg,
                     font = 0,
                     sender = Sender(
-                        userId = record.senderUid.toLong(),
+                        userId = record.senderUin,
                         nickname = nickName,
                         card = record.sendMemberName,
                         role = MemberRole.Member, // TODO(GUILD ROLE)

@@ -16,13 +16,12 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
 import moe.fuqiuluo.qqinterface.servlet.MsgSvc
-import moe.fuqiuluo.qqinterface.servlet.msg.MessageElementMaker
-import moe.fuqiuluo.qqinterface.servlet.msg.MsgElementMaker
+import moe.fuqiuluo.qqinterface.servlet.msg.messageelement.MessageElementMaker
+import moe.fuqiuluo.qqinterface.servlet.msg.msgelement.MsgElementMaker
 import moe.fuqiuluo.shamrock.helper.db.MessageDB
 import moe.fuqiuluo.shamrock.helper.db.MessageMapping
 import moe.fuqiuluo.shamrock.remote.structures.SendMsgResult
 import moe.fuqiuluo.shamrock.tools.EmptyJsonObject
-import moe.fuqiuluo.shamrock.tools.asJsonObject
 import moe.fuqiuluo.shamrock.tools.asJsonObjectOrNull
 import moe.fuqiuluo.shamrock.tools.asString
 import moe.fuqiuluo.shamrock.tools.json
@@ -52,7 +51,14 @@ internal object MessageHelper {
         return sendMessageWithoutMsgId(chatType, peerId, msg, fromId, callback)
     }
 
-    suspend fun resendMsg(chatType: Int, peerId: String, fromId: String, msgId: Long, retryCnt: Int, msgHashId: Int): Result<SendMsgResult> {
+    suspend fun resendMsg(
+        chatType: Int,
+        peerId: String,
+        fromId: String,
+        msgId: Long,
+        retryCnt: Int,
+        msgHashId: Int
+    ): Result<SendMsgResult> {
         val contact = generateContact(chatType, peerId, fromId)
         return resendMsg(contact, msgId, retryCnt, msgHashId)
     }
@@ -61,11 +67,11 @@ internal object MessageHelper {
         if (retryCnt < 0) return Result.failure(SendMsgException("消息发送超时次数过多"))
         val service = QRoute.api(IMsgService::class.java)
         val result = withTimeoutOrNull(15000) {
-            if(suspendCancellableCoroutine {
-                service.resendMsg(contact, msgId) { result, _ ->
-                    it.resume(result)
-                }
-            } != 0) {
+            if (suspendCancellableCoroutine {
+                    service.resendMsg(contact, msgId) { result, _ ->
+                        it.resume(result)
+                    }
+                } != 0) {
                 resendMsg(contact, msgId, retryCnt - 1, msgHashId)
             } else {
                 Result.success(SendMsgResult(msgHashId, msgId, System.currentTimeMillis()))
@@ -244,10 +250,11 @@ internal object MessageHelper {
     }
 
     suspend fun generateContact(chatType: Int, id: String, subId: String = ""): Contact {
-        val peerId = when(chatType) {
+        val peerId = when (chatType) {
             MsgConstant.KCHATTYPEC2C, MsgConstant.KCHATTYPETEMPC2CFROMGROUP -> {
                 ContactHelper.getUidByUinAsync(id.toLong())
             }
+
             else -> id
         }
         return if (chatType == MsgConstant.KCHATTYPEGUILD) {
@@ -277,7 +284,12 @@ internal object MessageHelper {
         }
     }
 
-    suspend fun messageArrayToMsgElements(chatType: Int, msgId: Long, targetUin: String, messageList: JsonArray): Pair<Boolean, ArrayList<MsgElement>> {
+    suspend fun messageArrayToMsgElements(
+        chatType: Int,
+        msgId: Long,
+        targetUin: String,
+        messageList: JsonArray
+    ): Pair<Boolean, ArrayList<MsgElement>> {
         val msgList = arrayListOf<MsgElement>()
         var hasActionMsg = false
         messageList.forEach {
@@ -306,7 +318,12 @@ internal object MessageHelper {
         return hasActionMsg to msgList
     }
 
-    suspend fun messageArrayToMessageElements(chatType: Int, msgId: Long, targetUin: String, messageList: JsonArray): Pair<Boolean, ArrayList<MessageElement>> {
+    suspend fun messageArrayToMessageElements(
+        chatType: Int,
+        msgId: Long,
+        targetUin: String,
+        messageList: JsonArray
+    ): Pair<Boolean, ArrayList<MessageElement>> {
         val msgList = arrayListOf<MessageElement>()
         var hasActionMsg = false
         messageList.forEach {
@@ -419,22 +436,6 @@ internal object MessageHelper {
         return arrayList.jsonArray
     }
 
-    fun encodeCQCode(msg: List<Map<String, JsonElement>>): String {
-        return nativeEncodeCQCode(msg.map {
-            val params = hashMapOf<String, String>()
-            it.forEach { (key, value) ->
-                if (key != "type") {
-                    value.asJsonObject.forEach { param, element ->
-                        params[param] = element.asString
-                    }
-                } else {
-                    params["_type"] = value.asString
-                }
-            }
-            params
-        })
-    }
-
     private external fun nativeDecodeCQCode(code: String): List<Map<String, String>>
-    private external fun nativeEncodeCQCode(segment: List<Map<String, String>>): String
+    external fun nativeEncodeCQCode(segment: List<Map<String, String>>): String
 }

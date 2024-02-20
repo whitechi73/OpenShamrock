@@ -1,4 +1,4 @@
-package moe.fuqiuluo.qqinterface.servlet.msg
+package moe.fuqiuluo.qqinterface.servlet.msg.msgelement
 
 import android.graphics.BitmapFactory
 import androidx.exifinterface.media.ExifInterface
@@ -8,25 +8,7 @@ import com.tencent.mobileqq.pb.ByteStringMicro
 import com.tencent.mobileqq.qroute.QRoute
 import com.tencent.qphone.base.remote.ToServiceMsg
 import com.tencent.qqnt.aio.adapter.api.IAIOPttApi
-import com.tencent.qqnt.kernel.nativeinterface.ArkElement
-import com.tencent.qqnt.kernel.nativeinterface.FaceBubbleElement
-import com.tencent.qqnt.kernel.nativeinterface.FaceElement
-import com.tencent.qqnt.kernel.nativeinterface.InlineKeyboardButton
-import com.tencent.qqnt.kernel.nativeinterface.InlineKeyboardElement
-import com.tencent.qqnt.kernel.nativeinterface.InlineKeyboardRow
-import com.tencent.qqnt.kernel.nativeinterface.MarkdownElement
-import com.tencent.qqnt.kernel.nativeinterface.MarketFaceElement
-import com.tencent.qqnt.kernel.nativeinterface.MarketFaceSupportSize
-import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
-import com.tencent.qqnt.kernel.nativeinterface.MsgElement
-import com.tencent.qqnt.kernel.nativeinterface.PicElement
-import com.tencent.qqnt.kernel.nativeinterface.PttElement
-import com.tencent.qqnt.kernel.nativeinterface.QQNTWrapperUtil
-import com.tencent.qqnt.kernel.nativeinterface.ReplyElement
-import com.tencent.qqnt.kernel.nativeinterface.RichMediaFilePathInfo
-import com.tencent.qqnt.kernel.nativeinterface.SmallYellowFaceInfo
-import com.tencent.qqnt.kernel.nativeinterface.TextElement
-import com.tencent.qqnt.kernel.nativeinterface.VideoElement
+import com.tencent.qqnt.kernel.nativeinterface.*
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
@@ -37,6 +19,7 @@ import moe.fuqiuluo.qqinterface.servlet.LbsSvc
 import moe.fuqiuluo.qqinterface.servlet.ark.ArkAppInfo
 import moe.fuqiuluo.qqinterface.servlet.ark.ArkMsgSvc
 import moe.fuqiuluo.qqinterface.servlet.ark.WeatherSvc
+import moe.fuqiuluo.qqinterface.servlet.transfile.*
 import moe.fuqiuluo.qqinterface.servlet.transfile.FileTransfer
 import moe.fuqiuluo.qqinterface.servlet.transfile.PictureResource
 import moe.fuqiuluo.qqinterface.servlet.transfile.Private
@@ -44,8 +27,6 @@ import moe.fuqiuluo.qqinterface.servlet.transfile.Transfer
 import moe.fuqiuluo.qqinterface.servlet.transfile.Troop
 import moe.fuqiuluo.qqinterface.servlet.transfile.VideoResource
 import moe.fuqiuluo.qqinterface.servlet.transfile.VoiceResource
-import moe.fuqiuluo.qqinterface.servlet.transfile.trans
-import moe.fuqiuluo.qqinterface.servlet.transfile.with
 import moe.fuqiuluo.shamrock.helper.ActionMsgException
 import moe.fuqiuluo.shamrock.helper.ContactHelper
 import moe.fuqiuluo.shamrock.helper.IllegalParamsException
@@ -56,16 +37,7 @@ import moe.fuqiuluo.shamrock.helper.LogicException
 import moe.fuqiuluo.shamrock.helper.MessageHelper
 import moe.fuqiuluo.shamrock.helper.MusicHelper
 import moe.fuqiuluo.shamrock.helper.ParamsException
-import moe.fuqiuluo.shamrock.tools.asBoolean
-import moe.fuqiuluo.shamrock.tools.asBooleanOrNull
-import moe.fuqiuluo.shamrock.tools.asInt
-import moe.fuqiuluo.shamrock.tools.asIntOrNull
-import moe.fuqiuluo.shamrock.tools.asJsonArray
-import moe.fuqiuluo.shamrock.tools.asJsonObject
-import moe.fuqiuluo.shamrock.tools.asLong
-import moe.fuqiuluo.shamrock.tools.asString
-import moe.fuqiuluo.shamrock.tools.asStringOrNull
-import moe.fuqiuluo.shamrock.tools.ifNullOrEmpty
+import moe.fuqiuluo.shamrock.tools.*
 import moe.fuqiuluo.shamrock.utils.AudioUtils
 import moe.fuqiuluo.shamrock.utils.FileUtils
 import moe.fuqiuluo.shamrock.utils.MediaType
@@ -82,10 +54,10 @@ import kotlin.math.roundToInt
 import kotlin.random.Random
 import kotlin.random.nextInt
 
-internal typealias IMsgMaker = suspend (Int, Long, String, JsonObject) -> Result<MsgElement>
+internal typealias IMsgElementMaker = suspend (Int, Long, String, JsonObject) -> Result<MsgElement>
 
 internal object MsgElementMaker {
-    private val makerArray = hashMapOf(
+    private val makerMap = hashMapOf(
         "text" to MsgElementMaker::createTextElem,
         "face" to MsgElementMaker::createFaceElem,
         "pic" to MsgElementMaker::createImageElem,
@@ -115,6 +87,8 @@ internal object MsgElementMaker {
         "bubble_face" to MsgElementMaker::createBubbleFaceElem,
         "inline_keyboard" to MsgElementMaker::createInlineKeywordElem
     )
+
+    operator fun get(type: String): IMsgElementMaker? = makerMap[type]
 
     private suspend fun createInlineKeywordElem(chatType: Int, msgId: Long, peerId: String, data: JsonObject): Result<MsgElement> {
         fun tryNewKeyboardButton(btn: JsonObject): InlineKeyboardButton {
@@ -1028,6 +1002,4 @@ internal object MsgElementMaker {
             if (!containsKey(it)) throw ParamsException(it)
         }
     }
-
-    operator fun get(type: String): IMsgMaker? = makerArray[type]
 }
