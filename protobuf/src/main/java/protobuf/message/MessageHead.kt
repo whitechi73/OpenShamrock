@@ -20,6 +20,7 @@ data class MessageHead(
 @Serializable
 data class MessageForward(
     @ProtoNumber(6) val friendName: String? = null,
+    @ProtoNumber(11) val u1: Int? = null,
 )
 
 @Serializable
@@ -28,4 +29,5 @@ data class GroupInfo(
     @ProtoNumber(4) val memberCard: String? = null,
     @ProtoNumber(5) val u1: Int? = null,
     @ProtoNumber(7) val groupName: String? = null,
+    @ProtoNumber(10) val u2: Int? = null,
 )

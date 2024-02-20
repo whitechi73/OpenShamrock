@@ -285,10 +285,11 @@ internal object MsgSvc : BaseSvc() {
             ProtoBuf.encodeToByteArray(req)
         ) ?: return Result.failure(Exception("unable to get multi message"))
         val rsp = ProtoBuf.decodeFromByteArray<LongMsgRsp>(buffer.slice(4))
-        val msg = DeflateTools.ungzip(
+        val zippedPayload = DeflateTools.ungzip(
             rsp.recvResult?.payload ?: return Result.failure(Exception("unable to get multi message"))
         )
-        val payload = ProtoBuf.decodeFromByteArray<LongMsgPayload>(msg)
+        LogCenter.log(zippedPayload.toHexString(), Level.DEBUG)
+        val payload = ProtoBuf.decodeFromByteArray<LongMsgPayload>(zippedPayload)
         payload.action?.forEach {
             if (it.command == "MultiMsg") {
                 return Result.success(it.data?.body?.map { msg ->
@@ -297,15 +298,15 @@ internal object MsgSvc : BaseSvc() {
                     MessageDetail(
                         time = msg.content?.msgTime?.toInt() ?: 0,
                         msgType = MessageHelper.obtainDetailTypeByMsgType(chatType),
-                        msgId = MessageHelper.generateMsgIdHash(chatType, msg.content!!.msgViaRandom),
+                        msgId = 0, // MessageHelper.generateMsgIdHash(chatType, msg.content!!.msgViaRandom), msgViaRandom 为空
                         realId = msg.content!!.msgSeq.toInt(),
                         sender = MessageSender(
                             msg.head?.peer ?: 0,
-                            msg.head!!.groupInfo!!.memberCard ?: "",
+                            msg.head?.groupInfo?.memberCard?.ifEmpty { msg.head?.forward?.friendName } ?: "",
                             "unknown",
                             0,
-                            msg.head!!.peerUid!!,
-                            msg.head!!.peerUid!!
+                            msg.head?.peerUid ?: "u_",
+                            msg.head?.peerUid?: "u_"
                         ),
                         message = msg.body?.rich?.elements?.toSegments(chatType, msg.head?.peer.toString(), "0")
                             ?.toListMap() ?: emptyList(),

@@ -25,6 +25,6 @@ data class ForwardHead(
     @ProtoNumber(1) val u1: Int? = null,
     @ProtoNumber(2) val u2: Int? = null,
     @ProtoNumber(3) val u3: Int? = null,
-    @ProtoNumber(4) val u4: String? = null,
+    @ProtoNumber(4) val ub641: String? = null,
     @ProtoNumber(5) val Avatar: String? = null
 )

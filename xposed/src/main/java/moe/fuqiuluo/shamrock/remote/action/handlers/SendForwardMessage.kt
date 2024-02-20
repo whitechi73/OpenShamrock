@@ -124,7 +124,7 @@ internal object SendForwardMessage : IActionHandler() {
                                 u1 = 0,
                                 u2 = 0,
                                 u3 = if (record.chatType == MsgConstant.KCHATTYPEGROUP) 0 else 2,
-                                u4 = "",
+                                ub641 = "",
                                 Avatar = ""
                             )
                         ),
@@ -163,7 +163,9 @@ internal object SendForwardMessage : IActionHandler() {
                 } else if (data.containsKey("content")) {
                     PushMsgBody(
                         head = MessageHead(
+                            peer = data["uin"]?.asLong ?: TicketSvc.getUin().toLong(),
                             peerUid = data["uid"]?.asString ?: TicketSvc.getUid()
+
                         ),
                         content = MessageContent(
                             msgType = 529,
@@ -177,7 +179,7 @@ internal object SendForwardMessage : IActionHandler() {
                                 u1 = 0,
                                 u2 = 0,
                                 u3 = 2,
-                                u4 = "",
+                                ub641 = "",
                                 Avatar = ""
                             )
                         ),

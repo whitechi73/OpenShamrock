@@ -9,5 +9,3 @@ data class CommonElement(
     @ProtoNumber(2) val data: ByteArray? = null,
     @ProtoNumber(3) val u1: Int? = null,
 )
-
-
