@@ -94,6 +94,25 @@ url和base64至少一个不能为空
 >
 > 调用后会阻塞直到下载完成后才会返回数据，请注意下载大文件时的超时
 
+## 清除缓存
+
+### API 端点
+
+`clean_cache`
+
+### 参数
+
+该接口没有参数
+
+### 响应
+
+```json
+{
+  "status": "ok",
+  "retcode": 0
+}
+```
+
 ## 获取手机电池信息
 
 ### API 端点
@@ -175,3 +194,127 @@ url和base64至少一个不能为空
 ### 响应
 
 无响应
+
+## 获取所有支持的动作
+
+### API 端点
+
+`/get_supported_actions`
+
+### 响应
+
+{
+  "status": "ok",
+  "retcode": 0,
+  "data": [
+    "set_group_ban",
+    "clean_cache",
+    "clear_msgs",
+    "create_group_file_folder",
+    "delete_essence_message",
+    "delete_essence_msg",
+    "delete_group_file",
+    "delete_group_folder",
+    "delete_msg",
+    "delete_message",
+    "download_file",
+    "fav.add_image_msg",
+    "fav.add_text_msg",
+    "fav.get_item_content",
+    "fav.get_item_list",
+    "get_csrf_token",
+    "get_cookie",
+    "get_cookies",
+    "get_credentials",
+    "get_device_battery",
+    "get_essence_message_list",
+    "get_essence_msg_list",
+    "get_forward_msg",
+    "get_friend_list",
+    "get_friend_system_msg",
+    "get_group_file_system_info",
+    "get_group_file_url",
+    "get_group_msg_history",
+    "get_group_notice",
+    "_get_group_notice",
+    "get_group_at_all_remain",
+    "get_group_root_files",
+    "get_group_files_by_folder",
+    "get_group_system_msg",
+    "get_guild_list",
+    "get_guild_service_profile",
+    "get_history_msg",
+    "get_http_cookies",
+    "get_image",
+    "get_latest_events",
+    "get_login_info",
+    "get_model_show",
+    "_get_model_show",
+    "get_msg",
+    "get_message",
+    "get_not_joined_group_info",
+    "_get_online_clients",
+    "get_profile_card",
+    "get_user_info",
+    "get_prohibited_member_list",
+    "get_record",
+    "get_self_info",
+    "status",
+    "get_status",
+    "_get_stranger_info",
+    "get_stranger_info",
+    "get_supported_actions",
+    "get_troop_honor_info",
+    "get_group_honor_info",
+    "get_group_info",
+    "get_group_list",
+    "get_group_member_info",
+    "get_group_member_list",
+    "get_uid",
+    "get_uin_by_uid",
+    "get_version",
+    "get_version_info",
+    "get_weather",
+    "get_weather_city_code",
+    "poke",
+    "is_blacklist_uin",
+    "kick_group_member",
+    "set_group_kick",
+    "set_group_leave",
+    "leave_group",
+    "set_group_card",
+    "set_group_name",
+    ".handle_quick_operation_async",
+    "rename_group_folder",
+    "restart_me",
+    "sanc_qrcode",
+    "send_forward_msg",
+    "send_group_forward_msg",
+    "send_group_msg",
+    "send_group_message",
+    "send_group_announcement",
+    "send_group_notice",
+    "send_group_sign",
+    "send_like",
+    "send_message",
+    "send_msg",
+    "send_private_forward_msg",
+    "send_private_message",
+    "send_private_msg",
+    "set_essence_message",
+    "set_essence_msg",
+    "set_friend_add_request",
+    "set_group_add_request",
+    "set_group_admin",
+    "set_group_comment_face",
+    "set_group_special_title",
+    "set_group_whole_ban",
+    "_set_model_show",
+    "set_qq_profile",
+    "switch_account",
+    "test",
+    "upload_group_file",
+    "upload_private_file"
+  ],
+  "echo": ""
+}

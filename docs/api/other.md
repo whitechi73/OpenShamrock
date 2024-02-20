@@ -240,3 +240,153 @@ icon: feather-alt
 | pic    | string | 是   | 图片base64       |
 | sender | int64  | 是   | QQ               |
 | troop  | int64  | 是   | 图片发送到的群聊 |
+
+## 获取 Cookie
+
+### API 端点
+
+`get_cookies`
+
+### 参数
+
+| 字段 | 类型   | 必须 | 说明   |
+| ---- | ------ | ---- | ------ |
+| domain | string | 否 | 域名 |
+
+### 响应
+
+::: tabs
+
+@tab 响应字段
+
+| 字段    | 类型  | 说明         |
+| ------- | ----- | ------------ |
+| cookies | string | 指定域名下的 Cookie |
+
+@tab 响应示例
+
+```json
+{
+  "status": "ok",
+  "retcode": 0,
+  "data": {
+    "cookies": "uin=o1234567890; skey=***; p_uin=o1234567890; p_skey=; pt4_token="
+  },
+  "echo": ""
+}
+```
+
+:::
+
+## 获取 CSRF 令牌
+
+### API 端点
+
+`get_csrf_token`
+
+### 参数
+
+| 字段 | 类型   | 必须 | 说明   |
+| ---- | ------ | ---- | ------ |
+| domain | string | 否 | 域名 |
+
+### 响应
+
+::: tabs
+
+@tab 响应字段
+
+| 字段    | 类型  | 说明         |
+| ------- | ----- | ------------ |
+| token | string | 指定域名下的 CSRF 令牌 |
+
+@tab 响应示例
+
+```json
+{
+  "status": "ok",
+  "retcode": 0,
+  "data": {
+    "token": "***"
+  },
+  "echo": ""
+}
+```
+
+:::
+
+## 获取Cookie
+
+### API 端点
+
+`get_cookies`
+
+### 参数
+
+| 字段 | 类型   | 必须 | 说明   |
+| ---- | ------ | ---- | ------ |
+| domain | string | 否 | 域名 |
+
+### 响应
+
+::: tabs
+
+@tab 响应字段
+
+| 字段    | 类型  | 说明         |
+| ------- | ----- | ------------ |
+| cookies | string | 指定域名下的 Cookie |
+
+@tab 响应示例
+
+```json
+{
+  "status": "ok",
+  "retcode": 0,
+  "data": {
+    "cookies": "uin=o1234567890; skey=***; p_uin=o1234567890; p_skey=; pt4_token="
+  },
+  "echo": ""
+}
+```
+
+:::
+
+## 获取 Cookie 与 CSRF 令牌
+
+### API 端点
+
+`get_credentials`
+
+### 参数
+
+| 字段 | 类型   | 必须 | 说明   |
+| ---- | ------ | ---- | ------ |
+| domain | string | 否 | 域名 |
+
+### 响应
+
+::: tabs
+
+@tab 响应字段
+
+| 字段    | 类型  | 说明         |
+| ------- | ----- | ------------ |
+| cookies | string | 指定域名下的 Cookie |
+| token | string | 指定域名下的 CSRF 令牌 |
+
+@tab 响应示例
+
+```json
+{
+  "status": "ok",
+  "retcode": 0,
+  "data": {
+    "token": "***",
+    "cookies": "uin=o1234567890; skey=***; p_uin=o1234567890; p_skey=***; pt4_token=***"
+  },
+  "echo": ""
+}
+```
+
+:::
