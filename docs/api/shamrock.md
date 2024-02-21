@@ -21,11 +21,15 @@ icon: feather-alt
 
 是否正常执行切换账号请求的响应。
 
-## 上传文件到缓存目录
+## 上传文件到缓存目录 （HTTP）
 
 ### API 端点
 
 `/upload_file`
+
+::: warning 注意
+该接口仅仅为HTTP POST提供，WebSocket请使用另外一个。
+:::
 
 ### 参数
 
@@ -38,6 +42,33 @@ icon: feather-alt
   "file": "/scard/Android/data/com.tencent.mobileqq/Tencent/Shamrock/xxxx"
 }
 ```
+
+## 上传文件到缓存目录 （WebSocket）
+
+### API 端点
+
+`/upload_file_to_shamrock`
+
+::: warning 注意
+该接口仅仅为WebSocket提供。
+:::
+
+### 参数
+
+| 名称 | 类型 | 作用 |
+|------|-------|-------|
+| md5 | string | 文件`hex格式`的md5值，32长度的字符串 |
+| offset | uint64 | 文件分段上传偏移，默认值为0，从头上传 |
+| chunk | string | 文件分段上传数据块（base64），无需开头`base64://` |
+| file_size | uint64 | 总文件大小 |  
+
+### 响应数据
+
+| 名称 | 类型 | 作用 |
+|------|-------|-------|
+| file_size | uint64 | 总文件大小 | 
+| finish | bool | 是否完成上传 |
+| path | string | 该文件在安卓系统（shamrock环境）的路径 |
 
 ## 让Shamrock下载文件到缓存目录
 
