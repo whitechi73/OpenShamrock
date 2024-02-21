@@ -11,9 +11,10 @@ import io.ktor.utils.io.core.BytePacketBuilder
 import io.ktor.utils.io.core.readBytes
 import io.ktor.utils.io.core.writeFully
 import io.ktor.utils.io.core.writeInt
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
@@ -28,10 +29,11 @@ import moe.fuqiuluo.shamrock.xposed.helper.internal.IPCRequest
 import protobuf.oidb.TrpcOidb
 import mqq.app.MobileQQ
 import tencent.im.oidb.oidb_sso
+import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.resume
 
 internal abstract class BaseSvc {
-    companion object {
+    companion object Default: CoroutineScope {
         val currentUin: String
             get() = app.currentAccountUin
 
@@ -46,7 +48,7 @@ internal abstract class BaseSvc {
             val seq = MsfCore.getNextSeq()
             val buffer = withTimeoutOrNull(timeout) {
                 suspendCancellableCoroutine { continuation ->
-                    GlobalScope.launch(Dispatchers.Default) {
+                    launch(Dispatchers.Default) {
                         DynamicReceiver.register(IPCRequest(cmd, seq) {
                             val buffer = it.getByteArrayExtra("buffer")!!
                             continuation.resume(buffer)
@@ -75,7 +77,7 @@ internal abstract class BaseSvc {
             val seq = MsfCore.getNextSeq()
             val buffer = withTimeoutOrNull<ByteArray?>(timeout) {
                 suspendCancellableCoroutine { continuation ->
-                    GlobalScope.launch(Dispatchers.Default) {
+                    launch(Dispatchers.Default) {
                         DynamicReceiver.register(IPCRequest(cmd, seq) {
                             val buffer = it.getByteArrayExtra("buffer")!!
                             continuation.resume(buffer)
@@ -143,6 +145,11 @@ internal abstract class BaseSvc {
             toServiceMsg.addAttribute("shamrock_seq", seq)
             app.sendToService(toServiceMsg)
         }
+
+        @OptIn(ExperimentalCoroutinesApi::class)
+        override val coroutineContext: CoroutineContext by lazy {
+            Dispatchers.IO.limitedParallelism(12)
+        }
     }
 
     protected fun send(toServiceMsg: ToServiceMsg) {
@@ -153,7 +160,7 @@ internal abstract class BaseSvc {
         val seq = MsfCore.getNextSeq()
         val buffer = withTimeoutOrNull<ByteArray?>(timeout) {
             suspendCancellableCoroutine { continuation ->
-                GlobalScope.launch(Dispatchers.Default) {
+                launch(Dispatchers.Default) {
                     DynamicReceiver.register(IPCRequest(toServiceMsg.serviceCmd, seq) {
                         val buffer = it.getByteArrayExtra("buffer")!!
                         continuation.resume(buffer)

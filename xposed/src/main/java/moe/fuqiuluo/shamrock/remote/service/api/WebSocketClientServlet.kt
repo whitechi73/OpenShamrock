@@ -2,11 +2,12 @@
 
 package moe.fuqiuluo.shamrock.remote.service.api
 
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import moe.fuqiuluo.shamrock.remote.action.ActionManager
@@ -30,12 +31,13 @@ import org.java_websocket.handshake.ServerHandshake
 import java.lang.Exception
 import java.net.URI
 import kotlin.concurrent.timer
+import kotlin.coroutines.CoroutineContext
 
 internal abstract class WebSocketClientServlet(
     private val url: String,
     private val heartbeatInterval: Long,
     private val wsHeaders: Map<String, String>
-) : BaseTransmitServlet, WebSocketClient(URI(url), wsHeaders) {
+) : BaseTransmitServlet, WebSocketClient(URI(url), wsHeaders), CoroutineScope {
     init {
         if (connectedClients.containsKey(url)) {
             throw RuntimeException("WebSocketClient已存在: $url")
@@ -43,14 +45,13 @@ internal abstract class WebSocketClientServlet(
     }
 
     private var firstOpen = true
-    private val sendLock = Mutex()
 
     override fun transmitAccess(): Boolean {
         return ShamrockConfig.openWebSocketClient()
     }
 
     override fun onMessage(message: String) {
-        GlobalScope.launch {
+        launch {
             handleMessage(message)
         }
     }
@@ -85,7 +86,6 @@ internal abstract class WebSocketClientServlet(
 
         connectedClients[url] = this
 
-        //startHeartbeatTimer()
         pushMetaLifecycle()
         if (firstOpen) {
             firstOpen = false
@@ -106,21 +106,21 @@ internal abstract class WebSocketClientServlet(
         }
         LogCenter.log("WebSocketClient onClose: $code, $reason, $remote")
         unsubscribe()
+        coroutineContext.cancel()
         connectedClients.remove(url)
     }
 
     override fun onError(ex: Exception?) {
         LogCenter.log("WebSocketClient onError: ${ex?.message}")
         unsubscribe()
+        coroutineContext.cancel()
         connectedClients.remove(url)
     }
 
     protected suspend inline fun <reified T> pushTo(body: T) {
         if (!transmitAccess() || isClosed || isClosing) return
         try {
-            sendLock.withLock {
-                send(GlobalJson.encodeToString(body))
-            }
+            send(GlobalJson.encodeToString(body))
         } catch (e: Throwable) {
             LogCenter.log("被动WS推送失败: ${e.stackTraceToString()}", Level.ERROR)
         }
@@ -142,8 +142,7 @@ internal abstract class WebSocketClientServlet(
             }
             val runtime = AppRuntimeFetcher.appRuntime
             LogCenter.log("WebSocketClient心跳: ${app.longAccountUin}", Level.DEBUG)
-            send(
-                GlobalJson.encodeToString(
+            send(GlobalJson.encodeToString(
                     PushMetaEvent(
                         time = System.currentTimeMillis() / 1000,
                         selfId = app.longAccountUin,
@@ -164,7 +163,7 @@ internal abstract class WebSocketClientServlet(
     }
 
     private fun pushMetaLifecycle() {
-        GlobalScope.launch {
+        launch {
             val runtime = AppRuntimeFetcher.appRuntime
             val curUin = runtime.currentAccountUin
             pushTo(
@@ -182,6 +181,10 @@ internal abstract class WebSocketClientServlet(
             )
         }
     }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override val coroutineContext: CoroutineContext =
+        Dispatchers.IO.limitedParallelism(20)
 
     companion object {
         private val connectedClients = mutableMapOf<String, WebSocketClientServlet>()

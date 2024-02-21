@@ -22,6 +22,7 @@ import java.io.RandomAccessFile
 import java.net.HttpURLConnection
 import java.net.URL
 import kotlin.math.roundToInt
+import kotlin.time.Duration.Companion.minutes
 
 object DownloadUtils {
     private const val MAX_THREAD = 4
@@ -71,7 +72,7 @@ object DownloadUtils {
                 }
                 processed += blockSize
             }
-            withTimeoutOrNull(60000L) {
+            withTimeoutOrNull(1.minutes) {
                 while (progress.value < contentLength) {
                     if(progress.addAndGet(channel.receive()) >= contentLength) {
                         break

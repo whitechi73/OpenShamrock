@@ -3,7 +3,6 @@
 package moe.fuqiuluo.shamrock.remote.service
 
 import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import moe.fuqiuluo.shamrock.helper.ErrorTokenException
@@ -15,7 +14,9 @@ import moe.fuqiuluo.shamrock.remote.service.data.push.*
 import moe.fuqiuluo.shamrock.tools.ifNullOrEmpty
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
-import moe.fuqiuluo.shamrock.remote.service.api.GlobalEventTransmitter
+import moe.fuqiuluo.shamrock.remote.service.api.GlobalEventTransmitter.onMessageEvent
+import moe.fuqiuluo.shamrock.remote.service.api.GlobalEventTransmitter.onNoticeEvent
+import moe.fuqiuluo.shamrock.remote.service.api.GlobalEventTransmitter.onRequestEvent
 import moe.fuqiuluo.shamrock.xposed.helper.AppRuntimeFetcher
 import org.java_websocket.WebSocket
 import org.java_websocket.handshake.ClientHandshake
@@ -33,20 +34,14 @@ internal class WebSocketService(
     }
 
     override fun init() {
-        subscribe(GlobalScope.launch {
-            GlobalEventTransmitter.onMessageEvent { (_, event) ->
-                pushTo(event)
-            }
+        subscribe(launch {
+            onMessageEvent { (_, event) -> pushTo(event) }
         })
-        subscribe(GlobalScope.launch {
-            GlobalEventTransmitter.onNoticeEvent { event ->
-                pushTo(event)
-            }
+        subscribe(launch {
+            onNoticeEvent { event -> pushTo(event) }
         })
-        subscribe(GlobalScope.launch {
-            GlobalEventTransmitter.onRequestEvent { event ->
-                pushTo(event)
-            }
+        subscribe(launch {
+            onRequestEvent { event -> pushTo(event) }
         })
         LogCenter.log("WebSocketService: 初始化服务", Level.WARN)
     }
@@ -86,7 +81,7 @@ internal class WebSocketService(
     }
 
     private fun pushMetaLifecycle() {
-        GlobalScope.launch {
+        launch {
             val runtime = AppRuntimeFetcher.appRuntime
             pushTo(PushMetaEvent(
                 time = System.currentTimeMillis() / 1000,

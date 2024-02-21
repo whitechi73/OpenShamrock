@@ -1,12 +1,13 @@
-@file:OptIn(DelicateCoroutinesApi::class)
+@file:OptIn(DelicateCoroutinesApi::class, ExperimentalCoroutinesApi::class)
 
 package moe.fuqiuluo.shamrock.remote.service.api
 
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import moe.fuqiuluo.shamrock.remote.action.ActionManager
@@ -31,22 +32,23 @@ import org.java_websocket.server.WebSocketServer
 import java.net.InetSocketAddress
 import java.net.URI
 import java.util.Collections
+import java.util.Timer
 import kotlin.concurrent.timer
+import kotlin.coroutines.CoroutineContext
 
 internal abstract class WebSocketTransmitServlet(
     host:String,
     port: Int,
     protected val heartbeatInterval: Long,
-) : BaseTransmitServlet, WebSocketServer(InetSocketAddress(host, port)) {
-    private val sendLock = Mutex()
+) : BaseTransmitServlet, WebSocketServer(InetSocketAddress(host, port)), CoroutineScope {
+    private lateinit var heartbeatTask: Timer
     protected val eventReceivers: MutableList<WebSocket> = Collections.synchronizedList(mutableListOf<WebSocket>())
 
     init {
         connectionLostTimeout = 0
     }
 
-    override val address: String
-        get() = "-"
+    override val address: String = "-"
 
      override fun transmitAccess(): Boolean {
          return ShamrockConfig.openWebSocket()
@@ -62,7 +64,7 @@ internal abstract class WebSocketTransmitServlet(
 
     init {
         if (heartbeatInterval > 0) {
-            timer("heartbeat", true, 0, heartbeatInterval) {
+            heartbeatTask = timer("heartbeat", true, 0, heartbeatInterval) {
                 val runtime = AppRuntimeFetcher.appRuntime
                 val curUin = runtime.currentAccountUin
                 LogCenter.log("WebSocket心跳: $curUin", Level.DEBUG)
@@ -104,7 +106,7 @@ internal abstract class WebSocketTransmitServlet(
 
     override fun onMessage(conn: WebSocket, message: String) {
         val path = URI.create(conn.resourceDescriptor).path
-        GlobalScope.launch {
+        launch {
             onHandleAction(conn, message, path)
         }
     }
@@ -130,6 +132,10 @@ internal abstract class WebSocketTransmitServlet(
     override fun onError(conn: WebSocket, ex: Exception?) {
         LogCenter.log("WSServer Error: " + ex?.stackTraceToString(), Level.ERROR)
         unsubscribe()
+        coroutineContext.cancel()
+        if (::heartbeatTask.isInitialized) {
+            heartbeatTask.cancel()
+        }
     }
 
     override fun onStart() {
@@ -137,14 +143,15 @@ internal abstract class WebSocketTransmitServlet(
         init()
     }
 
-    protected suspend inline fun <reified T> pushTo(body: T) {
+    protected inline fun <reified T> pushTo(body: T) {
         if(!transmitAccess()) return
         try {
-            sendLock.withLock {
-                broadcastTextEvent(GlobalJson.encodeToString(body))
-            }
+            broadcastTextEvent(GlobalJson.encodeToString(body))
         } catch (e: Throwable) {
             LogCenter.log("WS推送失败: ${e.stackTraceToString()}", Level.ERROR)
         }
     }
+
+    override val coroutineContext: CoroutineContext =
+        Dispatchers.IO.limitedParallelism(40)
  }

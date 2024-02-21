@@ -5,6 +5,7 @@ package moe.fuqiuluo.shamrock.xposed.hooks
 import android.content.Context
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import moe.fuqiuluo.shamrock.remote.service.WebSocketClientService
 import moe.fuqiuluo.shamrock.remote.service.WebSocketService
@@ -20,12 +21,12 @@ import moe.fuqiuluo.symbols.Process
 import moe.fuqiuluo.symbols.XposedHook
 import mqq.app.MobileQQ
 import kotlin.concurrent.timer
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 @XposedHook(Process.MAIN, priority = 10)
 internal class InitRemoteService : IAction {
     override fun invoke(ctx: Context) {
-        //if (!PlatformUtils.isMainProcess()) return
-
         GlobalScope.launch {
             try {
                 HTTPServer.start(ShamrockConfig.getPort())
@@ -109,9 +110,12 @@ internal class InitRemoteService : IAction {
                 if (url.startsWith("ws://") || url.startsWith("wss://")) {
                     val wsClient = WebSocketClientService(url, interval, wsHeaders)
                     wsClient.connect()
-                    timer(initialDelay = 5000L, period = 5000L) {
-                        if (wsClient.isClosed || wsClient.isClosing) {
-                            wsClient.reconnect()
+                    wsClient.launch {
+                        while (true) {
+                            delay(5.seconds)
+                            if (wsClient.isClosed || wsClient.isClosing) {
+                                wsClient.reconnect()
+                            }
                         }
                     }
                 } else {
