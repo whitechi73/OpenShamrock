@@ -69,7 +69,7 @@ internal object MsgElementConverter {
         //MsgConstant.KELEMTYPEMULTIFORWARD to MsgElementConverter::convertXmlMultiMsgElem,
         //MsgConstant.KELEMTYPESTRUCTLONGMSG to MsgElementConverter::convertXmlLongMsgElem,
         MsgConstant.KELEMTYPEFACEBUBBLE to MsgElementConverter::convertBubbleFaceElem,
-        MsgConstant.KELEMTYPEINLINEKEYBOARD to MsgElementConverter::convertInlineKeyboardElem,
+        MsgConstant.KELEMTYPEINLINEKEYBOARD to MsgElementConverter::convertInlineKeyboardElem
     )
 
     operator fun get(type: Int): IMsgElementConverter? = convertMap[type]

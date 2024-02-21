@@ -66,7 +66,7 @@ internal object PacketSvc: BaseSvc() {
                     msgViaRandom = msgSeq,
                     msgTime = System.currentTimeMillis() / 1000,
                     u2 = 1,
-                    u3 = msgSeq,
+                    msgSeq_ = msgSeq,
                     msgRandom = msgService.getMsgUniqueId(System.currentTimeMillis()),
                     u4 = msgSeq - 2,
                     u5 = msgSeq

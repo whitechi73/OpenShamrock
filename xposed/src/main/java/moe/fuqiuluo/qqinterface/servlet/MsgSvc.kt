@@ -299,14 +299,15 @@ internal object MsgSvc : BaseSvc() {
                         time = msg.content?.msgTime?.toInt() ?: 0,
                         msgType = MessageHelper.obtainDetailTypeByMsgType(chatType),
                         msgId = 0, // MessageHelper.generateMsgIdHash(chatType, msg.content!!.msgViaRandom), msgViaRandom 为空
-                        realId = msg.content!!.msgSeq.toInt(),
+                        realId = msg.content!!.msgSeq?.toInt() ?: 0,
                         sender = MessageSender(
                             msg.head?.peer ?: 0,
-                            msg.head?.groupInfo?.memberCard?.ifEmpty { msg.head?.forward?.friendName } ?: "",
+                            msg.head?.groupInfo?.memberCard?.ifEmpty { msg.head?.forward?.friendName }
+                                ?: msg.head?.forward?.friendName ?: "",
                             "unknown",
                             0,
-                            msg.head?.peerUid ?: "u_",
-                            msg.head?.peerUid?: "u_"
+                            msg.head?.peerUid ?: "",
+                            msg.head?.peerUid ?: ""
                         ),
                         message = msg.body?.rich?.elements?.toSegments(chatType, msg.head?.peer.toString(), "0")
                             ?.toListMap() ?: emptyList(),

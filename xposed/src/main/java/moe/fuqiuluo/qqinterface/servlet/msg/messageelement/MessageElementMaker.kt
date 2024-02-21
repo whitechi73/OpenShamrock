@@ -1,14 +1,20 @@
 package moe.fuqiuluo.qqinterface.servlet.msg.messageelement
 
+import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
 import kotlinx.serialization.json.JsonObject
+import moe.fuqiuluo.qqinterface.servlet.GProSvc
+import moe.fuqiuluo.qqinterface.servlet.GroupSvc
+import moe.fuqiuluo.shamrock.helper.*
+import moe.fuqiuluo.shamrock.helper.Level
+import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.helper.ParamsException
-import moe.fuqiuluo.shamrock.tools.asInt
-import moe.fuqiuluo.shamrock.tools.asString
+import moe.fuqiuluo.shamrock.tools.*
 import moe.fuqiuluo.shamrock.utils.DeflateTools
 import protobuf.message.MessageElement
 import protobuf.message.element.FaceElement
 import protobuf.message.element.JsonElement
 import protobuf.message.element.TextElement
+import java.nio.ByteBuffer
 
 internal typealias IMessageElementMaker = suspend (Int, Long, String, JsonObject) -> Result<MessageElement>
 
@@ -20,7 +26,7 @@ internal object MessageElementMaker {
 //        "image" to MessageElementMaker::createImageElem,
 //        "voice" to MessageElementMaker::createRecordElem,
 //        "record" to MessageElementMaker::createRecordElem,
-//        "at" to MessageElementMaker::createAtElem,
+        "at" to MessageElementMaker::createAtElem,
 //        "video" to MessageElementMaker::createVideoElem,
 //        "markdown" to MessageElementMaker::createMarkdownElem,
 //        "dice" to MessageElementMaker::createDiceElem,
@@ -69,6 +75,88 @@ internal object MessageElementMaker {
             face = FaceElement(data["id"].asInt)
         )
         return Result.success(elem)
+    }
+
+    private suspend fun createAtElem(
+        chatType: Int,
+        msgId: Long,
+        peerId: String,
+        data: JsonObject
+    ): Result<MessageElement> {
+        return if (chatType == MsgConstant.KCHATTYPEGROUP) {
+            data.checkAndThrow("qq")
+
+            val qq: Long
+            val type: Int
+            lateinit var display: String
+            when (val qqStr = data["qq"].asString) {
+                "0", "all" -> {
+                    qq = 0
+                    type = 1
+                    display = "@全体成员"
+                }
+
+                "online" -> {
+                    qq = 0
+                    type = 64
+                    display = "@在线成员"
+                }
+
+                else -> {
+                    qq = qqStr.toLong()
+                    type = 0
+                    display =
+                        "@" + (data["name"].asStringOrNull ?: GroupSvc.getTroopMemberInfoByUinV2(peerId, qqStr, true)
+                            .onSuccess {
+                                it.troopnick
+                                    .ifEmpty { it.friendnick }
+                                    .ifEmpty { qqStr }
+                            }.onFailure {
+                                LogCenter.log("无法获取群成员信息: $qqStr", Level.ERROR)
+                            })
+                }
+            }
+
+            val attr6: ByteBuffer = ByteBuffer.allocate(6)
+            attr6.put(byteArrayOf(0, 1, 0, 0, 0))
+            attr6.putChar(display.length.toChar())
+            attr6.putChar(type.toChar())
+            attr6.putBuf32Long(qq)
+            attr6.put(byteArrayOf(0, 0))
+            val elem = MessageElement(
+                text = TextElement(text = display, attr6Buf = attr6.array())
+            )
+            Result.success(elem)
+        } else if (chatType == MsgConstant.KCHATTYPEGUILD) {
+            data.checkAndThrow("qq")
+
+            val qq: Long
+            val type: Int
+            lateinit var display: String
+            when (val qqStr = data["qq"].asString) {
+                "0", "all" -> {
+                    type = 2
+                    display = "@全体成员"
+                }
+
+                else -> {
+                    qq = qqStr.toLong()
+                    type = 2
+                    display =
+                        "@" + (data["name"].asStringOrNull ?: GProSvc.getUserGuildInfo(0UL, 0UL)
+                            .onSuccess {
+                                it.nickName.ifNullOrEmpty(qqStr)
+                            }.onFailure {
+                                LogCenter.log("无法获取频道组成员信息: $qqStr", Level.ERROR)
+                            })
+                }
+            }
+
+            val elem = MessageElement(
+                text = TextElement(text = display, pbReserve = TextElement.Companion.TextResvAttr(atType = type))
+            )
+            Result.success(elem)
+        } else Result.failure(ActionMsgException)
     }
 
     private suspend fun createJsonElem(

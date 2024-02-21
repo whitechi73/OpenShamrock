@@ -111,9 +111,9 @@ internal object PrimitiveListener {
     private fun onGroupMessage(msgTime: Long, body: MessageBody) {
         runCatching {
             body.rich?.elements?.filter {
-                it.commElem != null && it.commElem!!.type == 48
+                it.comm != null && it.comm!!.type == 48
             }?.map {
-                ProtoBuf.decodeFromByteArray<RichMediaForPicData>(it.commElem!!.data!!)
+                ProtoBuf.decodeFromByteArray<RichMediaForPicData>(it.comm!!.data!!)
             }?.forEach {
                 it.display?.show?.download?.url?.let {
                     RKEY_PATTERN.matcher(it).takeIf {

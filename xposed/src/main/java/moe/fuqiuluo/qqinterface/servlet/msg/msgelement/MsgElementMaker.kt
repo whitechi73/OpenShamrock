@@ -755,16 +755,16 @@ internal object MsgElementMaker {
                 at.atNtUid = "0"
             }
 
-            "online" -> {
-                at.content = "@在线成员"
-                at.atType = MsgConstant.ATTYPEONLINE
-                at.atNtUid = "0"
-            }
-
             "admin" -> {
                 at.content = "@管理员"
                 at.atRoleId = 1
                 at.atType = MsgConstant.ATTYPEROLE
+                at.atNtUid = "0"
+            }
+
+            "online" -> {
+                at.content = "@在线成员"
+                at.atType = MsgConstant.ATTYPEONLINE
                 at.atNtUid = "0"
             }
 
