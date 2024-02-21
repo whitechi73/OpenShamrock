@@ -63,7 +63,7 @@ internal object GetGuildMemberList: IActionHandler() {
             members = members,
             finish = nextToken.finish,
             nextToken = ProtoBuf.encodeToByteArray(nextToken).toHexString(),
-        ))
+        ), echo)
     }
 
     override val requiredParams: Array<String> = arrayOf("guild_id")

@@ -43,7 +43,7 @@ internal abstract class IActionHandler {
         return resultToString(true, Status.Ok, EmptyObject, msg, echo = echo)
     }
 
-    protected inline fun <reified T> ok(data: T, echo: JsonElement = EmptyJsonString, msg: String = ""): String {
+    protected inline fun <reified T> ok(data: T, echo: JsonElement, msg: String = ""): String {
         return resultToString(true, Status.Ok, data!!, msg, echo = echo)
     }
 

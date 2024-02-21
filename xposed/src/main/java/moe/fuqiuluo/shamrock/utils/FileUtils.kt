@@ -94,13 +94,17 @@ internal object FileUtils {
     fun getFile(name: String): File {
         if (name.length == 32) {
             // 使用md5获取值
-            val dirName = name.substring(name.length - 4)
-            val file = CacheDir.resolve("$dirName/$name")
+            val file = getFileByMd5(name)
             if (file.exists()) {
                 return file
             }
         }
         return CacheDir.resolve(name)
+    }
+
+    fun getFileByMd5(md5: String): File {
+        val dirName = md5.substring(md5.length - 4)
+        return CacheDir.resolve("$dirName/$md5")
     }
 
     fun getFileType(file: File): String {

@@ -82,7 +82,7 @@ internal object UploadPrivateFile : IActionHandler() {
                 fileElement.picThumbPath[750] = srcFile.absolutePath
             }
             2 -> {
-                val thumbPic = FileUtils.getFile(MD5.genFileMd5Hex(srcFile.absolutePath))
+                val thumbPic = FileUtils.getFileByMd5(MD5.genFileMd5Hex(srcFile.absolutePath))
                 withContext(Dispatchers.IO) {
                     val fileOutputStream = FileOutputStream(thumbPic)
                     val retriever = MediaMetadataRetriever()

@@ -17,7 +17,7 @@ internal object LocalCacheHelper: BaseSvc() {
     }
 
     fun getCachePttFile(md5: String): File {
-        val file = FileUtils.getFile(md5)
+        val file = FileUtils.getFileByMd5(md5)
         return if (file.exists()) file else getCurrentPttPath().resolve("$md5.amr")
     }
 }

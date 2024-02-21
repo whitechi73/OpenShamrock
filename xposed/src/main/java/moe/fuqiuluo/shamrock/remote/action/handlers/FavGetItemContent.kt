@@ -52,7 +52,7 @@ internal object FavGetItemContent: IActionHandler() {
             resp.getFavContentResp!!.content!!.joinToString("") {
                 String(it.richMedia!!.rawData!!)
             }
-        ))
+        ), echo)
     }
 
     override val requiredParams: Array<String> = arrayOf("id")

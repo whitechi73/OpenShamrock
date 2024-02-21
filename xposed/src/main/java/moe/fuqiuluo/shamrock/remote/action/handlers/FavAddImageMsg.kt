@@ -40,7 +40,7 @@ internal object FavAddImageMsg: IActionHandler() {
         val image = fileText.let {
             val md5 = it.replace(regex = "[{}\\-]".toRegex(), replacement = "").split(".")[0].lowercase()
             if (md5.length == 32) {
-                FileUtils.getFile(it)
+                FileUtils.getFileByMd5(it)
             } else {
                 FileUtils.parseAndSave(it)
             }

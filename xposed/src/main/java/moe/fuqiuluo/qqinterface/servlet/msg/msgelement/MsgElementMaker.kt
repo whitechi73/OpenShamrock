@@ -678,7 +678,7 @@ internal object MsgElementMaker {
         val file = data["file"].asString.let {
             val md5 = it.replace(regex = "[{}\\-]".toRegex(), replacement = "").split(".")[0].lowercase()
             var file = if (md5.length == 32) {
-                FileUtils.getFile(it)
+                FileUtils.getFileByMd5(it)
             } else {
                 FileUtils.parseAndSave(it)
             }
@@ -909,9 +909,11 @@ internal object MsgElementMaker {
         val url = data["url"].asStringOrNull
         var file: File? = null
         if (filePath != null) {
-            val md5 = filePath.replace(regex = "[{}\\-]".toRegex(), replacement = "").split(".")[0].lowercase()
+            val md5 = filePath
+                .replace(regex = "[{}\\-]".toRegex(), replacement = "")
+                .split(".")[0].lowercase()
             file = if (md5.length == 32) {
-                FileUtils.getFile(md5)
+                FileUtils.getFileByMd5(md5)
             } else {
                 FileUtils.parseAndSave(filePath)
             }
