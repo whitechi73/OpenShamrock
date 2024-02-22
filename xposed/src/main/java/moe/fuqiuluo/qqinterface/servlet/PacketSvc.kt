@@ -80,8 +80,11 @@ internal object PacketSvc: BaseSvc() {
         fakeReceive("trpc.msg.olpush.OlPushService.MsgPush", 10000, ProtoBuf.encodeToByteArray(msgPush))
         return withTimeoutOrNull(5000L) {
             suspendCancellableCoroutine {
-                AioListener.messageLessListenerMap[msgSeq] = {
+                AioListener.registerTemporaryMsgListener(msgSeq) {
                     it.resume(this.msgId)
+                }
+                it.invokeOnCancellation {
+                    AioListener.unregisterTemporaryMsgListener(msgSeq)
                 }
             }
         } ?: -1L

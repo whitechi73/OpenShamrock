@@ -29,7 +29,7 @@ internal object MusicHelper {
                 chatType,
                 peerId,
                 msgId,
-                ArkAppInfo.NeteaseMusic,
+                ArkAppInfo.NetEaseMusic,
                 title.ifBlank { name },
                 singerName,
                 jumpUrl,

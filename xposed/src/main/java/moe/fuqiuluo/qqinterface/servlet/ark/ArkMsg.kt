@@ -1,18 +1,16 @@
 package moe.fuqiuluo.qqinterface.servlet.ark
 
+import com.tencent.mobileqq.pb.ByteStringMicro
 import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withTimeoutOrNull
 import moe.fuqiuluo.qqinterface.servlet.BaseSvc
+import moe.fuqiuluo.qqinterface.servlet.TicketSvc
+import moe.fuqiuluo.shamrock.helper.MessageHelper
+import moe.fuqiuluo.shamrock.remote.service.listener.AioListener
 import tencent.im.oidb.cmd0xb77.oidb_cmd0xb77
-
-sealed class ArkAppInfo(
-    val appId: Long,
-    val version: String,
-    val packageName: String,
-    val signature: String
-) {
-    object QQMusic: ArkAppInfo(100497308, "0.0.0", "com.tencent.qqmusic", "cbd27cd7c861227d013a25b2d10f0799")
-    object NeteaseMusic: ArkAppInfo(100495085, "0.0.0", "com.netease.cloudmusic", "da6b069da1e2982db3e386233f68d76d")
-}
+import kotlin.coroutines.resume
+import kotlin.time.Duration.Companion.seconds
 
 internal object ArkMsgSvc: BaseSvc() {
     fun tryShareMusic(
@@ -53,5 +51,50 @@ internal object ArkMsgSvc: BaseSvc() {
             else -> error("不支持该聊天类型发送音乐分享")
         }
         sendOidb("OidbSvc.0xb77_9", 0xb77, 9, req.toByteArray())
+    }
+
+    suspend fun tryShareJsonMessage(
+        jsonString: String,
+        arkAppInfo: ArkAppInfo = ArkAppInfo.DanMaKu,
+    ): Result<String> {
+        val msgSeq = MessageHelper.generateMsgId(MsgConstant.KCHATTYPEC2C).qqMsgId
+        val req = oidb_cmd0xb77.ReqBody()
+        req.appid.set(arkAppInfo.appId)
+        req.app_type.set(1)
+        req.msg_style.set(10)
+        req.client_info.set(oidb_cmd0xb77.ClientInfo().also {
+            it.platform.set(1)
+            it.sdk_version.set(arkAppInfo.version)
+            it.android_package_name.set(arkAppInfo.packageName)
+            it.android_signature.set(arkAppInfo.signature)
+        })
+        req.ext_info.set(oidb_cmd0xb77.ExtInfo().also {
+            it.tag_name.set(ByteStringMicro.copyFromUtf8("shamrock"))
+            it.msg_seq.set(msgSeq)
+        })
+        req.send_type.set(0)
+        req.recv_uin.set(TicketSvc.getLongUin())
+        req.mini_app_msg_body.set(oidb_cmd0xb77.MiniAppMsgBody().also {
+            it.mini_app_appid.set(arkAppInfo.miniAppId)
+            it.mini_app_path.set("pages")
+            it.web_page_url.set("https://im.qq.com/index/")
+            it.title.set("title")
+            it.desc.set("desc")
+            it.json_str.set(jsonString)
+        })
+        sendOidb("OidbSvc.0xb77_9", 0xb77, 9, req.toByteArray())
+        val signedJson: String = withTimeoutOrNull(5.seconds) {
+            suspendCancellableCoroutine {
+                AioListener.registerTemporaryMsgListener(msgSeq) {
+                    it.resume(elements.first {
+                        it.elementType == MsgConstant.KELEMTYPEARKSTRUCT
+                    }.arkElement.bytesData)
+                }
+                it.invokeOnCancellation {
+                    AioListener.unregisterTemporaryMsgListener(msgSeq)
+                }
+            }
+        } ?: return Result.failure(Exception("unable to sign json"))
+        return Result.success(signedJson)
     }
 }

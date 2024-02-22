@@ -17,11 +17,13 @@ import moe.fuqiuluo.shamrock.tools.fetchGetOrThrow
 import moe.fuqiuluo.shamrock.tools.fetchOrNull
 import moe.fuqiuluo.shamrock.tools.fetchOrThrow
 import moe.fuqiuluo.shamrock.tools.fetchPostJsonArray
+import moe.fuqiuluo.shamrock.tools.fetchPostJsonElement
 import moe.fuqiuluo.shamrock.tools.fetchPostJsonObject
 import moe.fuqiuluo.shamrock.tools.fetchPostJsonString
 import moe.fuqiuluo.shamrock.tools.fetchPostOrNull
 import moe.fuqiuluo.shamrock.tools.fetchPostOrThrow
 import moe.fuqiuluo.shamrock.tools.getOrPost
+import moe.fuqiuluo.shamrock.tools.isJsonArray
 import moe.fuqiuluo.shamrock.tools.isJsonData
 import moe.fuqiuluo.shamrock.tools.isJsonObject
 import moe.fuqiuluo.shamrock.tools.isJsonString
@@ -29,6 +31,19 @@ import moe.fuqiuluo.shamrock.tools.jsonArray
 import moe.fuqiuluo.shamrock.tools.respond
 
 fun Routing.messageAction() {
+    route("/sign_ark_message") {
+        get {
+            val json = fetchGetOrThrow("json")
+            call.respondText(SignArkMessage(json), ContentType.Application.Json)
+        }
+        post {
+            val json = if (isJsonData() && (isJsonObject("json") || isJsonArray("json")))
+                fetchPostJsonElement("json").toString()
+            else fetchPostOrThrow("json")
+            call.respondText(SignArkMessage(json), ContentType.Application.Json)
+        }
+    }
+
     route("/send_group_forward_(msg|message)".toRegex()) {
         post {
             val groupId = fetchPostOrNull("group_id")

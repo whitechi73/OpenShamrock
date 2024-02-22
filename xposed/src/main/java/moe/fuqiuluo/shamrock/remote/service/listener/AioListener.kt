@@ -25,7 +25,7 @@ import kotlin.collections.HashMap
 
 internal object AioListener : IKernelMsgListener {
     // 通过MSG SEQ临时监听器
-    internal val messageLessListenerMap = Collections.synchronizedMap(HashMap<Long, MsgRecord.() -> Unit>())
+    private val tempMessageListenerMap = Collections.synchronizedMap(HashMap<Long, suspend MsgRecord.() -> Unit>())
 
     override fun onRecvMsg(msgList: ArrayList<MsgRecord>) {
         if (msgList.isEmpty()) return
@@ -37,13 +37,26 @@ internal object AioListener : IKernelMsgListener {
         }
     }
 
+    fun registerTemporaryMsgListener(
+        msgSeq: Long,
+        listener: suspend MsgRecord.() -> Unit
+    ) {
+        LogCenter.log({ "注册临时消息监听器: $msgSeq" }, Level.DEBUG)
+        tempMessageListenerMap[msgSeq] = listener
+    }
+
+    fun unregisterTemporaryMsgListener(msgSeq: Long) {
+        tempMessageListenerMap.remove(msgSeq)
+    }
+
     private suspend fun handleMsg(record: MsgRecord) {
         try {
-            messageLessListenerMap.firstNotNullOfOrNull {
+            tempMessageListenerMap.firstNotNullOfOrNull {
                 if (it.key == record.msgSeq) it else null
             }?.let {
                 it.value(record)
-                messageLessListenerMap.remove(it.key)
+                tempMessageListenerMap.remove(it.key)
+                return
             }
             if (record.msgSeq < 0) return
 

@@ -69,6 +69,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 [![][contrib-image]][contrib-link]
 
+## 鸣谢
+
+感谢[**JetBrains**](https://www.jetbrains.com/zh-cn/community/opensource/#support)提供的开源开发许可证，JetBrains 通过为核心项目贡献者免费提供一套一流的开发者工具来支持非商业开源项目。
+
+[<img src=".github/jetbrains-variant-3.png" width="200"/>](https://www.jetbrains.com/zh-cn/community/opensource/#support)
+
 [banner]: https://socialify.git.ci/whitechi73/OpenShamrock/image?description=1&forks=1&issues=1&logo=https%3A%2F%2Fwhitechi73.github.io%2FOpenShamrock%2Fshamrock.jpg&pattern=Plus&pulls=1&stargazers=1&theme=Auto
 
 [actions]: https://img.shields.io/github/actions/workflow/status/whitechi73/OpenShamrock/build-apk.yml?style=for-the-badge
@@ -102,3 +108,4 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 [contrib-image]: https://contrib.rocks/image?repo=whitechi73/OpenShamrock
 
 [contrib-link]: https://github.com/whitechi73/OpenShamrock/graphs/contributors
+

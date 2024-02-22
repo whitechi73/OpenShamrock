@@ -31,8 +31,22 @@ public class oidb_cmd0xb77 {
         //    public final PBUInt32Field service_id = PBField.initUInt32(0);
         //    public final PBStringField xml = PBField.initString("");
         //};
-        //public oidb_cmd0xb77$MiniAppMsgBody mini_app_msg_body = new oidb_cmd0xb77$MiniAppMsgBody();
+        public MiniAppMsgBody mini_app_msg_body = new MiniAppMsgBody();
         public final PBUInt64Field recv_guild_id = PBField.initUInt64(0);
+    }
+
+    public static class MiniAppMsgBody extends MessageMicro<MiniAppMsgBody> {
+        //static final MessageMicro.FieldMap __fieldMap__ = MessageMicro.initFieldMap(
+              //  new int[]{8, 18, 26, 32, 42, 50, 82}, new String[]{"mini_app_appid", "mini_app_path", "web_page_url", "mini_app_type", "title", "desc", "json_str"}
+
+                //, new Object[]{0L, "", "", 0, "", "", ""}, oidb_cmd0xb77$MiniAppMsgBody.class);
+        public final PBUInt64Field mini_app_appid = PBField.initUInt64(0);
+        public final PBStringField mini_app_path = PBField.initString("");
+        public final PBStringField web_page_url = PBField.initString("");
+        public final PBUInt32Field mini_app_type = PBField.initUInt32(0);
+        public final PBStringField title = PBField.initString("");
+        public final PBStringField desc = PBField.initString("");
+        public final PBStringField json_str = PBField.initString("");
     }
 
     public static class ArkMsgBody extends MessageMicro<ArkMsgBody> {

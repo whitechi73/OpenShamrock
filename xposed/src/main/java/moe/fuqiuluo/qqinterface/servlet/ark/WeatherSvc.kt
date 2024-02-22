@@ -15,13 +15,6 @@ import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.tools.*
 import java.lang.Exception
 
-@Serializable
-internal data class Region(
-    val adcode: Int,
-    val province: String?,
-    val city: String?
-)
-
 internal object WeatherSvc {
     suspend fun fetchWeatherCard(code: Int): Result<JsonObject> {
         val cookie = TicketSvc.getCookie("mp.qq.com")

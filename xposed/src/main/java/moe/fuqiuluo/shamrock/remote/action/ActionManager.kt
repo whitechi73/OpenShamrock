@@ -149,6 +149,14 @@ internal class ActionSession {
         return params[key].asBooleanOrNull ?: default as Boolean
     }
 
+    fun getJsonElement(key: String): JsonElement {
+        return params[key]!!
+    }
+
+    fun getJsonElementOrNull(key: String): JsonElement? {
+        return params[key]
+    }
+
     fun getObject(key: String): JsonObject {
         return params[key].asJsonObject
     }
