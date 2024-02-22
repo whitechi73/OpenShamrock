@@ -46,13 +46,19 @@
 
 <img src="https://github.com/whitechi73/OpenShamrock/assets/98259561/f04d60bc-ec40-41fc-bc15-62c146f1a1f1" width="160px" alt="Shamrock"> **我可爱吗？欢迎你的到来，这里是一个很大的地方，有着无限可能，主要是有你啦！**
 
+## 鸣谢
+
+感谢[**JetBrains**](https://www.jetbrains.com/zh-cn/community/opensource/#support)提供的开源开发许可证，JetBrains 通过为核心项目贡献者免费提供一套一流的开发者工具来支持非商业开源项目。
+
+[<img src=".github/jetbrains-variant-3.png" width="200"/>](https://www.jetbrains.com/zh-cn/community/opensource/#support)
+
 ## 开源协议
 
 本项目使用 [GPL-3.0](LICENSE) 协议开放源代码
 
 ```text
 Shamrock - OneBot standard QQ robot framework based on Xposed implementation
-Copyright (C) 2023 Shamrock Team
+Copyright (C) 2023 ~ 2024 Shamrock Team
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -68,12 +74,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ## 贡献者
 
 [![][contrib-image]][contrib-link]
-
-## 鸣谢
-
-感谢[**JetBrains**](https://www.jetbrains.com/zh-cn/community/opensource/#support)提供的开源开发许可证，JetBrains 通过为核心项目贡献者免费提供一套一流的开发者工具来支持非商业开源项目。
-
-[<img src=".github/jetbrains-variant-3.png" width="200"/>](https://www.jetbrains.com/zh-cn/community/opensource/#support)
 
 [banner]: https://socialify.git.ci/whitechi73/OpenShamrock/image?description=1&forks=1&issues=1&logo=https%3A%2F%2Fwhitechi73.github.io%2FOpenShamrock%2Fshamrock.jpg&pattern=Plus&pulls=1&stargazers=1&theme=Auto
 
