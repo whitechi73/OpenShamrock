@@ -11,10 +11,8 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
-import kotlinx.serialization.decodeFromByteArray
-import kotlinx.serialization.encodeToByteArray
 import kotlinx.serialization.json.JsonArray
-import kotlinx.serialization.protobuf.ProtoBuf
+
 import moe.fuqiuluo.qqinterface.servlet.msg.messageelement.toSegments
 import moe.fuqiuluo.qqinterface.servlet.msg.toListMap
 import moe.fuqiuluo.shamrock.helper.ContactHelper
@@ -28,6 +26,9 @@ import moe.fuqiuluo.shamrock.tools.*
 import moe.fuqiuluo.shamrock.utils.DeflateTools
 import moe.fuqiuluo.shamrock.xposed.helper.NTServiceFetcher
 import moe.fuqiuluo.shamrock.xposed.helper.msgService
+import moe.fuqiuluo.symbols.decode
+import moe.fuqiuluo.symbols.decodeProtobuf
+import protobuf.auto.toByteArray
 import protobuf.message.longmsg.*
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -239,14 +240,14 @@ internal object MsgSvc : BaseSvc() {
                 )
             )
         )
-        LogCenter.log(ProtoBuf.encodeToByteArray(payload).toHexString(), Level.DEBUG)
+        LogCenter.log(payload.toByteArray().toHexString(), Level.DEBUG)
 
         val req = LongMsgReq(
             sendInfo = SendLongMsgInfo(
                 type = if (groupUin == null) 1 else 3,
                 uid = LongMsgUid(groupUin ?: uid),
                 groupUin = groupUin?.toInt(),
-                payload = DeflateTools.gzip(ProtoBuf.encodeToByteArray(payload))
+                payload = DeflateTools.gzip(payload.toByteArray())
             ),
             setting = LongMsgSettings(
                 field1 = 4,
@@ -258,9 +259,9 @@ internal object MsgSvc : BaseSvc() {
         val buffer = sendBufferAW(
             "trpc.group.long_msg_interface.MsgService.SsoSendLongMsg",
             true,
-            ProtoBuf.encodeToByteArray(req)
+            req.toByteArray()
         ) ?: return Result.failure(Exception("unable to upload multi message"))
-        val rsp = ProtoBuf.decodeFromByteArray<LongMsgRsp>(buffer.slice(4))
+        val rsp = buffer.slice(4).decodeProtobuf<LongMsgRsp>()
         return rsp.sendResult?.resId?.let { Result.success(it) }
             ?: Result.failure(Exception("unable to upload multi message"))
     }
@@ -282,14 +283,14 @@ internal object MsgSvc : BaseSvc() {
         val buffer = sendBufferAW(
             "trpc.group.long_msg_interface.MsgService.SsoRecvLongMsg",
             true,
-            ProtoBuf.encodeToByteArray(req)
+            req.toByteArray()
         ) ?: return Result.failure(Exception("unable to get multi message"))
-        val rsp = ProtoBuf.decodeFromByteArray<LongMsgRsp>(buffer.slice(4))
+        val rsp = buffer.slice(4).decodeProtobuf<LongMsgRsp>()
         val zippedPayload = DeflateTools.ungzip(
             rsp.recvResult?.payload ?: return Result.failure(Exception("unable to get multi message"))
         )
         LogCenter.log(zippedPayload.toHexString(), Level.DEBUG)
-        val payload = ProtoBuf.decodeFromByteArray<LongMsgPayload>(zippedPayload)
+        val payload = zippedPayload.decodeProtobuf<LongMsgPayload>()
         payload.action?.forEach {
             if (it.command == "MultiMsg") {
                 return Result.success(it.data?.body?.map { msg ->

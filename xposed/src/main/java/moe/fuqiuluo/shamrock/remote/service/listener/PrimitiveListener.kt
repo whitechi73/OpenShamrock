@@ -13,7 +13,7 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.protobuf.ProtoBuf
+
 import moe.fuqiuluo.qqinterface.servlet.FriendSvc.requestFriendSystemMsgNew
 import moe.fuqiuluo.qqinterface.servlet.GroupSvc
 import moe.fuqiuluo.qqinterface.servlet.GroupSvc.requestGroupSystemMsgNew
@@ -31,6 +31,8 @@ import moe.fuqiuluo.shamrock.tools.asJsonObject
 import moe.fuqiuluo.shamrock.tools.asString
 import moe.fuqiuluo.shamrock.tools.readBuf32Long
 import moe.fuqiuluo.shamrock.xposed.helper.PacketHandler
+import moe.fuqiuluo.symbols.decode
+import moe.fuqiuluo.symbols.decodeProtobuf
 import protobuf.message.MessageContent
 import protobuf.message.MessageHead
 import protobuf.message.MessageBody
@@ -56,7 +58,7 @@ internal object PrimitiveListener {
         PacketHandler.register("trpc.msg.olpush.OlPushService.MsgPush") { _, buffer ->
             GlobalScope.launch {
                 try {
-                    val push = ProtoBuf.decodeFromByteArray<MessagePush>(buffer.slice(4))
+                    val push = buffer.slice(4).decodeProtobuf<MessagePush>()
                     onMsgPush(push)
                 } catch (e: Exception) {
                     LogCenter.log(e.stackTraceToString(), Level.WARN)
@@ -113,7 +115,7 @@ internal object PrimitiveListener {
             body.rich?.elements?.filter {
                 it.comm != null && it.comm!!.type == 48
             }?.map {
-                ProtoBuf.decodeFromByteArray<RichMediaForPicData>(it.comm!!.data!!)
+                it.comm!!.data!!.decodeProtobuf<RichMediaForPicData>()
             }?.forEach {
                 it.display?.show?.download?.url?.let {
                     RKEY_PATTERN.matcher(it).takeIf {
@@ -129,7 +131,7 @@ internal object PrimitiveListener {
     }
 
     private suspend fun onC2CPoke(msgTime: Long, richMsg: MessageBody) {
-        val event = ProtoBuf.decodeFromByteArray<C2CCommonTipsEvent>(richMsg.rawBuffer!!)
+        val event = richMsg.rawBuffer!!.decodeProtobuf<C2CCommonTipsEvent>()
         if (event.params == null) return
 
         val params = event.params!!.associate {
@@ -156,7 +158,7 @@ internal object PrimitiveListener {
         clientInfo: MessagePushClientInfo,
         richMsg: MessageBody
     ) {
-        val event = ProtoBuf.decodeFromByteArray<FriendApplyEvent>(richMsg.rawBuffer!!)
+        val event = richMsg.rawBuffer!!.decodeProtobuf<FriendApplyEvent>()
         if (event.head == null) return
         val head = event.head!!
         val applierUid = head.applierUid
@@ -233,15 +235,15 @@ internal object PrimitiveListener {
 
     private suspend fun onGroupUniqueTitleChange(msgTime: Long, richMsg: MessageBody) {
         val event = runCatching {
-            ProtoBuf.decodeFromByteArray<GroupCommonTipsEvent>(richMsg.rawBuffer!!)
+            richMsg.rawBuffer!!.decodeProtobuf<GroupCommonTipsEvent>()
         }.getOrElse {
             val readPacket = ByteReadPacket(richMsg.rawBuffer!!)
             readPacket.readBuf32Long()
             readPacket.discardExact(1)
 
-            ProtoBuf.decodeFromByteArray<GroupCommonTipsEvent>(readPacket.readBytes(readPacket.readShort().toInt()).also {
+            readPacket.readBytes(readPacket.readShort().toInt()).also {
                 readPacket.release()
-            })
+            }.decodeProtobuf<GroupCommonTipsEvent>()
         }
         val groupId = event.groupCode.toLong()
         val detail = event.uniqueTitleChangeDetail!!.first()
@@ -279,15 +281,15 @@ internal object PrimitiveListener {
     ) {
         if (clientInfo == null) return
         val event = runCatching {
-            ProtoBuf.decodeFromByteArray<GroupCommonTipsEvent>(richMsg.rawBuffer!!)
+           richMsg.rawBuffer!!.decodeProtobuf<GroupCommonTipsEvent>()
         }.getOrElse {
             val readPacket = ByteReadPacket(richMsg.rawBuffer!!)
             readPacket.readBuf32Long()
             readPacket.discardExact(1)
 
-            ProtoBuf.decodeFromByteArray<GroupCommonTipsEvent>(readPacket.readBytes(readPacket.readShort().toInt()).also {
+            readPacket.readBytes(readPacket.readShort().toInt()).also {
                 readPacket.release()
-            })
+            }.decodeProtobuf<GroupCommonTipsEvent>()
         }
         val groupId = event.groupCode.toLong()
         val detail = event.essenceMsgInfo!!.first()
@@ -326,15 +328,15 @@ internal object PrimitiveListener {
 
     private suspend fun onGroupPokeAndGroupSign(time: Long, richMsg: MessageBody) {
         val event = runCatching {
-            ProtoBuf.decodeFromByteArray<GroupCommonTipsEvent>(richMsg.rawBuffer!!)
+            richMsg.rawBuffer!!.decodeProtobuf<GroupCommonTipsEvent>()
         }.getOrElse {
             val readPacket = ByteReadPacket(richMsg.rawBuffer!!)
             readPacket.discardExact(4)
             readPacket.discardExact(1)
 
-            ProtoBuf.decodeFromByteArray<GroupCommonTipsEvent>(readPacket.readBytes(readPacket.readShort().toInt()).also {
+            readPacket.readBytes(readPacket.readShort().toInt()).also {
                 readPacket.release()
-            })
+            }.decodeProtobuf<GroupCommonTipsEvent>()
         }
         val groupId = event.groupCode.toLong()
         val detail = event.baseTips!!.first()
@@ -379,7 +381,7 @@ internal object PrimitiveListener {
     }
 
     private suspend fun onC2CRecall(time: Long, richMsg: MessageBody) {
-        val event = ProtoBuf.decodeFromByteArray<C2CRecallEvent>(richMsg.rawBuffer!!)
+        val event = richMsg.rawBuffer!!.decodeProtobuf<C2CRecallEvent>()
         val head = event.head!!
 
         val operationUid = head.operator!!
@@ -404,7 +406,7 @@ internal object PrimitiveListener {
     }
 
     private suspend fun onGroupMemIncreased(time: Long, richMsg: MessageBody) {
-        val event = ProtoBuf.decodeFromByteArray<GroupListChangeEvent>(richMsg.rawBuffer!!)
+        val event = richMsg.rawBuffer!!.decodeProtobuf<GroupListChangeEvent>()
         val groupCode = event.groupCode
         val targetUid = event.memberUid
         val type = event.type
@@ -434,7 +436,7 @@ internal object PrimitiveListener {
     }
 
     private suspend fun onGroupMemberDecreased(time: Long, richMsg: MessageBody) {
-        val event = ProtoBuf.decodeFromByteArray<GroupListChangeEvent>(richMsg.rawBuffer!!)
+        val event = richMsg.rawBuffer!!.decodeProtobuf<GroupListChangeEvent>()
         val groupCode = event.groupCode
         val targetUid = event.memberUid
         val type = event.type
@@ -467,7 +469,7 @@ internal object PrimitiveListener {
     }
 
     private suspend fun onGroupAdminChange(msgTime: Long, richMsg: MessageBody) {
-        val event = ProtoBuf.decodeFromByteArray<GroupAdminChangeEvent>(richMsg.rawBuffer!!)
+        val event = richMsg.rawBuffer!!.decodeProtobuf<GroupAdminChangeEvent>()
         val groupCode = event.groupCode
         if (event.operation == null) return
         val operation = event.operation!!
@@ -494,7 +496,7 @@ internal object PrimitiveListener {
     }
 
     private suspend fun onGroupBan(msgTime: Long, richMsg: MessageBody) {
-        val event = ProtoBuf.decodeFromByteArray<GroupBanEvent>(richMsg.rawBuffer!!)
+        val event = richMsg.rawBuffer!!.decodeProtobuf<GroupBanEvent>()
         val groupCode = event.groupCode.toLong()
         val operatorUid = event.operatorUid
         val wholeBan = event.target?.target?.targetUid == null
@@ -520,14 +522,14 @@ internal object PrimitiveListener {
 
     private suspend fun onGroupRecall(time: Long, richMsg: MessageBody) {
         val event = runCatching {
-            ProtoBuf.decodeFromByteArray<GroupCommonTipsEvent>(richMsg.rawBuffer!!)
+            richMsg.rawBuffer!!.decodeProtobuf<GroupCommonTipsEvent>()
         }.getOrElse {
             val readPacket = ByteReadPacket(richMsg.rawBuffer!!)
             readPacket.discardExact(4)
             readPacket.discardExact(1)
-            ProtoBuf.decodeFromByteArray<GroupCommonTipsEvent>(readPacket.readBytes(readPacket.readShort().toInt()).also {
+           readPacket.readBytes(readPacket.readShort().toInt()).also {
                 readPacket.release()
-            })
+            }.decodeProtobuf<GroupCommonTipsEvent>()
         }
         val groupCode = event.groupCode.toLong()
         val detail = event.recallDetails!!
@@ -555,7 +557,7 @@ internal object PrimitiveListener {
     private suspend fun onGroupApply(time: Long, contentHead: MessageContent, richMsg: MessageBody) {
         when (contentHead.msgType) {
             84 -> {
-                val event = ProtoBuf.decodeFromByteArray<GroupApplyEvent>(richMsg.rawBuffer!!)
+                val event = richMsg.rawBuffer!!.decodeProtobuf<GroupApplyEvent>()
                 val groupCode = event.groupCode
                 val applierUid = event.applierUid
                 val reason = event.applyMsg ?: ""
@@ -587,7 +589,7 @@ internal object PrimitiveListener {
                 }
             }
             528 -> {
-                val event = ProtoBuf.decodeFromByteArray<GroupInvitedApplyEvent>(richMsg.rawBuffer!!)
+                val event = richMsg.rawBuffer!!.decodeProtobuf<GroupInvitedApplyEvent>()
                 val groupCode = event.applyInfo?.groupCode ?: return
                 val applierUid = event.applyInfo?.applierUid ?: return
                 var applier = ContactHelper.getUinByUidAsync(applierUid).toLong()
@@ -624,7 +626,7 @@ internal object PrimitiveListener {
     }
 
     private suspend fun onInviteGroup(time: Long, msgHead: MessageHead, richMsg: MessageBody) {
-        val event = ProtoBuf.decodeFromByteArray<GroupInviteEvent>(richMsg.rawBuffer!!)
+        val event = richMsg.rawBuffer!!.decodeProtobuf<GroupInviteEvent>()
         val groupCode = event.groupCode
         val invitorUid = event.inviterUid
         val invitor = ContactHelper.getUinByUidAsync(invitorUid).toLong()

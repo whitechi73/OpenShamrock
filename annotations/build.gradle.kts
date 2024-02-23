@@ -7,3 +7,8 @@ java {
     sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = JavaVersion.VERSION_17
 }
+
+dependencies {
+    implementation(DEPENDENCY_PROTOBUF)
+    implementation(kotlinx("serialization-protobuf", "1.6.2"))
+}

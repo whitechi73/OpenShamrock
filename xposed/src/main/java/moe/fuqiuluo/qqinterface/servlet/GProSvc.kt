@@ -7,14 +7,10 @@ import com.tencent.qqnt.kernel.nativeinterface.GProGuildRole
 import com.tencent.qqnt.kernel.nativeinterface.GProRoleCreateInfo
 import com.tencent.qqnt.kernel.nativeinterface.GProRoleMemberList
 import com.tencent.qqnt.kernel.nativeinterface.GProRolePermission
-import io.ktor.utils.io.ByteReadChannel
-import io.ktor.utils.io.core.readBytes
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.decodeFromByteArray
-import kotlinx.serialization.encodeToByteArray
-import kotlinx.serialization.protobuf.ProtoBuf
+
 import moe.fuqiuluo.qqinterface.servlet.structures.GProChannelInfo
 import moe.fuqiuluo.qqinterface.servlet.structures.GetGuildMemberListNextToken
 import moe.fuqiuluo.qqinterface.servlet.structures.GuildInfo
@@ -24,10 +20,11 @@ import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.tools.EMPTY_BYTE_ARRAY
 import moe.fuqiuluo.shamrock.tools.slice
-import moe.fuqiuluo.shamrock.tools.toHexString
-import moe.fuqiuluo.shamrock.utils.DeflateTools
 import moe.fuqiuluo.shamrock.utils.PlatformUtils
 import moe.fuqiuluo.shamrock.xposed.helper.NTServiceFetcher
+import moe.fuqiuluo.symbols.decode
+import moe.fuqiuluo.symbols.decodeProtobuf
+import protobuf.auto.toByteArray
 import protobuf.guild.GetGuildFeedsReq
 import protobuf.guild.GetGuildFeedsRsp
 import protobuf.oidb.cmd0xf88.GProFilter
@@ -54,33 +51,31 @@ internal object GProSvc: BaseSvc() {
     }
 
     suspend fun getGuildInfo(guildId: ULong): Result<Oidb0xf57MetaInfo> {
-        val respBuffer = sendOidbAW("OidbSvcTrpcTcp.0xf57_9", 0xf57, 9, ProtoBuf.encodeToByteArray(
-            Oidb0xf57Req(
+        val respBuffer = sendOidbAW("OidbSvcTrpcTcp.0xf57_9", 0xf57, 9, Oidb0xf57Req(
             filter = Oidb0xf57Filter(
                 u1 = Oidb0xf57U1(1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u),
                 u2 = Oidb0xf57U2(1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u)
             ),
             guildInfo = Oidb0xf57GuildInfo(guildId = guildId)
-        )
-        ))
+        ).toByteArray())
         val body = oidb_sso.OIDBSSOPkg()
         if (respBuffer == null) {
             return Result.failure(Exception("unable to send packet"))
         }
         body.mergeFrom(respBuffer.slice(4))
         return runCatching {
-            ProtoBuf.decodeFromByteArray<Oidb0xf57Rsp>(
-                body.bytes_bodybuffer.get().toByteArray()
-            ).metaInfo
+            body.bytes_bodybuffer.get()
+                .toByteArray()
+                .decodeProtobuf<Oidb0xf57Rsp>().metaInfo
         }
     }
 
     suspend fun getGuildFeeds(guildId: ULong, channelId: ULong, startIndex: Int): Result<GetGuildFeedsRsp> {
-        val buffer = sendBufferAW("QChannelSvr.trpc.qchannel.commreader.ComReader.GetGuildFeeds", true, ProtoBuf.encodeToByteArray(QWebReq(
+        val buffer = sendBufferAW("QChannelSvr.trpc.qchannel.commreader.ComReader.GetGuildFeeds", true, QWebReq(
             seq = 10,
             qua = PlatformUtils.getQUA(),
             deviceInfo = "i=&imsi=&mac=02:00:00:00:00:00&m=Shamrock&o=114514&a=1919810&sd=0&c64=1&sc=1&p=8000*8000&aid=123456789012345678901234567890abcdef&f=Tencent&mm=5610&cf=1726&cc=8&qimei=&qimei36=&sharpP=1&n=nether_world&support_xsj_live=false&client_mod=concise&timezone=America/La_Paz&material_sdk_version=&vh265=&refreshrate=10086&hwlevel=9&suphdr=1&is_teenager_mod=8&liveH265=&bmst=5&AV1=0",
-            buffer = ProtoBuf.encodeToByteArray(GetGuildFeedsReq(
+            buffer = GetGuildFeedsReq(
                 count = 12,
                 from = startIndex,
                 feedAttchInfo = EMPTY_BYTE_ARRAY,
@@ -89,18 +84,18 @@ internal object GProSvc: BaseSvc() {
                 u7 = 0,
                 u8 = 1,
                 u9 = EMPTY_BYTE_ARRAY
-            )),
+            ).toByteArray(),
             traceId = app.account + "_0_0",
             extinfo = listOf(
                 QWebExtInfo("fc-appid", "96"),
                 QWebExtInfo("environment_id", "shamrock"),
                 QWebExtInfo("tiny_id", getSelfTinyId().toString()),
             )
-        ))) ?: return Result.failure(Exception("unable to send packet"))
-        val webRsp = ProtoBuf.decodeFromByteArray<QWebRsp>(buffer.slice(4))
+        ).toByteArray()) ?: return Result.failure(Exception("unable to send packet"))
+        val webRsp = buffer.slice(4).decodeProtobuf<QWebRsp>()
         if(webRsp.buffer == null) return Result.failure(Exception("server error"))
         val wupBuffer = webRsp.buffer!!
-        val feeds = ProtoBuf.decodeFromByteArray<GetGuildFeedsRsp>(wupBuffer)
+        val feeds = wupBuffer.decodeProtobuf<GetGuildFeedsRsp>()
         return Result.success(feeds)
     }
 
@@ -188,23 +183,19 @@ internal object GProSvc: BaseSvc() {
         guildId: ULong,
         memberTinyId: ULong
     ): Result<GProUserInfo> {
-        val respBuffer = sendOidbAW("OidbSvcTrpcTcp.0xf88_1", 0xf88, 1, ProtoBuf.encodeToByteArray(
-            Oidb0xf88Req(
+        val respBuffer = sendOidbAW("OidbSvcTrpcTcp.0xf88_1", 0xf88, 1, Oidb0xf88Req(
             filter = GProFilter(1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u),
             memberId = 0uL,
             tinyId = memberTinyId,
             guildId = guildId
-        )
-        ))
+        ).toByteArray())
         val body = oidb_sso.OIDBSSOPkg()
         if (respBuffer == null) {
             return Result.failure(Exception("unable to send packet"))
         }
         body.mergeFrom(respBuffer.slice(4))
         return runCatching {
-            ProtoBuf.decodeFromByteArray<Oidb0xf88Rsp>(
-                body.bytes_bodybuffer.get().toByteArray()
-            ).userInfo!!
+            body.bytes_bodybuffer.get().toByteArray().decodeProtobuf<Oidb0xf88Rsp>().userInfo!!
         }
     }
 

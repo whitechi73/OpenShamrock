@@ -2,6 +2,7 @@ package protobuf.push
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.protobuf.ProtoNumber
+import moe.fuqiuluo.symbols.Protobuf
 
 @Serializable
 data class GroupCommonTipsEvent(
@@ -11,7 +12,7 @@ data class GroupCommonTipsEvent(
     @ProtoNumber(26) val baseTips: List<GroupBaseTips>? = null,
     @ProtoNumber(33) val essenceMsgInfo: List<EssenceMsgInfo>? = null,
     @ProtoNumber(37) val msgSeq: ULong = ULong.MIN_VALUE,
-)
+): Protobuf<GroupCommonTipsEvent>
 
 @Serializable
 data class EssenceMsgInfo(

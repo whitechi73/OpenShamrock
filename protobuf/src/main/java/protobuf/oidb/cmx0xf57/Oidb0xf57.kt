@@ -5,17 +5,18 @@ package protobuf.oidb.cmx0xf57
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.protobuf.ProtoNumber
+import moe.fuqiuluo.symbols.Protobuf
 
 @Serializable
 data class Oidb0xf57Req(
     @ProtoNumber(1) val filter: Oidb0xf57Filter,
     @ProtoNumber(2) val guildInfo: Oidb0xf57GuildInfo,
-)
+): Protobuf<Oidb0xf57Req>
 
 @Serializable
 data class Oidb0xf57Rsp(
     @ProtoNumber(1) val metaInfo: Oidb0xf57MetaInfo,
-)
+): Protobuf<Oidb0xf57Rsp>
 
 @Serializable
 data class Oidb0xf57MetaInfo(

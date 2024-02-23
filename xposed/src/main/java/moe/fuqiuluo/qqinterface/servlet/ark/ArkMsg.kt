@@ -53,6 +53,7 @@ internal object ArkMsgSvc: BaseSvc() {
         sendOidb("OidbSvc.0xb77_9", 0xb77, 9, req.toByteArray())
     }
 
+    /*
     suspend fun tryShareJsonMessage(
         jsonString: String,
         arkAppInfo: ArkAppInfo = ArkAppInfo.DanMaKu,
@@ -96,5 +97,5 @@ internal object ArkMsgSvc: BaseSvc() {
             }
         } ?: return Result.failure(Exception("unable to sign json"))
         return Result.success(signedJson)
-    }
+    }*/
 }

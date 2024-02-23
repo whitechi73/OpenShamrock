@@ -6,11 +6,12 @@ import com.tencent.mobileqq.transfile.FileMsg
 import com.tencent.mobileqq.transfile.api.IProtoReqManager
 import com.tencent.mobileqq.transfile.protohandler.RichProto
 import com.tencent.mobileqq.transfile.protohandler.RichProtoProc
+import io.ktor.util.Identity.decode
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
-import kotlinx.serialization.protobuf.ProtoBuf
+
 import moe.fuqiuluo.qqinterface.servlet.BaseSvc
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
@@ -19,7 +20,9 @@ import moe.fuqiuluo.shamrock.tools.slice
 import moe.fuqiuluo.shamrock.tools.toHexString
 import moe.fuqiuluo.shamrock.utils.PlatformUtils
 import moe.fuqiuluo.shamrock.xposed.helper.AppRuntimeFetcher
+import moe.fuqiuluo.symbols.decodeProtobuf
 import mqq.app.MobileQQ
+import protobuf.auto.toByteArray
 import protobuf.oidb.cmd0xfc2.Oidb0xfc2ChannelInfo
 import protobuf.oidb.cmd0xfc2.Oidb0xfc2MsgApplyDownloadReq
 import protobuf.oidb.cmd0xfc2.Oidb0xfc2ReqBody
@@ -49,8 +52,7 @@ internal object RichProtoSvc: BaseSvc() {
     }*/
 
     suspend fun getGuildFileDownUrl(peerId: String, channelId: String, fileId: String, bizId: Int): String {
-        val buffer = sendOidbAW("OidbSvcTrpcTcp.0xfc2_0", 4034, 0, ProtoBuf.encodeToByteArray(
-            Oidb0xfc2ReqBody(
+        val buffer = sendOidbAW("OidbSvcTrpcTcp.0xfc2_0", 4034, 0, Oidb0xfc2ReqBody(
             msgCmd = 1200,
             msgBusType = 4202,
             msgChannelInfo = Oidb0xfc2ChannelInfo(
@@ -62,14 +64,16 @@ internal object RichProtoSvc: BaseSvc() {
                 fieldId = fileId,
                 supportEncrypt = 0
             )
-        )
-        )) ?: return ""
+        ).toByteArray()) ?: return ""
         val body = oidb_sso.OIDBSSOPkg()
         body.mergeFrom(buffer.slice(4))
-        ProtoBuf.decodeFromByteArray<Oidb0xfc2RspBody>(body.bytes_bodybuffer.get().toByteArray()).msgApplyDownloadRsp?.let {
-            it.msgDownloadInfo?.let {
-                return "https://${it.downloadDomain}${it.downloadUrl}&fname=$fileId&isthumb=0"
-            }
+        body.bytes_bodybuffer
+            .get().toByteArray()
+            .decodeProtobuf<Oidb0xfc2RspBody>()
+            .msgApplyDownloadRsp?.let {
+                it.msgDownloadInfo?.let {
+                    return "https://${it.downloadDomain}${it.downloadUrl}&fname=$fileId&isthumb=0"
+                }
         }
         return ""
     }

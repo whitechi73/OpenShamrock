@@ -10,7 +10,7 @@ import io.ktor.utils.io.core.writeInt
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.encodeToByteArray
-import kotlinx.serialization.protobuf.ProtoBuf
+
 import moe.fuqiuluo.shamrock.remote.action.handlers.GetHistoryMsg
 import moe.fuqiuluo.shamrock.remote.service.listener.AioListener
 import moe.fuqiuluo.shamrock.tools.broadcast
@@ -24,6 +24,7 @@ import protobuf.message.MessageHead
 import protobuf.message.MessageBody
 import protobuf.push.MessagePush
 import mqq.app.MobileQQ
+import protobuf.auto.toByteArray
 import kotlin.coroutines.resume
 
 internal object PacketSvc: BaseSvc() {
@@ -77,7 +78,7 @@ internal object PacketSvc: BaseSvc() {
             )
         )
 
-        fakeReceive("trpc.msg.olpush.OlPushService.MsgPush", 10000, ProtoBuf.encodeToByteArray(msgPush))
+        fakeReceive("trpc.msg.olpush.OlPushService.MsgPush", 10000, msgPush.toByteArray())
         return withTimeoutOrNull(5000L) {
             suspendCancellableCoroutine {
                 AioListener.registerTemporaryMsgListener(msgSeq) {

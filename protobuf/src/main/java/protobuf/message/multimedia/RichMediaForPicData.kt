@@ -4,12 +4,13 @@ package protobuf.message.multimedia
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.protobuf.ProtoNumber
+import moe.fuqiuluo.symbols.Protobuf
 
 @Serializable
 data class RichMediaForPicData(
     @ProtoNumber(1) val info: MediaInfo?,
     @ProtoNumber(2) val display: DisplayMediaInfo?,
-) {
+): Protobuf<RichMediaForPicData> {
     companion object {
         @Serializable
         data class MediaInfo(

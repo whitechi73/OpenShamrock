@@ -6,6 +6,7 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.protobuf.ProtoNumber
+import moe.fuqiuluo.symbols.Protobuf
 import protobuf.qweb.QWebExtInfo
 
 @Serializable
@@ -19,7 +20,7 @@ data class GetGuildFeedsReq(
     @ProtoNumber(7) var u7: Int? = null,
     @ProtoNumber(8) var u8: Int? = null,
     @ProtoNumber(9) var u9: ByteArray? = null,
-)
+): Protobuf<GetGuildFeedsReq>
 
 @Serializable
 data class GetGuildFeedsRsp(
@@ -27,7 +28,7 @@ data class GetGuildFeedsRsp(
     @ProtoNumber(2) var isFinish: Int = 0,
     //@ProtoNumber(3) var feedAttchInfo: ByteArray? = null,
     //@ProtoNumber(4) var traceId: String? = null,
-)
+): Protobuf<GetGuildFeedsRsp>
 
 @Serializable
 data class StFeed(

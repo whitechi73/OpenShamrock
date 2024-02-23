@@ -2,11 +2,12 @@ package protobuf.push
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.protobuf.ProtoNumber
+import moe.fuqiuluo.symbols.Protobuf
 
 @Serializable
 data class FriendApplyEvent(
     @ProtoNumber(1) val head: FriendApplyHead? = null,
-)
+): Protobuf<FriendApplyEvent>
 
 
 @Serializable

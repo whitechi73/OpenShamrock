@@ -15,7 +15,7 @@ import kotlinx.io.core.readBytes
 import kotlinx.io.core.writeFully
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.encodeToByteArray
-import kotlinx.serialization.protobuf.ProtoBuf
+
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.tools.hex2ByteArray
@@ -39,6 +39,7 @@ import mqq.manager.TicketManager
 import oicq.wlogin_sdk.request.Ticket
 import oicq.wlogin_sdk.request.WtTicketPromise
 import oicq.wlogin_sdk.tools.ErrMsg
+import protobuf.auto.toByteArray
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.nio.ByteBuffer
@@ -329,9 +330,9 @@ internal object QFavSvc: BaseSvc() {
             }
             val pSKey = getWeiYunPSKey()
             httpNetReq.mHttpMethod = HttpNetReq.HTTP_POST
-            httpNetReq.mSendData = DeflateTools.gzip(packData(packHead(cmd, pSKey), ProtoBuf.encodeToByteArray(
-                WeiyunComm(req = req)
-            )))
+            httpNetReq.mSendData = DeflateTools.gzip(packData(packHead(cmd, pSKey), WeiyunComm(
+                req = req
+            ).toByteArray()))
             httpNetReq.mOutStream = outputStream
             httpNetReq.mStartDownOffset = 0L
             httpNetReq.mReqProperties["Shamrock"] = "true"
@@ -351,8 +352,7 @@ internal object QFavSvc: BaseSvc() {
     }
 
     private fun packHead(cmd: Int, pskey: String): ByteArray {
-        return ProtoBuf.encodeToByteArray(
-            WeiyunMsgHead(
+        return WeiyunMsgHead(
             uin = app.longAccountUin.toULong(),
             seq = seq++.toUInt(),
             type = 1u,
@@ -364,8 +364,7 @@ internal object QFavSvc: BaseSvc() {
             key = pskey.toByteArray(),
             majorVersion = MAJOR_VERSION.toUInt(),
             minorVersion = MINOR_VERSION.toUInt(),
-        )
-        )
+        ).toByteArray()
     }
 
     private fun packData(head: ByteArray, body: ByteArray): ByteArray {

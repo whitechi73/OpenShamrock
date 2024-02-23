@@ -4,6 +4,7 @@ package protobuf.message.longmsg
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.protobuf.ProtoNumber
+import moe.fuqiuluo.symbols.Protobuf
 
 
 @Serializable
@@ -39,14 +40,14 @@ data class LongMsgReq(
     @ProtoNumber(1) val recvInfo: RecvLongMsgInfo? = null,
     @ProtoNumber(2) val sendInfo: SendLongMsgInfo? = null,
     @ProtoNumber(15) val setting: LongMsgSettings? = null,
-)
+): Protobuf<LongMsgReq>
 
 @Serializable
 data class LongMsgRsp(
     @ProtoNumber(1) val recvResult: RecvLongMsgResult? = null,
     @ProtoNumber(2) val sendResult: SendLongMsgResult? = null,
     @ProtoNumber(15) val setting: LongMsgSettings? = null
-) {
+): Protobuf<LongMsgRsp> {
     companion object {
         @Serializable
         data class SendLongMsgResult(

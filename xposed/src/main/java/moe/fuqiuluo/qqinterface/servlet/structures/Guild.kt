@@ -2,6 +2,7 @@ package moe.fuqiuluo.qqinterface.servlet.structures
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import moe.fuqiuluo.symbols.Protobuf
 
 @Serializable
 data class GuildInfo(
@@ -59,7 +60,7 @@ data class GetGuildMemberListNextToken(
     @SerialName("role_index") val roleIndex: Long,
     @SerialName("seq") val seq: Int,
     @SerialName("finish") val finish: Boolean
-)
+): Protobuf<GetGuildMemberListNextToken>
 
 @Serializable
 data class GuildMemberInfo(

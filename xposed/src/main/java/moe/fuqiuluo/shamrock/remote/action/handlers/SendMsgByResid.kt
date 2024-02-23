@@ -2,11 +2,12 @@ package moe.fuqiuluo.shamrock.remote.action.handlers
 
 import kotlinx.atomicfu.atomic
 import kotlinx.serialization.encodeToByteArray
-import kotlinx.serialization.protobuf.ProtoBuf
+
 import moe.fuqiuluo.qqinterface.servlet.BaseSvc
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.symbols.OneBotHandler
+import protobuf.auto.toByteArray
 import protobuf.msg.C2C
 import protobuf.msg.ContentHead
 import protobuf.msg.Elem
@@ -47,7 +48,7 @@ internal object SendMsgByResid: IActionHandler() {
             msgRand = Random.nextUInt(),
             msgVia = 0u
         )
-        BaseSvc.sendBufferAW("MessageSvc.PbSendMsg", true, ProtoBuf.encodeToByteArray(req))
+        BaseSvc.sendBufferAW("MessageSvc.PbSendMsg", true, req.toByteArray())
         return ok("ok", session.echo)
     }
 }

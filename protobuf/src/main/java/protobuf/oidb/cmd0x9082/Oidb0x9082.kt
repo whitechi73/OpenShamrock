@@ -2,6 +2,7 @@ package protobuf.oidb.cmd0x9082
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.protobuf.ProtoNumber
+import moe.fuqiuluo.symbols.Protobuf
 
 @Serializable
 data class Oidb0x9082(
@@ -11,4 +12,4 @@ data class Oidb0x9082(
     @ProtoNumber(5) val flag: UInt = UInt.MIN_VALUE,
     @ProtoNumber(6) val u1: UInt = UInt.MIN_VALUE,
     @ProtoNumber(7) val u2: UInt = UInt.MIN_VALUE,
-)
+): Protobuf<Oidb0x9082>

@@ -2,13 +2,14 @@ package protobuf.push
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.protobuf.ProtoNumber
+import moe.fuqiuluo.symbols.Protobuf
 
 @Serializable
 data class GroupBanEvent(
     @ProtoNumber(1) val groupCode: ULong = ULong.MIN_VALUE,
     @ProtoNumber(4) val operatorUid: String = "",
     @ProtoNumber(5) val target: GroupBanTarget? = null,
-)
+): Protobuf<GroupBanEvent>
 
 @Serializable
 data class GroupBanTarget(

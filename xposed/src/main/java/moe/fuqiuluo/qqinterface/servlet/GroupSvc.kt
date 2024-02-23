@@ -46,7 +46,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.decodeFromStream
 import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.protobuf.ProtoBuf
+
 import moe.fuqiuluo.qqinterface.servlet.TicketSvc.getLongUin
 import moe.fuqiuluo.qqinterface.servlet.TicketSvc.getUin
 import moe.fuqiuluo.qqinterface.servlet.structures.GroupAtAllRemainInfo
@@ -78,6 +78,7 @@ import moe.fuqiuluo.shamrock.xposed.helper.NTServiceFetcher
 import protobuf.oidb.cmd0xf16.Oidb0xf16
 import protobuf.oidb.cmd0xf16.SetGroupRemarkReq
 import mqq.app.MobileQQ
+import protobuf.auto.toByteArray
 import tencent.im.group.group_member_info
 import tencent.im.oidb.cmd0x88d.oidb_0x88d
 import tencent.im.oidb.cmd0x899.oidb_0x899
@@ -274,15 +275,13 @@ internal object GroupSvc: BaseSvc() {
     }
 
     fun modifyGroupRemark(groupId: Long, remark: String): Boolean {
-        sendOidb("OidbSvc.0xf16_1", 3862, 1, ProtoBuf.encodeToByteArray(
-            Oidb0xf16(
+        sendOidb("OidbSvc.0xf16_1", 3862, 1, Oidb0xf16(
             setGroupRemarkReq = SetGroupRemarkReq(
                 groupCode = groupId.toULong(),
                 groupUin = groupCode2GroupUin(groupId).toULong(),
                 groupRemark = remark
             )
-        )
-        ))
+        ).toByteArray())
         return true
     }
 

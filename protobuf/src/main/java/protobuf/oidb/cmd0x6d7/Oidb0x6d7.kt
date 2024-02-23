@@ -5,6 +5,7 @@ package protobuf.oidb.cmd0x6d7
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.protobuf.ProtoNumber
+import moe.fuqiuluo.symbols.Protobuf
 import protobuf.group_file_common.FolderInfo
 
 @Serializable
@@ -13,7 +14,7 @@ data class Oidb0x6d7ReqBody(
     @ProtoNumber(2) val deleteFolder: DeleteFolderReq? = null,
     @ProtoNumber(3) val moveFolder: MoveFolderReq? = null,
     @ProtoNumber(4) val renameFolder: RenameFolderReq? = null,
-)
+): Protobuf<Oidb0x6d7ReqBody>
 
 @Serializable
 data class CreateFolderReq(
@@ -53,7 +54,7 @@ data class Oidb0x6d7RespBody(
     @ProtoNumber(2) val deleteFolder: DeleteFolderResp? = null,
     @ProtoNumber(3) val moveFolder: MoveFolderResp? = null,
     @ProtoNumber(4) val renameFolder: RenameFolderResp? = null,
-)
+): Protobuf<Oidb0x6d7RespBody>
 
 @Serializable
 data class CreateFolderResp(

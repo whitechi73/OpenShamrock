@@ -26,4 +26,12 @@ sealed class ArkAppInfo(
         signature = "7194d531cbe7960a22007b9f6bdaa38b",
         miniAppId = 1109937557
     )
+
+    data object Docs: ArkAppInfo(
+        appId = 0,
+        version = "0.0.0",
+        packageName = "",
+        signature = "f3da3147654d9a21f3237b88f20dce9c",
+        miniAppId = 1108338344
+    )
 }

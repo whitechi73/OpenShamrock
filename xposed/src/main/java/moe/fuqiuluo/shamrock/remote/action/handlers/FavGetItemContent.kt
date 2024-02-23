@@ -9,13 +9,14 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.protobuf.ProtoBuf
+
 import moe.fuqiuluo.qqinterface.servlet.QFavSvc
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
 import moe.fuqiuluo.shamrock.utils.DeflateTools
 import moe.fuqiuluo.symbols.OneBotHandler
+import moe.fuqiuluo.symbols.decodeProtobuf
 import protobuf.fav.WeiyunComm
 
 @OneBotHandler("fav.get_item_content")
@@ -47,7 +48,7 @@ internal object FavGetItemContent: IActionHandler() {
             readPacket.readFully(it, 0, it.size)
         }
 
-        val resp = ProtoBuf.decodeFromByteArray<WeiyunComm>(data).resp!!
+        val resp = data.decodeProtobuf<WeiyunComm>().resp!!
         return ok(ItemContent(
             resp.getFavContentResp!!.content!!.joinToString("") {
                 String(it.richMedia!!.rawData!!)

@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.protobuf.ProtoBuf
+
 import moe.fuqiuluo.qqinterface.servlet.GProSvc
 import moe.fuqiuluo.qqinterface.servlet.structures.GetGuildMemberListNextToken
 import moe.fuqiuluo.qqinterface.servlet.structures.GuildMemberInfo
@@ -19,6 +19,8 @@ import moe.fuqiuluo.shamrock.tools.EmptyJsonString
 import moe.fuqiuluo.shamrock.tools.hex2ByteArray
 import moe.fuqiuluo.shamrock.tools.toHexString
 import moe.fuqiuluo.symbols.OneBotHandler
+import moe.fuqiuluo.symbols.decodeProtobuf
+import protobuf.auto.toByteArray
 
 @OneBotHandler("get_guild_member_list")
 internal object GetGuildMemberList: IActionHandler() {
@@ -29,7 +31,7 @@ internal object GetGuildMemberList: IActionHandler() {
     }
 
     suspend operator fun invoke(guildId: ULong, all: Boolean, nextTokenStr: String, echo: JsonElement = EmptyJsonString): String {
-        val curNextToken = if (nextTokenStr.isEmpty()) null else ProtoBuf.decodeFromByteArray<GetGuildMemberListNextToken>(nextTokenStr.hex2ByteArray())
+        val curNextToken = if (nextTokenStr.isEmpty()) null else nextTokenStr.hex2ByteArray().decodeProtobuf<GetGuildMemberListNextToken>()
         val result = GProSvc.getGuildMemberList(
             guildId = guildId,
             fetchAll = all,
@@ -62,7 +64,7 @@ internal object GetGuildMemberList: IActionHandler() {
         return ok(GetGuildMemberListResult(
             members = members,
             finish = nextToken.finish,
-            nextToken = ProtoBuf.encodeToByteArray(nextToken).toHexString(),
+            nextToken = nextToken.toByteArray().toHexString(),
         ), echo)
     }
 

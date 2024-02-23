@@ -2,11 +2,12 @@ package protobuf.push
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.protobuf.ProtoNumber
+import moe.fuqiuluo.symbols.Protobuf
 
 @Serializable
 data class GroupInvitedApplyEvent(
     @ProtoNumber(2) val applyInfo: GroupInvitedApplyInfo? = null,
-)
+): Protobuf<GroupInvitedApplyEvent>
 
 @Serializable
 data class GroupInvitedApplyInfo(

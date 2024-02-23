@@ -6,6 +6,7 @@ package moe.fuqiuluo.ksp.impl
 import com.google.devtools.ksp.KspExperimental
 import com.google.devtools.ksp.getAnnotationsByType
 import com.google.devtools.ksp.getClassDeclarationByName
+import com.google.devtools.ksp.getKotlinClassByName
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.Dependencies
 import com.google.devtools.ksp.processing.KSPLogger
@@ -26,18 +27,18 @@ class OneBotHandlerProcessor(
 ): SymbolProcessor {
     override fun process(resolver: Resolver): List<KSAnnotated> {
         val ActionManagerNode = resolver.getClassDeclarationByName("moe.fuqiuluo.shamrock.remote.action.ActionManager")
-        if (ActionManagerNode == null) {
-            logger.error("OneBotHandlerProcessor: ActionManager not found")
-            return emptyList()
-        }
+            ?: resolver.getKotlinClassByName("moe.fuqiuluo.shamrock.remote.action.ActionManager")
+            ?: resolver.getClassDeclarationByName("ActionManager")
         val symbols = resolver.getSymbolsWithAnnotation(OneBotHandler::class.qualifiedName!!)
         val unableToProcess = symbols.filterNot { it.validate() }
-        val oneBotHandlers = (symbols.filter {
-            it is KSClassDeclaration && it.validate()  && it.classKind == ClassKind.OBJECT
-        } as Sequence<KSClassDeclaration>).toList()
+        if (ActionManagerNode != null) {
+            val oneBotHandlers = (symbols.filter {
+                it is KSClassDeclaration && it.validate() && it.classKind == ClassKind.OBJECT
+            } as Sequence<KSClassDeclaration>).toList()
 
-        if (oneBotHandlers.isNotEmpty()) {
-            ActionManagerNode.accept(ActionManagerVisitor(oneBotHandlers), Unit)
+            if (oneBotHandlers.isNotEmpty()) {
+                ActionManagerNode.accept(ActionManagerVisitor(oneBotHandlers), Unit)
+            }
         }
 
         return unableToProcess.toList()

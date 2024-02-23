@@ -5,6 +5,7 @@ package protobuf.message.longmsg
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.protobuf.ProtoNumber
+import moe.fuqiuluo.symbols.Protobuf
 import protobuf.message.MessageBody
 import protobuf.message.MessageContent
 import protobuf.message.MessageHead
@@ -29,4 +30,4 @@ data class LongMsgAction(
 @Serializable
 data class LongMsgPayload(
     @ProtoNumber(2) val action: List<LongMsgAction>? = null
-)
+): Protobuf<LongMsgPayload>

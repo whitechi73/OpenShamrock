@@ -2,6 +2,7 @@ package protobuf.msg
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.protobuf.ProtoNumber
+import moe.fuqiuluo.symbols.Protobuf
 
 @Serializable
 class PbSendMsgReq(
@@ -19,7 +20,7 @@ class PbSendMsgReq(
     //@ProtoNumber(12)  var msgCtrl: MsgCtrl? = null,
     //@ProtoNumber(13)  var receipt_req: ReceiptReq? = null,
     //@ProtoNumber(14)  var multi_send_seq: UInt = 0u,
-)
+): Protobuf<PbSendMsgReq>
 
 @Serializable
 data class ContentHead(

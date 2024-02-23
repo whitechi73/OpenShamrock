@@ -5,6 +5,7 @@ package protobuf.oidb.cmd0xf88
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.protobuf.ProtoNumber
+import moe.fuqiuluo.symbols.Protobuf
 
 @Serializable
 data class Oidb0xf88Req(
@@ -12,12 +13,12 @@ data class Oidb0xf88Req(
     @ProtoNumber(2) val memberId: ULong,
     @ProtoNumber(3) val tinyId: ULong,
     @ProtoNumber(4) val guildId: ULong,
-)
+): Protobuf<Oidb0xf88Req>
 
 @Serializable
 data class Oidb0xf88Rsp(
     @ProtoNumber(1) val userInfo: GProUserInfo?
-)
+): Protobuf<Oidb0xf88Rsp>
 
 @Serializable
 data class GProUserInfo(

@@ -5,6 +5,7 @@ package protobuf.qweb
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.protobuf.ProtoNumber
+import moe.fuqiuluo.symbols.Protobuf
 
 @Serializable
 data class QWebReq(
@@ -19,7 +20,7 @@ data class QWebReq(
     //@ProtoNumber(9) var Crypto: Any? = null,
     @ProtoNumber(10) var extinfo: List<QWebExtInfo>? = null,
     //@ProtoNumber(11) var contentType: Any? = null,
-)
+): Protobuf<QWebReq>
 
 @Serializable
 data class QWebExtInfo(
@@ -34,4 +35,4 @@ data class QWebRsp(
     //@ProtoNumber(3) var errMsg: String? = null,
     @ProtoNumber(4) var buffer: ByteArray? = null,
     //@ProtoNumber(5) var Extinfo: List<QWebExtInfo>? = null,
-)
+): Protobuf<QWebRsp>

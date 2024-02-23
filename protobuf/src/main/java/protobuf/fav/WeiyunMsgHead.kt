@@ -6,6 +6,7 @@ package protobuf.fav
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.protobuf.ProtoNumber
+import moe.fuqiuluo.symbols.Protobuf
 
 @Serializable
 data class WeiyunMsgHead(
@@ -27,4 +28,5 @@ data class WeiyunMsgHead(
     @ProtoNumber(103) val promptMsg: String? = null,
     @ProtoNumber(111) val totalSpace: ULong = ULong.MIN_VALUE,
     @ProtoNumber(112) val usedSpace: ULong = ULong.MIN_VALUE,
-)
+): Protobuf<WeiyunMsgHead>
+

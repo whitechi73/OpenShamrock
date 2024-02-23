@@ -1,9 +1,6 @@
 package moe.fuqiuluo.qqinterface.servlet
 
 import com.tencent.mobileqq.pb.ByteStringMicro
-import kotlinx.serialization.decodeFromByteArray
-import kotlinx.serialization.encodeToByteArray
-import kotlinx.serialization.protobuf.ProtoBuf
 import moe.fuqiuluo.qqinterface.servlet.structures.*
 import moe.fuqiuluo.qqinterface.servlet.transfile.RichProtoSvc
 import moe.fuqiuluo.shamrock.helper.Level
@@ -12,6 +9,8 @@ import moe.fuqiuluo.shamrock.tools.EMPTY_BYTE_ARRAY
 import moe.fuqiuluo.shamrock.tools.slice
 import moe.fuqiuluo.shamrock.tools.toHexString
 import moe.fuqiuluo.shamrock.utils.DeflateTools
+import moe.fuqiuluo.symbols.decode
+import moe.fuqiuluo.symbols.decodeProtobuf
 import protobuf.oidb.cmd0x6d7.CreateFolderReq
 import protobuf.oidb.cmd0x6d7.DeleteFolderReq
 import protobuf.oidb.cmd0x6d7.MoveFolderReq
@@ -22,24 +21,25 @@ import tencent.im.oidb.cmd0x6d6.oidb_0x6d6
 import tencent.im.oidb.cmd0x6d8.oidb_0x6d8
 import tencent.im.oidb.oidb_sso
 import protobuf.group_file_common.FolderInfo as GroupFileCommonFolderInfo
+import protobuf.auto.toByteArray
 
 internal object FileSvc: BaseSvc() {
     suspend fun createFileFolder(groupId: String, folderName: String, parentFolderId: String = "/"): Result<GroupFileCommonFolderInfo> {
-        val data = ProtoBuf.encodeToByteArray(
-            Oidb0x6d7ReqBody(
+        val data = Oidb0x6d7ReqBody(
             createFolder = CreateFolderReq(
                 groupCode = groupId.toULong(),
                 appId = 3u,
                 parentFolderId = parentFolderId,
                 folderName = folderName
             )
-        )
-        )
+        ).toByteArray()
         val resultBuffer = sendOidbAW("OidbSvc.0x6d7_0", 1751, 0, data)
             ?: return Result.failure(Exception("unable to fetch result"))
         val oidbPkg = oidb_sso.OIDBSSOPkg()
         oidbPkg.mergeFrom(resultBuffer.slice(4))
-        val rsp = ProtoBuf.decodeFromByteArray<Oidb0x6d7RespBody>(oidbPkg.bytes_bodybuffer.get().toByteArray())
+        val rsp = oidbPkg.bytes_bodybuffer.get()
+            .toByteArray()
+            .decodeProtobuf<Oidb0x6d7RespBody>()
         if (rsp.createFolder?.retCode != 0) {
             return Result.failure(Exception("unable to create folder: ${rsp.createFolder?.retCode}"))
         }
@@ -47,52 +47,46 @@ internal object FileSvc: BaseSvc() {
     }
 
     suspend fun deleteGroupFolder(groupId: String, folderUid: String): Boolean {
-        val buffer = sendOidbAW("OidbSvc.0x6d7_1", 1751, 1, ProtoBuf.encodeToByteArray(
-            Oidb0x6d7ReqBody(
+        val buffer = sendOidbAW("OidbSvc.0x6d7_1", 1751, 1, Oidb0x6d7ReqBody(
             deleteFolder = DeleteFolderReq(
                 groupCode = groupId.toULong(),
                 appId = 3u,
                 folderId = folderUid
             )
-        )
-        )) ?: return false
+        ).toByteArray()) ?: return false
         val oidbPkg = oidb_sso.OIDBSSOPkg()
         oidbPkg.mergeFrom(buffer.slice(4))
-        val rsp = ProtoBuf.decodeFromByteArray<Oidb0x6d7RespBody>(oidbPkg.bytes_bodybuffer.get().toByteArray())
+        val rsp = oidbPkg.bytes_bodybuffer.get().toByteArray().decodeProtobuf<Oidb0x6d7RespBody>()
         return rsp.deleteFolder?.retCode == 0
     }
 
     suspend fun moveGroupFolder(groupId: String, folderUid: String, newParentFolderUid: String): Boolean {
-        val buffer = sendOidbAW("OidbSvc.0x6d7_2", 1751, 2, ProtoBuf.encodeToByteArray(
-            Oidb0x6d7ReqBody(
+        val buffer = sendOidbAW("OidbSvc.0x6d7_2", 1751, 2, Oidb0x6d7ReqBody(
             moveFolder = MoveFolderReq(
                 groupCode = groupId.toULong(),
                 appId = 3u,
                 folderId = folderUid,
                 parentFolderId = "/"
             )
-        )
-        )) ?: return false
+        ).toByteArray()) ?: return false
         val oidbPkg = oidb_sso.OIDBSSOPkg()
         oidbPkg.mergeFrom(buffer.slice(4))
-        val rsp = ProtoBuf.decodeFromByteArray<Oidb0x6d7RespBody>(oidbPkg.bytes_bodybuffer.get().toByteArray())
+        val rsp = oidbPkg.bytes_bodybuffer.get().toByteArray().decodeProtobuf<Oidb0x6d7RespBody>()
         return rsp.moveFolder?.retCode == 0
     }
 
     suspend fun renameFolder(groupId: String, folderUid: String, name: String): Boolean {
-        val buffer = sendOidbAW("OidbSvc.0x6d7_3", 1751, 3, ProtoBuf.encodeToByteArray(
-            Oidb0x6d7ReqBody(
+        val buffer = sendOidbAW("OidbSvc.0x6d7_3", 1751, 3, Oidb0x6d7ReqBody(
             renameFolder = RenameFolderReq(
                 groupCode = groupId.toULong(),
                 appId = 3u,
                 folderId = folderUid,
                 folderName = name
             )
-        )
-        )) ?: return false
+        ).toByteArray()) ?: return false
         val oidbPkg = oidb_sso.OIDBSSOPkg()
         oidbPkg.mergeFrom(buffer.slice(4))
-        val rsp = ProtoBuf.decodeFromByteArray<Oidb0x6d7RespBody>(oidbPkg.bytes_bodybuffer.get().toByteArray())
+        val rsp = oidbPkg.bytes_bodybuffer.get().toByteArray().decodeProtobuf<Oidb0x6d7RespBody>()
         return rsp.renameFolder?.retCode == 0
     }
 
