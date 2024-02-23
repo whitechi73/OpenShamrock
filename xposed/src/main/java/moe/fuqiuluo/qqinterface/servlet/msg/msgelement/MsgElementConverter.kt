@@ -223,9 +223,19 @@ internal object MsgElementConverter {
                         height = image.picHeight.toUInt(),
                         sha = "",
                         fileSize = image.fileSize.toULong(),
-                        peer = peerId
+                        peer = peerId,
                     )
-                    MsgConstant.KCHATTYPEGUILD -> RichProtoSvc.getGuildPicDownUrl(originalUrl, md5)
+                    MsgConstant.KCHATTYPEGUILD -> RichProtoSvc.getGuildPicDownUrl(
+                        originalUrl = originalUrl,
+                        md5 = md5,
+                        fileId = image.fileUuid,
+                        width = image.picWidth.toUInt(),
+                        height = image.picHeight.toUInt(),
+                        sha = "",
+                        fileSize = image.fileSize.toULong(),
+                        peer = peerId,
+                        subPeer = subPeer
+                    )
                     else -> throw UnsupportedOperationException("Not supported chat type: $chatType")
                 },
                 "subType" to image.picSubType,

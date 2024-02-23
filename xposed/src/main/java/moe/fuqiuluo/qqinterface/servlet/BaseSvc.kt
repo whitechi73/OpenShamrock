@@ -128,7 +128,7 @@ internal abstract class BaseSvc {
                 cmd = cmdId,
                 service = serviceId,
                 buffer = buffer,
-                flag = 0
+                flag = 1
             )
             to.putWupBuffer(oidb.toByteArray())
 

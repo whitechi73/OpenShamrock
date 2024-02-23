@@ -6,13 +6,13 @@ import com.tencent.mobileqq.transfile.FileMsg
 import com.tencent.mobileqq.transfile.api.IProtoReqManager
 import com.tencent.mobileqq.transfile.protohandler.RichProto
 import com.tencent.mobileqq.transfile.protohandler.RichProtoProc
+import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.serialization.ExperimentalSerializationApi
 import moe.fuqiuluo.qqinterface.servlet.BaseSvc
 import moe.fuqiuluo.shamrock.helper.ContactHelper
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
-import moe.fuqiuluo.shamrock.tools.EMPTY_BYTE_ARRAY
 import moe.fuqiuluo.shamrock.tools.hex2ByteArray
 import moe.fuqiuluo.shamrock.tools.slice
 import moe.fuqiuluo.shamrock.tools.toHexString
@@ -22,10 +22,22 @@ import moe.fuqiuluo.symbols.decodeProtobuf
 import mqq.app.MobileQQ
 import protobuf.auto.toByteArray
 import protobuf.oidb.TrpcOidb
-import protobuf.oidb.cmd0x11c5.MultiMediaDataInfo
-import protobuf.oidb.cmd0x11c5.MultiMediaRoutingHead
-import protobuf.oidb.cmd0x11c5.Oidb0x11c5Req
-import protobuf.oidb.cmd0x11c5.Oidb0x11c5Resp
+import protobuf.oidb.cmd0x11c5.C2CUserInfo
+import protobuf.oidb.cmd0x11c5.ChannelUserInfo
+import protobuf.oidb.cmd0x11c5.ClientMeta
+import protobuf.oidb.cmd0x11c5.CodecConfigReq
+import protobuf.oidb.cmd0x11c5.CommonHead
+import protobuf.oidb.cmd0x11c5.DownloadExt
+import protobuf.oidb.cmd0x11c5.DownloadReq
+import protobuf.oidb.cmd0x11c5.FileInfo
+import protobuf.oidb.cmd0x11c5.FileType
+import protobuf.oidb.cmd0x11c5.GroupUserInfo
+import protobuf.oidb.cmd0x11c5.IndexNode
+import protobuf.oidb.cmd0x11c5.MultiMediaReqHead
+import protobuf.oidb.cmd0x11c5.NtV2RichMediaReq
+import protobuf.oidb.cmd0x11c5.NtV2RichMediaRsp
+import protobuf.oidb.cmd0x11c5.SceneInfo
+import protobuf.oidb.cmd0x11c5.VideoDownloadExt
 import protobuf.oidb.cmd0xfc2.Oidb0xfc2ChannelInfo
 import protobuf.oidb.cmd0xfc2.Oidb0xfc2MsgApplyDownloadReq
 import protobuf.oidb.cmd0xfc2.Oidb0xfc2ReqBody
@@ -41,7 +53,7 @@ private const val MULTIMEDIA_DOMAIN = "multimedia.nt.qq.com.cn"
 private const val C2C_PIC = "c2cpicdw.qpic.cn"
 
 internal object RichProtoSvc: BaseSvc() {
-    //var multiMediaRKey = "CAQSKAB6JWENi5LMk0kc62l8Pm3Jn1dsLZHyRLAnNmHGoZ3y_gDZPqZt-64"
+    private val requestId = atomic(2L)
 
     suspend fun getGuildFileDownUrl(peerId: String, channelId: String, fileId: String, bizId: Int): String {
         val buffer = sendOidbAW("OidbSvcTrpcTcp.0xfc2_0", 4034, 0, Oidb0xfc2ReqBody(
@@ -168,15 +180,17 @@ internal object RichProtoSvc: BaseSvc() {
         val domain = if (isNtServer) MULTIMEDIA_DOMAIN else GPRO_PIC
         if (originalUrl.isNotEmpty()) {
             if (isNtServer && !originalUrl.contains("rkey=")) {
-                getC2CNtPicRKey(
-                    peer = peer,
+                getNtPicRKey(
                     fileId = fileId,
                     md5 = md5,
                     sha = sha,
                     fileSize = fileSize,
                     width = width,
                     height = height
-                ).onSuccess {
+                ) {
+                    sceneType = 2u
+                    grp = GroupUserInfo(peer.toULong())
+                }.onSuccess {
                     return "https://$domain$originalUrl$it"
                 }.onFailure {
                     LogCenter.log("getGroupPicDownUrl: ${it.stackTraceToString()}", Level.WARN)
@@ -200,18 +214,25 @@ internal object RichProtoSvc: BaseSvc() {
         val isNtServer = originalUrl.startsWith("/download")
         val domain = if (isNtServer) MULTIMEDIA_DOMAIN else C2C_PIC
         if (originalUrl.isNotEmpty()) {
-            if (fileId.isNotEmpty()) getC2CNtPicRKey(
-                peer = ContactHelper.getUidByUinAsync(peer.toLong()),
+            if (fileId.isNotEmpty()) getNtPicRKey(
                 fileId = fileId,
                 md5 = md5,
                 sha = sha,
                 fileSize = fileSize,
                 width = width,
                 height = height
-            ).onSuccess {
+            ) {
+                sceneType = 1u
+                c2c = C2CUserInfo(
+                    accountType = 2u,
+                    uid = ContactHelper.getUidByUinAsync(peer.toLong())
+                )
+            }.onSuccess {
                 if (isNtServer && !originalUrl.contains("rkey=")) {
                     return "https://$domain$originalUrl$it"
                 }
+            }.onFailure {
+                LogCenter.log("getC2CPicDownUrl: ${it.stackTraceToString()}", Level.WARN)
             }
             if (isNtServer && !originalUrl.contains("rkey=")) {
                 return "https://$domain$originalUrl&rkey="
@@ -225,6 +246,7 @@ internal object RichProtoSvc: BaseSvc() {
         originalUrl: String,
         md5: String,
         peer: String = "",
+        subPeer: String = "",
         fileId: String = "",
         sha: String = "",
         fileSize: ULong = 0uL,
@@ -235,15 +257,17 @@ internal object RichProtoSvc: BaseSvc() {
         val domain = if (isNtServer) MULTIMEDIA_DOMAIN else GPRO_PIC
         if (originalUrl.isNotEmpty()) {
             if (isNtServer && !originalUrl.contains("rkey=")) {
-                getC2CNtPicRKey(
-                    peer = peer,
+                getNtPicRKey(
                     fileId = fileId,
                     md5 = md5,
                     sha = sha,
                     fileSize = fileSize,
                     width = width,
                     height = height
-                ).onSuccess {
+                ) {
+                    sceneType = 3u
+                    channel = ChannelUserInfo(peer.toULong(), subPeer.toULong(), 1u)
+                }.onSuccess {
                     return "https://$domain$originalUrl$it"
                 }.onFailure {
                     LogCenter.log("getGuildPicDownUrl: ${it.stackTraceToString()}", Level.WARN)
@@ -255,108 +279,73 @@ internal object RichProtoSvc: BaseSvc() {
         return "https://$domain/qmeetpic/0/0-0-${md5.uppercase()}/0?term=2"
     }
 
-    /*
-    @Deprecated("use getC2CPicDownUrl instead")
-    suspend fun getC2CPicDownUrl(
-        peerId: String,
-        md5: String,
-    ): String {
-        return suspendCancellableCoroutine {
-            val runtime = AppRuntimeFetcher.appRuntime
-            val richProtoReq = RichProto.RichProtoReq()
-            val downReq: RichProto.RichProtoReq.C2CPicDownReq = RichProto.RichProtoReq.C2CPicDownReq()
-            downReq.selfUin = runtime.currentAccountUin
-            downReq.peerUin = peerId
-            downReq.secondUin = peerId
-            downReq.uuid = "$md5.jpg"
-            downReq.msgTime = 0
-            //downReq.storageSource = "picplatform"
-            richProtoReq.protoKey = "ftn"
-            //richProtoReq.protoKey = "multimedia"
-            downReq.isContact = true
-            downReq.protocolType = 0
-            downReq.fileType = FileTransfer.TRANSFILE_TYPE_RAWPIC
-
-            richProtoReq.callback = RichProtoProc.RichProtoCallback { _, resp ->
-                if (resp.resps.isEmpty() || resp.resps.first().errCode != 0) {
-                    LogCenter.log("requestDownPrivateVideo: ${resp.resps.firstOrNull()?.errCode}", Level.WARN)
-                    it.resume("")
-                } else {
-                    val downResp = resp.resps.first() as RichProto.RichProtoResp.PicDownResp
-                    val url = StringBuilder()
-                    url.append(downResp.mIpList.random().getServerUrl("https://"))
-                    url.append(downResp.urlPath.substring(1))
-                    it.resume(url.toString())
-                }
-            }
-            richProtoReq.protoKey = RichProtoProc.C2C_PIC_DW
-            richProtoReq.reqs.add(downReq)
-            richProtoReq.protoReqMgr = runtime.getRuntimeService(IProtoReqManager::class.java, "all")
-            RichProtoProc.procRichProtoReq(richProtoReq)
-        }
-    }*/
-
-    suspend fun getC2CNtPicRKey(
-        peer: String,
+    suspend fun getNtPicRKey(
         fileId: String,
         md5: String,
         sha: String,
         fileSize: ULong,
         width: UInt,
-        height: UInt
+        height: UInt,
+        sceneBuilder: suspend SceneInfo.() -> Unit
     ): Result<String> {
         runCatching {
             val req = run {
-                Oidb0x11c5Req(
-                    MultiMediaRoutingHead(
-                        request = MultiMediaRoutingHead.Companion.Request(u1 = 2u, u2 = 200u),
-                        peerUser = MultiMediaRoutingHead.Companion.PeerUser(u1 = 2u, u2 = 1u, u3 = 1u, peer = MultiMediaRoutingHead.Companion.Peer(
-                            u1 = 2u,
-                            uid = peer
-                        )),
-                        u1 = MultiMediaRoutingHead.Companion.U1(2u)
+                NtV2RichMediaReq(
+                    head = MultiMediaReqHead(
+                        commonHead = CommonHead(
+                            requestId = requestId.incrementAndGet().toULong(),
+                            cmd = 200u
+                        ),
+                        sceneInfo = SceneInfo(
+                            requestType = 2u,
+                            businessType = 1u,
+                        ).apply {
+                            sceneBuilder()
+                        },
+                        clientMeta = ClientMeta(2u)
                     ),
-                    MultiMediaDataInfo(
-                        MultiMediaDataInfo.Companion.MultiMedia(
-                            MultiMediaDataInfo.Companion.Picture(
-                                size = fileSize,
+                    download = DownloadReq(
+                        IndexNode(
+                            FileInfo(
+                                fileSize = fileSize,
                                 md5 = md5.lowercase(),
-                                sha = sha.lowercase(),
-                                fileName = "${md5}.jpg",
-                                u1 = MultiMediaDataInfo.Companion.U3(
-                                    u1 = 1u,
-                                    u2 = 1000u,
-                                    u3 = 0u,
-                                    u4 = 0u
+                                sha1 = sha.lowercase(),
+                                name = "${md5}.jpg",
+                                fileType = FileType(
+                                    fileType = 1u,
+                                    picFormat = 1000u,
+                                    videoFormat = 0u,
+                                    voiceFormat = 0u
                                 ),
                                 width = width,
                                 height = height,
-                                u2 = 0u,
-                                u3 = 1u
+                                time = 0u,
+                                original = 1u
                             ),
-                            fileId = fileId,
-                            u1 = 1u,
-                            u2 = 0u,
-                            u3 = 0u,
-                            u4 = 0u
+                            fileUuid = fileId,
+                            storeId = 1u,
+                            uploadTime = 0u,
+                            ttl = 0u,
+                            subType = 0u,
+                            storeAppId = 0u
                         ),
-                        MultiMediaDataInfo.Companion.EXT(
-                            u1 = MultiMediaDataInfo.Companion.U1(
-                                u1 = 0u,
-                                u2 = 0u,
-                                u3 = MultiMediaDataInfo.Companion.U2(
-                                    u1 = EMPTY_BYTE_ARRAY,
-                                    u2 = EMPTY_BYTE_ARRAY,
-                                    u3 = EMPTY_BYTE_ARRAY
+                        DownloadExt(
+                            video = VideoDownloadExt(
+                                busiType = 0u,
+                                subBusiType = 0u,
+                                msgCodecConfig = CodecConfigReq(
+                                    platformChipinfo = "",
+                                    osVer = "",
+                                    deviceName = ""
                                 ),
-                                u4 = 1u
+                                flag = 1u
                             )
                         )
                     )
                 )
             }.toByteArray()
-            val buffer = sendOidbAW("OidbSvcTrpcTcp.0x11c5_200", 0x11c5, 200, req, true)?.slice(4)
-            buffer?.decodeProtobuf<TrpcOidb>()?.buffer?.decodeProtobuf<Oidb0x11c5Resp>()?.result?.rkeyParam?.let {
+            val buffer = sendOidbAW("OidbSvcTrpcTcp.0x11c5_200", 4549, 200, req, true)?.slice(4)
+            buffer?.decodeProtobuf<TrpcOidb>()?.buffer?.decodeProtobuf<NtV2RichMediaRsp>()?.download?.rkeyParam?.let {
                 return Result.success(it)
             }
         }.onFailure {
