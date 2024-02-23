@@ -18,6 +18,7 @@ import moe.fuqiuluo.shamrock.remote.action.handlers.DownloadFile
 import moe.fuqiuluo.shamrock.remote.action.handlers.GetDeviceBattery
 import moe.fuqiuluo.shamrock.remote.action.handlers.GetVersionInfo
 import moe.fuqiuluo.shamrock.remote.action.handlers.RestartMe
+import moe.fuqiuluo.shamrock.remote.action.handlers.UploadFileToShamrock
 import moe.fuqiuluo.shamrock.remote.structures.Status
 import moe.fuqiuluo.shamrock.remote.service.config.ShamrockConfig
 import moe.fuqiuluo.shamrock.tools.asString
@@ -25,6 +26,7 @@ import moe.fuqiuluo.shamrock.tools.fetchOrNull
 import moe.fuqiuluo.shamrock.tools.fetchOrThrow
 import moe.fuqiuluo.shamrock.tools.fetchPostJsonArray
 import moe.fuqiuluo.shamrock.tools.getOrPost
+import moe.fuqiuluo.shamrock.tools.hex2ByteArray
 import moe.fuqiuluo.shamrock.tools.isJsonArray
 import moe.fuqiuluo.shamrock.tools.json
 import moe.fuqiuluo.shamrock.tools.respond
@@ -111,6 +113,14 @@ fun Routing.otherAction() {
             }
         }
         respond(false, Status.BadRequest, "没有上传文件信息")
+    }
+
+    getOrPost("/upload_file_to_shamrock") {
+        val md5 = fetchOrThrow("md5").hex2ByteArray()
+        val offset = fetchOrNull("offset")?.toULong() ?: 0uL
+        val chunk = fetchOrThrow("chunk").toByteArray()
+        val fileSize = fetchOrNull("file_size")?.toULong() ?: chunk.size.toULong()
+        call.respondText(UploadFileToShamrock(md5, fileSize, offset, chunk), ContentType.Application.Json)
     }
 
     getOrPost("/config/set_boolean") {
