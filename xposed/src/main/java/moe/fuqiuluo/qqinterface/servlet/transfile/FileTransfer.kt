@@ -14,7 +14,6 @@ import kotlinx.coroutines.withTimeoutOrNull
 import moe.fuqiuluo.shamrock.utils.MD5
 import moe.fuqiuluo.shamrock.xposed.helper.AppRuntimeFetcher
 import mqq.app.AppRuntime
-import mqq.app.MobileQQ
 import java.io.File
 import kotlin.coroutines.resume
 import kotlin.math.abs
@@ -161,6 +160,17 @@ internal abstract class FileTransfer {
         const val BUSI_TYPE_VIDEO = 0
         const val BUSI_TYPE_VIDEO_EMOTICON_PIC = 1022
         const val BUSI_TYPE_VIDEO_EMOTICON_VIDEO = 1021
+
+        const val TRANSFILE_TYPE_PIC = 1
+        const val TRANSFILE_TYPE_PIC_EMO = 65538
+        const val TRANSFILE_TYPE_PIC_THUMB = 65537
+        const val TRANSFILE_TYPE_PISMA = 49
+        const val TRANSFILE_TYPE_RAWPIC = 131075
+
+        const val TRANSFILE_TYPE_PROFILE_COVER = 35
+        const val TRANSFILE_TYPE_PTT = 2
+        const val TRANSFILE_TYPE_PTT_SLICE_TO_TEXT = 327696
+        const val TRANSFILE_TYPE_QQHEAD_PIC = 131074
 
         internal fun createMessageUniseq(time: Long = System.currentTimeMillis()): Long {
             var uniseq = (time / 1000).toInt().toLong()

@@ -205,8 +205,14 @@ internal object MsgElementConverter {
                 "file" to md5,
                 "url" to when (chatType) {
                     MsgConstant.KCHATTYPEDISC, MsgConstant.KCHATTYPEGROUP -> RichProtoSvc.getGroupPicDownUrl(
-                        originalUrl,
-                        md5
+                        originalUrl = originalUrl,
+                        md5 = md5,
+                        fileId = image.fileUuid,
+                        width = image.picWidth.toUInt(),
+                        height = image.picHeight.toUInt(),
+                        sha = "",
+                        fileSize = image.fileSize.toULong(),
+                        peer = peerId
                     )
 
                     MsgConstant.KCHATTYPEC2C -> RichProtoSvc.getC2CPicDownUrl(

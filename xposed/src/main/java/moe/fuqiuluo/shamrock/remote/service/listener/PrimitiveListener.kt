@@ -111,7 +111,7 @@ internal object PrimitiveListener {
     }
 
     private fun onGroupMessage(msgTime: Long, body: MessageBody) {
-        runCatching {
+        /*runCatching {
             body.rich?.elements?.filter {
                 it.comm != null && it.comm!!.type == 48
             }?.map {
@@ -126,8 +126,7 @@ internal object PrimitiveListener {
                     }
                 }
             }
-
-        }
+        }*/
     }
 
     private suspend fun onC2CPoke(msgTime: Long, richMsg: MessageBody) {
