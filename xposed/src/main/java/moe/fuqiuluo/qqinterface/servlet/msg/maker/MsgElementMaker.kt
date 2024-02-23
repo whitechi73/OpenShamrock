@@ -1,4 +1,4 @@
-package moe.fuqiuluo.qqinterface.servlet.msg.msgelement
+package moe.fuqiuluo.qqinterface.servlet.msg.maker
 
 import android.graphics.BitmapFactory
 import androidx.exifinterface.media.ExifInterface
@@ -85,6 +85,7 @@ internal object MsgElementMaker {
         //"node" to MessageMaker::createNodeElem,
         //"multi_msg" to MessageMaker::createLongMsgStruct,
         "bubble_face" to MsgElementMaker::createBubbleFaceElem,
+        "button" to MsgElementMaker::createInlineKeywordElem,
         "inline_keyboard" to MsgElementMaker::createInlineKeywordElem
     )
 

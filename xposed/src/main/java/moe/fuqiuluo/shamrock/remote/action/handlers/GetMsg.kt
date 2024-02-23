@@ -8,7 +8,7 @@ import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.shamrock.remote.service.data.MessageDetail
 import moe.fuqiuluo.shamrock.remote.service.data.MessageSender
 import moe.fuqiuluo.qqinterface.servlet.MsgSvc
-import moe.fuqiuluo.qqinterface.servlet.msg.msgelement.toSegments
+import moe.fuqiuluo.qqinterface.servlet.msg.toSegments
 import moe.fuqiuluo.qqinterface.servlet.msg.toListMap
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
 import moe.fuqiuluo.symbols.OneBotHandler

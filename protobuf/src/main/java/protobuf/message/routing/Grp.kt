@@ -1,9 +1,9 @@
-package protobuf.message.element
+package protobuf.message.routing
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.protobuf.ProtoNumber
 
 @Serializable
-data class JsonElement(
-    @ProtoNumber(1) val data: ByteArray? = null,
+data class Grp (
+    @ProtoNumber(1) var groupCode: UInt? = null,
 )

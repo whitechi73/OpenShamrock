@@ -9,19 +9,18 @@ import io.ktor.utils.io.core.writeFully
 import io.ktor.utils.io.core.writeInt
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
-import kotlinx.serialization.encodeToByteArray
 
 import moe.fuqiuluo.shamrock.remote.action.handlers.GetHistoryMsg
 import moe.fuqiuluo.shamrock.remote.service.listener.AioListener
 import moe.fuqiuluo.shamrock.tools.broadcast
 import moe.fuqiuluo.shamrock.utils.DeflateTools
-import protobuf.message.element.JsonElement
-import protobuf.message.NtMessage
-import protobuf.message.MessageContent
-import protobuf.message.MessageElement
-import protobuf.message.RichMessage
-import protobuf.message.MessageHead
-import protobuf.message.MessageBody
+import protobuf.message.element.LightAppElem
+import protobuf.message.PushMsgBody
+import protobuf.message.ContentHead
+import protobuf.message.Elem
+import protobuf.message.RichText
+import protobuf.message.ResponseHead
+import protobuf.message.MsgBody
 import protobuf.push.MessagePush
 import mqq.app.MobileQQ
 import protobuf.auto.toByteArray
@@ -34,14 +33,14 @@ internal object PacketSvc: BaseSvc() {
     suspend fun fakeSelfRecvJsonMsg(msgService: IKernelMsgService, content: String): Long {
         return fakeReceiveSelfMsg(msgService) {
             listOf(
-                MessageElement(
-                    json = JsonElement((byteArrayOf(1) + DeflateTools.compress(content.toByteArray())))
+                Elem(
+                    lightApp = LightAppElem((byteArrayOf(1) + DeflateTools.compress(content.toByteArray())))
             )
             )
         }
     }
 
-    private suspend fun fakeReceiveSelfMsg(msgService: IKernelMsgService, builder: () -> List<MessageElement>): Long {
+    private suspend fun fakeReceiveSelfMsg(msgService: IKernelMsgService, builder: () -> List<Elem>): Long {
         val latestMsg = withTimeoutOrNull(3000) {
             suspendCancellableCoroutine {
                 msgService.getMsgs(Contact(MsgConstant.KCHATTYPEC2C, app.currentUid, ""), 0L, 1, true) { code, why, msgs ->
@@ -52,27 +51,27 @@ internal object PacketSvc: BaseSvc() {
         val msgSeq = (latestMsg?.msgSeq ?: 0) + 1
 
         val msgPush = MessagePush(
-            msgBody = NtMessage(
-                msgHead = MessageHead(
+            msgBody = PushMsgBody(
+                msgHead = ResponseHead(
                     peer = app.longAccountUin,
                     peerUid = app.currentUid,
                     flag = 1001,
                     receiver = app.longAccountUin,
                     receiverUid = app.currentUid
                 ),
-                contentHead = MessageContent(
+                contentHead = ContentHead(
                     msgType = 166,
                     msgSubType = 11,
                     msgSeq = msgSeq,
                     msgViaRandom = msgSeq,
                     msgTime = System.currentTimeMillis() / 1000,
                     u2 = 1,
-                    msgSeq_ = msgSeq,
+                    sequence = msgSeq,
                     msgRandom = msgService.getMsgUniqueId(System.currentTimeMillis()),
                     u4 = msgSeq - 2,
                     u5 = msgSeq
                 ),
-                body = MessageBody(RichMessage(
+                body = MsgBody(RichText(
                     elements = builder()
                 ))
             )

@@ -6,7 +6,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 import moe.fuqiuluo.qqinterface.servlet.MsgSvc
-import moe.fuqiuluo.qqinterface.servlet.msg.msgelement.toSegments
+import moe.fuqiuluo.qqinterface.servlet.msg.toSegments
 import moe.fuqiuluo.qqinterface.servlet.msg.toListMap
 import moe.fuqiuluo.shamrock.helper.MessageHelper
 import moe.fuqiuluo.shamrock.helper.db.MessageDB

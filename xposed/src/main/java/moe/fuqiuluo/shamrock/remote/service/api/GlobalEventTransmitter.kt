@@ -12,7 +12,7 @@ import kotlinx.coroutines.launch
 import moe.fuqiuluo.qqinterface.servlet.BaseSvc
 import moe.fuqiuluo.qqinterface.servlet.CardSvc
 import moe.fuqiuluo.qqinterface.servlet.GroupSvc
-import moe.fuqiuluo.qqinterface.servlet.msg.msgelement.toSegments
+import moe.fuqiuluo.qqinterface.servlet.msg.toSegments
 import moe.fuqiuluo.qqinterface.servlet.msg.toJson
 import moe.fuqiuluo.shamrock.remote.service.config.ShamrockConfig
 import moe.fuqiuluo.shamrock.remote.service.data.push.GroupFileMsg

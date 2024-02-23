@@ -1,8 +1,11 @@
-package moe.fuqiuluo.qqinterface.servlet.msg.msgelement
+package moe.fuqiuluo.qqinterface.servlet.msg.converter
 
 import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
 import com.tencent.qqnt.kernel.nativeinterface.MsgElement
-import kotlinx.serialization.json.*
+import kotlinx.serialization.json.add
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+import kotlinx.serialization.json.putJsonArray
 import moe.fuqiuluo.qqinterface.servlet.msg.MessageSegment
 import moe.fuqiuluo.qqinterface.servlet.transfile.RichProtoSvc
 import moe.fuqiuluo.shamrock.helper.ContactHelper
@@ -15,41 +18,6 @@ import moe.fuqiuluo.shamrock.helper.db.MessageDB
 import moe.fuqiuluo.shamrock.tools.asJsonObject
 import moe.fuqiuluo.shamrock.tools.asString
 import moe.fuqiuluo.shamrock.tools.hex2ByteArray
-
-
-internal suspend fun List<MsgElement>.toSegments(chatType: Int, peerId: String, subPeer: String): List<MessageSegment> {
-    val messageData = arrayListOf<MessageSegment>()
-    this.forEach { msg ->
-        kotlin.runCatching {
-            val converter = MsgElementConverter[msg.elementType]
-            converter?.invoke(chatType, peerId, subPeer, msg)
-                ?: throw UnsupportedOperationException("不支持的消息element类型：${msg.elementType}")
-        }.onSuccess {
-            messageData.add(it)
-        }.onFailure {
-            if (it is UnknownError) {
-                // 不处理的消息类型，抛出unknown error
-            } else {
-                LogCenter.log("消息element转换错误：$it, elementType: ${msg.elementType}", Level.WARN)
-            }
-        }
-    }
-    return messageData
-}
-
-internal suspend fun List<MsgElement>.toCQCode(chatType: Int, peerId: String, subPeer: String): String {
-    if (this.isEmpty()) {
-        return ""
-    }
-    return MessageHelper.nativeEncodeCQCode(this.toSegments(chatType, peerId, subPeer).map {
-        val params = hashMapOf<String, String>()
-        params["_type"] = it.type
-        it.data.forEach { (key, value) ->
-            params[key] = value.toString()
-        }
-        params
-    })
-}
 
 internal typealias IMsgElementConverter = suspend (Int, String, String, MsgElement) -> MessageSegment
 

@@ -1,50 +1,46 @@
 package moe.fuqiuluo.shamrock.remote.action.handlers
 
 import kotlinx.atomicfu.atomic
-import kotlinx.serialization.encodeToByteArray
 
 import moe.fuqiuluo.qqinterface.servlet.BaseSvc
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.symbols.OneBotHandler
 import protobuf.auto.toByteArray
-import protobuf.msg.C2C
-import protobuf.msg.ContentHead
-import protobuf.msg.Elem
-import protobuf.msg.GeneralFlags
-import protobuf.msg.Grp
-import protobuf.msg.MsgBody
-import protobuf.msg.PbSendMsgReq
-import protobuf.msg.RichText
-import protobuf.msg.RoutingHead
+import protobuf.message.*
+import protobuf.message.element.GeneralFlags
+import protobuf.message.routing.C2C
+import protobuf.message.routing.Grp
 import kotlin.random.Random
 import kotlin.random.nextUInt
 
 @OneBotHandler("send_msg_by_resid")
-internal object SendMsgByResid: IActionHandler() {
+internal object SendMsgByResid : IActionHandler() {
     private val msgSeq = atomic(1000)
 
     override suspend fun internalHandle(session: ActionSession): String {
         val resid = session.getString("resid")
         val peerId = session.getString("peer")
         val req = PbSendMsgReq(
-            routingHead = RoutingHead().apply {
-                when(session.getStringOrNull("message_type")) {
-                    "group" -> grp = Grp(peerId.toULong())
-                    "private" -> c2c = C2C(peerId.toULong())
-                    else -> grp = Grp(peerId.toULong())
-                }
+            routingHead = when (session.getStringOrNull("message_type")) {
+                "group" ->RoutingHead(grp = Grp(peerId.toUInt()))
+                "private" ->RoutingHead( c2c = C2C(peerId.toUInt()))
+                else ->RoutingHead( grp = Grp(peerId.toUInt()))
             },
-            contentHead = ContentHead(1u, 0u, 0u, 0u),
+            contentHead = ContentHead(1, 0, 0, 0),
             msgBody = MsgBody(
-                richText = RichText(arrayListOf(Elem(
-                    generalFlags = GeneralFlags(
-                        long_text_flag = 1u,
-                        long_text_resid = resid.toByteArray()
+                richText = RichText(
+                    elements = arrayListOf(
+                        Elem(
+                            generalFlags = GeneralFlags(
+                                longTextFlag = 1u,
+                                longTextResid = resid.toByteArray()
+                            )
+                        )
                     )
-                )))
+                )
             ),
-            msgSeq = msgSeq.incrementAndGet().toULong(),
+            msgSeq = msgSeq.incrementAndGet().toUInt(),
             msgRand = Random.nextUInt(),
             msgVia = 0u
         )

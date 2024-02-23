@@ -16,8 +16,8 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
 import moe.fuqiuluo.qqinterface.servlet.MsgSvc
-import moe.fuqiuluo.qqinterface.servlet.msg.messageelement.MessageElementMaker
-import moe.fuqiuluo.qqinterface.servlet.msg.msgelement.MsgElementMaker
+import moe.fuqiuluo.qqinterface.servlet.msg.maker.MessageElementMaker
+import moe.fuqiuluo.qqinterface.servlet.msg.maker.MsgElementMaker
 import moe.fuqiuluo.shamrock.helper.db.MessageDB
 import moe.fuqiuluo.shamrock.helper.db.MessageMapping
 import moe.fuqiuluo.shamrock.remote.structures.SendMsgResult
@@ -26,7 +26,7 @@ import moe.fuqiuluo.shamrock.tools.asJsonObjectOrNull
 import moe.fuqiuluo.shamrock.tools.asString
 import moe.fuqiuluo.shamrock.tools.json
 import moe.fuqiuluo.shamrock.tools.jsonArray
-import protobuf.message.MessageElement
+import protobuf.message.Elem
 import kotlin.coroutines.resume
 import kotlin.math.abs
 
@@ -323,8 +323,8 @@ internal object MessageHelper {
         msgId: Long,
         targetUin: String,
         messageList: JsonArray
-    ): Pair<Boolean, ArrayList<MessageElement>> {
-        val msgList = arrayListOf<MessageElement>()
+    ): Pair<Boolean, ArrayList<Elem>> {
+        val msgList = arrayListOf<Elem>()
         var hasActionMsg = false
         messageList.forEach {
             val msg = it.jsonObject
