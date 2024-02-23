@@ -177,10 +177,15 @@ internal object RichProtoSvc: BaseSvc() {
         originalUrl: String,
         md5: String
     ): String {
+        val isNtServer = originalUrl.startsWith("/download")
+        val domain = if (isNtServer) GPRO_PIC_NT else C2C_PIC
         if (originalUrl.isNotEmpty()) {
-            return "https://$C2C_PIC$originalUrl"
+            if (isNtServer && !originalUrl.contains("rkey=")) {
+                return "https://$domain$originalUrl&rkey=$multiMediaRKey"
+            }
+            return "https://$domain$originalUrl"
         }
-        return "https://$C2C_PIC/offpic_new/0/123-0-${md5.uppercase()}/0?term=2"
+        return "https://$$domain/offpic_new/0/123-0-${md5.uppercase()}/0?term=2"
     }
 
     fun getGuildPicDownUrl(
