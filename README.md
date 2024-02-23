@@ -29,6 +29,7 @@
 
 - 一键移植：本项目基于 go-cqhttp 的文档进行开发实现。
 - 平行部署：可多平台部署，未来将会支持 Docker 部署的教程。  
+- 替代方案：[Lagrange.Core](https://github.com/LagrangeDev/Lagrange.Core)
 
 ## 权限声明
 
