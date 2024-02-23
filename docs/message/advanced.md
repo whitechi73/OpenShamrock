@@ -17,7 +17,7 @@ icon: layer-group
 
 | 字段 | 类型  | 收  | 发  | 必填 | 说明   |
 | ---- | ----- | --- | --- | ---- | ------ |
-| id   | int64 | ✓   | ✓   | 是   | 消息ID |
+| id   | `int64` or `string` | ✓   | ✓   | 是   | 消息ID |
 
 ## XML 消息 <Badge text="未实现" type="danger" />
 

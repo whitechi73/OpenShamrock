@@ -43,7 +43,7 @@ icon: feather-alt
 }
 ```
 
-## 上传文件到缓存目录 （WebSocket）
+## 上传文件到缓存目录 （WebSocket + HTTP）
 
 ### API 端点
 
@@ -57,7 +57,7 @@ icon: feather-alt
 
 | 名称 | 类型 | 作用 |
 |------|-------|-------|
-| md5 | string | 文件`hex格式`的md5值，32长度的字符串 |
+| md5 | string | 文件`hex格式`的md5值，32长度的字符串，整个文件的`md5` |
 | offset | uint64 | 文件分段上传偏移，默认值为0，从头上传 |
 | chunk | string | 文件分段上传数据块（base64），无需开头`base64://` |
 | file_size | uint64 | 总文件大小 |  
