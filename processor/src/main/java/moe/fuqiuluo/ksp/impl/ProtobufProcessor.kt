@@ -32,9 +32,9 @@ class ProtobufProcessor(
         }.toList()
 
         if (actions.isNotEmpty()) {
-            actions.forEach { clz ->
-                if (clz.isInternal()) return@forEach
-                if (clz.isPrivate()) return@forEach
+            actions.forEachIndexed { index, clz ->
+                if (clz.isInternal()) return@forEachIndexed
+                if (clz.isPrivate()) return@forEachIndexed
 
                 val packageName = "protobuf.auto"
                 val fileSpecBuilder = FileSpec.scriptBuilder("FastProtobuf", packageName)
@@ -58,7 +58,7 @@ class ProtobufProcessor(
                 codeGenerator.createNewFile(
                     dependencies = Dependencies.ALL_FILES,
                     packageName = packageName,
-                    fileName = clz.simpleName.asString() + "\$FP"
+                    fileName = "FP${clz.simpleName.asString().hashCode()}"
                 ).use { outputStream ->
                     outputStream.writer().use {
                         fileSpecBuilder.build().writeTo(it)

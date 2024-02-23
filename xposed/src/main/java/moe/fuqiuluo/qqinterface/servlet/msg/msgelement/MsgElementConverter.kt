@@ -184,19 +184,20 @@ internal object MsgElementConverter {
         element: MsgElement
     ): MessageSegment {
         val image = element.picElement
-        val md5 = image.md5HexStr ?: image.fileName
+        val md5 = (image.md5HexStr ?: image.fileName
             .replace("{", "")
             .replace("}", "")
-            .replace("-", "").split(".")[0]
+            .replace("-", "").split(".")[0])
+            .uppercase()
 
         ImageDB.getInstance().imageMappingDao().insert(
-            ImageMapping(md5.uppercase(), chatType, image.fileSize)
+            ImageMapping(md5, chatType, image.fileSize)
         )
 
         //LogCenter.log(image.toString())
 
         val originalUrl = image.originImageUrl ?: ""
-        //LogCenter.log({ "receive image: $image" }, Level.DEBUG)
+        LogCenter.log({ "receive image: $image" }, Level.DEBUG)
 
         return MessageSegment(
             type = "image",
@@ -208,7 +209,16 @@ internal object MsgElementConverter {
                         md5
                     )
 
-                    MsgConstant.KCHATTYPEC2C -> RichProtoSvc.getC2CPicDownUrl(originalUrl, md5)
+                    MsgConstant.KCHATTYPEC2C -> RichProtoSvc.getC2CPicDownUrl(
+                        originalUrl = originalUrl,
+                        md5 = md5,
+                        fileId = image.fileUuid,
+                        width = image.picWidth.toUInt(),
+                        height = image.picHeight.toUInt(),
+                        sha = "",
+                        fileSize = image.fileSize.toULong(),
+                        peer = peerId
+                    )
                     MsgConstant.KCHATTYPEGUILD -> RichProtoSvc.getGuildPicDownUrl(originalUrl, md5)
                     else -> throw UnsupportedOperationException("Not supported chat type: $chatType")
                 },

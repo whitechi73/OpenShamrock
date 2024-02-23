@@ -18,7 +18,7 @@ internal object GetImage: IActionHandler() {
         return invoke(file, echo)
     }
 
-    operator fun invoke(file: String, echo: JsonElement = EmptyJsonString): String {
+    suspend operator fun invoke(file: String, echo: JsonElement = EmptyJsonString): String {
         val fileMd5 = file
             .replace("{", "")
             .replace("}", "")
