@@ -95,11 +95,18 @@ fun Routing.messageAction() {
     getOrPost("/get_group_msg_history") {
         val peerId = fetchOrThrow("group_id")
         val cnt = fetchOrNull("count")?.toInt() ?: 20
-        val startId = fetchOrNull("message_seq")?.toInt()?.let {
-            if (it == 0) return@let 0L
+        val startId = fetchOrNull("message_id")?.let {
+            val messageId = it.toInt()
+            if (messageId == 0) return@let 0L
             MessageDB.getInstance()
                 .messageMappingDao()
-                .queryByMsgHashId(it)?.qqMsgId
+                .queryByMsgHashId(messageId)?.qqMsgId
+        } ?: fetchOrNull("message_seq")?.let {
+            val messageSeq = it.toInt()
+            if (messageSeq == 0) return@let 0L
+            MessageDB.getInstance()
+                .messageMappingDao()
+                .queryByMsgSeq(MsgConstant.KCHATTYPEGROUP, peerId, messageSeq)?.qqMsgId
         } ?: 0L
         call.respondText(GetHistoryMsg("group", peerId, cnt, startId), ContentType.Application.Json)
     }
@@ -173,7 +180,9 @@ fun Routing.messageAction() {
                     SendMessage(
                         chatType = chatType,
                         peerId = peerId,
-                        message = if (isJsonObject("message")) listOf(fetchPostJsonObject("message")).jsonArray else fetchPostJsonArray("message"),
+                        message = if (isJsonObject("message")) listOf(fetchPostJsonObject("message")).jsonArray else fetchPostJsonArray(
+                            "message"
+                        ),
                         fromId = groupId ?: userId ?: "",
                         retryCnt = retryCnt,
                         recallDuration = recallDuration
@@ -235,7 +244,9 @@ fun Routing.messageAction() {
                     SendMessage(
                         chatType = MsgConstant.KCHATTYPEGROUP,
                         peerId = groupId,
-                        message = if (isJsonObject("message")) listOf(fetchPostJsonObject("message")).jsonArray else fetchPostJsonArray("message"),
+                        message = if (isJsonObject("message")) listOf(fetchPostJsonObject("message")).jsonArray else fetchPostJsonArray(
+                            "message"
+                        ),
                         retryCnt = retryCnt,
                         recallDuration = recallDuration
                     )
@@ -298,7 +309,9 @@ fun Routing.messageAction() {
                     SendMessage(
                         chatType = chatType,
                         peerId = userId,
-                        message = if (isJsonObject("message")) listOf(fetchPostJsonObject("message")).jsonArray else fetchPostJsonArray("message"),
+                        message = if (isJsonObject("message")) listOf(fetchPostJsonObject("message")).jsonArray else fetchPostJsonArray(
+                            "message"
+                        ),
                         fromId = groupId ?: userId ?: "",
                         retryCnt = retryCnt,
                         recallDuration = recallDuration

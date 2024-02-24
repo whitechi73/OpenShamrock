@@ -297,7 +297,7 @@ internal object MsgSvc : BaseSvc() {
                         time = msg.contentHead?.msgTime?.toInt() ?: 0,
                         msgType = MessageHelper.obtainDetailTypeByMsgType(chatType),
                         msgId = 0, // MessageHelper.generateMsgIdHash(chatType, msg.content!!.msgViaRandom), msgViaRandom 为空
-                        realId = msg.contentHead!!.msgSeq?.toInt() ?: 0,
+                        msgSeq = msg.contentHead!!.msgSeq ?: 0,
                         sender = MessageSender(
                             msg.msgHead?.peer ?: 0,
                             msg.msgHead?.responseGrp?.memberCard?.ifEmpty { msg.msgHead?.forward?.friendName }
