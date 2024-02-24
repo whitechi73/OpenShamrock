@@ -299,6 +299,16 @@ object ShamrockConfig {
         return preferences.getBoolean("enable_self_msg", false)
     }
 
+    fun enableOldBDH(ctx: Context): Boolean {
+        val preferences = ctx.getSharedPreferences("config", 0)
+        return preferences.getBoolean("enable_old_bdh", false)
+    }
+
+    fun setEnableOldBDH(ctx: Context, v: Boolean) {
+        val preferences = ctx.getSharedPreferences("config", 0)
+        preferences.edit().putBoolean("enable_old_bdh", v).apply()
+    }
+
     fun enableSyncMsgAsSentMsg(ctx: Context): Boolean {
         val preferences = ctx.getSharedPreferences("config", 0)
         return preferences.getBoolean("enable_sync_msg_as_sent_msg", false)
@@ -334,7 +344,6 @@ object ShamrockConfig {
             "inject_packet" to preferences.getBoolean("inject_packet", false),
             "debug" to preferences.getBoolean("debug", false),
             "anti_qq_trace" to preferences.getBoolean("anti_qq_trace", true),
-            //"auto_clear" to preferences.getBoolean("auto_clear", false),
             "ssl_private_pwd" to preferences.getString("ssl_private_pwd", ""),
             "key_store" to preferences.getString("key_store", ""),
             "enable_self_msg" to preferences.getBoolean("enable_self_msg", false),
@@ -343,7 +352,8 @@ object ShamrockConfig {
             "alive_reply" to preferences.getBoolean("alive_reply", false),
             "enable_sync_msg_as_sent_msg" to preferences.getBoolean("enable_sync_msg_as_sent_msg", false),
             "disable_auto_sync_setting" to preferences.getBoolean("disable_auto_sync_setting", false),
-            "forbid_useless_process" to preferences.getBoolean("forbid_useless_process", false)
+            "forbid_useless_process" to preferences.getBoolean("forbid_useless_process", false),
+            "enable_old_bdh" to preferences.getBoolean("enable_old_bdh", false),
         )
     }
 

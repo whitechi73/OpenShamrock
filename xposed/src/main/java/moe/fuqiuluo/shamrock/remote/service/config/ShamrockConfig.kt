@@ -77,6 +77,7 @@ internal object ShamrockConfig {
                 putBoolean("shell",        intent.getBooleanExtra("shell", false))                  // 开启Shell接口
                 putBoolean("enable_sync_msg_as_sent_msg", intent.getBooleanExtra("enable_sync_msg_as_sent_msg", false)) // 推送同步消息
                 putBoolean("forbid_useless_process", intent.getBooleanExtra("forbid_useless_process", false)) // 禁用QQ生成无用进程
+                putBoolean("enable_old_bdh", intent.getBooleanExtra("enable_old_bdh", false)) // 启用旧版BDH
             }
             Config.defaultToken = intent.getStringExtra("token")
             Config.antiTrace = intent.getBooleanExtra("anti_qq_trace", true)
@@ -173,6 +174,10 @@ internal object ShamrockConfig {
 
     fun isInjectPacket(): Boolean {
         return mmkv.getBoolean("inject_packet", false)
+    }
+
+    fun enableOldBDH(): Boolean {
+        return mmkv.getBoolean("enable_old_bdh", false)
     }
 
     fun isDebug(): Boolean {

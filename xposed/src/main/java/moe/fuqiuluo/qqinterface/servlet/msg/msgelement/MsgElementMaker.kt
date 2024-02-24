@@ -37,6 +37,7 @@ import moe.fuqiuluo.shamrock.helper.LogicException
 import moe.fuqiuluo.shamrock.helper.MessageHelper
 import moe.fuqiuluo.shamrock.helper.MusicHelper
 import moe.fuqiuluo.shamrock.helper.ParamsException
+import moe.fuqiuluo.shamrock.remote.service.config.ShamrockConfig
 import moe.fuqiuluo.shamrock.tools.*
 import moe.fuqiuluo.shamrock.utils.AudioUtils
 import moe.fuqiuluo.shamrock.utils.FileUtils
@@ -714,11 +715,13 @@ internal object MsgElementMaker {
             AudioUtils.obtainVideoCover(file.absolutePath, thumbPath!!)
         }
 
-        Transfer with when (chatType) {
-            MsgConstant.KCHATTYPEGROUP -> Troop(peerId)
-            MsgConstant.KCHATTYPEC2C -> Private(peerId)
-            else -> error("Not supported chatType($chatType) for VideoMsg")
-        } trans VideoResource(file, File(thumbPath.toString()))
+        if (ShamrockConfig.enableOldBDH()) {
+            Transfer with when (chatType) {
+                MsgConstant.KCHATTYPEGROUP -> Troop(peerId)
+                MsgConstant.KCHATTYPEC2C -> Private(peerId)
+                else -> error("Not supported chatType($chatType) for VideoMsg")
+            } trans VideoResource(file, File(thumbPath.toString()))
+        }
 
         video.fileTime = AudioUtils.getVideoTime(file)
         video.fileSize = file.length()
@@ -848,36 +851,53 @@ internal object MsgElementMaker {
             else -> {
                 LogCenter.log({ "Audio To SILK: $file" }, Level.DEBUG)
                 val result = AudioUtils.audioToSilk(file)
-                ptt.duration = result.first
+                ptt.duration = runCatching {
+                    QRoute.api(IAIOPttApi::class.java)
+                        .getPttFileDuration(result.second.absolutePath)
+                }.getOrElse {
+                    result.first
+                }
                 file = result.second
                 ptt.formatType = MsgConstant.KPTTFORMATTYPESILK
             }
-        }
-        //val msgService = NTServiceFetcher.kernelService.msgService!!
-        //val originalPath = msgService.getRichMediaFilePathForMobileQQSend(RichMediaFilePathInfo(
-        //    MsgConstant.KELEMTYPEPTT, 0, ptt.md5HexStr, file.name, 1, 0, null, "", true
-        //))!!
-        //if (!QQNTWrapperUtil.CppProxy.fileIsExist(originalPath) || QQNTWrapperUtil.CppProxy.getFileSize(originalPath) != file.length()) {
-        //    QQNTWrapperUtil.CppProxy.copyFile(file.absolutePath, originalPath)
-        //}
-
-        if (!(Transfer with when (chatType) {
-                MsgConstant.KCHATTYPEGROUP -> Troop(peerId)
-                MsgConstant.KCHATTYPEC2C -> Private(peerId)
-                MsgConstant.KCHATTYPETEMPC2CFROMGROUP -> Private(peerId)
-                else -> error("Not supported chatType($chatType) for RecordMsg")
-            } trans VoiceResource(file))
-        ) {
-            return Result.failure(RuntimeException("上传语音失败: $file"))
         }
 
         val elem = MsgElement()
         elem.elementType = MsgConstant.KELEMTYPEPTT
         ptt.md5HexStr = QQNTWrapperUtil.CppProxy.genFileMd5Hex(file.absolutePath)
 
-        ptt.fileName = file.name
-        ptt.filePath = file.absolutePath
-        ptt.fileSize = file.length()
+        if (ShamrockConfig.enableOldBDH()) {
+            if (!(Transfer with when (chatType) {
+                    MsgConstant.KCHATTYPEGROUP -> Troop(peerId)
+                    MsgConstant.KCHATTYPEC2C -> Private(peerId)
+                    MsgConstant.KCHATTYPETEMPC2CFROMGROUP -> Private(peerId)
+                    else -> error("Not supported chatType($chatType) for RecordMsg")
+                } trans VoiceResource(file))
+            ) {
+                return Result.failure(RuntimeException("上传语音失败: $file"))
+            }
+
+            ptt.filePath = file.absolutePath
+        } else {
+            val msgService = NTServiceFetcher.kernelService.msgService!!
+
+            val originalPath = msgService.getRichMediaFilePathForMobileQQSend(RichMediaFilePathInfo(
+                MsgConstant.KELEMTYPEPTT, 0, ptt.md5HexStr, file.name, 1, 0, null, "", true
+            ))
+            if (!QQNTWrapperUtil.CppProxy.fileIsExist(originalPath) || QQNTWrapperUtil.CppProxy.getFileSize(originalPath) != file.length()) {
+                QQNTWrapperUtil.CppProxy.copyFile(file.absolutePath, originalPath)
+            }
+            if (originalPath != null) {
+                ptt.filePath = originalPath
+            } else {
+                ptt.filePath = file.absolutePath
+            }
+        }
+
+        ptt.canConvert2Text = true
+        ptt.fileId = 0
+        ptt.fileUuid = ""
+        ptt.text = ""
 
         if (!isMagic) {
             ptt.voiceType = MsgConstant.KPTTVOICETYPESOUNDRECORD
@@ -886,11 +906,6 @@ internal object MsgElementMaker {
             ptt.voiceType = MsgConstant.KPTTVOICETYPEVOICECHANGE
             ptt.voiceChangeType = MsgConstant.KPTTVOICECHANGETYPEECHO
         }
-
-        ptt.canConvert2Text = false
-        ptt.fileId = 0
-        ptt.fileUuid = ""
-        ptt.text = ""
 
         elem.pttElement = ptt
 
@@ -926,11 +941,13 @@ internal object MsgElementMaker {
         }
         requireNotNull(file)
 
-        Transfer with when (chatType) {
-            MsgConstant.KCHATTYPEGROUP -> Troop(peerId)
-            MsgConstant.KCHATTYPEC2C -> Private(peerId)
-            else -> error("Not supported chatType($chatType) for PictureMsg")
-        } trans PictureResource(file)
+        if (ShamrockConfig.enableOldBDH()) {
+            Transfer with when (chatType) {
+                MsgConstant.KCHATTYPEGROUP -> Troop(peerId)
+                MsgConstant.KCHATTYPEC2C -> Private(peerId)
+                else -> error("Not supported chatType($chatType) for PictureMsg")
+            } trans PictureResource(file)
+        }
 
         val elem = MsgElement()
         elem.elementType = MsgConstant.KELEMTYPEPIC

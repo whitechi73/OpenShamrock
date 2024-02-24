@@ -102,7 +102,7 @@ fun LabFragment() {
 
                 Function(
                     title = "禁止无用进程",
-                    desc = "禁止QQ生成无用进程浪费内存",
+                    desc = "禁止QQ生成无用进程浪费内存，可能造成部分功能闪退。",
                     descColor = color,
                     isSwitch = ShamrockConfig.isForbidUselessProcess(ctx)
                 ) {
@@ -221,7 +221,7 @@ fun LabFragment() {
                 }.onSuccess {
                     Function(
                         title = "反检测加强",
-                        desc = "可能导致某些设备频繁闪退",
+                        desc = "可能导致某些设备频繁闪退，将拦截环境包上报。",
                         descColor = color,
                         isSwitch = it.getBoolean("super_anti", false)
                     ) { v ->
@@ -295,17 +295,16 @@ fun LabFragment() {
                     return@Function true
                 }
 
-                /*
                 Function(
-                    title = "使用纯数字ECHO",
-                    desc = "在部分强类型语言框架，需要打开此开关。",
+                    title = "启用旧版资源上传系统",
+                    desc = "如果NT内核无法上传资源，请打开本开关。",
                     descColor = it,
-                    isSwitch = ShamrockConfig.isEchoNumber(ctx)
+                    isSwitch = ShamrockConfig.enableOldBDH(ctx)
                 ) {
-                    ShamrockConfig.setEchoNumber(ctx, it)
+                    ShamrockConfig.setEnableOldBDH(ctx, it)
                     ShamrockConfig.pushUpdate(ctx)
                     return@Function true
-                }*/
+                }
             }
         }
     }

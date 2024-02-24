@@ -117,6 +117,9 @@ internal class HookWrapperCodec: IAction {
                         //from.serviceCmd = "ShamrockInjectedCmd_${from.serviceCmd}"
                         from.setBusinessFail(1)
                         from.putWupBuffer(EMPTY_BYTE_ARRAY)
+                    } else if (from.serviceCmd.startsWith("trpc.o3.") && ShamrockConfig.isInjectPacket()) {
+                        from.setBusinessFail(1)
+                        from.putWupBuffer(EMPTY_BYTE_ARRAY)
                     } else {
                         pushOnReceive(from)
                     }
