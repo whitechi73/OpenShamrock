@@ -384,7 +384,7 @@ internal object PrimitiveListener {
         val targetUid = event.memberUid
         val type = event.type
 
-        GroupSvc.getGroupMemberList(groupCode.toString(), true).onFailure {
+        GroupSvc.getGroupMemberList(groupCode, true).onFailure {
             LogCenter.log("新成员加入刷新群成员列表失败: $groupCode", Level.WARN)
         }.onSuccess {
             LogCenter.log("新成员加入刷新群成员列表成功，群成员数量: ${it.size}", Level.INFO)
@@ -422,7 +422,7 @@ internal object PrimitiveListener {
         val type = event.type
         val operatorUid = event.operatorUid
 
-        GroupSvc.getGroupMemberList(groupCode.toString(), true).onFailure {
+        GroupSvc.getGroupMemberList(groupCode, true).onFailure {
             LogCenter.log("新成员加入刷新群成员列表失败: $groupCode", Level.WARN)
         }.onSuccess {
             LogCenter.log("新成员加入刷新群成员列表成功，群成员数量: ${it.size}", Level.INFO)

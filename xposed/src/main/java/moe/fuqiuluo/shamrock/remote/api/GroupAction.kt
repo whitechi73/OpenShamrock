@@ -26,7 +26,7 @@ fun Routing.troopAction() {
     }
 
     getOrPost("/get_not_joined_group_info") {
-        val groupId = fetchOrThrow("group_id")
+        val groupId = fetchOrThrow("group_id").toLong()
         call.respondText(GetNotJoinedGroupInfo(groupId), ContentType.Application.Json)
     }
 
@@ -36,28 +36,28 @@ fun Routing.troopAction() {
     }
 
     getOrPost("/group_touch") {
-        val groupId = fetchOrThrow("group_id")
-        val userId = fetchOrThrow("user_id")
+        val groupId = fetchOrThrow("group_id").toLong()
+        val userId = fetchOrThrow("user_id").toLong()
         call.respondText(GroupPoke(groupId, userId), ContentType.Application.Json)
     }
 
     getOrPost("/get_group_honor_info") {
-        val groupId = fetchOrThrow("group_id")
+        val groupId = fetchOrThrow("group_id").toLong()
         val refresh = fetchOrNull("no_cache")?.toBooleanStrict()
             ?: fetchOrNull("refresh")?.toBooleanStrict() ?: false
         call.respondText(GetTroopHonor(groupId, refresh), ContentType.Application.Json)
     }
 
     getOrPost("/get_group_member_list") {
-        val groupId = fetchOrThrow("group_id")
+        val groupId = fetchOrThrow("group_id").toLong()
         val refresh = fetchOrNull("no_cache")?.toBooleanStrict()
             ?: fetchOrNull("refresh")?.toBooleanStrict() ?: false
         call.respondText(GetTroopMemberList(groupId, refresh), ContentType.Application.Json)
     }
 
     getOrPost("/get_group_member_info") {
-        val groupId = fetchOrThrow("group_id")
-        val userId = fetchOrThrow("user_id")
+        val groupId = fetchOrThrow("group_id").toLong()
+        val userId = fetchOrThrow("user_id").toLong()
         val refresh = fetchOrNull("no_cache")?.toBooleanStrict()
             ?: fetchOrNull("refresh")?.toBooleanStrict() ?: false
         call.respondText(GetTroopMemberInfo(groupId, userId, refresh), ContentType.Application.Json)
@@ -70,48 +70,48 @@ fun Routing.troopAction() {
     }
 
     getOrPost("/get_group_info") {
-        val groupId = fetchOrThrow("group_id")
+        val groupId = fetchOrThrow("group_id").toLong()
         val refresh = fetchOrNull("no_cache")?.toBooleanStrict()
             ?: fetchOrNull("refresh")?.toBooleanStrict() ?: false
         call.respondText(GetTroopInfo(groupId, refresh), ContentType.Application.Json)
     }
 
     getOrPost("/set_group_special_title") {
-        val groupId = fetchOrThrow("group_id")
-        val userId = fetchOrThrow("user_id")
+        val groupId = fetchOrThrow("group_id").toLong()
+        val userId = fetchOrThrow("user_id").toLong()
         val title = fetchOrThrow("special_title")
         call.respondText(SetGroupUnique(groupId, userId, title), ContentType.Application.Json)
     }
 
     getOrPost("/set_group_name") {
-        val groupId = fetchOrThrow("group_id")
+        val groupId = fetchOrThrow("group_id").toLong()
         val card = fetchOrThrow("group_name")
         call.respondText(ModifyTroopName(groupId, card), ContentType.Application.Json)
     }
 
     getOrPost("/set_group_card") {
-        val groupId = fetchOrThrow("group_id")
-        val userId = fetchOrThrow("user_id")
+        val groupId = fetchOrThrow("group_id").toLong()
+        val userId = fetchOrThrow("user_id").toLong()
         val card = fetchOrNull("card") ?: ""
         call.respondText(ModifyTroopMemberName(groupId, userId, card), ContentType.Application.Json)
     }
 
     getOrPost("/set_group_admin") {
-        val groupId = fetchOrThrow("group_id") .toLong()
-        val userId = fetchOrThrow("user_id") .toLong()
+        val groupId = fetchOrThrow("group_id").toLong()
+        val userId = fetchOrThrow("user_id").toLong()
         val enable = fetchOrThrow("enable").toBooleanStrict()
         call.respondText(SetGroupAdmin(groupId, userId, enable), ContentType.Application.Json)
     }
 
     getOrPost("/set_group_whole_ban") {
-        val groupId = fetchOrThrow("group_id") .toLong()
+        val groupId = fetchOrThrow("group_id").toLong()
         val enable = fetchOrThrow("enable").toBooleanStrict()
         call.respondText(SetGroupWholeBan(groupId, enable), ContentType.Application.Json)
     }
 
     getOrPost("/set_group_ban") {
-        val groupId = fetchOrThrow("group_id") .toLong()
-        val userId = fetchOrThrow("user_id") .toLong()
+        val groupId = fetchOrThrow("group_id").toLong()
+        val userId = fetchOrThrow("user_id").toLong()
         val duration = fetchOrNull("duration")?.toInt() ?: (30 * 60)
 
         call.respondText(BanTroopMember(groupId, userId, duration), ContentType.Application.Json)

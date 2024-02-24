@@ -8,10 +8,10 @@ import moe.fuqiuluo.symbols.OneBotHandler
 @OneBotHandler("send_private_forward_msg")
 internal object SendPrivateForwardMessage : IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
-        val userId = session.getString("user_id")
+        val userId = session.getLong("user_id")
         return if (session.isArray("messages")) {
             val messages = session.getArray("messages")
-            SendForwardMessage(MsgConstant.KCHATTYPEC2C, userId, messages, echo = session.echo)
+            SendForwardMessage(MsgConstant.KCHATTYPEC2C, userId.toString(), messages, echo = session.echo)
         } else {
             logic("未知格式合并转发消息", session.echo)
         }

@@ -14,11 +14,11 @@ import moe.fuqiuluo.symbols.OneBotHandler
 @OneBotHandler("get_stranger_info", ["_get_stranger_info"])
 internal object GetStrangerInfo: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
-        val uid = session.getString("user_id")
-        return invoke(uid, session.echo)
+        val userId = session.getLong("user_id")
+        return invoke(userId, session.echo)
     }
 
-    suspend operator fun invoke(userId: String, echo: JsonElement = EmptyJsonString): String {
+    suspend operator fun invoke(userId: Long, echo: JsonElement = EmptyJsonString): String {
         val info = CardSvc.refreshAndGetProfileCard(userId).onFailure {
             return logic("unable to fetch stranger info", echo)
         }.getOrThrow()
@@ -71,7 +71,7 @@ internal object GetStrangerInfo: IActionHandler() {
 
     @Serializable
     data class StrangerInfo(
-        @SerialName("user_id") val uid: String,
+        @SerialName("user_id") val uid: Long,
         @SerialName("nickname") val nickname: String,
         @SerialName("age") val age: Byte,
         @SerialName("sex") val sex: String,

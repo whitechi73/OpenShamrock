@@ -16,15 +16,15 @@ import kotlin.coroutines.suspendCoroutine
 @OneBotHandler("is_blacklist_uin")
 internal object IsBlackListUin: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
-        val userId = session.getString("user_id")
+        val userId = session.getLong("user_id")
         return invoke(userId, session.echo)
     }
 
-    suspend operator fun invoke(uin: String, echo: JsonElement = EmptyJsonString): String {
+    suspend operator fun invoke(uin: Long, echo: JsonElement = EmptyJsonString): String {
         val blacklistApi = QRoute.api(IProfileCardBlacklistApi::class.java)
         val isBlack = withTimeoutOrNull(5000) {
             suspendCoroutine { continuation ->
-                blacklistApi.isBlackOrBlackedUin(uin) {
+                blacklistApi.isBlackOrBlackedUin(uin.toString()) {
                     continuation.resume(it)
                 }
             }

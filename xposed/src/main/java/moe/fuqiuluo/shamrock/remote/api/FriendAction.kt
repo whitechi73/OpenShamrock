@@ -18,8 +18,8 @@ import moe.fuqiuluo.shamrock.tools.getOrPost
 
 fun Routing.friendAction() {
     getOrPost("/get_stranger_info") {
-        val uin = fetchOrThrow("user_id")
-        call.respondText(GetStrangerInfo(uin), ContentType.Application.Json)
+        val userId = fetchOrThrow("user_id").toLong()
+        call.respondText(GetStrangerInfo(userId), ContentType.Application.Json)
     }
 
     getOrPost("/get_friend_list") {
@@ -29,8 +29,8 @@ fun Routing.friendAction() {
     }
 
     getOrPost("/is_blacklist_uin") {
-        val uin = fetchOrThrow("user_id")
-        call.respondText(IsBlackListUin(uin), ContentType.Application.Json)
+        val userId = fetchOrThrow("user_id").toLong()
+        call.respondText(IsBlackListUin(userId), ContentType.Application.Json)
     }
 
     getOrPost("/get_friend_system_msg") {

@@ -10,12 +10,12 @@ import moe.fuqiuluo.symbols.OneBotHandler
 @OneBotHandler("get_not_joined_group_info")
 internal object GetNotJoinedGroupInfo: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
-        val groupId = session.getString("group_id")
+        val groupId = session.getLong("group_id")
         return invoke(groupId, session.echo)
     }
 
-    suspend operator fun invoke(groupId: String, echo: JsonElement = EmptyJsonString): String {
-        GroupSvc.getNotJoinedGroupInfo(groupId = groupId.toLong()).onSuccess {
+    suspend operator fun invoke(groupId: Long, echo: JsonElement = EmptyJsonString): String {
+        GroupSvc.getNotJoinedGroupInfo(groupId = groupId).onSuccess {
             return ok(it, echo = echo)
         }.exceptionOrNull()?.let {
             return error(it.message ?: "无法获取群信息", echo = echo)

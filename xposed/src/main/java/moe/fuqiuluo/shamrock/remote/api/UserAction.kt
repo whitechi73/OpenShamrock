@@ -13,13 +13,13 @@ import moe.fuqiuluo.shamrock.utils.PlatformUtils
 
 fun Routing.userAction() {
     getOrPost("/switch_account") {
-        val userId = fetchOrThrow("user_id")
+        val userId = fetchOrThrow("user_id").toLong()
         call.respondText(SwitchAccount(userId), ContentType.Application.Json)
     }
 
     getOrPost("/set_group_leave") {
-        val group = fetchOrThrow("group_id")
-        call.respondText(LeaveTroop(group), ContentType.Application.Json)
+        val groupId = fetchOrThrow("group_id").toLong()
+        call.respondText(LeaveTroop(groupId), ContentType.Application.Json)
     }
 
     getOrPost("/_get_online_clients") {

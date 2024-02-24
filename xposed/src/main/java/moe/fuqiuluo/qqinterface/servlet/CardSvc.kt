@@ -88,16 +88,16 @@ internal object CardSvc: BaseSvc() {
         return rsp.signed_ark_msg.get()
     }
 
-    suspend fun getProfileCard(uin: String): Result<Card> {
+    suspend fun getProfileCard(uin: Long): Result<Card> {
         return getProfileCardFromCache(uin).onFailure {
             return refreshAndGetProfileCard(uin)
         }
     }
 
-    fun getProfileCardFromCache(uin: String): Result<Card> {
+    fun getProfileCardFromCache(uin: Long): Result<Card> {
         val profileDataService = app
             .getRuntimeService(IProfileDataService::class.java, "all")
-        val card = profileDataService.getProfileCard(uin, true)
+        val card = profileDataService.getProfileCard(uin.toString(), true)
         return if (card == null || card.strNick.isNullOrEmpty()) {
             Result.failure(Exception("unable to fetch profile card"))
         } else {
@@ -105,7 +105,7 @@ internal object CardSvc: BaseSvc() {
         }
     }
 
-    suspend fun refreshAndGetProfileCard(uin: String): Result<Card> {
+    suspend fun refreshAndGetProfileCard(uin: Long): Result<Card> {
         val dataService = app
             .getRuntimeService(IProfileDataService::class.java, "all")
         val card = refreshCardLock.withLock {
@@ -122,7 +122,7 @@ internal object CardSvc: BaseSvc() {
                     }
                 })
                 app.getRuntimeService(IProfileProtocolService::class.java, "all")
-                    .requestProfileCard(app.currentUin, uin, 12, 0L, 0.toByte(), 0L, 0L, null, "", 0L, 10004, null, 0.toByte())
+                    .requestProfileCard(app.currentUin, uin.toString(), 12, 0L, 0.toByte(), 0L, 0L, null, "", 0L, 10004, null, 0.toByte())
             }
         }
         return if (card == null || card.strNick.isNullOrEmpty()) {

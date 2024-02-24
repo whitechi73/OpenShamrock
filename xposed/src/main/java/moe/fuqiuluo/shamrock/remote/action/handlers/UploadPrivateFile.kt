@@ -35,7 +35,7 @@ import kotlin.coroutines.resume
 @OneBotHandler("upload_private_file")
 internal object UploadPrivateFile : IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
-        val userId = session.getString("user_id")
+        val userId = session.getLong("user_id")
         val file = session.getString("file")
         val name = session.getString("name")
             .replace("/", "_")
@@ -47,7 +47,7 @@ internal object UploadPrivateFile : IActionHandler() {
     }
 
     suspend operator fun invoke(
-        userId: String,
+        userId: Long,
         file: String,
         name: String,
         echo: JsonElement = EmptyJsonString
@@ -106,7 +106,7 @@ internal object UploadPrivateFile : IActionHandler() {
         val msgIdPair = MessageHelper.generateMsgId(MsgConstant.KCHATTYPEC2C)
         val info = (withTimeoutOrNull((srcFile.length() / (300 * 1024)) * 1000 + 5000) {
             val msgService = QRoute.api(IMsgService::class.java)
-            val contact = MessageHelper.generateContact(MsgConstant.KCHATTYPEC2C, userId)
+            val contact = MessageHelper.generateContact(MsgConstant.KCHATTYPEC2C, userId.toString())
             suspendCancellableCoroutine<FileTransNotifyInfo?> {
                 msgService.sendMsgWithMsgId(
                     contact, msgIdPair.qqMsgId, arrayListOf(msgElement)

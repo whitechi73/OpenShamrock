@@ -92,7 +92,12 @@ internal object MsgElementMaker {
 
     operator fun get(type: String): IMsgElementMaker? = makerMap[type]
 
-    private suspend fun createInlineKeywordElem(chatType: Int, msgId: Long, peerId: String, data: JsonObject): Result<MsgElement> {
+    private suspend fun createInlineKeywordElem(
+        chatType: Int,
+        msgId: Long,
+        peerId: String,
+        data: JsonObject
+    ): Result<MsgElement> {
         fun tryNewKeyboardButton(btn: JsonObject): InlineKeyboardButton {
             return runCatching {
                 InlineKeyboardButton(
@@ -127,6 +132,7 @@ internal object MsgElementMaker {
                 )
             }
         }
+
         val elem = MsgElement()
         elem.elementType = MsgConstant.KELEMTYPEINLINEKEYBOARD
         val rows = arrayListOf<InlineKeyboardRow>()
@@ -290,7 +296,7 @@ internal object MsgElementMaker {
         data: JsonObject
     ): Result<MsgElement> {
         data.checkAndThrow("id")
-        GroupSvc.poke(peerId, data["id"].asString)
+        GroupSvc.poke(peerId.toLong(), data["id"].asLong)
         return Result.failure(ActionMsgException)
     }
 
@@ -749,10 +755,10 @@ internal object MsgElementMaker {
         data.checkAndThrow("qq")
 
         val elem = MsgElement()
-        val qq = data["qq"].asString
+        val qqStr = data["qq"].asString
 
         val at = TextElement()
-        when (qq) {
+        when (qqStr) {
             "0", "all" -> {
                 at.content = "@全体成员"
                 at.atType = MsgConstant.ATTYPEALL
@@ -773,25 +779,26 @@ internal object MsgElementMaker {
             }
 
             else -> {
+                val qq = qqStr.toLong()
                 val name = data["name"].asStringOrNull
                 if (name == null) {
-                    val info = GroupSvc.getTroopMemberInfoByUinV2(peerId, qq, true).onFailure {
-                        LogCenter.log("无法获取群成员信息: $qq", Level.ERROR)
+                    val info = GroupSvc.getTroopMemberInfoByUinV2(peerId.toLong(), qq, true).onFailure {
+                        LogCenter.log("无法获取群成员信息: $qqStr", Level.ERROR)
                     }.getOrNull()
                     if (info != null) {
                         at.content = "@${
                             info.troopnick
                                 .ifNullOrEmpty(info.friendnick)
-                                .ifNullOrEmpty(qq)
+                                .ifNullOrEmpty(qqStr)
                         }"
                     } else {
-                        at.content = "@$qq"
+                        at.content = "@$qqStr"
                     }
                 } else {
                     at.content = "@$name"
                 }
                 at.atType = MsgConstant.ATTYPEONE
-                at.atNtUid = ContactHelper.getUidByUinAsync(qq.toLong())
+                at.atNtUid = ContactHelper.getUidByUinAsync(qq)
             }
         }
 
@@ -882,9 +889,11 @@ internal object MsgElementMaker {
         } else {
             val msgService = NTServiceFetcher.kernelService.msgService!!
 
-            val originalPath = msgService.getRichMediaFilePathForMobileQQSend(RichMediaFilePathInfo(
-                MsgConstant.KELEMTYPEPTT, 0, ptt.md5HexStr, file.name, 1, 0, null, "", true
-            ))
+            val originalPath = msgService.getRichMediaFilePathForMobileQQSend(
+                RichMediaFilePathInfo(
+                    MsgConstant.KELEMTYPEPTT, 0, ptt.md5HexStr, file.name, 1, 0, null, "", true
+                )
+            )
             if (!QQNTWrapperUtil.CppProxy.fileIsExist(originalPath) || QQNTWrapperUtil.CppProxy.getFileSize(originalPath) != file.length()) {
                 QQNTWrapperUtil.CppProxy.copyFile(file.absolutePath, originalPath)
             }

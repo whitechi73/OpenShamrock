@@ -10,12 +10,12 @@ import moe.fuqiuluo.symbols.OneBotHandler
 @OneBotHandler("get_group_root_files")
 internal object GetGroupRootFiles: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
-        val groupId = session.getString("group_id")
+        val groupId = session.getLong("group_id")
         return invoke(groupId, session.echo)
     }
 
-    suspend operator fun invoke(groupId: String, echo: JsonElement = EmptyJsonString): String {
-        FileSvc.getGroupRootFiles(groupId.toLong()).onSuccess {
+    suspend operator fun invoke(groupId: Long, echo: JsonElement = EmptyJsonString): String {
+        FileSvc.getGroupRootFiles(groupId).onSuccess {
             return ok(it, echo = echo)
         }.getOrNull()
         return error(why = "获取失败", echo = echo)

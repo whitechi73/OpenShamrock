@@ -14,7 +14,7 @@ import moe.fuqiuluo.symbols.OneBotHandler
 internal object GetGuildMemberProfile: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val guildId = session.getString("guild_id").toULong()
-        val userId = session.getString("user_id").toULong()
+        val userId = session.getLong("user_id").toULong()
         return invoke(guildId, userId, session.echo)
     }
 

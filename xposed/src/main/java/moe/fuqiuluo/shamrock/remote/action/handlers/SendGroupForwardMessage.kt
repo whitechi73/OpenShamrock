@@ -8,10 +8,10 @@ import moe.fuqiuluo.symbols.OneBotHandler
 @OneBotHandler("send_group_forward_msg")
 internal object SendGroupForwardMessage: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
-        val groupId = session.getString("group_id")
+        val groupId = session.getLong("group_id")
         return if (session.isArray("messages")) {
             val messages = session.getArray("messages")
-            SendForwardMessage(MsgConstant.KCHATTYPEGROUP, groupId, messages, echo = session.echo)
+            SendForwardMessage(MsgConstant.KCHATTYPEGROUP, groupId.toString(), messages, echo = session.echo)
         } else {
             logic("未知格式合并转发消息", session.echo)
         }

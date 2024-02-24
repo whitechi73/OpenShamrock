@@ -11,17 +11,17 @@ import moe.fuqiuluo.symbols.OneBotHandler
 @OneBotHandler("set_group_card")
 internal object ModifyTroopMemberName: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
-        val groupId = session.getString("group_id")
-        val userId = session.getString("user_id")
+        val groupId = session.getLong("group_id")
+        val userId = session.getLong("user_id")
         val name = session.getStringOrNull("card") ?: ""
         return invoke(groupId, userId, name, session.echo)
     }
 
-    operator fun invoke(groupId: String, userId: String, card: String, echo: JsonElement = EmptyJsonString): String {
-        if (!GroupSvc.isAdmin(groupId) && userId != TicketSvc.getUin()) {
+    operator fun invoke(groupId: Long, userId: Long, card: String, echo: JsonElement = EmptyJsonString): String {
+        if (!GroupSvc.isAdmin(groupId) && userId != TicketSvc.getUin().toLong()) {
             return logic("you are not admin", echo)
         }
-        return if(GroupSvc.modifyGroupMemberCard(groupId.toLong(), userId.toLong(), card))
+        return if(GroupSvc.modifyGroupMemberCard(groupId, userId, card))
             ok("成功", echo)
         else error("check if member or group exist", echo)
     }

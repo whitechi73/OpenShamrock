@@ -30,7 +30,7 @@ internal object GetTroopList : IActionHandler() {
                         groupName = groupInfo.troopname ?: groupInfo.newTroopName
                         ?: groupInfo.oldTroopName,
                         groupRemark = groupInfo.troopRemark,
-                        adminList = GroupSvc.getAdminList(groupInfo.troopuin, true),
+                        adminList = GroupSvc.getAdminList(groupInfo.troopuin.toLong(), true),
                         classText = groupInfo.mGroupClassExtText,
                         isFrozen = groupInfo.mIsFreezed != 0,
                         maxMember = groupInfo.wMemberMax,

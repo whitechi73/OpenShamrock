@@ -39,7 +39,6 @@ add_library(${CMAKE_PROJECT_NAME} SHARED
         md5.cpp
         cqcode.cpp
         silk.cpp
-        group_honor.cpp
         message.cpp
         shamrock.cpp)
 

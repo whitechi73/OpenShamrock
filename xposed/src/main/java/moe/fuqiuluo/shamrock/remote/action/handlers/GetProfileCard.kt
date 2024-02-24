@@ -15,7 +15,7 @@ import moe.fuqiuluo.symbols.OneBotHandler
 @OneBotHandler("get_user_info",  ["get_profile_card"])
 internal object GetProfileCard: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
-        val uin = session.getString("user_id")
+        val uin = session.getLong("user_id")
         val refresh = session.getBooleanOrDefault("refresh", session.getBooleanOrDefault("no_cache", false))
 
         var card: Card? = CardSvc.getProfileCard(uin).getOrNull()

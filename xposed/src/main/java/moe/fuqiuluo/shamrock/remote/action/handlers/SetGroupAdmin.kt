@@ -17,7 +17,7 @@ internal object SetGroupAdmin: IActionHandler() {
     }
 
     operator fun invoke(groupId: Long, userId: Long, enable: Boolean, echo: JsonElement = EmptyJsonString): String {
-        if (!GroupSvc.isOwner(groupId.toString())) {
+        if (!GroupSvc.isOwner(groupId)) {
             return logic("you are not owner", echo)
         }
         GroupSvc.setGroupAdmin(groupId, userId, enable)

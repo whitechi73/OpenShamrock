@@ -17,23 +17,14 @@ internal const val HONOR_ATMOSPHERE = 12
 internal const val HONOR_GIFT = 13
 
 @Serializable
-internal data class GroupMemberHonor(
+data class GroupMemberHonor(
     @SerialName("user_id") val userId: Long,
     @SerialName("nickname") var nick: String,
     @SerialName("avatar") val avatar: String,
     @SerialName("day_count") val dayCount: Int,
     @SerialName("id") val id: Int,
     @SerialName("description") val desc: String,
-) {
-    constructor(userId: String, nick: String, avatar: String, dayCount: Int, id: Int, desc: String) : this(
-        userId.toLong(),
-        nick,
-        avatar,
-        dayCount,
-        id,
-        desc,
-    )
-}
+)
 
 @Serializable
 internal data class GroupAllHonor(

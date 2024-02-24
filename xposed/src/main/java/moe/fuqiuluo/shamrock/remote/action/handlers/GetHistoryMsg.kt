@@ -25,7 +25,7 @@ import kotlin.coroutines.suspendCoroutine
 internal object GetHistoryMsg : IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val msgType = session.getString("message_type")
-        val peerId = session.getString(if (msgType == "group") "group_id" else "user_id")
+        val peerId = session.getLong(if (msgType == "group") "group_id" else "user_id").toString()
         val cnt = session.getIntOrNull("count") ?: 20
 
         val startId = session.getIntOrNull("message_seq")?.let {

@@ -78,7 +78,7 @@ internal object VisitorSvc: BaseSvc() {
         if(count !in 1 .. 20) {
             return Result.failure(IllegalArgumentException("vote count must be in 1 .. 20"))
         }
-        val card = CardSvc.getProfileCard(target.toString()).onFailure {
+        val card = CardSvc.getProfileCard(target).onFailure {
             return Result.failure(RuntimeException("unable to fetch contact info"))
         }.getOrThrow()
         sendExtra("VisitorSvc.ReqFavorite") {

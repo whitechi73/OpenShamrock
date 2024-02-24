@@ -111,7 +111,7 @@ internal object MessageElementMaker {
                     else -> {
                         qq = qqStr.toLong()
                         type = 0
-                        "@" + (data["name"].asStringOrNull ?: GroupSvc.getTroopMemberInfoByUinV2(peerId, qqStr, true)
+                        "@" + (data["name"].asStringOrNull ?: GroupSvc.getTroopMemberInfoByUinV2(peerId.toLong(), qq, true)
                             .let {
                                 val info = it.getOrNull()
                                 if (info == null)
@@ -138,11 +138,11 @@ internal object MessageElementMaker {
             MsgConstant.KCHATTYPEC2C -> {
                 data.checkAndThrow("qq")
 
-                val qq = data["qq"].asString
+                val qq = data["qq"].asLong
                 val display =
                     "@" + (data["name"].asStringOrNull ?: CardSvc.getProfileCard(qq)
                         .onSuccess {
-                            it.strNick.ifNullOrEmpty(qq)
+                            it.strNick.ifNullOrEmpty(qq.toString())
                         }.onFailure {
                             LogCenter.log("无法获取QQ信息: $qq", Level.WARN)
                         })

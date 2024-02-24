@@ -32,56 +32,56 @@ fun Routing.fetchRes() {
     }
 
     getOrPost("/upload_group_file") {
-        val groupId = fetchOrThrow("group_id")
+        val groupId = fetchOrThrow("group_id").toLong()
         val file = fetchOrThrow("file")
         val name = fetchOrThrow("name")
         call.respondText(UploadGroupFile(groupId, file, name), ContentType.Application.Json)
     }
 
     getOrPost("/upload_private_file") {
-        val userId = fetchOrThrow("user_id")
+        val userId = fetchOrThrow("user_id").toLong()
         val file = fetchOrThrow("file")
         val name = fetchOrThrow("name")
         call.respondText(UploadPrivateFile(userId, file, name), ContentType.Application.Json)
     }
 
     getOrPost("/create_group_file_folder") {
-        val groupId = fetchOrThrow("group_id")
+        val groupId = fetchOrThrow("group_id").toLong()
         val name = fetchOrThrow("name")
         call.respondText(CreateGroupFileFolder(groupId, name), ContentType.Application.Json)
     }
 
     getOrPost("/delete_group_folder") {
-        val groupId = fetchOrThrow("group_id")
+        val groupId = fetchOrThrow("group_id").toLong()
         val id = fetchOrThrow("folder_id")
         call.respondText(DeleteGroupFolder(groupId, id), ContentType.Application.Json)
     }
 
     getOrPost("/delete_group_file") {
-        val groupId = fetchOrThrow("group_id")
+        val groupId = fetchOrThrow("group_id").toLong()
         val id = fetchOrThrow("file_id")
         val busid = fetchOrThrow("busid").toInt()
         call.respondText(DeleteGroupFile(groupId, id, busid), ContentType.Application.Json)
     }
 
     getOrPost("/get_group_file_system_info") {
-        val groupId = fetchOrThrow("group_id")
+        val groupId = fetchOrThrow("group_id").toLong()
         call.respondText(GetGroupFileSystemInfo(groupId), ContentType.Application.Json)
     }
 
     getOrPost("/get_group_root_files") {
-        val groupId = fetchOrThrow("group_id")
+        val groupId = fetchOrThrow("group_id").toLong()
         call.respondText(GetGroupRootFiles(groupId), ContentType.Application.Json)
     }
 
     getOrPost("/get_group_files_by_folder") {
-        val groupId = fetchOrThrow("group_id")
+        val groupId = fetchOrThrow("group_id").toLong()
         val folderId = fetchOrThrow("folder_id")
         call.respondText(GetGroupSubFiles(groupId, folderId), ContentType.Application.Json)
     }
 
     getOrPost("/get_group_file_url") {
-        val groupId = fetchOrThrow("group_id")
+        val groupId = fetchOrThrow("group_id").toLong()
         val id = fetchOrThrow("file_id")
         val busid = fetchOrThrow("busid").toInt()
         call.respondText(GetGroupFileUrl(groupId, id, busid), ContentType.Application.Json)

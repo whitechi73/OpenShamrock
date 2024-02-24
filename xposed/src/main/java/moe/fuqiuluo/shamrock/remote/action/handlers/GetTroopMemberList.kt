@@ -14,20 +14,20 @@ import moe.fuqiuluo.symbols.OneBotHandler
 @OneBotHandler("get_group_member_list")
 internal object GetTroopMemberList : IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
-        val groupId = session.getString("group_id")
+        val groupId = session.getLong("group_id")
         val refresh = session.getBooleanOrDefault("refresh", session.getBooleanOrDefault("no_cache", false))
         return invoke(groupId, refresh, session.echo)
     }
 
     suspend operator fun invoke(
-        groupId: String,
+        groupId: Long,
         refresh: Boolean,
         echo: JsonElement = EmptyJsonString
     ): String {
         val memberList = GroupSvc.getGroupMemberList(groupId, refresh).onFailure {
             return error(it.message ?: "unknown error", echo, arrayResult = true)
         }.getOrThrow()
-        val prohibitedMemberList = GroupSvc.getProhibitedMemberList(groupId.toLong())
+        val prohibitedMemberList = GroupSvc.getProhibitedMemberList(groupId)
             .getOrDefault(arrayListOf())
             .associate { it.memberUin to it.shutuptimestap.toLong() }
         return ok(arrayListOf<SimpleTroopMemberInfo>().apply {
@@ -44,7 +44,7 @@ internal object GetTroopMemberList : IActionHandler() {
                             joinTime = info.join_time,
                             lastActiveTime = info.last_active_time,
                             uniqueName = info.mUniqueTitle,
-                            groupId = groupId.toLong(),
+                            groupId = groupId,
                             nick = info.friendnick.ifNullOrEmpty(info.autoremark) ?: "",
                             sex = when (info.sex.toShort()) {
                                 Card.FEMALE -> "female"
@@ -54,7 +54,7 @@ internal object GetTroopMemberList : IActionHandler() {
                             area = info.alias ?: "",
                             lastSentTime = info.last_active_time,
                             level = info.level,
-                            role = GroupSvc.getMemberRole(groupId.toLong(), info.memberuin.toLong())
+                            role = GroupSvc.getMemberRole(groupId, info.memberuin.toLong())
                             /*when {
                                 GroupSvc.getOwner(groupId)
                                     .toString() == info.memberuin -> MemberRole.Owner

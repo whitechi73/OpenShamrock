@@ -15,7 +15,7 @@ internal object SetGuildMemberRole: IActionHandler() {
         val role = session.getString("role_id").toULong()
         val set = session.getBooleanOrDefault("set", false)
         return if (session.has("user_id")) {
-            val userId = session.getString("user_id").toULong()
+            val userId = session.getLong("user_id").toULong()
             invoke(guildId, userId, role, set, echo = session.echo)
         } else if (session.isArray("users")) {
             invoke(guildId, session.getArray("users").map {

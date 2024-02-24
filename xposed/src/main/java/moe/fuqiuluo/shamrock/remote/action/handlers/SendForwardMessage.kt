@@ -39,27 +39,27 @@ internal object SendForwardMessage : IActionHandler() {
                 }
             }
             val peerId = when (chatType) {
-                MsgConstant.KCHATTYPEGROUP -> session.getStringOrNull("group_id") ?: return noParam(
+                MsgConstant.KCHATTYPEGROUP -> session.getLongOrNull("group_id") ?: return noParam(
                     "group_id",
                     session.echo
                 )
 
-                MsgConstant.KCHATTYPEC2C, MsgConstant.KCHATTYPETEMPC2CFROMGROUP -> session.getStringOrNull("user_id")
+                MsgConstant.KCHATTYPEC2C, MsgConstant.KCHATTYPETEMPC2CFROMGROUP -> session.getLongOrNull("user_id")
                     ?: return noParam("user_id", session.echo)
 
                 else -> error("unknown chat type: $chatType")
-            }
+            }.toString()
             val fromId = when (chatType) {
-                MsgConstant.KCHATTYPEGROUP, MsgConstant.KCHATTYPETEMPC2CFROMGROUP -> session.getStringOrNull("group_id")
+                MsgConstant.KCHATTYPEGROUP, MsgConstant.KCHATTYPETEMPC2CFROMGROUP -> session.getLongOrNull("group_id")
                     ?: return noParam("group_id", session.echo)
 
-                MsgConstant.KCHATTYPEC2C -> session.getStringOrNull("user_id") ?: return noParam(
+                MsgConstant.KCHATTYPEC2C -> session.getLongOrNull("user_id") ?: return noParam(
                     "user_id",
                     session.echo
                 )
 
                 else -> error("unknown chat type: $chatType")
-            }
+            }.toString()
             return if (session.isArray("messages")) {
                 val messages = session.getArray("messages")
                 invoke(chatType, peerId, messages, fromId, echo = session.echo)

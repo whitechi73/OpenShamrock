@@ -119,7 +119,7 @@ internal object GlobalEventTransmitter: BaseSvc() {
             val botUin = app.longAccountUin
             var nickName = record.sendNickName
             if (nickName.isNullOrEmpty()) {
-                CardSvc.getProfileCard(record.senderUin.toString()).onSuccess {
+                CardSvc.getProfileCard(record.senderUin).onSuccess {
                     nickName = it.strNick ?: record.peerName
                 }
             }
@@ -167,7 +167,7 @@ internal object GlobalEventTransmitter: BaseSvc() {
             val botUin = app.longAccountUin
             var nickName = record.sendNickName
             if (nickName.isNullOrEmpty()) {
-                CardSvc.getProfileCard(record.senderUin.toString()).onSuccess {
+                CardSvc.getProfileCard(record.senderUin).onSuccess {
                     nickName = it.strNick ?: record.peerName
                 }
             }

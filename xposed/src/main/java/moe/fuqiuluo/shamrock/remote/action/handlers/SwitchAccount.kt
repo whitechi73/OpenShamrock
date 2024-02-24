@@ -11,15 +11,15 @@ import mqq.app.MobileQQ
 @OneBotHandler("switch_account")
 internal object SwitchAccount: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
-        val userId = session.getString("user_id")
+        val userId = session.getLong("user_id")
         return invoke(userId, session.echo)
     }
 
     operator fun invoke(
-        userId: String,
+        userId: Long,
         echo: JsonElement = EmptyJsonString
     ): String {
-        val account = MobileQQ.getMobileQQ().allAccounts.firstOrNull { it.uin == userId }
+        val account = MobileQQ.getMobileQQ().allAccounts.firstOrNull { it.uin == userId.toString() }
             ?: return error("账号不存在", echo)
         val runtime = AppRuntimeFetcher.appRuntime
         val result = kotlin.runCatching {

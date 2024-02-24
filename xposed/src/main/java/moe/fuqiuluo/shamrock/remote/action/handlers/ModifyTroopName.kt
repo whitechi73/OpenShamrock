@@ -10,13 +10,13 @@ import moe.fuqiuluo.symbols.OneBotHandler
 @OneBotHandler("set_group_name")
 internal object ModifyTroopName: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
-        val groupId = session.getString("group_id")
+        val groupId = session.getLong("group_id")
         val groupName = session.getString("group_name")
 
         return invoke(groupId, groupName, session.echo)
     }
 
-    operator fun invoke(groupId: String, name: String, echo: JsonElement = EmptyJsonString): String {
+    operator fun invoke(groupId: Long, name: String, echo: JsonElement = EmptyJsonString): String {
         return if (GroupSvc.isAdmin(groupId)) {
             GroupSvc.modifyTroopName(groupId, name)
             ok("成功", echo)

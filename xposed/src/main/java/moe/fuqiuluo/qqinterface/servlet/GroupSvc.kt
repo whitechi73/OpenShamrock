@@ -156,18 +156,18 @@ internal object GroupSvc: BaseSvc() {
         })
     }
 
-    fun poke(groupId: String, userId: String) {
+    fun poke(groupId: Long, userId: Long) {
         val req = oidb_cmd0xed3.ReqBody().apply {
-            uint64_group_code.set(groupId.toLong())
-            uint64_to_uin.set(userId.toLong())
+            uint64_group_code.set(groupId)
+            uint64_to_uin.set(userId)
             uint32_msg_seq.set(0)
         }
         sendOidb("OidbSvc.0xed3", 3795, 1, req.toByteArray())
     }
 
-    suspend fun getGroupMemberList(groupId: String, refresh: Boolean): Result<List<TroopMemberInfo>> {
+    suspend fun getGroupMemberList(groupId: Long, refresh: Boolean): Result<List<TroopMemberInfo>> {
         val service = app.getRuntimeService(ITroopMemberInfoService::class.java, "all")
-        var memberList = service.getAllTroopMembers(groupId)
+        var memberList = service.getAllTroopMembers(groupId.toString())
         if (refresh || memberList == null) {
             memberList = requestTroopMemberInfo(service, groupId).onFailure {
                 return Result.failure(Exception("获取群成员列表失败"))
@@ -227,26 +227,26 @@ internal object GroupSvc: BaseSvc() {
         } ?: Result.failure(Exception("获取群信息超时"))
     }
 
-    suspend fun getGroupInfo(groupId: String, refresh: Boolean): Result<TroopInfo> {
+    suspend fun getGroupInfo(groupId: Long, refresh: Boolean): Result<TroopInfo> {
         val service = app
             .getRuntimeService(ITroopInfoService::class.java, "all")
 
         val groupInfo = getGroupInfo(groupId)
 
         return if(refresh || !service.isTroopCacheInited || groupInfo.troopuin.isNullOrBlank()) {
-            requestGroupInfo(service, groupId.toLong())
+            requestGroupInfo(service, groupId)
         } else {
             Result.success(groupInfo)
         }
 
     }
 
-    suspend fun setGroupUniqueTitle(groupId: String, userId: String, title: String) {
+    suspend fun setGroupUniqueTitle(groupId: Long, userId: Long, title: String) {
         val localMemberInfo = getTroopMemberInfoByUin(groupId, userId, true).getOrThrow()
         val req = Oidb_0x8fc.ReqBody()
-        req.uint64_group_code.set(groupId.toLong())
+        req.uint64_group_code.set(groupId)
         val memberInfo = Oidb_0x8fc.MemberInfo()
-        memberInfo.uint64_uin.set(userId.toLong())
+        memberInfo.uint64_uin.set(userId)
         memberInfo.bytes_uin_name.set(ByteStringMicro.copyFromUtf8(localMemberInfo.troopnick.ifEmpty {
             localMemberInfo.troopremark.ifNullOrEmpty("")
         }))
@@ -371,17 +371,17 @@ internal object GroupSvc: BaseSvc() {
         sendOidb("OidbSvc.0x8a0_0", 2208, 0, reqBody.toByteArray())
     }
 
-    fun getGroupInfo(groupId: String): TroopInfo {
+    fun getGroupInfo(groupId: Long): TroopInfo {
         val runtime = AppRuntimeFetcher.appRuntime as QQAppInterface
 
         val service = runtime
             .getRuntimeService(ITroopInfoService::class.java, "all")
 
-        return service.getTroopInfo(groupId)
+        return service.getTroopInfo(groupId.toString())
     }
 
     fun getAdminList(
-        groupId: String,
+        groupId: Long,
         withOwner: Boolean = false
     ): List<Long> {
         val groupInfo = getGroupInfo(groupId)
@@ -399,39 +399,39 @@ internal object GroupSvc: BaseSvc() {
     suspend fun getMemberRole(groupId: Long, memberUin: Long): MemberRole {
         if (!GET_MEMBER_ROLE_BY_NT) {
             return when (memberUin) {
-                getOwner(groupId.toString()) -> MemberRole.Owner
-                in getAdminList(groupId.toString()) -> MemberRole.Admin
+                getOwner(groupId) -> MemberRole.Owner
+                in getAdminList(groupId) -> MemberRole.Admin
                 else -> MemberRole.Member
             }
         }
-        return when(getTroopMemberInfoByUinViaNt(groupId.toString(), memberUin, 3000).getOrNull()?.role) {
+        return when(getTroopMemberInfoByUinViaNt(groupId, memberUin, 3000).getOrNull()?.role) {
             com.tencent.qqnt.kernel.nativeinterface.MemberRole.STRANGER -> MemberRole.Stranger
             com.tencent.qqnt.kernel.nativeinterface.MemberRole.MEMBER -> MemberRole.Member
             com.tencent.qqnt.kernel.nativeinterface.MemberRole.ADMIN -> MemberRole.Admin
             com.tencent.qqnt.kernel.nativeinterface.MemberRole.OWNER -> MemberRole.Owner
             com.tencent.qqnt.kernel.nativeinterface.MemberRole.UNSPECIFIED, null -> when (memberUin) {
-                getOwner(groupId.toString()) -> MemberRole.Owner
-                in getAdminList(groupId.toString()) -> MemberRole.Admin
+                getOwner(groupId) -> MemberRole.Owner
+                in getAdminList(groupId) -> MemberRole.Admin
                 else -> MemberRole.Member
             }
         }
     }
 
-    fun getOwner(groupId: String): Long {
+    fun getOwner(groupId: Long): Long {
         val groupInfo = getGroupInfo(groupId)
         return groupInfo.troopowneruin?.toLong() ?: 0
     }
 
-    fun isOwner(groupId: String): Boolean {
+    fun isOwner(groupId: Long): Boolean {
         val groupInfo = getGroupInfo(groupId)
         return groupInfo.troopowneruin == app.account
     }
 
-    fun isAdmin(groupId: String): Boolean {
+    fun isAdmin(groupId: Long): Boolean {
         val service = app
             .getRuntimeService(ITroopInfoService::class.java, "all")
 
-        val groupInfo = service.getTroopInfo(groupId)
+        val groupInfo = service.getTroopInfo(groupId.toString())
 
         return groupInfo.isAdmin || groupInfo.troopowneruin == app.account
     }
@@ -444,7 +444,7 @@ internal object GroupSvc: BaseSvc() {
         }
     }
 
-    fun modifyTroopName(groupId: String, name: String) {
+    fun modifyTroopName(groupId: Long, name: String) {
          val businessHandler = app.getBusinessHandler(BusinessHandlerFactory.TROOP_MODIFY_HANDLER)
 
         if (!GroupSvc::METHOD_REQ_MODIFY_GROUP_NAME.isInitialized) {
@@ -535,17 +535,17 @@ internal object GroupSvc: BaseSvc() {
     }
 
     suspend fun getTroopMemberInfoByUin(
-        groupId: String,
-        uin: String,
+        groupId: Long,
+        uin: Long,
         refresh: Boolean = false
     ): Result<TroopMemberInfo> {
         val service = app.getRuntimeService(ITroopMemberInfoService::class.java, "all")
-        var info = service.getTroopMember(groupId, uin)
-        if (refresh || !service.isMemberInCache(groupId, uin) || info == null || info.troopnick == null) {
-            info = requestTroopMemberInfo(service, groupId.toLong(), uin.toLong()).getOrNull()
+        var info = service.getTroopMember(groupId.toString(), uin.toString())
+        if (refresh || !service.isMemberInCache(groupId.toString(), uin.toString()) || info == null || info.troopnick == null) {
+            info = requestTroopMemberInfo(service, groupId, uin).getOrNull()
         }
         if (info == null) {
-            info = getTroopMemberInfoByUinViaNt(groupId, uin.toLong()).getOrNull()?.let {
+            info = getTroopMemberInfoByUinViaNt(groupId, uin).getOrNull()?.let {
                 TroopMemberInfo().apply {
                     troopnick = it.cardName
                     friendnick = it.nick
@@ -555,7 +555,7 @@ internal object GroupSvc: BaseSvc() {
         try {
             if (info != null && (info.alias == null || info.alias.isBlank())) {
                 val req = group_member_info.ReqBody()
-                req.uint64_group_code.set(groupId.toLong())
+                req.uint64_group_code.set(groupId)
                 req.uint64_uin.set(uin.toLong())
                 req.bool_new_client.set(true)
                 req.uint32_client_type.set(1)
@@ -590,17 +590,17 @@ internal object GroupSvc: BaseSvc() {
     }
 
     suspend fun getTroopMemberInfoByUinV2(
-        groupId: String,
-        uin: String,
+        groupId: Long,
+        uin: Long,
         refresh: Boolean = false
     ): Result<TroopMemberInfo> {
         val service = app.getRuntimeService(ITroopMemberInfoService::class.java, "all")
-        var info = service.getTroopMember(groupId, uin)
-        if (refresh || !service.isMemberInCache(groupId, uin) || info == null || info.troopnick == null) {
-            info = requestTroopMemberInfo(service, groupId.toLong(), uin.toLong(), timeout = 2000).getOrNull()
+        var info = service.getTroopMember(groupId.toString(), uin.toString())
+        if (refresh || !service.isMemberInCache(groupId.toString(), uin.toString()) || info == null || info.troopnick == null) {
+            info = requestTroopMemberInfo(service, groupId, uin, timeout = 2000).getOrNull()
         }
         if (info == null) {
-            info = getTroopMemberInfoByUinViaNt(groupId, uin.toLong(), timeout = 2000L).getOrNull()?.let {
+            info = getTroopMemberInfoByUinViaNt(groupId, uin, timeout = 2000L).getOrNull()?.let {
                 TroopMemberInfo().apply {
                     troopnick = it.cardName
                     friendnick = it.nick
@@ -610,8 +610,8 @@ internal object GroupSvc: BaseSvc() {
         try {
             if (info != null && (info.alias == null || info.alias.isBlank())) {
                 val req = group_member_info.ReqBody()
-                req.uint64_group_code.set(groupId.toLong())
-                req.uint64_uin.set(uin.toLong())
+                req.uint64_group_code.set(groupId)
+                req.uint64_uin.set(uin)
                 req.bool_new_client.set(true)
                 req.uint32_client_type.set(1)
                 req.uint32_rich_card_name_ver.set(1)
@@ -645,7 +645,7 @@ internal object GroupSvc: BaseSvc() {
     }
 
     suspend fun getTroopMemberInfoByUinViaNt(
-        groupId: String,
+        groupId: Long,
         qq: Long,
         timeout: Long = 5000L
     ): Result<MemberInfo> {
@@ -655,7 +655,7 @@ internal object GroupSvc: BaseSvc() {
             val groupService = sessionService.groupService
             val info = withTimeoutOrNull(timeout) {
                 suspendCancellableCoroutine {
-                    groupService.getTransferableMemberInfo(groupId.toLong()) { code, _, data ->
+                    groupService.getTransferableMemberInfo(groupId) { code, _, data ->
                         if (code != 0) {
                             it.resume(null)
                             return@getTransferableMemberInfo
@@ -703,16 +703,16 @@ internal object GroupSvc: BaseSvc() {
         }
     }
 
-    private suspend fun requestTroopMemberInfo(service: ITroopMemberInfoService, groupId: String): Result<List<TroopMemberInfo>> {
+    private suspend fun requestTroopMemberInfo(service: ITroopMemberInfoService, groupId: Long): Result<List<TroopMemberInfo>> {
         val info = RefreshTroopMemberListLock.withLock {
-            service.deleteTroopMembers(groupId)
+            service.deleteTroopMembers(groupId.toString())
             refreshTroopMemberList(groupId)
 
             withTimeoutOrNull(10000) {
                 var memberList: List<TroopMemberInfo>?
                 do {
                     delay(100)
-                    memberList = service.getAllTroopMembers(groupId)
+                    memberList = service.getAllTroopMembers(groupId.toString())
                 } while (memberList.isNullOrEmpty())
                 return@withTimeoutOrNull memberList
             }
@@ -745,7 +745,7 @@ internal object GroupSvc: BaseSvc() {
         }
     }
 
-    private fun refreshTroopMemberList(groupId: String) {
+    private fun refreshTroopMemberList(groupId: Long) {
         val app = AppRuntimeFetcher.appRuntime
         if (app !is AppInterface)
             throw RuntimeException("AppRuntime cannot cast to AppInterface")
@@ -763,7 +763,7 @@ internal object GroupSvc: BaseSvc() {
             }
         }
 
-        METHOD_REQ_TROOP_MEM_LIST.invoke(businessHandler, true, groupId, groupUin2GroupCode(groupId.toLong()).toString(), 5)
+        METHOD_REQ_TROOP_MEM_LIST.invoke(businessHandler, true, groupId, groupUin2GroupCode(groupId).toString(), 5)
     }
 
     private fun refreshTroopList() {

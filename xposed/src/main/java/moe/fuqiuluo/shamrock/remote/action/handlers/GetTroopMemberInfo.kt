@@ -6,7 +6,6 @@ import moe.fuqiuluo.qqinterface.servlet.GroupSvc
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.shamrock.remote.service.data.SimpleTroopMemberInfo
-import moe.fuqiuluo.shamrock.remote.service.data.push.MemberRole
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
 import moe.fuqiuluo.shamrock.tools.ifNullOrEmpty
 import moe.fuqiuluo.symbols.OneBotHandler
@@ -14,20 +13,20 @@ import moe.fuqiuluo.symbols.OneBotHandler
 @OneBotHandler("get_group_member_info")
 internal object GetTroopMemberInfo : IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
-        val uin = session.getString("user_id")
-        val groupId = session.getString("group_id")
+        val userId = session.getLong("user_id")
+        val groupId = session.getLong("group_id")
         val refresh = session.getBooleanOrDefault("refresh", session.getBooleanOrDefault("no_cache", false))
 
-        return invoke(groupId, uin, refresh, session.echo)
+        return invoke(groupId, userId, refresh, session.echo)
     }
 
     suspend operator fun invoke(
-        groupId: String,
-        uin: String,
+        groupId: Long,
+        userId: Long,
         refresh: Boolean,
         echo: JsonElement = EmptyJsonString
     ): String {
-        val info = GroupSvc.getTroopMemberInfoByUin(groupId, uin, refresh).onFailure {
+        val info = GroupSvc.getTroopMemberInfoByUin(groupId, userId, refresh).onFailure {
             return error(it.message ?: "unknown error", echo)
         }.getOrThrow()
 
@@ -42,7 +41,7 @@ internal object GetTroopMemberInfo : IActionHandler() {
                 joinTime = info.join_time,
                 lastActiveTime = info.last_active_time,
                 uniqueName = info.mUniqueTitle,
-                groupId = groupId.toLong(),
+                groupId = groupId,
                 nick = info.friendnick.ifNullOrEmpty(info.autoremark) ?: "",
                 sex = when (info.sex.toShort()) {
                     Card.FEMALE -> "female"
@@ -52,7 +51,7 @@ internal object GetTroopMemberInfo : IActionHandler() {
                 area = info.alias ?: "",
                 lastSentTime = info.last_active_time,
                 level = info.level,
-                role = GroupSvc.getMemberRole(groupId.toLong(), uin.toLong()),
+                role = GroupSvc.getMemberRole(groupId, userId),
                 unfriendly = false,
                 title = info.mUniqueTitle ?: "",
                 titleExpireTime = info.mUniqueTitleExpire,

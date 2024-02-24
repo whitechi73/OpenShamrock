@@ -10,12 +10,12 @@ import moe.fuqiuluo.symbols.OneBotHandler
 @OneBotHandler("get_group_file_system_info")
 internal object GetGroupFileSystemInfo: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
-        val groupId = session.getString("group_id")
+        val groupId = session.getLong("group_id")
         return invoke(groupId, session.echo)
     }
 
-    suspend operator fun invoke(groupId: String, echo: JsonElement = EmptyJsonString): String {
-        return ok(data = FileSvc.getGroupFileSystemInfo(groupId.toLong()), echo)
+    suspend operator fun invoke(groupId: Long, echo: JsonElement = EmptyJsonString): String {
+        return ok(data = FileSvc.getGroupFileSystemInfo(groupId), echo)
     }
 
     override val requiredParams: Array<String> = arrayOf("group_id")

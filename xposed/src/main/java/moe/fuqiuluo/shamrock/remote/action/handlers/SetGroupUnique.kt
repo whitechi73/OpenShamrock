@@ -10,13 +10,13 @@ import moe.fuqiuluo.symbols.OneBotHandler
 @OneBotHandler("set_group_special_title")
 internal object SetGroupUnique: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
-        val groupId = session.getString("group_id")
-        val userId = session.getString("user_id")
+        val groupId = session.getLong("group_id")
+        val userId = session.getLong("user_id")
         val unique = session.getString("special_title")
         return invoke(groupId, userId, unique, session.echo)
     }
 
-    suspend operator fun invoke(groupId: String, userId: String, unique: String, echo: JsonElement = EmptyJsonString): String {
+    suspend operator fun invoke(groupId: Long, userId: Long, unique: String, echo: JsonElement = EmptyJsonString): String {
         if (!GroupSvc.isOwner(groupId)) {
             return error("you are not owner", echo)
         }

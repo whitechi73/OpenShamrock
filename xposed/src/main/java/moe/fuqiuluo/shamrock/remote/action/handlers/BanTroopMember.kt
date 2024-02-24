@@ -23,7 +23,7 @@ internal object BanTroopMember: IActionHandler() {
         duration: Int = 30 * 60,
         echo: JsonElement = EmptyJsonString
     ): String {
-        if (!GroupSvc.isAdmin(groupId.toString())) {
+        if (!GroupSvc.isAdmin(groupId)) {
             return logic("You are not the administrator of the group.", echo)
         }
         GroupSvc.banMember(groupId, userId, duration)

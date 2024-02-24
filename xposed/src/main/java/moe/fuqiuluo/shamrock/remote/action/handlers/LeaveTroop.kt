@@ -10,15 +10,15 @@ import moe.fuqiuluo.symbols.OneBotHandler
 @OneBotHandler("leave_group", ["set_group_leave"])
 internal object LeaveTroop: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
-        val groupId = session.getString("group_id")
+        val groupId = session.getLong("group_id")
         return invoke(groupId, session.echo)
     }
 
-    operator fun invoke(groupId: String, echo: JsonElement = EmptyJsonString): String {
+    operator fun invoke(groupId: Long, echo: JsonElement = EmptyJsonString): String {
         if (GroupSvc.isOwner(groupId)) {
             return error("you are the owner of this group", echo)
         }
-        GroupSvc.resignTroop(groupId.toLong())
+        GroupSvc.resignTroop(groupId)
         return ok("成功", echo)
     }
 

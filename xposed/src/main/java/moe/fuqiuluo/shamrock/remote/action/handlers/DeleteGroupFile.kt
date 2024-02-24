@@ -10,13 +10,13 @@ import moe.fuqiuluo.symbols.OneBotHandler
 @OneBotHandler("delete_group_file")
 internal object DeleteGroupFile: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
-        val groupId = session.getString("group_id")
+        val groupId = session.getLong("group_id")
         val fileId = session.getString("file_id")
         val busid = session.getInt("busid")
         return invoke(groupId, fileId, busid, session.echo)
     }
 
-    suspend operator fun invoke(groupId: String, fileId: String, bizId: Int, echo: JsonElement = EmptyJsonString): String {
+    suspend operator fun invoke(groupId: Long, fileId: String, bizId: Int, echo: JsonElement = EmptyJsonString): String {
         if(!FileSvc.deleteGroupFile(groupId, bizId, fileId)) {
             return error("删除失败", echo = echo)
         }

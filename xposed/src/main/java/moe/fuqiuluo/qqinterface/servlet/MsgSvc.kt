@@ -31,7 +31,7 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 internal object MsgSvc : BaseSvc() {
-    suspend fun prepareTempChatFromGroup(
+    private suspend fun prepareTempChatFromGroup(
         groupId: String,
         peerId: String
     ): Result<Unit> {

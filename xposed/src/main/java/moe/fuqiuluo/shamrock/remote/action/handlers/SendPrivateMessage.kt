@@ -7,45 +7,33 @@ import moe.fuqiuluo.shamrock.tools.jsonArray
 import moe.fuqiuluo.symbols.OneBotHandler
 
 @OneBotHandler("send_private_msg", ["send_private_message"])
-internal object SendPrivateMessage: IActionHandler() {
+internal object SendPrivateMessage : IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
-        val userId = session.getString("user_id")
-        val groupId = session.getStringOrNull("group_id")
+        val userId = session.getLong("user_id")
+        val groupId = session.getLongOrNull("group_id")
         val chatType = if (groupId == null) MsgConstant.KCHATTYPEC2C else MsgConstant.KCHATTYPETEMPC2CFROMGROUP
         val retryCnt = session.getIntOrNull("retry_cnt")
         val recallDuration = session.getLongOrNull("recall_duration")
         return if (session.isString("message")) {
             val autoEscape = session.getBooleanOrDefault("auto_escape", false)
             val message = session.getString("message")
-            SendMessage.invoke(
+            SendMessage(
                 chatType = chatType,
-                peerId = userId,
+                peerId = userId.toString(),
                 message = message,
                 autoEscape = autoEscape,
                 echo = session.echo,
-                fromId = groupId ?: userId,
-                retryCnt = retryCnt ?: 3,
-                recallDuration = recallDuration
-            )
-        } else if (session.isArray("message")) {
-            val message = session.getArray("message")
-            SendMessage(
-                chatType = chatType,
-                peerId = userId,
-                message = message,
-                echo = session.echo,
-                fromId = groupId ?: userId,
+                fromId = groupId?.toString() ?: userId.toString(),
                 retryCnt = retryCnt ?: 3,
                 recallDuration = recallDuration
             )
         } else {
-            val message = session.getObject("message")
             SendMessage(
                 chatType = chatType,
-                peerId = userId,
-                message = listOf( message ).jsonArray,
+                peerId = userId.toString(),
+                message = if (session.isArray("message")) session.getArray("message") else listOf(session.getObject("message")).jsonArray,
                 echo = session.echo,
-                fromId = groupId ?: userId,
+                fromId = groupId?.toString() ?: userId.toString(),
                 retryCnt = retryCnt ?: 3,
                 recallDuration = recallDuration
             )

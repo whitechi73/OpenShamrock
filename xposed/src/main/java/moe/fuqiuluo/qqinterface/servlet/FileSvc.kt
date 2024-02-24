@@ -23,7 +23,7 @@ import protobuf.group_file_common.FolderInfo as GroupFileCommonFolderInfo
 import protobuf.auto.toByteArray
 
 internal object FileSvc: BaseSvc() {
-    suspend fun createFileFolder(groupId: String, folderName: String, parentFolderId: String = "/"): Result<GroupFileCommonFolderInfo> {
+    suspend fun createFileFolder(groupId: Long, folderName: String, parentFolderId: String = "/"): Result<GroupFileCommonFolderInfo> {
         val data = Oidb0x6d7ReqBody(
             createFolder = CreateFolderReq(
                 groupCode = groupId.toULong(),
@@ -45,7 +45,7 @@ internal object FileSvc: BaseSvc() {
         return Result.success(rsp.createFolder!!.folderInfo!!)
     }
 
-    suspend fun deleteGroupFolder(groupId: String, folderUid: String): Boolean {
+    suspend fun deleteGroupFolder(groupId: Long, folderUid: String): Boolean {
         val buffer = sendOidbAW("OidbSvc.0x6d7_1", 1751, 1, Oidb0x6d7ReqBody(
             deleteFolder = DeleteFolderReq(
                 groupCode = groupId.toULong(),
@@ -59,7 +59,7 @@ internal object FileSvc: BaseSvc() {
         return rsp.deleteFolder?.retCode == 0
     }
 
-    suspend fun moveGroupFolder(groupId: String, folderUid: String, newParentFolderUid: String): Boolean {
+    suspend fun moveGroupFolder(groupId: Long, folderUid: String, newParentFolderUid: String): Boolean {
         val buffer = sendOidbAW("OidbSvc.0x6d7_2", 1751, 2, Oidb0x6d7ReqBody(
             moveFolder = MoveFolderReq(
                 groupCode = groupId.toULong(),
@@ -74,7 +74,7 @@ internal object FileSvc: BaseSvc() {
         return rsp.moveFolder?.retCode == 0
     }
 
-    suspend fun renameFolder(groupId: String, folderUid: String, name: String): Boolean {
+    suspend fun renameFolder(groupId: Long, folderUid: String, name: String): Boolean {
         val buffer = sendOidbAW("OidbSvc.0x6d7_3", 1751, 3, Oidb0x6d7ReqBody(
             renameFolder = RenameFolderReq(
                 groupCode = groupId.toULong(),
@@ -89,10 +89,10 @@ internal object FileSvc: BaseSvc() {
         return rsp.renameFolder?.retCode == 0
     }
 
-    suspend fun deleteGroupFile(groupId: String, bizId: Int, fileUid: String): Boolean {
+    suspend fun deleteGroupFile(groupId: Long, bizId: Int, fileUid: String): Boolean {
         val oidb0x6d6ReqBody = oidb_0x6d6.ReqBody().apply {
             delete_file_req.set(oidb_0x6d6.DeleteFileReqBody().apply {
-                uint64_group_code.set(groupId.toLong())
+                uint64_group_code.set(groupId)
                 uint32_app_id.set(3)
                 uint32_bus_id.set(bizId)
                 str_parent_folder_id.set("/")

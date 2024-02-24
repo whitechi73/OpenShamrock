@@ -10,12 +10,12 @@ import moe.fuqiuluo.symbols.OneBotHandler
 @OneBotHandler("delete_group_folder")
 internal object DeleteGroupFolder: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
-        val groupId = session.getString("group_id")
+        val groupId = session.getLong("group_id")
         val folderId = session.getString("folder_id")
         return invoke(groupId, folderId, session.echo)
     }
 
-    suspend operator fun invoke(groupId: String, folderId: String, echo: JsonElement = EmptyJsonString): String {
+    suspend operator fun invoke(groupId: Long, folderId: String, echo: JsonElement = EmptyJsonString): String {
         if(!FileSvc.deleteGroupFolder(groupId, folderId)) {
             return error(why = "删除群文件夹失败", echo = echo)
         }

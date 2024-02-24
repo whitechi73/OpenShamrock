@@ -10,13 +10,13 @@ import moe.fuqiuluo.symbols.OneBotHandler
 @OneBotHandler("rename_group_folder")
 internal object RenameGroupFolder: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
-        val groupId = session.getString("group_id")
+        val groupId = session.getLong("group_id")
         val folderId = session.getString("folder_id")
         val name = session.getString("name")
         return invoke(groupId, folderId, name, session.echo)
     }
 
-    suspend operator fun invoke(groupId: String, folderId: String, name: String, echo: JsonElement = EmptyJsonString): String {
+    suspend operator fun invoke(groupId: Long, folderId: String, name: String, echo: JsonElement = EmptyJsonString): String {
         if (!FileSvc.renameFolder(groupId, folderId, name)) {
             return error("rename folder failed", echo = echo)
         }

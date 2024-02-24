@@ -11,12 +11,12 @@ import moe.fuqiuluo.symbols.OneBotHandler
 @OneBotHandler("get_group_info")
 internal object GetTroopInfo: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
-        val groupId = session.getString("group_id")
+        val groupId = session.getLong("group_id")
         val refresh = session.getBooleanOrDefault("refresh", session.getBooleanOrDefault("no_cache", false))
         return invoke(groupId, refresh, session.echo)
     }
 
-    suspend operator fun invoke(groupId: String, refresh: Boolean, echo: JsonElement = EmptyJsonString): String {
+    suspend operator fun invoke(groupId: Long, refresh: Boolean, echo: JsonElement = EmptyJsonString): String {
         val groupInfo = GroupSvc.getGroupInfo(groupId, refresh).getOrNull()
         return if ( groupInfo == null || groupInfo.troopuin.isNullOrBlank()) {
             logic("Unable to obtain group information", echo)
