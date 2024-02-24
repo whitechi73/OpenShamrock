@@ -26,7 +26,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath("com.android.tools:r8:8.2.26")
+        classpath("com.android.tools:r8:8.2.47")
     }
 }
 

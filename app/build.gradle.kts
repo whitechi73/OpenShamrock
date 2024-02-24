@@ -92,7 +92,7 @@ android {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.4"
+        kotlinCompilerExtensionVersion = "1.5.10"
     }
     packaging {
         jniLibs {
@@ -127,11 +127,6 @@ android {
     }
 
     configureAppSigningConfigsForRelease(project)
-    packagingOptions {
-        jniLibs {
-            useLegacyPackaging = true
-        }
-    }
 }
 
 fun configureAppSigningConfigsForRelease(project: Project) {
