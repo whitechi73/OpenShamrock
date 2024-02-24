@@ -22,7 +22,6 @@ import moe.fuqiuluo.shamrock.tools.EMPTY_BYTE_ARRAY
 import moe.fuqiuluo.shamrock.tools.slice
 import moe.fuqiuluo.shamrock.utils.PlatformUtils
 import moe.fuqiuluo.shamrock.xposed.helper.NTServiceFetcher
-import moe.fuqiuluo.symbols.decode
 import moe.fuqiuluo.symbols.decodeProtobuf
 import protobuf.auto.toByteArray
 import protobuf.guild.GetGuildFeedsReq

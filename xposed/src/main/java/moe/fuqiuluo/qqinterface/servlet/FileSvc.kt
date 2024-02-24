@@ -9,7 +9,6 @@ import moe.fuqiuluo.shamrock.tools.EMPTY_BYTE_ARRAY
 import moe.fuqiuluo.shamrock.tools.slice
 import moe.fuqiuluo.shamrock.tools.toHexString
 import moe.fuqiuluo.shamrock.utils.DeflateTools
-import moe.fuqiuluo.symbols.decode
 import moe.fuqiuluo.symbols.decodeProtobuf
 import protobuf.oidb.cmd0x6d7.CreateFolderReq
 import protobuf.oidb.cmd0x6d7.DeleteFolderReq

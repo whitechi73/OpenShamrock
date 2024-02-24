@@ -1,5 +1,3 @@
-@file:OptIn(DelicateCoroutinesApi::class)
-
 package moe.fuqiuluo.qqinterface.servlet
 
 import com.tencent.mobileqq.qroute.QRoute
@@ -7,14 +5,13 @@ import com.tencent.mobileqq.troop.api.ITroopMemberNameService
 import com.tencent.qqnt.kernel.api.IKernelService
 import com.tencent.qqnt.kernel.nativeinterface.*
 import com.tencent.qqnt.msg.api.IMsgService
-import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.JsonArray
 
-import moe.fuqiuluo.qqinterface.servlet.msg.messageelement.toSegments
 import moe.fuqiuluo.qqinterface.servlet.msg.toListMap
+import moe.fuqiuluo.qqinterface.servlet.msg.toSegments
 import moe.fuqiuluo.shamrock.helper.ContactHelper
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
@@ -26,9 +23,9 @@ import moe.fuqiuluo.shamrock.tools.*
 import moe.fuqiuluo.shamrock.utils.DeflateTools
 import moe.fuqiuluo.shamrock.xposed.helper.NTServiceFetcher
 import moe.fuqiuluo.shamrock.xposed.helper.msgService
-import moe.fuqiuluo.symbols.decode
 import moe.fuqiuluo.symbols.decodeProtobuf
 import protobuf.auto.toByteArray
+import protobuf.message.PushMsgBody
 import protobuf.message.longmsg.*
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -295,27 +292,27 @@ internal object MsgSvc : BaseSvc() {
             if (it.command == "MultiMsg") {
                 return Result.success(it.data?.body?.map { msg ->
                     val chatType =
-                        if (msg.content!!.msgType == 82) MsgConstant.KCHATTYPEGROUP else MsgConstant.KCHATTYPEC2C
+                        if (msg.contentHead!!.msgType == 82) MsgConstant.KCHATTYPEGROUP else MsgConstant.KCHATTYPEC2C
                     MessageDetail(
-                        time = msg.content?.msgTime?.toInt() ?: 0,
+                        time = msg.contentHead?.msgTime?.toInt() ?: 0,
                         msgType = MessageHelper.obtainDetailTypeByMsgType(chatType),
                         msgId = 0, // MessageHelper.generateMsgIdHash(chatType, msg.content!!.msgViaRandom), msgViaRandom 为空
-                        realId = msg.content!!.msgSeq?.toInt() ?: 0,
+                        realId = msg.contentHead!!.msgSeq?.toInt() ?: 0,
                         sender = MessageSender(
-                            msg.head?.peer ?: 0,
-                            msg.head?.groupInfo?.memberCard?.ifEmpty { msg.head?.forward?.friendName }
-                                ?: msg.head?.forward?.friendName ?: "",
+                            msg.msgHead?.peer ?: 0,
+                            msg.msgHead?.responseGrp?.memberCard?.ifEmpty { msg.msgHead?.forward?.friendName }
+                                ?: msg.msgHead?.forward?.friendName ?: "",
                             "unknown",
                             0,
-                            msg.head?.peerUid ?: "",
-                            msg.head?.peerUid ?: ""
+                            msg.msgHead?.peerUid ?: "",
+                            msg.msgHead?.peerUid ?: ""
                         ),
-                        message = msg.body?.rich?.elements?.toSegments(chatType, msg.head?.peer.toString(), "0")
+                        message = msg.body?.richText?.elements?.toSegments(chatType, msg.msgHead?.peer.toString(), "0")
                             ?.toListMap() ?: emptyList(),
-                        peerId = msg.head?.peer ?: 0,
-                        groupId = if (chatType == MsgConstant.KCHATTYPEGROUP) msg.head?.groupInfo?.groupCode?.toLong()
+                        peerId = msg.msgHead?.peer ?: 0,
+                        groupId = if (chatType == MsgConstant.KCHATTYPEGROUP) msg.msgHead?.responseGrp?.groupCode?.toLong()
                             ?: 0 else 0,
-                        targetId = if (chatType != MsgConstant.KCHATTYPEGROUP) msg.head?.peer ?: 0 else 0
+                        targetId = if (chatType != MsgConstant.KCHATTYPEGROUP) msg.msgHead?.peer ?: 0 else 0
                     )
                 }
                     ?: return Result.failure(Exception("Msg is empty")))

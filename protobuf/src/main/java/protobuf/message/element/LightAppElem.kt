@@ -4,6 +4,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.protobuf.ProtoNumber
 
 @Serializable
-data class FaceElement(
-    @ProtoNumber(1) val id: Int? = null,
+data class LightAppElem(
+    @ProtoNumber(1) val data: ByteArray? = null,
 )

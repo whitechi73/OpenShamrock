@@ -6,16 +6,7 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.protobuf.ProtoNumber
 import moe.fuqiuluo.symbols.Protobuf
-import protobuf.message.MessageBody
-import protobuf.message.MessageContent
-import protobuf.message.MessageHead
-
-@Serializable
-data class PushMsgBody(
-    @ProtoNumber(1) val head: MessageHead? = null,
-    @ProtoNumber(2) val content: MessageContent? = null,
-    @ProtoNumber(3) val body: MessageBody? = null
-)
+import protobuf.message.PushMsgBody
 
 @Serializable
 data class LongMsgContent(
