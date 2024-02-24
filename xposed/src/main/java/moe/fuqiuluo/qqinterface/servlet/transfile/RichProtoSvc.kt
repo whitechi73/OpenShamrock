@@ -104,7 +104,7 @@ internal object RichProtoSvc: BaseSvc() {
 
         val domain = if (!result.download_file_rsp.str_download_dns.has())
                 ("https://" + result.download_file_rsp.str_download_ip.get())
-        else ("http://" + result.download_file_rsp.str_download_dns.get())
+        else ("http://" + result.download_file_rsp.str_download_dns.get().toByteArray().decodeToString())
         val downloadUrl = result.download_file_rsp.bytes_download_url.get().toByteArray().toHexString()
         val appId = MobileQQ.getMobileQQ().appId
         val version = PlatformUtils.getQQVersion(MobileQQ.getContext())

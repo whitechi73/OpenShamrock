@@ -1,6 +1,8 @@
 package moe.fuqiuluo.qqinterface.servlet.transfile
 
 import kotlinx.atomicfu.atomic
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.protobuf.ProtoNumber
 import moe.fuqiuluo.qqinterface.servlet.BaseSvc
 import moe.fuqiuluo.qqinterface.servlet.TicketSvc
@@ -214,11 +216,12 @@ internal object NtV2RichMediaSvc: BaseSvc() {
         }
     }
 
+    @Serializable
     data class TryUpPicData(
-        val uKey: ByteArray,
-        val exist: Boolean,
-        val fileId: ULong,
-        var upIp: ArrayList<Long>? = null,
-        var upPort: ArrayList<Int>? = null,
+        @SerialName("ukey") val uKey: ByteArray,
+        @SerialName("exist") val exist: Boolean,
+        @SerialName("file_id") val fileId: ULong,
+        @SerialName("up_ip") var upIp: ArrayList<Long>? = null,
+        @SerialName("up_port") var upPort: ArrayList<Int>? = null,
     )
 }
