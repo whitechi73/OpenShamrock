@@ -8,7 +8,7 @@ import moe.fuqiuluo.shamrock.tools.EmptyJsonString
 import moe.fuqiuluo.symbols.OneBotHandler
 
 @OneBotHandler("get_group_files_by_folder")
-internal object GetGroupSubFiles: IActionHandler() {
+internal object GetGroupSubFiles : IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val groupId = session.getLong("group_id")
         val folderId = session.getString("folder_id")
@@ -16,10 +16,10 @@ internal object GetGroupSubFiles: IActionHandler() {
     }
 
     suspend operator fun invoke(groupId: Long, folderId: String, echo: JsonElement = EmptyJsonString): String {
-        FileSvc.getGroupFiles(groupId, folderId).onSuccess {
-            return ok(it, echo = echo)
-        }.getOrNull()
-        return error(why = "获取失败", echo = echo)
+        return ok(
+            FileSvc.getGroupFiles(groupId, folderId).getOrElse { return error(why = "获取失败: $it", echo = echo) },
+            echo = echo
+        )
     }
 
     override val requiredParams: Array<String> = arrayOf("group_id", "folder_id")
