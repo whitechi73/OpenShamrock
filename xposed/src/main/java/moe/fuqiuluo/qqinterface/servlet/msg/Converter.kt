@@ -1,7 +1,7 @@
 package moe.fuqiuluo.qqinterface.servlet.msg
 
 import com.tencent.qqnt.kernel.nativeinterface.MsgElement
-import moe.fuqiuluo.qqinterface.servlet.msg.converter.MessageElementConverter
+import moe.fuqiuluo.qqinterface.servlet.msg.converter.ElemConverter
 import moe.fuqiuluo.qqinterface.servlet.msg.converter.MsgElementConverter
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
@@ -21,13 +21,21 @@ internal suspend fun List<Elem>.toSegments(
                 1
             } else if (msg.face != null) {
                 2
-            } else if (msg.lightApp != null) {
+            } else if (msg.notOnlineImage != null) {
+                4
+            } else if (msg.customFace != null) {
+                8
+            } else if (msg.generalFlags != null) {
+                37
+            } else if (msg.srcMsg != null) {
+                45
+            }  else if (msg.lightApp != null) {
                 51
             } else if (msg.commonElem != null) {
                 53
             } else
                 throw UnsupportedOperationException("不支持的消息element类型：$msg")
-            val converter = MessageElementConverter[elementType]
+            val converter = ElemConverter[elementType]
             converter?.invoke(chatType, peerId, subPeer, msg)
                 ?: throw UnsupportedOperationException("不支持的消息element类型：$elementType")
         }.onSuccess {

@@ -30,7 +30,7 @@ data class CustomFace(
     @ProtoNumber(23) var height: UInt? = null,
     @ProtoNumber(24) var source: UInt? = null,
     @ProtoNumber(25) var size: UInt? = null,
-    @ProtoNumber(26) var origin: UInt? = null,
+    @ProtoNumber(26) var origin: Boolean? = null,
     @ProtoNumber(27) var thumbWidth: UInt? = null,
     @ProtoNumber(28) var thumbHeight: UInt? = null,
     @ProtoNumber(29) var showLen: UInt? = null,

@@ -16,7 +16,7 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
 import moe.fuqiuluo.qqinterface.servlet.MsgSvc
-import moe.fuqiuluo.qqinterface.servlet.msg.maker.MessageElementMaker
+import moe.fuqiuluo.qqinterface.servlet.msg.maker.ElemMaker
 import moe.fuqiuluo.qqinterface.servlet.msg.maker.NtMsgElementMaker
 import moe.fuqiuluo.shamrock.helper.db.MessageDB
 import moe.fuqiuluo.shamrock.helper.db.MessageMapping
@@ -291,7 +291,7 @@ internal object MessageHelper {
     suspend fun messageArrayToMsgElements(
         chatType: Int,
         msgId: Long,
-        targetUin: String,
+        peerId: String,
         messageList: JsonArray
     ): Pair<Boolean, ArrayList<MsgElement>> {
         val msgList = arrayListOf<MsgElement>()
@@ -302,7 +302,7 @@ internal object MessageHelper {
             if (maker != null) {
                 try {
                     val data = msg["data"].asJsonObjectOrNull ?: EmptyJsonObject
-                    maker(chatType, msgId, targetUin, data).onSuccess { msgElem ->
+                    maker(chatType, msgId, peerId, data).onSuccess { msgElem ->
                         msgList.add(msgElem)
                     }.onFailure {
                         if (it.javaClass != ActionMsgException::class.java) {
@@ -325,18 +325,18 @@ internal object MessageHelper {
     suspend fun messageArrayToMessageElements(
         chatType: Int,
         msgId: Long,
-        targetUin: String,
+        peerId: String,
         messageList: JsonArray
     ): Pair<Boolean, ArrayList<Elem>> {
         val msgList = arrayListOf<Elem>()
         var hasActionMsg = false
         messageList.forEach {
             val msg = it.jsonObject
-            val maker = MessageElementMaker[msg["type"].asString]
+            val maker = ElemMaker[msg["type"].asString]
             if (maker != null) {
                 try {
                     val data = msg["data"].asJsonObjectOrNull ?: EmptyJsonObject
-                    maker(chatType, msgId, targetUin, data).onSuccess { msgElem ->
+                    maker(chatType, msgId, peerId, data).onSuccess { msgElem ->
                         msgList.add(msgElem)
                     }.onFailure {
                         if (it.javaClass != ActionMsgException::class.java) {
@@ -431,11 +431,11 @@ internal object MessageHelper {
                     params[key] = value.json
                 }
             }
-            val data = hashMapOf(
+            val data = mapOf(
                 "type" to it["_type"]!!.json,
                 "data" to JsonObject(params)
             )
-            arrayList.add(JsonObject(data))
+            arrayList.add(data.json)
         }
         return arrayList.jsonArray
     }

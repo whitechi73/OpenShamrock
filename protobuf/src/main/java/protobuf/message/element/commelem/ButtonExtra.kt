@@ -23,7 +23,7 @@ data class Row(
 
 @Serializable
 data class Button(
-    @ProtoNumber(1) val id: Int? = null,
+    @ProtoNumber(1) val id: String? = null,
     @ProtoNumber(2) val renderData: RenderData? = null,
     @ProtoNumber(3) val action: Action? = null,
 )
@@ -41,8 +41,8 @@ data class Action(
     @ProtoNumber(2) val permission: Permission? = null,
     @ProtoNumber(4) val unsupportTips: String? = null,
     @ProtoNumber(5) val data: String? = null,
-    @ProtoNumber(6) val reply: Boolean? = null,
-    @ProtoNumber(7) val enter: Boolean? = null,
+    @ProtoNumber(7) val reply: Boolean? = null,
+    @ProtoNumber(8) val enter: Boolean? = null,
 )
 
 @Serializable

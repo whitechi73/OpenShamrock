@@ -21,18 +21,19 @@ internal object SendMsgByResid : IActionHandler() {
     private val msgSeq = atomic(1000)
 
     override suspend fun internalHandle(session: ActionSession): String {
-        val resid = session.getString("resid")
-        val peerId = session.getString("peer")
-        val msgType = session.getStringOrNull("message_type") ?: "group"
-        return invoke(peerId, resid, msgType, session.echo)
+        val resId = session.getString("res_id")
+        val peerId = session.getString("peer_id")
+        val messageType = session.getString("message_type")
+        invoke(resId, peerId, messageType)
+        return ok("ok", session.echo)
     }
 
-    suspend operator fun invoke(peerId: String, resId: String, type: String, echo: JsonElement = EmptyJsonString): String {
+    suspend operator fun invoke(peerId: String, resId: String, messageType: String, echo: JsonElement = EmptyJsonString): String {
         val req = PbSendMsgReq(
-            routingHead = when (type) {
-                "group" ->RoutingHead(grp = Grp(peerId.toUInt()))
-                "private" ->RoutingHead( c2c = C2C(peerId.toUInt()))
-                else ->RoutingHead( grp = Grp(peerId.toUInt()))
+            routingHead = when (messageType) {
+                "group" -> RoutingHead(grp = Grp(peerId.toUInt()))
+                "private" -> RoutingHead(c2c = C2C(peerId.toUInt()))
+                else -> RoutingHead(grp = Grp(peerId.toUInt()))
             },
             contentHead = ContentHead(1, 0, 0, 0),
             msgBody = MsgBody(
@@ -41,7 +42,7 @@ internal object SendMsgByResid : IActionHandler() {
                         Elem(
                             generalFlags = GeneralFlags(
                                 longTextFlag = 1u,
-                                longTextResid = resId.toByteArray()
+                                longTextResid = resId
                             )
                         )
                     )

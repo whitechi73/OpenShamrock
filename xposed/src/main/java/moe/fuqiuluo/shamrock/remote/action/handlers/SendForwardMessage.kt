@@ -80,19 +80,18 @@ internal object SendForwardMessage : IActionHandler() {
         fromId: String = peerId,
         echo: JsonElement = EmptyJsonString
     ): String {
-        kotlin.runCatching {
-            var uid: String? = null
-            var groupUin: String? = null
+        var uid: String? = null
+        var groupUin: String? = null
 
-            var i = -1
-            val desc = MutableList(messages.size) { "" }
+        var i = -1
+        val desc = MutableList(messages.size) { "" }
 
-            val msgs = messages.map { msg ->
+        val msgs = messages.map { msg ->
+            kotlin.runCatching {
                 val data = msg.asJsonObject["data"].asJsonObject
                 if (data.containsKey("id")) {
                     val record = MsgSvc.getMsg(data["id"].asInt).getOrElse {
-                        LogCenter.log("合并转发消息节点消息(id = ${data["id"].asInt})获取失败：$it", Level.WARN)
-                        return@map null
+                        error("合并转发消息节点消息(id = ${data["id"].asInt})获取失败：$it")
                     }
                     if (record.chatType == MsgConstant.KCHATTYPEGROUP) groupUin = record.peerUin.toString()
                     if (record.chatType == MsgConstant.KCHATTYPEC2C) uid = record.peerUid
@@ -147,21 +146,21 @@ internal object SendForwardMessage : IActionHandler() {
                                     ).also {
                                         desc[++i] = record.sendMemberName.ifEmpty { record.sendNickName } + ": "
                                     }.map {
-                                        when (it.type) {
-                                            "text" -> desc[i] += it.data["text"] as String
-
-                                            "at" -> desc[i] += "@${it.data["name"] as String? ?: it.data["qq"] as String}"
-
-                                            "face" -> desc[i] += "[表情]"
-
-                                            "voice" -> desc[i] += "[语音]"
-
-                                            "node" -> desc[i] += "[合并转发消息]"
+                                        desc[++i] += when (it.type) {
+                                            "text" -> it.data["text"] as String
+                                            "at" -> "@${it.data["name"] as String? ?: it.data["qq"] as String}"
+                                            "face" -> "[表情]"
+                                            "voice" -> "[语音]"
+                                            "node" -> "[合并转发消息]"
+                                            "markdown" -> "[Markdown消息]"
+                                            "button" -> "[Button类型]"
+                                            else -> "[未知消息类型]"
                                         }
                                         it.toJson()
                                     }.json
                                 ).also {
-                                    if (it.second.isEmpty() && !it.first) error("消息合成失败，请查看日志或者检查输入。")
+                                    if (it.second.isEmpty() && !it.first)
+                                        error("消息合成失败，请查看日志或者检查输入。")
                                 }.second
                             )
                         )
@@ -198,84 +197,91 @@ internal object SendForwardMessage : IActionHandler() {
                         body = MsgBody(
                             richText = RichText(
                                 elements = MessageHelper.messageArrayToMessageElements(
-                                    1,
-                                    Random.nextLong(),
-                                    data["uin"]?.asString ?: TicketSvc.getUin(),
-                                    when (data["content"]) {
+                                    chatType = MsgConstant.KCHATTYPEGROUP,
+                                    msgId = Random.nextLong(),
+                                    peerId = data["uin"]?.asString ?: TicketSvc.getUin(),
+                                    messageList = when (data["content"]) {
                                         is JsonObject -> listOf(data["content"] as JsonObject).json
                                         is JsonArray -> data["content"] as JsonArray
                                         else -> MessageHelper.decodeCQCode(data["content"].asString)
                                     }.also {
-                                        desc[++i] = "${
-                                            data["name"].asStringOrNull ?: data["uin"].asStringOrNull
-                                            ?: TicketSvc.getNickname()
-                                        }: "
+                                        desc[++i] =
+                                            (data["name"].asStringOrNull ?: data["uin"].asStringOrNull
+                                                    ?: TicketSvc.getNickname() )+ ": "
                                     }.onEach {
                                         val type = it.asJsonObject["type"].asString
                                         val itData = it.asJsonObject["data"].asJsonObject
-                                        when (type) {
-                                            "text" -> desc[i] += itData["text"].asString
-                                            "at" -> desc[i] += "@${itData["name"].asStringOrNull ?: itData["qq"].asString}"
-                                            "face" -> desc[i] += "[表情]"
-                                            "image" -> desc[i] += "[图片]"
-                                            "voice" -> desc[i] += "[语音]"
-                                            "node" -> desc[i] += "[合并转发消息]"
+                                        desc[i] += when (type) {
+                                            "text" -> itData["text"].asString
+                                            "at" -> "@${itData["name"].asStringOrNull ?: itData["qq"].asString}"
+                                            "face" -> "[表情]"
+                                            "image" -> "[图片]"
+                                            "voice" -> "[语音]"
+                                            "node" -> "[合并转发消息]"
+                                            "markdown" -> "[Markdown消息]"
+                                            "button" -> "[Button类型]"
+                                            else -> "[未知消息类型]"
                                         }
                                     }
                                 ).also {
-                                    if (it.second.isEmpty() && !it.first) error("消息合成失败，请查看日志或者检查输入。")
+                                    if (it.second.isEmpty() && !it.first)
+                                        error("消息合成失败，请查看日志或者检查输入。")
                                 }.second
                             )
                         )
                     )
                 } else {
-                    LogCenter.log("消息节点缺少id或content字段", Level.WARN)
-                    null
+                    error("消息节点缺少id或content字段")
                 }
-            }.filterNotNull().ifEmpty { return logic("消息节点为空", echo) }
+            }.getOrElse {
+                LogCenter.log("消息节点解析失败：$it", Level.WARN)
+                null
+            }
+        }.filterNotNull().ifEmpty { return logic("消息节点为空", echo) }
 
 
-            val resid = MsgSvc.sendMultiMsg(uid ?: TicketSvc.getUid(), groupUin, msgs)
+        kotlin.runCatching {
+            val resid = MsgSvc.uploadMultiMsg(uid ?: TicketSvc.getUid(), groupUin, msgs)
                 .getOrElse { return logic(it.message ?: "", echo) }
             val uniseq = UUID.randomUUID().toString().uppercase()
 
             val result = MsgSvc.sendToAio(
                 chatType, peerId,
                 listOf(
-                    hashMapOf(
+                    mapOf(
                         "type" to "json",
-                        "data" to hashMapOf(
-                            "data" to hashMapOf(
+                        "data" to mapOf(
+                            "data" to mapOf(
                                 "app" to "com.tencent.multimsg",
-                                "config" to hashMapOf(
+                                "config" to mapOf(
                                     "autosize" to 1,
                                     "forward" to 1,
                                     "round" to 1,
                                     "type" to "normal",
                                     "width" to 300
-                                ).json,
+                                ),
                                 "desc" to "[聊天记录]",
-                                "extra" to hashMapOf(
+                                "extra" to mapOf(
                                     "filename" to uniseq,
                                     "tsum" to 2
                                 ).json.toString(),
-                                "meta" to hashMapOf(
-                                    "detail" to hashMapOf(
+                                "meta" to mapOf(
+                                    "detail" to mapOf(
                                         "news" to desc.slice(0..if (i < 3) i else 3)
-                                            .map { hashMapOf("text" to it).json }.json,
+                                            .map { mapOf("text" to it) },
                                         "resid" to resid,
                                         "source" to "群聊的聊天记录",
                                         "summary" to "查看${msgs.size}条转发消息",
                                         "uniseq" to uniseq
-                                    ).json
-                                ).json,
+                                    )
+                                ),
                                 "prompt" to "[聊天记录]",
                                 "ver" to "0.0.0.5",
                                 "view" to "contact"
-                            ).json,
+                            ),
                             "resid" to resid
-                        ).json
-                    ).json
+                        )
+                    )
                 ).json, fromId, 3
             ).getOrElse { return logic(it.message ?: "", echo) }
 
@@ -286,7 +292,7 @@ internal object SendForwardMessage : IActionHandler() {
                 ), echo = echo
             )
         }.onFailure {
-            return error("error: $it", echo)
+            return error("合并转发消息失败: $it", echo)
         }
         return logic("合并转发消息失败(unknown error)", echo)
     }

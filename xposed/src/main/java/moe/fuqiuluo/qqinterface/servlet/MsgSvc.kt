@@ -222,7 +222,7 @@ internal object MsgSvc : BaseSvc() {
         }
     }
 
-    suspend fun sendMultiMsg(
+    suspend fun uploadMultiMsg(
         uid: String,
         groupUin: String?,
         messages: List<PushMsgBody>,

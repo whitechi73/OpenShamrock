@@ -17,7 +17,7 @@ data class NotOnlineImage(
     @ProtoNumber(10) val resId: ByteArray? = null, // md5 + ".jpg"
     @ProtoNumber(11) val flag: ByteArray? = null,
     @ProtoNumber(12) val thumbUrl: String? = null,
-    @ProtoNumber(13) val original: UInt? = null,
+    @ProtoNumber(13) val original: Boolean? = null,
     @ProtoNumber(14) val bigUrl: String? = null,
     @ProtoNumber(15) val origUrl: String? = null,
     @ProtoNumber(16) val bizType: UInt? = null,

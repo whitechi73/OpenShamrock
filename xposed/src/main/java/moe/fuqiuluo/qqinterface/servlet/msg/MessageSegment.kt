@@ -8,10 +8,10 @@ import moe.fuqiuluo.shamrock.tools.json
 
 internal data class MessageSegment(
     val type: String,
-    val data: Map<String, Any> = emptyMap()
+    val data: Map<String, Any?> = emptyMap()
 ) {
     fun toJson(): JsonObject {
-        return hashMapOf(
+        return mapOf(
             "type" to type.json,
             "data" to data.json
         ).json
@@ -26,7 +26,7 @@ internal fun List<MessageSegment>.toJson(): JsonArray {
 
 internal fun List<MessageSegment>.toListMap(): List<Map<String, JsonElement>> {
     return this.map {
-        hashMapOf(
+        mapOf(
             "type" to it.type.json,
             "data" to it.data.json
         ).json

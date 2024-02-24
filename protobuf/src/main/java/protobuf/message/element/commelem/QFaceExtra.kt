@@ -11,7 +11,7 @@ data class QFaceExtra(
     @ProtoNumber(3) val faceId: Int? = null,
     @ProtoNumber(4) val field4: Int? = null,
     @ProtoNumber(5) val field5: Int? = null,
-    @ProtoNumber(6) val field6: String? = null,
+    @ProtoNumber(6) val result: String? = null,
     @ProtoNumber(7) val faceText: String? = null,
     @ProtoNumber(9) val field9: Int? = null
 ) : Protobuf<QFaceExtra>

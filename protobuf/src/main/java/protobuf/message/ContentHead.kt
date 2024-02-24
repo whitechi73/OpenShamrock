@@ -15,7 +15,7 @@ data class ContentHead(
     @ProtoNumber(8) val u6: Int? = null,
     @ProtoNumber(9) val u7: Int? = null,
     @ProtoNumber(11) val msgSeq: Long? = null,
-    @ProtoNumber(12) val msgRandom: Long = Long.MIN_VALUE,
+    @ProtoNumber(12) val msgRandom: Long = Long.MIN_VALUE,   // 0x0100000000000000L xor msgViaRandom
     @ProtoNumber(14) val u4: Long? = null,
     @ProtoNumber(15) val forwardHead: ForwardHead? = null,
     @ProtoNumber(28) val u5: Long? = null

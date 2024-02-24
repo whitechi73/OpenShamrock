@@ -333,7 +333,6 @@ internal object NtMsgElementMaker {
                 LogCenter.log("无法发送天气分享", Level.ERROR)
             }
         }
-
         return Result.failure(ActionMsgException)
     }
 

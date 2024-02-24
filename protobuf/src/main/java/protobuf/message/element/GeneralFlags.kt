@@ -12,7 +12,7 @@ data class GeneralFlags(
     @ProtoNumber(4) val rpId: ByteArray? = null,
     @ProtoNumber(5) val prpFold: UInt? = null,
     @ProtoNumber(6) val longTextFlag: UInt? = null,
-    @ProtoNumber(7) val longTextResid: ByteArray? = null,
+    @ProtoNumber(7) val longTextResid: String? = null,
     @ProtoNumber(8) val groupType: UInt? = null,
     @ProtoNumber(9) val toUinFlag: UInt? = null,
     @ProtoNumber(10) val glamourLevel: UInt? = null,

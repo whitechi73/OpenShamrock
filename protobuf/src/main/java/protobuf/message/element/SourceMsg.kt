@@ -21,7 +21,7 @@ data class SourceMsg(
     companion object {
         @Serializable
         data class PbReserve(
-            @ProtoNumber(3) var field3: ULong? = null,
+            @ProtoNumber(3) var msgRand: ULong? = null,
             @ProtoNumber(6) var senderUid: String? = null,
             @ProtoNumber(7) var receiverUid: String? = null,
             @ProtoNumber(8) var field8: Int? = null,
