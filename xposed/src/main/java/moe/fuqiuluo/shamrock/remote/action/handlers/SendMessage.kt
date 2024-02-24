@@ -55,13 +55,13 @@ internal object SendMessage: IActionHandler() {
             return if (session.isString("message")) {
                 val autoEscape = session.getBooleanOrDefault("auto_escape", false)
                 val message = session.getString("message")
-                invoke(chatType, peerId, message, autoEscape, echo = session.echo, fromId = fromId, retryCnt = retryCnt ?: 3, recallDuration = recallDuration)
+                invoke(chatType, peerId, message, autoEscape, echo = session.echo, fromId = fromId, retryCnt = retryCnt ?: 5, recallDuration = recallDuration)
             } else if (session.isArray("message")) {
                 val message = session.getArray("message")
-                invoke(chatType, peerId, message, session.echo, fromId = fromId, retryCnt ?: 3, recallDuration = recallDuration)
+                invoke(chatType, peerId, message, session.echo, fromId = fromId, retryCnt ?: 5, recallDuration = recallDuration)
             } else {
                 val message = session.getObject("message")
-                invoke(chatType, peerId, listOf( message ).jsonArray, session.echo, fromId = fromId, retryCnt ?: 3, recallDuration = recallDuration)
+                invoke(chatType, peerId, listOf( message ).jsonArray, session.echo, fromId = fromId, retryCnt ?: 5, recallDuration = recallDuration)
             }
         } catch (e: ParamsException) {
             return noParam(e.message!!, session.echo)

@@ -3,6 +3,7 @@ package moe.fuqiuluo.qqinterface.servlet.msg.maker
 import android.graphics.BitmapFactory
 import androidx.exifinterface.media.ExifInterface
 import com.tencent.mobileqq.app.QQAppInterface
+import com.tencent.mobileqq.data.MessageForPic
 import com.tencent.mobileqq.emoticon.QQSysFaceUtil
 import com.tencent.mobileqq.pb.ByteStringMicro
 import com.tencent.mobileqq.qroute.QRoute
@@ -57,37 +58,37 @@ import kotlin.random.nextInt
 
 internal typealias IMsgElementMaker = suspend (Int, Long, String, JsonObject) -> Result<MsgElement>
 
-internal object MsgElementMaker {
+internal object NtMsgElementMaker {
     private val makerMap = hashMapOf(
-        "text" to MsgElementMaker::createTextElem,
-        "face" to MsgElementMaker::createFaceElem,
-        "pic" to MsgElementMaker::createImageElem,
-        "image" to MsgElementMaker::createImageElem,
-        "voice" to MsgElementMaker::createRecordElem,
-        "record" to MsgElementMaker::createRecordElem,
-        "at" to MsgElementMaker::createAtElem,
-        "video" to MsgElementMaker::createVideoElem,
-        "markdown" to MsgElementMaker::createMarkdownElem,
-        "dice" to MsgElementMaker::createDiceElem,
-        "rps" to MsgElementMaker::createRpsElem,
-        "poke" to MsgElementMaker::createPokeElem,
-        "anonymous" to MsgElementMaker::createAnonymousElem,
-        "share" to MsgElementMaker::createShareElem,
-        "contact" to MsgElementMaker::createContactElem,
-        "location" to MsgElementMaker::createLocationElem,
-        "music" to MsgElementMaker::createMusicElem,
-        "reply" to MsgElementMaker::createReplyElem,
-        "touch" to MsgElementMaker::createTouchElem,
-        "weather" to MsgElementMaker::createWeatherElem,
-        "json" to MsgElementMaker::createJsonElem,
-        "new_dice" to MsgElementMaker::createNewDiceElem,
-        "new_rps" to MsgElementMaker::createNewRpsElem,
-        "basketball" to MsgElementMaker::createBasketballElem,
+        "text" to NtMsgElementMaker::createTextElem,
+        "face" to NtMsgElementMaker::createFaceElem,
+        "pic" to NtMsgElementMaker::createImageElem,
+        "image" to NtMsgElementMaker::createImageElem,
+        "voice" to NtMsgElementMaker::createRecordElem,
+        "record" to NtMsgElementMaker::createRecordElem,
+        "at" to NtMsgElementMaker::createAtElem,
+        "video" to NtMsgElementMaker::createVideoElem,
+        "markdown" to NtMsgElementMaker::createMarkdownElem,
+        "dice" to NtMsgElementMaker::createDiceElem,
+        "rps" to NtMsgElementMaker::createRpsElem,
+        "poke" to NtMsgElementMaker::createPokeElem,
+        "anonymous" to NtMsgElementMaker::createAnonymousElem,
+        "share" to NtMsgElementMaker::createShareElem,
+        "contact" to NtMsgElementMaker::createContactElem,
+        "location" to NtMsgElementMaker::createLocationElem,
+        "music" to NtMsgElementMaker::createMusicElem,
+        "reply" to NtMsgElementMaker::createReplyElem,
+        "touch" to NtMsgElementMaker::createTouchElem,
+        "weather" to NtMsgElementMaker::createWeatherElem,
+        "json" to NtMsgElementMaker::createJsonElem,
+        "new_dice" to NtMsgElementMaker::createNewDiceElem,
+        "new_rps" to NtMsgElementMaker::createNewRpsElem,
+        "basketball" to NtMsgElementMaker::createBasketballElem,
         //"node" to MessageMaker::createNodeElem,
         //"multi_msg" to MessageMaker::createLongMsgStruct,
-        "bubble_face" to MsgElementMaker::createBubbleFaceElem,
-        "button" to MsgElementMaker::createInlineKeywordElem,
-        "inline_keyboard" to MsgElementMaker::createInlineKeywordElem
+        "bubble_face" to NtMsgElementMaker::createBubbleFaceElem,
+        "button" to NtMsgElementMaker::createInlineKeywordElem,
+        "inline_keyboard" to NtMsgElementMaker::createInlineKeywordElem
     )
 
     operator fun get(type: String): IMsgElementMaker? = makerMap[type]
@@ -1005,6 +1006,10 @@ internal object MsgElementMaker {
         // GO-CQHTTP扩展参数 支持
         pic.picSubType = data["subType"].asIntOrNull ?: 0
         pic.isFlashPic = isFlash
+
+        //if (PlatformUtils.getQQVersionCode() >= PlatformUtils.QQ_9_0_8_VER && !ShamrockConfig.enableOldBDH()) {
+        //    pic.storeID = 1
+        //}
 
         elem.picElement = pic
 

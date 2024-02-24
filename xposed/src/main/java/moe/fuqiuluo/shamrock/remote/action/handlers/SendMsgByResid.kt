@@ -1,10 +1,12 @@
 package moe.fuqiuluo.shamrock.remote.action.handlers
 
 import kotlinx.atomicfu.atomic
+import kotlinx.serialization.json.JsonElement
 
 import moe.fuqiuluo.qqinterface.servlet.BaseSvc
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
+import moe.fuqiuluo.shamrock.tools.EmptyJsonString
 import moe.fuqiuluo.symbols.OneBotHandler
 import protobuf.auto.toByteArray
 import protobuf.message.*
@@ -21,8 +23,13 @@ internal object SendMsgByResid : IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val resid = session.getString("resid")
         val peerId = session.getString("peer")
+        val msgType = session.getStringOrNull("message_type") ?: "group"
+        return invoke(peerId, resid, msgType, session.echo)
+    }
+
+    suspend operator fun invoke(peerId: String, resId: String, type: String, echo: JsonElement = EmptyJsonString): String {
         val req = PbSendMsgReq(
-            routingHead = when (session.getStringOrNull("message_type")) {
+            routingHead = when (type) {
                 "group" ->RoutingHead(grp = Grp(peerId.toUInt()))
                 "private" ->RoutingHead( c2c = C2C(peerId.toUInt()))
                 else ->RoutingHead( grp = Grp(peerId.toUInt()))
@@ -34,7 +41,7 @@ internal object SendMsgByResid : IActionHandler() {
                         Elem(
                             generalFlags = GeneralFlags(
                                 longTextFlag = 1u,
-                                longTextResid = resid.toByteArray()
+                                longTextResid = resId.toByteArray()
                             )
                         )
                     )
@@ -45,6 +52,6 @@ internal object SendMsgByResid : IActionHandler() {
             msgVia = 0u
         )
         BaseSvc.sendBufferAW("MessageSvc.PbSendMsg", true, req.toByteArray())
-        return ok("ok", session.echo)
+        return ok("ok", echo)
     }
 }

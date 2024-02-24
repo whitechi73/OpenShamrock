@@ -24,7 +24,7 @@ internal object SendPrivateMessage : IActionHandler() {
                 autoEscape = autoEscape,
                 echo = session.echo,
                 fromId = groupId?.toString() ?: userId.toString(),
-                retryCnt = retryCnt ?: 3,
+                retryCnt = retryCnt ?: 5,
                 recallDuration = recallDuration
             )
         } else {
@@ -34,7 +34,7 @@ internal object SendPrivateMessage : IActionHandler() {
                 message = if (session.isArray("message")) session.getArray("message") else listOf(session.getObject("message")).jsonArray,
                 echo = session.echo,
                 fromId = groupId?.toString() ?: userId.toString(),
-                retryCnt = retryCnt ?: 3,
+                retryCnt = retryCnt ?: 5,
                 recallDuration = recallDuration
             )
         }

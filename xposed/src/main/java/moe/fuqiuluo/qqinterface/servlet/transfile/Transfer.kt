@@ -1,6 +1,8 @@
 package moe.fuqiuluo.qqinterface.servlet.transfile
 
+import com.tencent.mobileqq.data.MessageForPic
 import com.tencent.mobileqq.data.MessageForShortVideo
+import com.tencent.mobileqq.data.MessageRecord
 import com.tencent.mobileqq.transfile.FileMsg
 import com.tencent.mobileqq.transfile.TransferRequest
 import moe.fuqiuluo.shamrock.utils.MD5
@@ -11,16 +13,15 @@ import moe.fuqiuluo.shamrock.helper.TransfileHelper
 internal object Transfer: FileTransfer() {
     private val ROUTE = mapOf<ContactType, Map<ResourceType, suspend TransTarget.(Resource) -> Boolean>>(
         ContactType.TROOP to mapOf(
-            Picture to { uploadGroupPic(id, (it as PictureResource).src) },
+            Picture to { uploadGroupPic(id, (it as PictureResource).src, mRec) },
             Voice to { uploadGroupVoice(id, (it as VoiceResource).src) },
             Video to { uploadGroupVideo(id, (it as VideoResource).src, it.thumb) },
 
         ),
         ContactType.PRIVATE to mapOf(
-            Picture to { uploadC2CPic(id, (it as PictureResource).src) },
+            Picture to { uploadC2CPic(id, (it as PictureResource).src, mRec) },
             Voice to { uploadC2CVoice(id, (it as VoiceResource).src) },
             Video to { uploadC2CVideo(id, (it as VideoResource).src, it.thumb) },
-
         )
     )
 
@@ -83,6 +84,7 @@ internal object Transfer: FileTransfer() {
     suspend fun uploadC2CPic(
         peerId: String,
         file: File,
+        record: MessageRecord? = null,
         wait: Boolean = true
     ): Boolean {
         return transC2CResource(peerId, file, FileMsg.TRANSFILE_TYPE_PIC, SEND_MSG_BUSINESS_TYPE_PIC_CAMERA, wait) {
@@ -93,22 +95,24 @@ internal object Transfer: FileTransfer() {
             it.mExtraObj = picUpExtraInfo
             it.mIsPresend = true
             it.delayShowProgressTimeInMs = 2000
+            it.mRec = record
         }
     }
 
     suspend fun uploadGroupPic(
         groupId: String,
         file: File,
+        record: MessageRecord? = null,
         wait: Boolean = true
     ): Boolean {
         return transTroopResource(groupId, file, FileMsg.TRANSFILE_TYPE_PIC, SEND_MSG_BUSINESS_TYPE_PIC_CAMERA, wait) {
             val picUpExtraInfo = TransferRequest.PicUpExtraInfo()
-            //picUpExtraInfo.mIsRaw = !TransfileHelper.isGifFile(file)
             picUpExtraInfo.mIsRaw = false
             picUpExtraInfo.mUinType = FileMsg.UIN_TROOP
             it.mPicSendSource = 8
             it.delayShowProgressTimeInMs = 2000
             it.mExtraObj = picUpExtraInfo
+            it.mRec = record
         }
     }
 

@@ -208,6 +208,8 @@ public  final class PicElement implements IKernelModel {
         this.isFlashPic = bool;
     }
 
+    public void setStoreID(int i2) {
+    }
     public void setMd5HexStr(String str) {
         this.md5HexStr = str;
     }

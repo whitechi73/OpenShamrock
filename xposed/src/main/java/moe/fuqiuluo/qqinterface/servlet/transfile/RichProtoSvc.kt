@@ -10,6 +10,7 @@ import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.serialization.ExperimentalSerializationApi
 import moe.fuqiuluo.qqinterface.servlet.BaseSvc
+import moe.fuqiuluo.qqinterface.servlet.transfile.NtV2RichMediaSvc.getNtPicRKey
 import moe.fuqiuluo.shamrock.helper.ContactHelper
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
@@ -53,8 +54,6 @@ private const val MULTIMEDIA_DOMAIN = "multimedia.nt.qq.com.cn"
 private const val C2C_PIC = "c2cpicdw.qpic.cn"
 
 internal object RichProtoSvc: BaseSvc() {
-    private val requestId = atomic(2L)
-
     suspend fun getGuildFileDownUrl(peerId: String, channelId: String, fileId: String, bizId: Int): String {
         val buffer = sendOidbAW("OidbSvcTrpcTcp.0xfc2_0", 4034, 0, Oidb0xfc2ReqBody(
             msgCmd = 1200,
@@ -277,81 +276,6 @@ internal object RichProtoSvc: BaseSvc() {
             return "https://$domain$originalUrl"
         }
         return "https://$domain/qmeetpic/0/0-0-${md5.uppercase()}/0?term=2"
-    }
-
-    suspend fun getNtPicRKey(
-        fileId: String,
-        md5: String,
-        sha: String,
-        fileSize: ULong,
-        width: UInt,
-        height: UInt,
-        sceneBuilder: suspend SceneInfo.() -> Unit
-    ): Result<String> {
-        runCatching {
-            val req = run {
-                NtV2RichMediaReq(
-                    head = MultiMediaReqHead(
-                        commonHead = CommonHead(
-                            requestId = requestId.incrementAndGet().toULong(),
-                            cmd = 200u
-                        ),
-                        sceneInfo = SceneInfo(
-                            requestType = 2u,
-                            businessType = 1u,
-                        ).apply {
-                            sceneBuilder()
-                        },
-                        clientMeta = ClientMeta(2u)
-                    ),
-                    download = DownloadReq(
-                        IndexNode(
-                            FileInfo(
-                                fileSize = fileSize,
-                                md5 = md5.lowercase(),
-                                sha1 = sha.lowercase(),
-                                name = "${md5}.jpg",
-                                fileType = FileType(
-                                    fileType = 1u,
-                                    picFormat = 1000u,
-                                    videoFormat = 0u,
-                                    voiceFormat = 0u
-                                ),
-                                width = width,
-                                height = height,
-                                time = 0u,
-                                original = 1u
-                            ),
-                            fileUuid = fileId,
-                            storeId = 1u,
-                            uploadTime = 0u,
-                            ttl = 0u,
-                            subType = 0u,
-                            storeAppId = 0u
-                        ),
-                        DownloadExt(
-                            video = VideoDownloadExt(
-                                busiType = 0u,
-                                subBusiType = 0u,
-                                msgCodecConfig = CodecConfigReq(
-                                    platformChipinfo = "",
-                                    osVer = "",
-                                    deviceName = ""
-                                ),
-                                flag = 1u
-                            )
-                        )
-                    )
-                )
-            }.toByteArray()
-            val buffer = sendOidbAW("OidbSvcTrpcTcp.0x11c5_200", 4549, 200, req, true)?.slice(4)
-            buffer?.decodeProtobuf<TrpcOidb>()?.buffer?.decodeProtobuf<NtV2RichMediaRsp>()?.download?.rkeyParam?.let {
-                return Result.success(it)
-            }
-        }.onFailure {
-            return Result.failure(it)
-        }
-        return Result.failure(Exception("unable to get c2c nt pic"))
     }
 
     suspend fun getC2CVideoDownUrl(

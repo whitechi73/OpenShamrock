@@ -2,15 +2,18 @@
 
 package moe.fuqiuluo.qqinterface.servlet.transfile
 
+import com.tencent.mobileqq.transfile.BaseTransProcessor
 import com.tencent.mobileqq.transfile.FileMsg
 import com.tencent.mobileqq.transfile.TransferRequest
 import com.tencent.mobileqq.transfile.api.ITransFileController
+import com.tencent.mobileqq.utils.httputils.IHttpCommunicatorListener
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
+import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.utils.MD5
 import moe.fuqiuluo.shamrock.xposed.helper.AppRuntimeFetcher
 import mqq.app.AppRuntime
@@ -81,6 +84,7 @@ internal abstract class FileTransfer {
                 }
                 suspendCancellableCoroutine { continuation ->
                     GlobalScope.launch {
+                        lateinit var processor: IHttpCommunicatorListener
                         while (
                         //service.findProcessor(
                         //    transferRequest.keyForTransfer // uin + uniseq
@@ -89,7 +93,12 @@ internal abstract class FileTransfer {
                             // 如果上传处理器依旧存在，说明没有上传成功
                             && service.isWorking.get()
                         ) {
+                            processor = service.findProcessor(runtime.currentAccountUin, transferRequest.mUniseq)
                             delay(100)
+                        }
+                        if (processor is BaseTransProcessor && processor.file != null) {
+                            val fileMsg = processor.file
+                            LogCenter.log("[OldBDH] 资源上传结束(fileId = ${fileMsg.fileID}, fileKey = ${fileMsg.fileKey}, path = ${fileMsg.filePath})")
                         }
                         continuation.resume(true)
                     }

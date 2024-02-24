@@ -1,6 +1,8 @@
 package com.tencent.mobileqq.transfile;
 
-public class BaseTransProcessor {
+import com.tencent.mobileqq.utils.httputils.IHttpCommunicatorListener;
+
+public class BaseTransProcessor implements IHttpCommunicatorListener {
     public FileMsg file;
 
     public long getFileStatus() {

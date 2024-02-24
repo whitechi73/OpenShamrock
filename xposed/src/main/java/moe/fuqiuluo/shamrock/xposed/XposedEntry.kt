@@ -117,6 +117,8 @@ internal class XposedEntry: IXposedHookLoadPackage {
     }
 
     private fun execStartupInit(ctx: Context) {
+        log("Shamrock: Executing startup init: $ctx")
+
         if (sec_static_stage_inited) return
 
         val classLoader = ctx.classLoader.also { requireNotNull(it) }

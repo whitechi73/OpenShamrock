@@ -199,17 +199,36 @@
 
 -keep class com.arthenica.ffmpegkit.NativeLoader { *; }
 
--keep class moe.fuqiuluo.** { *; }
+-keep class moe.fuqiuluo.shamrock.app.** { *; }
+-keep class moe.fuqiuluo.shamrock.ui.** { *; }
+-keep class moe.fuqiuluo.shamrock.MainActivity { *; }
+-keep class moe.fuqiuluo.shamrock.MainActivityKt { *; }
+-keep class moe.fuqiuluo.shamrock.Manifest { *; }
+
+-keep class moe.fuqiuluo.shamrock.xposed.** { *; }
+-keep class moe.fuqiuluo.shamrock.helper.** { *; }
+
+# tencent interfaces rules
 -keep class com.tencent.** { *; }
 -keep class com.qq.** { *; }
 -keep class com.google.gson.** { *; }
 -keep class de.** { *; }
+-keep class epic.** { *; }
+-keep class friendlist.** { *; }
+-keep class KQQ.** { *; }
 -keep class mqq.** { *; }
+-keep class msf.** { *; }
+-keep class oicq.** { *; }
 -keep class QQService.** { *; }
 -keep class SummaryCard.** { *; }
 -keep class tencent.** { *; }
+-keep class VIP.** { *; }
 
 -keepclassmembers class * {
     native <methods>;
 }
 -keep class io.netty.** { *; }
+
+-keepclasseswithmembernames class * {
+    native <methods>;
+}

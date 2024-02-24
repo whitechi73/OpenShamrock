@@ -15,13 +15,13 @@ internal object SendGroupMessage: IActionHandler() {
         return if (session.isString("message")) {
             val autoEscape = session.getBooleanOrDefault("auto_escape", false)
             val message = session.getString("message")
-            SendMessage(MsgConstant.KCHATTYPEGROUP, groupId.toString(), message, autoEscape, echo = session.echo, retryCnt = retryCnt ?: 3, recallDuration = recallDuration)
+            SendMessage(MsgConstant.KCHATTYPEGROUP, groupId.toString(), message, autoEscape, echo = session.echo, retryCnt = retryCnt ?: 5, recallDuration = recallDuration)
         } else if (session.isObject("message")) {
             val message = session.getObject("message")
-            SendMessage(MsgConstant.KCHATTYPEGROUP, groupId.toString(), listOf( message ).jsonArray, session.echo, retryCnt = retryCnt ?: 3, recallDuration = recallDuration)
+            SendMessage(MsgConstant.KCHATTYPEGROUP, groupId.toString(), listOf( message ).jsonArray, session.echo, retryCnt = retryCnt ?: 5, recallDuration = recallDuration)
         } else {
             val message = session.getArray("message")
-            SendMessage(MsgConstant.KCHATTYPEGROUP, groupId.toString(), message, session.echo, retryCnt = retryCnt ?: 3, recallDuration = recallDuration)
+            SendMessage(MsgConstant.KCHATTYPEGROUP, groupId.toString(), message, session.echo, retryCnt = retryCnt ?: 5, recallDuration = recallDuration)
         }
     }
 

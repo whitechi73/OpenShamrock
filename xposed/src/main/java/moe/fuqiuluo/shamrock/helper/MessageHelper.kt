@@ -17,7 +17,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
 import moe.fuqiuluo.qqinterface.servlet.MsgSvc
 import moe.fuqiuluo.qqinterface.servlet.msg.maker.MessageElementMaker
-import moe.fuqiuluo.qqinterface.servlet.msg.maker.MsgElementMaker
+import moe.fuqiuluo.qqinterface.servlet.msg.maker.NtMsgElementMaker
 import moe.fuqiuluo.shamrock.helper.db.MessageDB
 import moe.fuqiuluo.shamrock.helper.db.MessageMapping
 import moe.fuqiuluo.shamrock.remote.structures.SendMsgResult
@@ -29,6 +29,7 @@ import moe.fuqiuluo.shamrock.tools.jsonArray
 import protobuf.message.Elem
 import kotlin.coroutines.resume
 import kotlin.math.abs
+import kotlin.time.Duration.Companion.seconds
 
 internal object MessageHelper {
     suspend fun sendMessageWithoutMsgId(
@@ -66,12 +67,15 @@ internal object MessageHelper {
     suspend fun resendMsg(contact: Contact, msgId: Long, retryCnt: Int, msgHashId: Int): Result<SendMsgResult> {
         if (retryCnt < 0) return Result.failure(SendMsgException("消息发送超时次数过多"))
         val service = QRoute.api(IMsgService::class.java)
-        val result = withTimeoutOrNull(15000) {
-            if (suspendCancellableCoroutine {
-                    service.resendMsg(contact, msgId) { result, _ ->
-                        it.resume(result)
-                    }
-                } != 0) {
+        val result = withTimeoutOrNull(15.seconds) {
+            val resendRet = suspendCancellableCoroutine {
+                service.resendMsg(contact, msgId) { result, _ ->
+                    it.resume(result)
+                }
+            }
+            if (resendRet != 0 &&
+                resendRet != 4 // 使用OldBDH 100%触发
+                ) {
                 resendMsg(contact, msgId, retryCnt - 1, msgHashId)
             } else {
                 Result.success(SendMsgResult(msgHashId, msgId, System.currentTimeMillis()))
@@ -294,7 +298,7 @@ internal object MessageHelper {
         var hasActionMsg = false
         messageList.forEach {
             val msg = it.jsonObject
-            val maker = MsgElementMaker[msg["type"].asString]
+            val maker = NtMsgElementMaker[msg["type"].asString]
             if (maker != null) {
                 try {
                     val data = msg["data"].asJsonObjectOrNull ?: EmptyJsonObject

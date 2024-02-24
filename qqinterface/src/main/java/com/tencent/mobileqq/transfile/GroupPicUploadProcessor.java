@@ -1,4 +1,6 @@
 package com.tencent.mobileqq.transfile;
 
-public class GroupPicUploadProcessor {
+import com.tencent.mobileqq.utils.httputils.IHttpCommunicatorListener;
+
+public class GroupPicUploadProcessor extends BaseUploadProcessor {
 }

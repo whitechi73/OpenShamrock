@@ -1,5 +1,9 @@
 package com.tencent.mobileqq.transfile;
 
+import java.io.File;
+import java.io.InputStream;
+import java.io.OutputStream;
+
 public class FileMsg {
     public static final int STATUS_FILE_EXPIRED = 5002;
     public static final int STATUS_FILE_TRANSFERING = 5000;
@@ -107,4 +111,58 @@ public class FileMsg {
     public static final int UIN_BUDDY = 0;
     public static final int UIN_DISCUSS = 2;
     public static final int UIN_TROOP = 1;
+
+    public String domain;
+    public String downDomain;
+    public long endTime;
+    public int errorCode;
+    public String errorMessage;
+    public File file;
+    public long fileID;
+    public String fileKey;
+    public String fileMd5;
+    public String filePath;
+    public long fileSize;
+    public int fileType;
+    public String fileUrl;
+    public String forwardTaskKey;
+    public String friendUin;
+    public int isRead;
+    public boolean isStreamMode;
+    public int lastStatus;
+    public byte[] localFileMd5;
+    public String logTag;
+    public long mSecMsgId;
+    public long mSubMsgId;
+    public String mUin;
+    public String msgImageData;
+    public String msgTime;
+    public String orgiDownUrl;
+    public String peerUin;
+    public int picScale;
+    public long picThumbSize;
+    public BaseTransProcessor processor;
+    public boolean processorDoReportSelf;
+    public int pttSlicePos;
+    public String pttSliceText;
+    public OutputStream revStream;
+    public String selfUin;
+    public InputStream sendStream;
+    public String serverPath;
+    public long startTime;
+    public int status;
+    public long stepUrlCost;
+    public String suffixType;
+    public String thumbDownUrl;
+    public String thumbPath;
+    public String thumbUrl;
+    public String tmpFilePath;
+    public byte[] transferData;
+    public long transferedSize;
+    public String uKey;
+    public int uinType;
+    public long uniseq;
+    public String[] urls;
+    public byte[] userInfo;
+    public String uuidPath;
 }
