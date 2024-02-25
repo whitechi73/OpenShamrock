@@ -24,8 +24,12 @@ icon: file
 | 字段    | 类型   | 说明         |
 | ------- | ------ | ------------ |
 | user_id | int64  | 目标         |
-| file    | string | 本地文件路径 |
+| file    | string | `本地文件路径` 或 `文件base64` 或 `文件url` |
 | name    | string | 文件名称     |
+
+::: warning 注意
+本地文件路径为绝对路径，文件base64为`base64://`开头，文件url则应该是正确的http请求地址。
+:::
 
 ### 响应
 
@@ -77,8 +81,12 @@ icon: file
 | 字段     | 类型   | 说明         |
 | -------- | ------ | ------------ |
 | group_id | int64  | 群号         |
-| file     | string | 本地文件路径 |
-| name     | string | 文件名称     |
+| file    | string | `本地文件路径` 或 `文件base64` 或 `文件url` |
+| name    | string | 文件名称     |
+
+::: warning 注意
+本地文件路径为绝对路径，文件base64为`base64://`开头，文件url则应该是正确的http请求地址。
+:::
 
 ### 响应
 
