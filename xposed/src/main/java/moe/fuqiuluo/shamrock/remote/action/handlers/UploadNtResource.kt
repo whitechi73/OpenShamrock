@@ -67,7 +67,8 @@ internal object UploadNtResource: IActionHandler() {
                         fileSize = it.fileSize,
                         md5 = it.md5,
                         uuid = it.uuid,
-                        subId = it.subId
+                        subId = it.subId,
+                        sha = it.sha ?: ""
                     )
                 }), echo)
             }.onFailure {

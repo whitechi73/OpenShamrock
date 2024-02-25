@@ -16,4 +16,5 @@ data class CommFileInfo(
     @SerialName("md5") val md5: String,
     @SerialName("uuid") val uuid: String,
     @SerialName("sub_id") val subId: String,
+    @SerialName("sha") val sha: String,
 )

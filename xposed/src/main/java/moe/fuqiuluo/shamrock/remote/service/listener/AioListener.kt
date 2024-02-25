@@ -412,7 +412,7 @@ internal object AioListener : IKernelMsgListener {
     }
 
     override fun onRichMediaUploadComplete(notifyInfo: FileTransNotifyInfo) {
-        LogCenter.log("[BDH] 资源上传完成(${notifyInfo.trasferStatus}, ${notifyInfo.fileId}, ${notifyInfo.msgId}, ${notifyInfo.commonFileInfo})")
+        LogCenter.log({ "[BDH] 资源上传完成(${notifyInfo.trasferStatus}, ${notifyInfo.fileId}, ${notifyInfo.msgId}, ${notifyInfo.commonFileInfo})" }, Level.DEBUG)
         RichMediaUploadHandler.notify(notifyInfo)
     }
 
