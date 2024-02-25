@@ -49,7 +49,7 @@ internal object DownloadFile: IActionHandler() {
                     headerMap[k] = v
                 }
             }
-            return invoke(url, threadCnt, headerMap, echo)
+            return invoke(url, threadCnt, headerMap, name, echo)
         } else if (base64 != null) {
             return invoke(base64, name, echo)
         } else {
@@ -88,6 +88,7 @@ internal object DownloadFile: IActionHandler() {
         url: String,
         threadCnt: Int,
         headers: Map<String, String>,
+        name: String?,
         echo: JsonElement = EmptyJsonString
     ): String {
         return kotlin.runCatching {
@@ -100,7 +101,13 @@ internal object DownloadFile: IActionHandler() {
                 )) {
                 return error("下载失败 (0x1)", echo)
             }
-            tmp = FileUtils.renameByMd5(tmp)
+            tmp = if (name == null) {
+                FileUtils.renameByMd5(tmp)
+            } else {
+                val newFile = tmp.parentFile!!.resolve(name)
+                tmp.renameTo(newFile)
+                newFile
+            }
             ok(data = DownloadResult(
                 file = tmp.absolutePath,
                 md5 = MD5.genFileMd5Hex(tmp.absolutePath)

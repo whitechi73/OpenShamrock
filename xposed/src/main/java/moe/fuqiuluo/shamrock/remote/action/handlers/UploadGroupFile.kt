@@ -17,12 +17,12 @@ import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
+import moe.fuqiuluo.qqinterface.servlet.transfile.RichMediaUploadHandler
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.helper.MessageHelper
 import moe.fuqiuluo.shamrock.helper.TransfileHelper
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
-import moe.fuqiuluo.qqinterface.servlet.transfile.RichMediaUploadHandler
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
 import moe.fuqiuluo.shamrock.utils.FileUtils
 import moe.fuqiuluo.shamrock.utils.MD5
@@ -56,6 +56,20 @@ internal object UploadGroupFile : IActionHandler() {
             srcFile = FileUtils.getFile(file)
         }
         if (!srcFile.exists()) {
+            srcFile = file.let {
+                val md5 = it.replace(
+                    regex = "[{}\\-]".toRegex(),
+                    replacement = ""
+                ).split(".")[0].lowercase()
+                if (md5.length == 32) {
+                    FileUtils.getFileByMd5(it)
+                } else {
+                    FileUtils.parseAndSave(it)
+                }
+            }
+        }
+
+        if (!srcFile.exists()) {
             return badParam("文件不存在", echo)
         }
 
@@ -64,6 +78,7 @@ internal object UploadGroupFile : IActionHandler() {
         fileElement.fileName = name
         fileElement.filePath = srcFile.absolutePath
         fileElement.fileSize = srcFile.length()
+        fileElement.folderId = srcFile.parent ?: ""
         fileElement.picWidth = 0
         fileElement.picHeight = 0
         fileElement.videoDuration = 0

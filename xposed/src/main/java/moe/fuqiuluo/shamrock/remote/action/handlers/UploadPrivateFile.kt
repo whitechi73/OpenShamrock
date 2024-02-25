@@ -53,6 +53,21 @@ internal object UploadPrivateFile : IActionHandler() {
         if (!srcFile.exists()) {
             srcFile = FileUtils.getFile(file)
         }
+
+        if (!srcFile.exists()) {
+            srcFile = file.let {
+                val md5 = it.replace(
+                    regex = "[{}\\-]".toRegex(),
+                    replacement = ""
+                ).split(".")[0].lowercase()
+                if (md5.length == 32) {
+                    FileUtils.getFileByMd5(it)
+                } else {
+                    FileUtils.parseAndSave(it)
+                }
+            }
+        }
+
         if (!srcFile.exists()) {
             return badParam("文件不存在", echo)
         }
@@ -62,6 +77,7 @@ internal object UploadPrivateFile : IActionHandler() {
         fileElement.fileName = name
         fileElement.filePath = srcFile.absolutePath
         fileElement.fileSize = srcFile.length()
+        fileElement.folderId = srcFile.parent ?: ""
         fileElement.picWidth = 0
         fileElement.picHeight = 0
         fileElement.videoDuration = 0
@@ -108,8 +124,10 @@ internal object UploadPrivateFile : IActionHandler() {
                 msgService.sendMsgWithMsgId(
                     contact, msgIdPair.qqMsgId, arrayListOf(msgElement)
                 ) { code, reason ->
-                    LogCenter.log("私聊文件消息发送异常(code = $code, reason = $reason)")
-                    it.resume(null)
+                    if (code != 0) {
+                        LogCenter.log("私聊文件消息发送异常(code = $code, reason = $reason)")
+                        it.resume(null)
+                    }
                 }
                 RichMediaUploadHandler.registerListener(msgIdPair.qqMsgId) {
                     it.resume(this)
