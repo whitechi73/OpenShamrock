@@ -2,7 +2,7 @@ package moe.fuqiuluo.qqinterface.servlet.msg.maker
 
 import android.graphics.BitmapFactory
 import androidx.exifinterface.media.ExifInterface
-import com.tencent.qqnt.kernel.nativeinterface.*
+import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
 import kotlinx.serialization.json.JsonObject
 import moe.fuqiuluo.qqinterface.servlet.CardSvc
 import moe.fuqiuluo.qqinterface.servlet.GroupSvc
@@ -11,23 +11,12 @@ import moe.fuqiuluo.qqinterface.servlet.TicketSvc
 import moe.fuqiuluo.qqinterface.servlet.ark.WeatherSvc
 import moe.fuqiuluo.qqinterface.servlet.msg.toJson
 import moe.fuqiuluo.qqinterface.servlet.msg.toSegments
-import moe.fuqiuluo.qqinterface.servlet.transfile.*
-import moe.fuqiuluo.qqinterface.servlet.transfile.data.PictureResource
-import moe.fuqiuluo.qqinterface.servlet.transfile.data.Private
-import moe.fuqiuluo.qqinterface.servlet.transfile.Transfer
-import moe.fuqiuluo.qqinterface.servlet.transfile.data.Troop
+import moe.fuqiuluo.qqinterface.servlet.transfile.NtV2RichMediaSvc
 import moe.fuqiuluo.shamrock.helper.*
-import moe.fuqiuluo.shamrock.helper.ActionMsgException
-import moe.fuqiuluo.shamrock.helper.Level
-import moe.fuqiuluo.shamrock.helper.LogCenter
-import moe.fuqiuluo.shamrock.helper.LogicException
 import moe.fuqiuluo.shamrock.helper.MessageHelper.messageArrayToMessageElements
-import moe.fuqiuluo.shamrock.helper.ParamsException
 import moe.fuqiuluo.shamrock.tools.*
 import moe.fuqiuluo.shamrock.utils.DeflateTools
 import moe.fuqiuluo.shamrock.utils.FileUtils
-import moe.fuqiuluo.shamrock.xposed.helper.NTServiceFetcher
-import moe.fuqiuluo.shamrock.xposed.helper.msgService
 import protobuf.auto.toByteArray
 import protobuf.message.Elem
 import protobuf.message.element.*
@@ -36,8 +25,9 @@ import java.io.File
 import java.nio.ByteBuffer
 import kotlin.random.Random
 import kotlin.random.nextULong
+import kotlin.time.Duration.Companion.seconds
 
-internal typealias IMessageElementMaker = suspend (Int, Long, String, JsonObject) -> Result<Elem>
+internal typealias IElemMaker = suspend (Int, Long, String, JsonObject) -> Result<Elem>
 
 internal object ElemMaker {
     private val makerArray = hashMapOf(
@@ -46,30 +36,30 @@ internal object ElemMaker {
         "face" to ElemMaker::createFaceElem,
         "pic" to ElemMaker::createImageElem,
         "image" to ElemMaker::createImageElem,
-//        "voice" to MessageElementMaker::createRecordElem,
-//        "record" to MessageElementMaker::createRecordElem,
-//        "video" to MessageElementMaker::createVideoElem,
+//        "voice" to ElemMaker::createRecordElem,
+//        "record" to ElemMaker::createRecordElem,
+//        "video" to ElemMaker::createVideoElem,
         "markdown" to ElemMaker::createMarkdownElem,
         "button" to ElemMaker::createButtonElem,
         "inline_keyboard" to ElemMaker::createButtonElem,
         "dice" to ElemMaker::createNewDiceElem,
         "rps" to ElemMaker::createNewRpsElem,
         "poke" to ElemMaker::createPokeElem,
-//        "anonymous" to MessageElementMaker::createAnonymousElem,
-//        "share" to MessageElementMaker::createShareElem,
-//        "contact" to MessageElementMaker::createContactElem,
-//        "location" to MessageElementMaker::createLocationElem,
-//        "music" to MessageElementMaker::createMusicElem,
+//        "anonymous" to ElemMaker::createAnonymousElem,
+//        "share" to ElemMaker::createShareElem,
+//        "contact" to ElemMaker::createContactElem,
+//        "location" to ElemMaker::createLocationElem,
+//        "music" to ElemMaker::createMusicElem,
         "reply" to ElemMaker::createReplyElem,
-//        "touch" to MessageElementMaker::createTouchElem,
+//        "touch" to ElemMaker::createTouchElem,
         "weather" to ElemMaker::createWeatherElem,
         "json" to ElemMaker::createJsonElem,
-//        "node" to MessageMaker::createNodeElem,
+        //"forward" to MessageMaker::createForwardElem,
         //"multi_msg" to MessageMaker::createLongMsgStruct,
-        //"bubble_face" to MessageElementMaker::createBubbleFaceElem,
+        //"bubble_face" to ElemMaker::createBubbleFaceElem,
     )
 
-    operator fun get(type: String): IMessageElementMaker? = makerArray[type]
+    operator fun get(type: String): IElemMaker? = makerArray[type]
 
     private suspend fun createTextElem(
         chatType: Int,
@@ -226,26 +216,6 @@ internal object ElemMaker {
         }
         requireNotNull(file)
 
-        val md5HexStr = QQNTWrapperUtil.CppProxy.genFileMd5Hex(file.absolutePath)
-        val msgService = NTServiceFetcher.kernelService.msgService!!
-        val originalPath = msgService.getRichMediaFilePathForMobileQQSend(
-            RichMediaFilePathInfo(
-                2, 0, md5HexStr, file.name, 1, 0, null, "", true
-            )
-        )
-        if (!QQNTWrapperUtil.CppProxy.fileIsExist(originalPath) || QQNTWrapperUtil.CppProxy.getFileSize(
-                originalPath
-            ) != file.length()
-        ) {
-            val thumbPath = msgService.getRichMediaFilePathForMobileQQSend(
-                RichMediaFilePathInfo(
-                    2, 0, md5HexStr, file.name, 2, 720, null, "", true
-                )
-            )
-            QQNTWrapperUtil.CppProxy.copyFile(file.absolutePath, originalPath)
-            QQNTWrapperUtil.CppProxy.copyFile(file.absolutePath, thumbPath)
-        }
-
         val options = BitmapFactory.Options()
         options.inJustDecodeBounds = true
         BitmapFactory.decodeFile(file.absolutePath, options)
@@ -264,53 +234,77 @@ internal object ElemMaker {
             picHeight = options.outWidth
         }
 
-        val elem = when (chatType) {
-            MsgConstant.KCHATTYPEGROUP -> {
-                Transfer with Troop(peerId) trans PictureResource(file)
-                Elem(
-                    customFace = CustomFace(
-                        filePath = "${md5HexStr.substring(0, 8)}-${md5HexStr.substring(8, 4)}-${
-                            md5HexStr.substring(
-                                12,
-                                4
-                            )
-                        }-${md5HexStr.substring(16, 4)}-${md5HexStr.substring(20, 12)}.${FileUtils.getFileType(file)}",
-                        fileId = 0u,
-                        serverIp = 0u,
-                        serverPort = 0u,
-                        fileType = 1001u,
-                        useful = 1u,
-                        md5 = md5HexStr.hex2ByteArray(),
-                        bizType = data["subType"].asIntOrNull?.toUInt(),
-                        imageType = FileUtils.getPicType(file).toUInt(),
-                        width = picWidth.toUInt(),
-                        height = picHeight.toUInt(),
-                        size = QQNTWrapperUtil.CppProxy.getFileSize(file.absolutePath).toUInt(),
-                        origin = isOriginal,
-                        thumbWidth = 0u,
-                        thumbHeight = 0u,
-                        pbReserve = CustomFace.Companion.PbReserve(field1 = 0)
-                    )
-                )
-            }
+        val uploadRet = NtV2RichMediaSvc.tryUploadResourceByNt(
+            chatType = chatType,
+            elementType = MsgConstant.KELEMTYPEPIC,
+            resources = arrayListOf(file),
+            timeout = 30.seconds
+        ).getOrThrow().first()
+        LogCenter.log(uploadRet.toString(), Level.DEBUG)
 
-            MsgConstant.KCHATTYPEC2C -> {
-                Transfer with Private(peerId) trans PictureResource(file)
-                Elem(
-                    notOnlineImage = NotOnlineImage(
-                        filePath = "${md5HexStr}.${FileUtils.getFileType(file)}".toByteArray(),
-                        fileLen = QQNTWrapperUtil.CppProxy.getFileSize(file.absolutePath).toUInt(),
-                        downloadPath = "".toByteArray(),
-                        imgType = FileUtils.getPicType(file).toUInt(),
-                        picMd5 = md5HexStr.hex2ByteArray(),
-                        picHeight = picWidth.toUInt(),
-                        picWidth = picHeight.toUInt(),
-                        resId = "".toByteArray(),
-                        original = isOriginal, // true
-                        pbReserve = NotOnlineImage.Companion.PbReserve(field1 = 0)
+        val elem = when (chatType) {
+            MsgConstant.KCHATTYPEGROUP -> Elem(
+                customFace = CustomFace(
+                    filePath = uploadRet.fileName,
+                    fileId = uploadRet.uuid.toUInt(),
+                    serverIp = 0u,
+                    serverPort = 0u,
+                    fileType = FileUtils.getPicType(file).toUInt(),
+                    useful = 1u,
+                    md5 = uploadRet.md5.hex2ByteArray(),
+                    bizType = data["subType"].asIntOrNull?.toUInt(),
+                    imageType = FileUtils.getPicType(file).toUInt(),
+                    width = picWidth.toUInt(),
+                    height = picHeight.toUInt(),
+                    size = uploadRet.fileSize.toUInt(),
+                    origin = isOriginal,
+                    thumbWidth = 0u,
+                    thumbHeight = 0u,
+                    pbReserve = CustomFace.Companion.PbReserve(
+                        field1 = 0,
+                        field3 = 0,
+                        field4 = 0,
+                        field10 = 0,
+                        field21 = CustomFace.Companion.Object1(
+                            field1 = 0,
+                            field2 = "",
+                            field3 = 0,
+                            field4 = 0,
+                            field5 = 0,
+                            md5Str = uploadRet.md5
+                        )
                     )
                 )
-            }
+            )
+
+            MsgConstant.KCHATTYPEC2C -> Elem(
+                notOnlineImage = NotOnlineImage(
+                    filePath = uploadRet.fileName,
+                    fileLen = uploadRet.fileSize.toUInt(),
+                    downloadPath = uploadRet.uuid,
+                    imgType = FileUtils.getPicType(file).toUInt(),
+                    picMd5 = uploadRet.md5.hex2ByteArray(),
+                    picHeight = picWidth.toUInt(),
+                    picWidth = picHeight.toUInt(),
+                    resId = uploadRet.uuid,
+                    original = isOriginal, // true
+                    pbReserve = NotOnlineImage.Companion.PbReserve(
+                        field1 = 0,
+                        field3 = 0,
+                        field4 = 0,
+                        field10 = 0,
+                        field20 = NotOnlineImage.Companion.Object1(
+                            field1 = 0,
+                            field2 = "",
+                            field3 = 0,
+                            field4 = 0,
+                            field5 = 0,
+                            field7 = "",
+                        ),
+                        md5Str = uploadRet.md5
+                    )
+                )
+            )
 
             else -> throw LogicException("Not supported chatType($chatType) for PictureMsg")
         }

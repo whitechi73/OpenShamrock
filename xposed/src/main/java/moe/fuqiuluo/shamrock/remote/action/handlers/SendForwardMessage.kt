@@ -146,11 +146,13 @@ internal object SendForwardMessage : IActionHandler() {
                                     ).also {
                                         desc[++i] = record.sendMemberName.ifEmpty { record.sendNickName } + ": "
                                     }.map {
-                                        desc[++i] += when (it.type) {
+                                        desc[i] += when (it.type) {
                                             "text" -> it.data["text"] as String
                                             "at" -> "@${it.data["name"] as String? ?: it.data["qq"] as String}"
                                             "face" -> "[表情]"
-                                            "voice" -> "[语音]"
+                                            "pic", "image" -> "[图片]"
+                                            "voice", "record" -> "[语音]"
+                                            "video" -> "[视频]"
                                             "node" -> "[合并转发消息]"
                                             "markdown" -> "[Markdown消息]"
                                             "button" -> "[Button类型]"
@@ -197,7 +199,7 @@ internal object SendForwardMessage : IActionHandler() {
                         body = MsgBody(
                             richText = RichText(
                                 elements = MessageHelper.messageArrayToMessageElements(
-                                    chatType = MsgConstant.KCHATTYPEGROUP,
+                                    chatType = chatType,
                                     msgId = Random.nextLong(),
                                     peerId = data["uin"]?.asString ?: TicketSvc.getUin(),
                                     messageList = when (data["content"]) {
@@ -207,7 +209,7 @@ internal object SendForwardMessage : IActionHandler() {
                                     }.also {
                                         desc[++i] =
                                             (data["name"].asStringOrNull ?: data["uin"].asStringOrNull
-                                                    ?: TicketSvc.getNickname() )+ ": "
+                                            ?: TicketSvc.getNickname()) + ": "
                                     }.onEach {
                                         val type = it.asJsonObject["type"].asString
                                         val itData = it.asJsonObject["data"].asJsonObject
@@ -215,8 +217,9 @@ internal object SendForwardMessage : IActionHandler() {
                                             "text" -> itData["text"].asString
                                             "at" -> "@${itData["name"].asStringOrNull ?: itData["qq"].asString}"
                                             "face" -> "[表情]"
-                                            "image" -> "[图片]"
-                                            "voice" -> "[语音]"
+                                            "pic", "image" -> "[图片]"
+                                            "voice", "record" -> "[语音]"
+                                            "video" -> "[视频]"
                                             "node" -> "[合并转发消息]"
                                             "markdown" -> "[Markdown消息]"
                                             "button" -> "[Button类型]"

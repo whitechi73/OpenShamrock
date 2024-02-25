@@ -21,23 +21,23 @@ import moe.fuqiuluo.shamrock.tools.hex2ByteArray
 
 internal typealias IMsgElementConverter = suspend (Int, String, String, MsgElement) -> MessageSegment
 
-internal object MsgElementConverter {
+internal object NtMsgElementConverter {
     private val convertMap = hashMapOf(
-        MsgConstant.KELEMTYPETEXT to MsgElementConverter::convertTextElem,
-        MsgConstant.KELEMTYPEFACE to MsgElementConverter::convertFaceElem,
-        MsgConstant.KELEMTYPEPIC to MsgElementConverter::convertImageElem,
-        MsgConstant.KELEMTYPEPTT to MsgElementConverter::convertVoiceElem,
-        MsgConstant.KELEMTYPEVIDEO to MsgElementConverter::convertVideoElem,
-        MsgConstant.KELEMTYPEMARKETFACE to MsgElementConverter::convertMarketFaceElem,
-        MsgConstant.KELEMTYPEARKSTRUCT to MsgElementConverter::convertStructJsonElem,
-        MsgConstant.KELEMTYPEREPLY to MsgElementConverter::convertReplyElem,
-        MsgConstant.KELEMTYPEGRAYTIP to MsgElementConverter::convertGrayTipsElem,
-        MsgConstant.KELEMTYPEFILE to MsgElementConverter::convertFileElem,
-        MsgConstant.KELEMTYPEMARKDOWN to MsgElementConverter::convertMarkdownElem,
+        MsgConstant.KELEMTYPETEXT to NtMsgElementConverter::convertTextElem,
+        MsgConstant.KELEMTYPEFACE to NtMsgElementConverter::convertFaceElem,
+        MsgConstant.KELEMTYPEPIC to NtMsgElementConverter::convertImageElem,
+        MsgConstant.KELEMTYPEPTT to NtMsgElementConverter::convertVoiceElem,
+        MsgConstant.KELEMTYPEVIDEO to NtMsgElementConverter::convertVideoElem,
+        MsgConstant.KELEMTYPEMARKETFACE to NtMsgElementConverter::convertMarketFaceElem,
+        MsgConstant.KELEMTYPEARKSTRUCT to NtMsgElementConverter::convertStructJsonElem,
+        MsgConstant.KELEMTYPEREPLY to NtMsgElementConverter::convertReplyElem,
+        MsgConstant.KELEMTYPEGRAYTIP to NtMsgElementConverter::convertGrayTipsElem,
+        MsgConstant.KELEMTYPEFILE to NtMsgElementConverter::convertFileElem,
+        MsgConstant.KELEMTYPEMARKDOWN to NtMsgElementConverter::convertMarkdownElem,
         //MsgConstant.KELEMTYPEMULTIFORWARD to MsgElementConverter::convertXmlMultiMsgElem,
         //MsgConstant.KELEMTYPESTRUCTLONGMSG to MsgElementConverter::convertXmlLongMsgElem,
-        MsgConstant.KELEMTYPEFACEBUBBLE to MsgElementConverter::convertBubbleFaceElem,
-        MsgConstant.KELEMTYPEINLINEKEYBOARD to MsgElementConverter::convertInlineKeyboardElem
+        MsgConstant.KELEMTYPEFACEBUBBLE to NtMsgElementConverter::convertBubbleFaceElem,
+        MsgConstant.KELEMTYPEINLINEKEYBOARD to NtMsgElementConverter::convertInlineKeyboardElem
     )
 
     operator fun get(type: Int): IMsgElementConverter? = convertMap[type]
