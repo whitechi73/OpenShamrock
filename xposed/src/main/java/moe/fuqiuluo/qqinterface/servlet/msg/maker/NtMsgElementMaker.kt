@@ -83,7 +83,6 @@ internal object NtMsgElementMaker {
         "new_dice" to NtMsgElementMaker::createNewDiceElem,
         "new_rps" to NtMsgElementMaker::createNewRpsElem,
         "basketball" to NtMsgElementMaker::createBasketballElem,
-        //"node" to MessageMaker::createNodeElem,
         //"multi_msg" to MessageMaker::createLongMsgStruct,
         "bubble_face" to NtMsgElementMaker::createBubbleFaceElem,
         "button" to NtMsgElementMaker::createInlineKeywordElem,
@@ -178,17 +177,6 @@ internal object NtMsgElementMaker {
         elem.faceBubbleElement = face
         return Result.success(elem)
     }
-
-//    private suspend fun createNodeElem(
-//        chatType: Int,
-//        msgId: Long,
-//        peerId: String,
-//        data: JsonObject
-//    ): Result<MsgElement> {
-//        data.checkAndThrow("data")
-//        SendForwardMessage(MsgConstant.KCHATTYPEC2C, TicketSvc.getUin(), data["content"].asJsonArray)
-//
-//    }
 
     private suspend fun createBasketballElem(
         chatType: Int,

@@ -39,11 +39,26 @@ data class CustomFace(
     @ProtoNumber(32) var width400: UInt? = null,
     @ProtoNumber(33) var height400: UInt? = null,
     @ProtoNumber(34) var pbReserve: PbReserve? = null,
-){
-    companion object{
+) {
+    companion object {
         @Serializable
         data class PbReserve(
-            @ProtoNumber(1) var field1: Int? = null
+            @ProtoNumber(1) var field1: Int? = null,
+            @ProtoNumber(3) var field3: Int? = null,
+            @ProtoNumber(4) var field4: Int? = null,
+            @ProtoNumber(10) var field10: Int? = null,
+            @ProtoNumber(21) var field21: Object1? = null,
+            @ProtoNumber(31) var field31: String? = null
+        )
+
+        @Serializable
+        data class Object1(
+            @ProtoNumber(1) var field1: Int? = null,
+            @ProtoNumber(2) var field2: String? = null,
+            @ProtoNumber(3) var field3: Int? = null,
+            @ProtoNumber(4) var field4: Int? = null,
+            @ProtoNumber(5) var field5: Int? = null,
+            @ProtoNumber(7) var md5Str: String? = null
         )
     }
 }

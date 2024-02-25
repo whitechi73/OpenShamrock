@@ -2,7 +2,7 @@ package moe.fuqiuluo.qqinterface.servlet.msg
 
 import com.tencent.qqnt.kernel.nativeinterface.MsgElement
 import moe.fuqiuluo.qqinterface.servlet.msg.converter.ElemConverter
-import moe.fuqiuluo.qqinterface.servlet.msg.converter.MsgElementConverter
+import moe.fuqiuluo.qqinterface.servlet.msg.converter.NtMsgElementConverter
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.helper.MessageHelper
@@ -56,7 +56,7 @@ internal suspend fun List<MsgElement>.toSegments(chatType: Int, peerId: String, 
     val messageData = arrayListOf<MessageSegment>()
     this.forEach { msg ->
         kotlin.runCatching {
-            val converter = MsgElementConverter[msg.elementType]
+            val converter = NtMsgElementConverter[msg.elementType]
             converter?.invoke(chatType, peerId, subPeer, msg)
                 ?: throw UnsupportedOperationException("不支持的消息element类型：${msg.elementType}")
         }.onSuccess {
