@@ -193,6 +193,7 @@ internal object NtMsgElementConverter {
                         fileSize = image.fileSize.toULong(),
                         peer = peerId,
                     )
+
                     MsgConstant.KCHATTYPEGUILD -> RichProtoSvc.getGuildPicDownUrl(
                         originalUrl = originalUrl,
                         md5 = md5,
@@ -204,6 +205,7 @@ internal object NtMsgElementConverter {
                         peer = peerId,
                         subPeer = subPeer
                     )
+
                     else -> throw UnsupportedOperationException("Not supported chat type: $chatType")
                 },
                 "subType" to image.picSubType,
@@ -558,39 +560,35 @@ internal object NtMsgElementConverter {
     ): MessageSegment {
         val keyboard = element.inlineKeyboardElement
         return MessageSegment(
-            type = "inline_keyboard",
+            type = "button",
             data = mapOf(
-                "data" to buildJsonObject {
-                    putJsonArray("rows") {
-                        keyboard.rows.forEach { row ->
-                            add(buildJsonObject row@{
-                                putJsonArray("buttons") {
-                                    row.buttons.forEach { button ->
-                                        add(buildJsonObject {
-                                            put("id", button.id ?: "")
-                                            put("label", button.label ?: "")
-                                            put("visited_label", button.visitedLabel ?: "")
-                                            put("style", button.style)
-                                            put("type", button.type)
-                                            put("click_limit", button.clickLimit)
-                                            put("unsupport_tips", button.unsupportTips ?: "")
-                                            put("data", button.data)
-                                            put("at_bot_show_channel_list", button.atBotShowChannelList)
-                                            put("permission_type", button.permissionType)
-                                            putJsonArray("specify_role_ids") {
-                                                button.specifyRoleIds?.forEach { add(it) }
-                                            }
-                                            putJsonArray("specify_tinyids") {
-                                                button.specifyTinyids?.forEach { add(it) }
-                                            }
-                                        })
-                                    }
-                                }
-                            })
-                        }
-                    }
-                    put("bot_appid", keyboard.botAppid)
-                }.toString()
+                "rows" to keyboard.rows.map { row ->
+                    mapOf("buttons" to row.buttons.map { button ->
+                        mapOf(
+                            "id" to button.id,
+                            "render_data" to mapOf(
+                                "label" to (button?.label ?: ""),
+                                "visited_label" to (button?.visitedLabel ?: ""),
+                                "style" to (button?.style ?: 0)
+
+                            ),
+                            "action" to mapOf(
+                                "type" to (button?.type ?: 0),
+                                "permission" to mapOf(
+                                    "type" to (button?.permissionType ?: 0),
+                                    "specify_role_ids" to button?.specifyRoleIds,
+                                    "specify_user_ids" to button?.specifyTinyids
+                                ),
+                                "unsupport_tips" to (button?.unsupportTips ?: ""),
+                                "data" to (button?.data ?: ""),
+                                "reply" to button?.isReply,
+                                "enter" to button?.enter
+                            )
+                        )
+                    })
+
+                },
+                "appid" to keyboard.botAppid
             )
         )
     }

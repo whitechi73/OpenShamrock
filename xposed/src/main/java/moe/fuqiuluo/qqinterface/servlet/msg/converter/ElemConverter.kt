@@ -449,32 +449,33 @@ internal object ElemConverter {
                     type = "button",
                     data = buttonExtra.field1!!.let {
                         mapOf(
-                            "buttons" to it.rows!!.map { row ->
-                                row.buttons!!.map { button ->
-                                    val renderData = button.renderData
-                                    val action = button.action
-                                    val permission = action?.permission
-                                    mapOf(
-                                        "id" to button.id,
-                                        "render_data" to mapOf(
-                                            "label" to (renderData?.label ?: ""),
-                                            "visited_label" to (renderData?.visitedLabel ?: ""),
-                                            "style" to (renderData?.style ?: 0)
-                                        ),
-                                        "action" to mapOf(
-                                            "type" to (action?.type ?: 0),
-                                            "permission" to mapOf(
-                                                "type" to (permission?.type ?: 0),
-                                                "specify_role_ids" to permission?.specifyRoleIds,
-                                                "specify_user_ids" to permission?.specifyUserIds
+                            "rows" to it.rows!!.map { row ->
+                                mapOf(
+                                    "buttons" to row.buttons!!.map { button ->
+                                        val renderData = button.renderData
+                                        val action = button.action
+                                        val permission = action?.permission
+                                        mapOf(
+                                            "id" to button.id,
+                                            "render_data" to mapOf(
+                                                "label" to (renderData?.label ?: ""),
+                                                "visited_label" to (renderData?.visitedLabel ?: ""),
+                                                "style" to (renderData?.style ?: 0)
                                             ),
-                                            "unsupport_tips" to (action?.unsupportTips ?: ""),
-                                            "data" to (action?.data ?: ""),
-                                            "reply" to action?.reply,
-                                            "enter" to action?.enter,
+                                            "action" to mapOf(
+                                                "type" to (action?.type ?: 0),
+                                                "permission" to mapOf(
+                                                    "type" to (permission?.type ?: 0),
+                                                    "specify_role_ids" to permission?.specifyRoleIds,
+                                                    "specify_user_ids" to permission?.specifyUserIds
+                                                ),
+                                                "unsupport_tips" to (action?.unsupportTips ?: ""),
+                                                "data" to (action?.data ?: ""),
+                                                "reply" to action?.reply,
+                                                "enter" to action?.enter,
+                                            )
                                         )
-                                    )
-                                }
+                                    })
                             },
                             "appid" to it.appid
                         )

@@ -97,37 +97,44 @@ internal object NtMsgElementMaker {
         peerId: String,
         data: JsonObject
     ): Result<MsgElement> {
-        fun tryNewKeyboardButton(btn: JsonObject): InlineKeyboardButton {
+        fun tryNewKeyboardButton(button: JsonObject): InlineKeyboardButton {
+            val renderData = button["render_data"].asJsonObject
+            val action = button["action"].asJsonObject
+            val permission = action["permission"].asJsonObject
             return runCatching {
                 InlineKeyboardButton(
-                    btn["id"].asString,
-                    btn["label"].asString,
-                    btn["visited_label"].asString,
-                    btn["style"].asInt,
-                    btn["type"].asInt,
-                    btn["click_limit"].asInt,
-                    btn["unsupport_tips"].asString,
-                    btn["data"].asString,
-                    btn["at_bot_show_channel_list"].asBoolean,
-                    btn["permission_type"].asInt,
-                    ArrayList(btn["specify_role_ids"].asJsonArray.map { it.asString }),
-                    ArrayList(btn["specify_tinyids"].asJsonArray.map { it.asString }),
+                    button["id"].asStringOrNull ?: "",
+                    renderData["label"].asString,
+                    renderData["visited_label"].asString,
+                    renderData["style"].asInt,
+                    action["type"].asInt,
+                    action["click_limit"].asInt,
+                    action["unsupport_tips"].asString,
+                    action["data"].asString,
+                    action["at_bot_show_channel_list"].asBooleanOrNull ?: false,
+                    permission["type"].asInt,
+                    ArrayList(permission["specify_role_ids"].asJsonArrayOrNull?.map { id -> id.asString }
+                        ?: arrayListOf()),
+                    ArrayList(permission["specify_user_ids"].asJsonArrayOrNull?.map { id -> id.asString }
+                        ?: arrayListOf()),
                     false, 0, false, arrayListOf()
                 )
             }.getOrElse {
                 InlineKeyboardButton(
-                    btn["id"].asString,
-                    btn["label"].asString,
-                    btn["visited_label"].asString,
-                    btn["style"].asInt,
-                    btn["type"].asInt,
-                    btn["click_limit"].asInt,
-                    btn["unsupport_tips"].asString,
-                    btn["data"].asString,
-                    btn["at_bot_show_channel_list"].asBoolean,
-                    btn["permission_type"].asInt,
-                    ArrayList(btn["specify_role_ids"].asJsonArray.map { it.asString }),
-                    ArrayList(btn["specify_tinyids"].asJsonArray.map { it.asString }),
+                    button["id"].asStringOrNull ?: "",
+                    renderData["label"].asString,
+                    renderData["visited_label"].asString,
+                    renderData["style"].asInt,
+                    action["type"].asInt,
+                    action["click_limit"].asInt,
+                    action["unsupport_tips"].asString,
+                    action["data"].asString,
+                    action["at_bot_show_channel_list"].asBooleanOrNull ?: false,
+                    permission["type"].asInt,
+                    ArrayList(permission["specify_role_ids"].asJsonArrayOrNull?.map { id -> id.asString }
+                        ?: arrayListOf()),
+                    ArrayList(permission["specify_user_ids"].asJsonArrayOrNull?.map { id -> id.asString }
+                        ?: arrayListOf()),
                 )
             }
         }

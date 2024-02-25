@@ -39,6 +39,7 @@ public class MsgRecord {
     boolean isOnlineMsg;
     FromRoleInfo levelRoleInfo;
     HashMap<Integer, MsgAttributeInfo> msgAttrs;
+    byte[] msgEventInfo;
     long msgId;
     byte[] msgMeta;
     long msgRandom;
@@ -231,6 +232,10 @@ public class MsgRecord {
         return this.msgAttrs;
     }
 
+    public byte[] getMsgEventInfo() {
+        return this.msgEventInfo;
+    }
+
     public long getMsgId() {
         return this.msgId;
     }
@@ -332,10 +337,10 @@ public class MsgRecord {
     }
 
     public String toString() {
-        return "MsgRecord{msgId=" + this.msgId + ",msgRandom=" + this.msgRandom + ",msgSeq=" + this.msgSeq + ",cntSeq=" + this.cntSeq + ",chatType=" + this.chatType + ",msgType=" + this.msgType + ",subMsgType=" + this.subMsgType + ",sendType=" + this.sendType + ",senderUid=" + this.senderUid + ",peerUid=" + this.peerUid + ",channelId=" + this.channelId + ",guildId=" + this.guildId + ",guildCode=" + this.guildCode + ",fromUid=" + this.fromUid + ",fromAppid=" + this.fromAppid + ",msgTime=" + this.msgTime + ",msgMeta=" + this.msgMeta + ",sendStatus=" + this.sendStatus + ",sendRemarkName=" + this.sendRemarkName + ",sendMemberName=" + this.sendMemberName + ",sendNickName=" + this.sendNickName + ",guildName=" + this.guildName + ",channelName=" + this.channelName + ",elements=" + this.elements + ",records=" + this.records + ",emojiLikesList=" + this.emojiLikesList + ",commentCnt=" + this.commentCnt + ",directMsgFlag=" + this.directMsgFlag + ",directMsgMembers=" + this.directMsgMembers + ",peerName=" + this.peerName + ",freqLimitInfo=" + this.freqLimitInfo + ",editable=" + this.editable + ",avatarMeta=" + this.avatarMeta + ",avatarPendant=" + this.avatarPendant + ",feedId=" + this.feedId + ",roleId=" + this.roleId + ",timeStamp=" + this.timeStamp + ",clientIdentityInfo=" + this.clientIdentityInfo + ",isImportMsg=" + this.isImportMsg + ",atType=" + this.atType + ",roleType=" + this.roleType + ",fromChannelRoleInfo=" + this.fromChannelRoleInfo + ",fromGuildRoleInfo=" + this.fromGuildRoleInfo + ",levelRoleInfo=" + this.levelRoleInfo + ",recallTime=" + this.recallTime + ",isOnlineMsg=" + this.isOnlineMsg + ",generalFlags=" + this.generalFlags + ",clientSeq=" + this.clientSeq + ",fileGroupSize=" + this.fileGroupSize + ",foldingInfo=" + this.foldingInfo + ",multiTransInfo=" + this.multiTransInfo + ",senderUin=" + this.senderUin + ",peerUin=" + this.peerUin + ",msgAttrs=" + this.msgAttrs + ",anonymousExtInfo=" + this.anonymousExtInfo + ",nameType=" + this.nameType + ",avatarFlag=" + this.avatarFlag + ",extInfoForUI=" + this.extInfoForUI + ",personalMedal=" + this.personalMedal + ",categoryManage=" + this.categoryManage + ",}";
+        return "MsgRecord{msgId=" + this.msgId + ",msgRandom=" + this.msgRandom + ",msgSeq=" + this.msgSeq + ",cntSeq=" + this.cntSeq + ",chatType=" + this.chatType + ",msgType=" + this.msgType + ",subMsgType=" + this.subMsgType + ",sendType=" + this.sendType + ",senderUid=" + this.senderUid + ",peerUid=" + this.peerUid + ",channelId=" + this.channelId + ",guildId=" + this.guildId + ",guildCode=" + this.guildCode + ",fromUid=" + this.fromUid + ",fromAppid=" + this.fromAppid + ",msgTime=" + this.msgTime + ",msgMeta=" + this.msgMeta + ",sendStatus=" + this.sendStatus + ",sendRemarkName=" + this.sendRemarkName + ",sendMemberName=" + this.sendMemberName + ",sendNickName=" + this.sendNickName + ",guildName=" + this.guildName + ",channelName=" + this.channelName + ",elements=" + this.elements + ",records=" + this.records + ",emojiLikesList=" + this.emojiLikesList + ",commentCnt=" + this.commentCnt + ",directMsgFlag=" + this.directMsgFlag + ",directMsgMembers=" + this.directMsgMembers + ",peerName=" + this.peerName + ",freqLimitInfo=" + this.freqLimitInfo + ",editable=" + this.editable + ",avatarMeta=" + this.avatarMeta + ",avatarPendant=" + this.avatarPendant + ",feedId=" + this.feedId + ",roleId=" + this.roleId + ",timeStamp=" + this.timeStamp + ",clientIdentityInfo=" + this.clientIdentityInfo + ",isImportMsg=" + this.isImportMsg + ",atType=" + this.atType + ",roleType=" + this.roleType + ",fromChannelRoleInfo=" + this.fromChannelRoleInfo + ",fromGuildRoleInfo=" + this.fromGuildRoleInfo + ",levelRoleInfo=" + this.levelRoleInfo + ",recallTime=" + this.recallTime + ",isOnlineMsg=" + this.isOnlineMsg + ",generalFlags=" + this.generalFlags + ",clientSeq=" + this.clientSeq + ",fileGroupSize=" + this.fileGroupSize + ",foldingInfo=" + this.foldingInfo + ",multiTransInfo=" + this.multiTransInfo + ",senderUin=" + this.senderUin + ",peerUin=" + this.peerUin + ",msgAttrs=" + this.msgAttrs + ",anonymousExtInfo=" + this.anonymousExtInfo + ",nameType=" + this.nameType + ",avatarFlag=" + this.avatarFlag + ",extInfoForUI=" + this.extInfoForUI + ",personalMedal=" + this.personalMedal + ",categoryManage=" + this.categoryManage + ",msgEventInfo=" + this.msgEventInfo + ",}";
     }
 
-    public MsgRecord(long j2, long j3, long j4, long j5, int i2, int i3, int i4, int i5, String str, String str2, String str3, String str4, long j6, long j7, long j8, long j9, byte[] bArr, int i6, String str5, String str6, String str7, String str8, String str9, ArrayList<MsgElement> arrayList, ArrayList<MsgRecord> arrayList2, ArrayList<MsgEmojiLikes> arrayList3, long j10, int i7, ArrayList<DirectMsgMember> arrayList4, String str10, FreqLimitInfo freqLimitInfo, boolean z, String str11, String str12, String str13, long j11, long j12, GProClientIdentity gProClientIdentity, boolean z2, int i8, int i9, FromRoleInfo fromRoleInfo, FromRoleInfo fromRoleInfo2, FromRoleInfo fromRoleInfo3, long j13, boolean z3, byte[] bArr2, long j14, Integer num, FoldingInfo foldingInfo, MultiTransInfo multiTransInfo, long j15, long j16, HashMap<Integer, MsgAttributeInfo> hashMap, AnonymousExtInfo anonymousExtInfo, int i10, int i11, byte[] bArr3, GProMedal gProMedal, int i12) {
+    public MsgRecord(long j2, long j3, long j4, long j5, int i2, int i3, int i4, int i5, String str, String str2, String str3, String str4, long j6, long j7, long j8, long j9, byte[] bArr, int i6, String str5, String str6, String str7, String str8, String str9, ArrayList<MsgElement> arrayList, ArrayList<MsgRecord> arrayList2, ArrayList<MsgEmojiLikes> arrayList3, long j10, int i7, ArrayList<DirectMsgMember> arrayList4, String str10, FreqLimitInfo freqLimitInfo, boolean z, String str11, String str12, String str13, long j11, long j12, GProClientIdentity gProClientIdentity, boolean z2, int i8, int i9, FromRoleInfo fromRoleInfo, FromRoleInfo fromRoleInfo2, FromRoleInfo fromRoleInfo3, long j13, boolean z3, byte[] bArr2, long j14, Integer num, FoldingInfo foldingInfo, MultiTransInfo multiTransInfo, long j15, long j16, HashMap<Integer, MsgAttributeInfo> hashMap, AnonymousExtInfo anonymousExtInfo, int i10, int i11, byte[] bArr3, GProMedal gProMedal, int i12, byte[] bArr4) {
         this.senderUid = "";
         this.peerUid = "";
         this.channelId = "";
@@ -419,5 +424,6 @@ public class MsgRecord {
         this.extInfoForUI = bArr3;
         this.personalMedal = gProMedal;
         this.categoryManage = i12;
+        this.msgEventInfo = bArr4;
     }
 }

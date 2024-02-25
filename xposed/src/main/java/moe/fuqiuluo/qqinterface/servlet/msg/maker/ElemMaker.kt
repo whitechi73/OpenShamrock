@@ -41,7 +41,6 @@ internal object ElemMaker {
 //        "video" to ElemMaker::createVideoElem,
         "markdown" to ElemMaker::createMarkdownElem,
         "button" to ElemMaker::createButtonElem,
-        "inline_keyboard" to ElemMaker::createButtonElem,
         "dice" to ElemMaker::createNewDiceElem,
         "rps" to ElemMaker::createNewRpsElem,
         "poke" to ElemMaker::createPokeElem,
