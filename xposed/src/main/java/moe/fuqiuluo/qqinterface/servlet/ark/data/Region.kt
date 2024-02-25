@@ -1,4 +1,4 @@
-package moe.fuqiuluo.qqinterface.servlet.ark
+package moe.fuqiuluo.qqinterface.servlet.ark.data
 
 import kotlinx.serialization.Serializable
 

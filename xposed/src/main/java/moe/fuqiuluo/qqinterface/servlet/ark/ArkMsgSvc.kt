@@ -1,16 +1,9 @@
 package moe.fuqiuluo.qqinterface.servlet.ark
 
-import com.tencent.mobileqq.pb.ByteStringMicro
 import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
-import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlinx.coroutines.withTimeoutOrNull
 import moe.fuqiuluo.qqinterface.servlet.BaseSvc
-import moe.fuqiuluo.qqinterface.servlet.TicketSvc
-import moe.fuqiuluo.shamrock.helper.MessageHelper
-import moe.fuqiuluo.shamrock.remote.service.listener.AioListener
+import moe.fuqiuluo.qqinterface.servlet.ark.data.ArkAppInfo
 import tencent.im.oidb.cmd0xb77.oidb_cmd0xb77
-import kotlin.coroutines.resume
-import kotlin.time.Duration.Companion.seconds
 
 internal object ArkMsgSvc: BaseSvc() {
     fun tryShareMusic(

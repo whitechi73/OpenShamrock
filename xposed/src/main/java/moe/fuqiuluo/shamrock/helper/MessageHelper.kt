@@ -205,27 +205,24 @@ internal object MessageHelper {
     fun sendMessageWithMsgId(
         contact: Contact,
         message: ArrayList<MsgElement>,
+        uniseq: Long,
         callback: IOperateCallback
     ): SendMsgResult {
-        val uniseq = generateMsgId(contact.chatType)
         val nonMsg: Boolean = message.isEmpty()
-        return if (!nonMsg) {
+        if (!nonMsg) {
             val service = QRoute.api(IMsgService::class.java)
-            if (callback is MsgSvc.MessageCallback) {
-                callback.msgHash = uniseq.msgHashId
-            }
-
             service.sendMsg(
                 contact,
-                uniseq.qqMsgId,
+                uniseq,
                 message,
                 callback
             )
-
-            uniseq.copy(msgTime = System.currentTimeMillis())
-        } else {
-            uniseq.copy(msgTime = 0, msgHashId = 0)
         }
+        return SendMsgResult(
+            msgTime = if (nonMsg) 0 else System.currentTimeMillis(),
+            msgHashId = 0,
+            qqMsgId = uniseq
+        )
     }
 
     suspend fun sendMessageNoCb(

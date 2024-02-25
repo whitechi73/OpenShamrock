@@ -24,8 +24,7 @@ internal object SendMsgByResid : IActionHandler() {
         val resId = session.getString("res_id")
         val peerId = session.getString("peer_id")
         val messageType = session.getString("message_type")
-        invoke(resId, peerId, messageType)
-        return ok("ok", session.echo)
+        return invoke(peerId, resId, messageType, session.echo)
     }
 
     suspend operator fun invoke(peerId: String, resId: String, messageType: String, echo: JsonElement = EmptyJsonString): String {
@@ -55,4 +54,6 @@ internal object SendMsgByResid : IActionHandler() {
         BaseSvc.sendBufferAW("MessageSvc.PbSendMsg", true, req.toByteArray())
         return ok("ok", echo)
     }
+
+    override val requiredParams: Array<String> = arrayOf("res_id", "peer_id", "message_type")
 }

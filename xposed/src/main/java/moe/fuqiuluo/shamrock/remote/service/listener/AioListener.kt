@@ -9,6 +9,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import moe.fuqiuluo.qqinterface.servlet.MsgSvc
 import moe.fuqiuluo.qqinterface.servlet.TicketSvc
+import moe.fuqiuluo.qqinterface.servlet.msg.MessageTempHandler
 import moe.fuqiuluo.qqinterface.servlet.msg.toCQCode
 import moe.fuqiuluo.qqinterface.servlet.transfile.RichProtoSvc
 import moe.fuqiuluo.shamrock.remote.service.config.ShamrockConfig
@@ -16,7 +17,7 @@ import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.helper.db.MessageDB
 import moe.fuqiuluo.shamrock.remote.service.api.GlobalEventTransmitter
-import moe.fuqiuluo.shamrock.remote.service.api.RichMediaUploadHandler
+import moe.fuqiuluo.qqinterface.servlet.transfile.RichMediaUploadHandler
 import moe.fuqiuluo.shamrock.remote.service.data.push.MessageTempSource
 import moe.fuqiuluo.shamrock.remote.service.data.push.PostType
 import java.util.ArrayList
@@ -24,9 +25,6 @@ import java.util.Collections
 import kotlin.collections.HashMap
 
 internal object AioListener : IKernelMsgListener {
-    // 通过MSG SEQ临时监听器
-    private val tempMessageListenerMap = Collections.synchronizedMap(HashMap<Long, suspend MsgRecord.() -> Unit>())
-
     override fun onRecvMsg(msgList: ArrayList<MsgRecord>) {
         if (msgList.isEmpty()) return
 
@@ -37,27 +35,9 @@ internal object AioListener : IKernelMsgListener {
         }
     }
 
-    fun registerTemporaryMsgListener(
-        msgSeq: Long,
-        listener: suspend MsgRecord.() -> Unit
-    ) {
-        LogCenter.log({ "注册临时消息监听器: $msgSeq" }, Level.DEBUG)
-        tempMessageListenerMap[msgSeq] = listener
-    }
-
-    fun unregisterTemporaryMsgListener(msgSeq: Long) {
-        tempMessageListenerMap.remove(msgSeq)
-    }
-
     private suspend fun handleMsg(record: MsgRecord) {
         try {
-            tempMessageListenerMap.firstNotNullOfOrNull {
-                if (it.key == record.msgSeq) it else null
-            }?.let {
-                it.value(record)
-                tempMessageListenerMap.remove(it.key)
-                return
-            }
+            if (MessageTempHandler.notify(record)) return
             if (record.msgSeq < 0) return
 
             val msgHash = MessageHelper.generateMsgIdHash(record.chatType, record.msgId)
@@ -432,7 +412,7 @@ internal object AioListener : IKernelMsgListener {
     }
 
     override fun onRichMediaUploadComplete(notifyInfo: FileTransNotifyInfo) {
-        LogCenter.log("onRichMediaUploadComplete($notifyInfo)", Level.DEBUG)
+        LogCenter.log("[BDH] 资源上传完成(${notifyInfo.trasferStatus}, ${notifyInfo.fileId}, ${notifyInfo.msgId}, ${notifyInfo.commonFileInfo})")
         RichMediaUploadHandler.notify(notifyInfo)
     }
 

@@ -1,14 +1,19 @@
 package moe.fuqiuluo.qqinterface.servlet.transfile
 
-import com.tencent.mobileqq.data.MessageForPic
 import com.tencent.mobileqq.data.MessageForShortVideo
 import com.tencent.mobileqq.data.MessageRecord
 import com.tencent.mobileqq.transfile.FileMsg
 import com.tencent.mobileqq.transfile.TransferRequest
 import moe.fuqiuluo.shamrock.utils.MD5
 import java.io.File
-import moe.fuqiuluo.qqinterface.servlet.transfile.ResourceType.*
-import moe.fuqiuluo.shamrock.helper.TransfileHelper
+import moe.fuqiuluo.qqinterface.servlet.transfile.data.ResourceType.*
+import moe.fuqiuluo.qqinterface.servlet.transfile.data.ContactType
+import moe.fuqiuluo.qqinterface.servlet.transfile.data.PictureResource
+import moe.fuqiuluo.qqinterface.servlet.transfile.data.Resource
+import moe.fuqiuluo.qqinterface.servlet.transfile.data.ResourceType
+import moe.fuqiuluo.qqinterface.servlet.transfile.data.TransTarget
+import moe.fuqiuluo.qqinterface.servlet.transfile.data.VideoResource
+import moe.fuqiuluo.qqinterface.servlet.transfile.data.VoiceResource
 
 internal object Transfer: FileTransfer() {
     private val ROUTE = mapOf<ContactType, Map<ResourceType, suspend TransTarget.(Resource) -> Boolean>>(

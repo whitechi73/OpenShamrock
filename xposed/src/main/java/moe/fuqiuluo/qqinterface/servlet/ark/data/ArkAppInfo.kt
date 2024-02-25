@@ -1,4 +1,5 @@
-package moe.fuqiuluo.qqinterface.servlet.ark
+package moe.fuqiuluo.qqinterface.servlet.ark.data
+
 sealed class ArkAppInfo(
     val appId: Long,
     val version: String,

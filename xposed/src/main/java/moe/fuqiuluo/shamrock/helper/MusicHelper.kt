@@ -3,7 +3,7 @@ package moe.fuqiuluo.shamrock.helper
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import kotlinx.serialization.json.Json
-import moe.fuqiuluo.qqinterface.servlet.ark.ArkAppInfo
+import moe.fuqiuluo.qqinterface.servlet.ark.data.ArkAppInfo
 import moe.fuqiuluo.qqinterface.servlet.ark.ArkMsgSvc
 import moe.fuqiuluo.shamrock.tools.GlobalClient
 import moe.fuqiuluo.shamrock.tools.asInt

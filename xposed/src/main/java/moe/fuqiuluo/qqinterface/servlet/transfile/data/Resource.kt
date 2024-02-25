@@ -1,4 +1,4 @@
-package moe.fuqiuluo.qqinterface.servlet.transfile
+package moe.fuqiuluo.qqinterface.servlet.transfile.data
 
 import java.io.File
 

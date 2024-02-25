@@ -9,6 +9,7 @@ import io.ktor.utils.io.core.writeFully
 import io.ktor.utils.io.core.writeInt
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
+import moe.fuqiuluo.qqinterface.servlet.msg.MessageTempHandler
 
 import moe.fuqiuluo.shamrock.remote.action.handlers.GetHistoryMsg
 import moe.fuqiuluo.shamrock.remote.service.listener.AioListener
@@ -80,11 +81,11 @@ internal object PacketSvc: BaseSvc() {
         fakeReceive("trpc.msg.olpush.OlPushService.MsgPush", 10000, msgPush.toByteArray())
         return withTimeoutOrNull(5000L) {
             suspendCancellableCoroutine {
-                AioListener.registerTemporaryMsgListener(msgSeq) {
+                MessageTempHandler.registerTemporaryMsgListener(msgSeq) {
                     it.resume(this.msgId)
                 }
                 it.invokeOnCancellation {
-                    AioListener.unregisterTemporaryMsgListener(msgSeq)
+                    MessageTempHandler.unregisterTemporaryMsgListener(msgSeq)
                 }
             }
         } ?: -1L

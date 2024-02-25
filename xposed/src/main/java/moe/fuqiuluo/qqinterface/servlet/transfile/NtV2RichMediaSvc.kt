@@ -1,14 +1,29 @@
 package moe.fuqiuluo.qqinterface.servlet.transfile
 
+import android.graphics.BitmapFactory
+import androidx.exifinterface.media.ExifInterface
+import com.tencent.qqnt.kernel.nativeinterface.CommonFileInfo
+import com.tencent.qqnt.kernel.nativeinterface.Contact
+import com.tencent.qqnt.kernel.nativeinterface.IOperateCallback
+import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
+import com.tencent.qqnt.kernel.nativeinterface.MsgElement
+import com.tencent.qqnt.kernel.nativeinterface.PicElement
+import com.tencent.qqnt.kernel.nativeinterface.QQNTWrapperUtil
+import com.tencent.qqnt.kernel.nativeinterface.RichMediaFilePathInfo
 import kotlinx.atomicfu.atomic
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.protobuf.ProtoNumber
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withTimeoutOrNull
 import moe.fuqiuluo.qqinterface.servlet.BaseSvc
 import moe.fuqiuluo.qqinterface.servlet.TicketSvc
+import moe.fuqiuluo.qqinterface.servlet.transfile.data.TryUpPicData
+import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
+import moe.fuqiuluo.shamrock.helper.MessageHelper
 import moe.fuqiuluo.shamrock.tools.hex2ByteArray
 import moe.fuqiuluo.shamrock.tools.slice
+import moe.fuqiuluo.shamrock.utils.FileUtils
+import moe.fuqiuluo.shamrock.xposed.helper.NTServiceFetcher
+import moe.fuqiuluo.shamrock.xposed.helper.msgService
 import moe.fuqiuluo.symbols.decodeProtobuf
 import protobuf.auto.toByteArray
 import protobuf.oidb.TrpcOidb
@@ -31,12 +46,114 @@ import protobuf.oidb.cmd0x388.Cmd0x388ReqBody
 import protobuf.oidb.cmd0x388.Cmd0x388RspBody
 import protobuf.oidb.cmd0x388.TryUpImgReq
 import java.io.File
+import kotlin.coroutines.resume
 import kotlin.random.Random
 import kotlin.random.nextUInt
 import kotlin.random.nextULong
+import kotlin.time.Duration
 
 internal object NtV2RichMediaSvc: BaseSvc() {
+    private const val GROUP_PIC_UPLOAD_TO = "100000000"
+
     private val requestIdSeq = atomic(2L)
+
+    /**
+     * 批量上传图片
+     */
+    suspend fun tryUploadGroupPicByNt(
+        imageFiles: ArrayList<File>,
+        timeout: Duration
+    ): Result<MutableList<CommonFileInfo>> {
+        require(imageFiles.size in 1 .. 10) { "imageFiles.size() must be in 1 .. 10" }
+
+        val messages = imageFiles.map { file ->
+            val elem = MsgElement()
+            runCatching {
+                elem.elementType = MsgConstant.KELEMTYPEPIC
+                val pic = PicElement()
+                pic.md5HexStr = QQNTWrapperUtil.CppProxy.genFileMd5Hex(file.absolutePath)
+                val msgService = NTServiceFetcher.kernelService.msgService!!
+                val originalPath = msgService.getRichMediaFilePathForMobileQQSend(
+                    RichMediaFilePathInfo(
+                        2, 0, pic.md5HexStr, file.name, 1, 0, null, "", true
+                    )
+                )
+                if (!QQNTWrapperUtil.CppProxy.fileIsExist(originalPath) || QQNTWrapperUtil.CppProxy.getFileSize(
+                        originalPath
+                    ) != file.length()
+                ) {
+                    val thumbPath = msgService.getRichMediaFilePathForMobileQQSend(
+                        RichMediaFilePathInfo(
+                            2, 0, pic.md5HexStr, file.name, 2, 720, null, "", true
+                        )
+                    )
+                    QQNTWrapperUtil.CppProxy.copyFile(file.absolutePath, originalPath)
+                    QQNTWrapperUtil.CppProxy.copyFile(file.absolutePath, thumbPath)
+                }
+                val options = BitmapFactory.Options()
+                options.inJustDecodeBounds = true
+                BitmapFactory.decodeFile(file.absolutePath, options)
+                val exifInterface = ExifInterface(file.absolutePath)
+                val orientation = exifInterface.getAttributeInt(
+                    ExifInterface.TAG_ORIENTATION,
+                    ExifInterface.ORIENTATION_UNDEFINED
+                )
+                if (orientation != ExifInterface.ORIENTATION_ROTATE_90 && orientation != ExifInterface.ORIENTATION_ROTATE_270) {
+                    pic.picWidth = options.outWidth
+                    pic.picHeight = options.outHeight
+                } else {
+                    pic.picWidth = options.outHeight
+                    pic.picHeight = options.outWidth
+                }
+                pic.sourcePath = file.absolutePath
+                pic.fileSize = QQNTWrapperUtil.CppProxy.getFileSize(file.absolutePath)
+                pic.original = true
+                pic.picType = FileUtils.getPicType(file)
+                elem.picElement = pic
+            }.onFailure {
+                LogCenter.log(it.stackTraceToString(), Level.WARN)
+                elem.elementType = 0
+            }
+            return@map elem
+        }.filter {
+            it.elementType == MsgConstant.KELEMTYPEPIC
+        }
+        if (messages.isEmpty()) {
+            return Result.failure(Exception("no valid image files"))
+        }
+        val result: MutableList<CommonFileInfo> = withTimeoutOrNull(timeout) {
+            suspendCancellableCoroutine {
+                val result = mutableListOf<CommonFileInfo>()
+                val uniseq = MessageHelper.generateMsgId(MsgConstant.KCHATTYPEGROUP)
+                val contact = Contact(MsgConstant.KCHATTYPEGROUP, GROUP_PIC_UPLOAD_TO, GROUP_PIC_UPLOAD_TO)
+                RichMediaUploadHandler.registerListener(uniseq.qqMsgId) upload@{
+                    if (uniseq.qqMsgId == msgId) {
+                        result.add(commonFileInfo)
+                    }
+                    return@upload false
+                }
+                MessageHelper.sendMessageWithMsgId(
+                    contact = contact,
+                    message = ArrayList(messages),
+                    uniseq = uniseq.qqMsgId
+                ) { code, _ ->
+                    NTServiceFetcher.kernelService
+                        .wrapperSession.msgService
+                        .deleteMsg(contact, arrayListOf(uniseq.qqMsgId), null)
+                    RichMediaUploadHandler.removeListener(uniseq.qqMsgId)
+                    if (code != 110 && code != 4) {
+                        it.resume(null)
+                    } else {
+                        it.resume(result)
+                    }
+                }
+                it.invokeOnCancellation {
+                    RichMediaUploadHandler.removeListener(uniseq.qqMsgId)
+                }
+            }
+        } ?: return Result.failure(Exception("timeout"))
+        return Result.success(result)
+    }
 
     /**
      * 获取NT图片的RKEY
@@ -173,6 +290,9 @@ internal object NtV2RichMediaSvc: BaseSvc() {
         LogCenter.log("requestUploadPic => rsp: $rsp")
     }
 
+    /**
+     * 使用OldBDH获取图片上传状态以及图片上传服务器
+     */
     suspend fun requestUploadGroupPic(
         groupId: ULong,
         md5: String,
@@ -215,13 +335,5 @@ internal object NtV2RichMediaSvc: BaseSvc() {
             )
         }
     }
-
-    @Serializable
-    data class TryUpPicData(
-        @SerialName("ukey") val uKey: ByteArray,
-        @SerialName("exist") val exist: Boolean,
-        @SerialName("file_id") val fileId: ULong,
-        @SerialName("up_ip") var upIp: ArrayList<Long>? = null,
-        @SerialName("up_port") var upPort: ArrayList<Int>? = null,
-    )
 }
+

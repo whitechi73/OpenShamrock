@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public interface IKernelMsgService {
-    void deleteMsg(Contact contact, ArrayList<Long> msgIdList, IOperateCallback callback);
+    void deleteMsg(Contact contact, ArrayList<Long> msgIdList, IOperateCallback cb);
 
     void fetchLongMsg(Contact contact, long msgId);
 

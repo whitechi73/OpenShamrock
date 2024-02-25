@@ -12,10 +12,10 @@ import moe.fuqiuluo.qqinterface.servlet.ark.WeatherSvc
 import moe.fuqiuluo.qqinterface.servlet.msg.toJson
 import moe.fuqiuluo.qqinterface.servlet.msg.toSegments
 import moe.fuqiuluo.qqinterface.servlet.transfile.*
-import moe.fuqiuluo.qqinterface.servlet.transfile.PictureResource
-import moe.fuqiuluo.qqinterface.servlet.transfile.Private
+import moe.fuqiuluo.qqinterface.servlet.transfile.data.PictureResource
+import moe.fuqiuluo.qqinterface.servlet.transfile.data.Private
 import moe.fuqiuluo.qqinterface.servlet.transfile.Transfer
-import moe.fuqiuluo.qqinterface.servlet.transfile.Troop
+import moe.fuqiuluo.qqinterface.servlet.transfile.data.Troop
 import moe.fuqiuluo.shamrock.helper.*
 import moe.fuqiuluo.shamrock.helper.ActionMsgException
 import moe.fuqiuluo.shamrock.helper.Level
