@@ -1,5 +1,6 @@
 package moe.fuqiuluo.shamrock.remote.action.handlers
 
+import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
 import kotlinx.serialization.json.JsonElement
 import moe.fuqiuluo.qqinterface.servlet.structures.CommFileInfo
 import moe.fuqiuluo.qqinterface.servlet.structures.UploadResult
@@ -12,14 +13,29 @@ import moe.fuqiuluo.shamrock.utils.FileUtils
 import moe.fuqiuluo.symbols.OneBotHandler
 import kotlin.time.Duration.Companion.seconds
 
-@OneBotHandler("upload_group_image", ["upload_group_pic"])
-internal object UploadGroupPic: IActionHandler() {
+@OneBotHandler("upload_nt_resource", ["upload_nt_res"])
+internal object UploadNtResource: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val pic = session.getString("file")
-        return invoke(pic, session.echo)
+        val chatType = when(session.getStringOrNull("message_type")) {
+            "group" -> MsgConstant.KCHATTYPEGROUP
+            "guild" -> MsgConstant.KCHATTYPEGUILD
+            "private" -> MsgConstant.KCHATTYPEC2C
+            else -> MsgConstant.KCHATTYPEGROUP
+        }
+        val fileType = when(session.getStringOrNull("file_type")) {
+            "file" -> MsgConstant.KELEMTYPEFILE
+            "image", "pic" -> MsgConstant.KELEMTYPEPIC
+            "video" -> MsgConstant.KELEMTYPEVIDEO
+            "audio", "voice", "record" -> MsgConstant.KELEMTYPEPTT
+            else -> MsgConstant.KELEMTYPEFILE
+        }
+        return invoke(chatType, fileType, pic, session.echo)
     }
 
     suspend operator fun invoke(
+        chatType: Int,
+        fileType: Int,
         picture: String,
         echo: JsonElement = EmptyJsonString
     ): String {
@@ -38,8 +54,10 @@ internal object UploadGroupPic: IActionHandler() {
             if (!file.exists()) {
                 return logic("picture file is not exists", echo)
             }
-            NtV2RichMediaSvc.tryUploadGroupPicByNt(
-                imageFiles = arrayListOf(file),
+            NtV2RichMediaSvc.tryUploadResourceByNt(
+                chatType = chatType,
+                elementType = fileType,
+                resources = arrayListOf(file),
                 timeout = 30.seconds
             ).onSuccess {
                 return ok(UploadResult(it.map {

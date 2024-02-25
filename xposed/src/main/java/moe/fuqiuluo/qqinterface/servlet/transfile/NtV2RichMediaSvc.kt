@@ -1,27 +1,44 @@
 package moe.fuqiuluo.qqinterface.servlet.transfile
 
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.media.MediaMetadataRetriever
 import androidx.exifinterface.media.ExifInterface
+import com.tencent.mobileqq.qroute.QRoute
+import com.tencent.qqnt.aio.adapter.api.IAIOPttApi
 import com.tencent.qqnt.kernel.nativeinterface.CommonFileInfo
 import com.tencent.qqnt.kernel.nativeinterface.Contact
-import com.tencent.qqnt.kernel.nativeinterface.IOperateCallback
+import com.tencent.qqnt.kernel.nativeinterface.FileElement
 import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
 import com.tencent.qqnt.kernel.nativeinterface.MsgElement
 import com.tencent.qqnt.kernel.nativeinterface.PicElement
+import com.tencent.qqnt.kernel.nativeinterface.PttElement
 import com.tencent.qqnt.kernel.nativeinterface.QQNTWrapperUtil
 import com.tencent.qqnt.kernel.nativeinterface.RichMediaFilePathInfo
+import com.tencent.qqnt.kernel.nativeinterface.VideoElement
+import com.tencent.qqnt.msg.api.IMsgUtilApi
 import kotlinx.atomicfu.atomic
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import moe.fuqiuluo.qqinterface.servlet.BaseSvc
 import moe.fuqiuluo.qqinterface.servlet.TicketSvc
+import moe.fuqiuluo.qqinterface.servlet.transfile.data.Private
+import moe.fuqiuluo.qqinterface.servlet.transfile.data.Troop
 import moe.fuqiuluo.qqinterface.servlet.transfile.data.TryUpPicData
+import moe.fuqiuluo.qqinterface.servlet.transfile.data.VideoResource
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.helper.MessageHelper
+import moe.fuqiuluo.shamrock.helper.TransfileHelper
+import moe.fuqiuluo.shamrock.remote.service.config.ShamrockConfig
 import moe.fuqiuluo.shamrock.tools.hex2ByteArray
 import moe.fuqiuluo.shamrock.tools.slice
+import moe.fuqiuluo.shamrock.utils.AudioUtils
 import moe.fuqiuluo.shamrock.utils.FileUtils
+import moe.fuqiuluo.shamrock.utils.MD5
+import moe.fuqiuluo.shamrock.utils.MediaType
 import moe.fuqiuluo.shamrock.xposed.helper.NTServiceFetcher
 import moe.fuqiuluo.shamrock.xposed.helper.msgService
 import moe.fuqiuluo.symbols.decodeProtobuf
@@ -46,7 +63,9 @@ import protobuf.oidb.cmd0x388.Cmd0x388ReqBody
 import protobuf.oidb.cmd0x388.Cmd0x388RspBody
 import protobuf.oidb.cmd0x388.TryUpImgReq
 import java.io.File
+import java.io.FileOutputStream
 import kotlin.coroutines.resume
+import kotlin.math.roundToInt
 import kotlin.random.Random
 import kotlin.random.nextUInt
 import kotlin.random.nextULong
@@ -60,75 +79,216 @@ internal object NtV2RichMediaSvc: BaseSvc() {
     /**
      * 批量上传图片
      */
-    suspend fun tryUploadGroupPicByNt(
-        imageFiles: ArrayList<File>,
+    suspend fun tryUploadResourceByNt(
+        chatType: Int,
+        elementType: Int,
+        resources: ArrayList<File>,
         timeout: Duration
     ): Result<MutableList<CommonFileInfo>> {
-        require(imageFiles.size in 1 .. 10) { "imageFiles.size() must be in 1 .. 10" }
+        require(resources.size in 1 .. 10) { "imageFiles.size() must be in 1 .. 10" }
 
-        val messages = imageFiles.map { file ->
+        val messages = resources.map { file ->
             val elem = MsgElement()
-            runCatching {
-                elem.elementType = MsgConstant.KELEMTYPEPIC
-                val pic = PicElement()
-                pic.md5HexStr = QQNTWrapperUtil.CppProxy.genFileMd5Hex(file.absolutePath)
-                val msgService = NTServiceFetcher.kernelService.msgService!!
-                val originalPath = msgService.getRichMediaFilePathForMobileQQSend(
-                    RichMediaFilePathInfo(
-                        2, 0, pic.md5HexStr, file.name, 1, 0, null, "", true
-                    )
-                )
-                if (!QQNTWrapperUtil.CppProxy.fileIsExist(originalPath) || QQNTWrapperUtil.CppProxy.getFileSize(
-                        originalPath
-                    ) != file.length()
-                ) {
-                    val thumbPath = msgService.getRichMediaFilePathForMobileQQSend(
+            elem.elementType = elementType
+            when(elementType) {
+                MsgConstant.KELEMTYPEPIC -> {
+                    val pic = PicElement()
+                    pic.md5HexStr = QQNTWrapperUtil.CppProxy.genFileMd5Hex(file.absolutePath)
+                    val msgService = NTServiceFetcher.kernelService.msgService!!
+                    val originalPath = msgService.getRichMediaFilePathForMobileQQSend(
                         RichMediaFilePathInfo(
-                            2, 0, pic.md5HexStr, file.name, 2, 720, null, "", true
+                            2, 0, pic.md5HexStr, file.name, 1, 0, null, "", true
                         )
                     )
-                    QQNTWrapperUtil.CppProxy.copyFile(file.absolutePath, originalPath)
-                    QQNTWrapperUtil.CppProxy.copyFile(file.absolutePath, thumbPath)
+                    if (!QQNTWrapperUtil.CppProxy.fileIsExist(originalPath) || QQNTWrapperUtil.CppProxy.getFileSize(
+                            originalPath
+                        ) != file.length()
+                    ) {
+                        val thumbPath = msgService.getRichMediaFilePathForMobileQQSend(
+                            RichMediaFilePathInfo(
+                                2, 0, pic.md5HexStr, file.name, 2, 720, null, "", true
+                            )
+                        )
+                        QQNTWrapperUtil.CppProxy.copyFile(file.absolutePath, originalPath)
+                        QQNTWrapperUtil.CppProxy.copyFile(file.absolutePath, thumbPath)
+                    }
+                    val options = BitmapFactory.Options()
+                    options.inJustDecodeBounds = true
+                    BitmapFactory.decodeFile(file.absolutePath, options)
+                    val exifInterface = ExifInterface(file.absolutePath)
+                    val orientation = exifInterface.getAttributeInt(
+                        ExifInterface.TAG_ORIENTATION,
+                        ExifInterface.ORIENTATION_UNDEFINED
+                    )
+                    if (orientation != ExifInterface.ORIENTATION_ROTATE_90 && orientation != ExifInterface.ORIENTATION_ROTATE_270) {
+                        pic.picWidth = options.outWidth
+                        pic.picHeight = options.outHeight
+                    } else {
+                        pic.picWidth = options.outHeight
+                        pic.picHeight = options.outWidth
+                    }
+                    pic.sourcePath = file.absolutePath
+                    pic.fileSize = QQNTWrapperUtil.CppProxy.getFileSize(file.absolutePath)
+                    pic.original = true
+                    pic.picType = FileUtils.getPicType(file)
+                    elem.picElement = pic
                 }
-                val options = BitmapFactory.Options()
-                options.inJustDecodeBounds = true
-                BitmapFactory.decodeFile(file.absolutePath, options)
-                val exifInterface = ExifInterface(file.absolutePath)
-                val orientation = exifInterface.getAttributeInt(
-                    ExifInterface.TAG_ORIENTATION,
-                    ExifInterface.ORIENTATION_UNDEFINED
-                )
-                if (orientation != ExifInterface.ORIENTATION_ROTATE_90 && orientation != ExifInterface.ORIENTATION_ROTATE_270) {
-                    pic.picWidth = options.outWidth
-                    pic.picHeight = options.outHeight
-                } else {
-                    pic.picWidth = options.outHeight
-                    pic.picHeight = options.outWidth
+                MsgConstant.KELEMTYPEPTT -> {
+                    require(resources.size == 1) // 语音只能单个上传
+                    var pttFile = file
+                    val ptt = PttElement()
+                    when (AudioUtils.getMediaType(pttFile)) {
+                        MediaType.Silk -> {
+                            ptt.formatType = MsgConstant.KPTTFORMATTYPESILK
+                            ptt.duration = QRoute.api(IAIOPttApi::class.java)
+                                .getPttFileDuration(pttFile.absolutePath)
+                        }
+                        MediaType.Amr -> {
+                            ptt.duration = AudioUtils.getDurationSec(pttFile)
+                            ptt.formatType = MsgConstant.KPTTFORMATTYPEAMR
+                        }
+                        MediaType.Pcm -> {
+                            val result = AudioUtils.pcmToSilk(pttFile)
+                            ptt.duration = (result.second * 0.001).roundToInt()
+                            pttFile = result.first
+                            ptt.formatType = MsgConstant.KPTTFORMATTYPESILK
+                        }
+
+                        else -> {
+                            val result = AudioUtils.audioToSilk(pttFile)
+                            ptt.duration = runCatching {
+                                QRoute.api(IAIOPttApi::class.java)
+                                    .getPttFileDuration(result.second.absolutePath)
+                            }.getOrElse {
+                                result.first
+                            }
+                            pttFile = result.second
+                            ptt.formatType = MsgConstant.KPTTFORMATTYPESILK
+                        }
+                    }
+                    ptt.md5HexStr = QQNTWrapperUtil.CppProxy.genFileMd5Hex(pttFile.absolutePath)
+                    val msgService = NTServiceFetcher.kernelService.msgService!!
+                    val originalPath = msgService.getRichMediaFilePathForMobileQQSend(
+                        RichMediaFilePathInfo(
+                            MsgConstant.KELEMTYPEPTT, 0, ptt.md5HexStr, file.name, 1, 0, null, "", true
+                        )
+                    )
+                    if (!QQNTWrapperUtil.CppProxy.fileIsExist(originalPath) || QQNTWrapperUtil.CppProxy.getFileSize(originalPath) != pttFile.length()) {
+                        QQNTWrapperUtil.CppProxy.copyFile(pttFile.absolutePath, originalPath)
+                    }
+                    if (originalPath != null) {
+                        ptt.filePath = originalPath
+                    } else {
+                        ptt.filePath = pttFile.absolutePath
+                    }
+                    ptt.canConvert2Text = true
+                    ptt.fileId = 0
+                    ptt.fileUuid = ""
+                    ptt.text = ""
+                    ptt.voiceType = MsgConstant.KPTTVOICETYPESOUNDRECORD
+                    ptt.voiceChangeType = MsgConstant.KPTTVOICECHANGETYPENONE
+                    elem.pttElement = ptt
                 }
-                pic.sourcePath = file.absolutePath
-                pic.fileSize = QQNTWrapperUtil.CppProxy.getFileSize(file.absolutePath)
-                pic.original = true
-                pic.picType = FileUtils.getPicType(file)
-                elem.picElement = pic
-            }.onFailure {
-                LogCenter.log(it.stackTraceToString(), Level.WARN)
-                elem.elementType = 0
+                MsgConstant.KELEMTYPEVIDEO -> {
+                    require(resources.size == 1) // 视频只能单个上传
+                    val video = VideoElement()
+                    video.videoMd5 = QQNTWrapperUtil.CppProxy.genFileMd5Hex(file.absolutePath)
+                    val msgService = NTServiceFetcher.kernelService.msgService!!
+                    val originalPath = msgService.getRichMediaFilePathForMobileQQSend(
+                        RichMediaFilePathInfo(
+                            5, 2, video.videoMd5, file.name, 1, 0, null, "", true
+                        )
+                    )
+                    val thumbPath = msgService.getRichMediaFilePathForMobileQQSend(
+                        RichMediaFilePathInfo(
+                            5, 1, video.videoMd5, file.name, 2, 0, null, "", true
+                        )
+                    )
+                    if (!QQNTWrapperUtil.CppProxy.fileIsExist(originalPath) || QQNTWrapperUtil.CppProxy.getFileSize(
+                            originalPath
+                        ) != file.length()
+                    ) {
+                        QQNTWrapperUtil.CppProxy.copyFile(file.absolutePath, originalPath)
+                        AudioUtils.obtainVideoCover(file.absolutePath, thumbPath!!)
+                    }
+                    video.fileTime = AudioUtils.getVideoTime(file)
+                    video.fileSize = file.length()
+                    video.fileName = file.name
+                    video.fileFormat = FileTransfer.VIDEO_FORMAT_MP4
+                    video.thumbSize = QQNTWrapperUtil.CppProxy.getFileSize(thumbPath).toInt()
+                    val options = BitmapFactory.Options()
+                    BitmapFactory.decodeFile(thumbPath, options)
+                    video.thumbWidth = options.outWidth
+                    video.thumbHeight = options.outHeight
+                    video.thumbMd5 = QQNTWrapperUtil.CppProxy.genFileMd5Hex(thumbPath)
+                    video.thumbPath = hashMapOf(0 to thumbPath)
+                    elem.videoElement = video
+                }
+
+                /*MsgConstant.KELEMTYPEFILE -> {
+                    require(resources.size == 1) // 文件只能单个上传
+                    val fileElement = FileElement()
+                    fileElement.fileMd5 = ""
+                    fileElement.fileName = file.name
+                    fileElement.filePath = file.absolutePath
+                    fileElement.fileSize = file.length()
+                    fileElement.picWidth = 0
+                    fileElement.picHeight = 0
+                    fileElement.videoDuration = 0
+                    fileElement.picThumbPath = HashMap()
+                    fileElement.expireTime = 0L
+                    fileElement.fileSha = ""
+                    fileElement.fileSha3 = ""
+                    fileElement.file10MMd5 = ""
+                    when (TransfileHelper.getExtensionId(file.name)) {
+                        0 -> {
+                            val wh = QRoute.api(IMsgUtilApi::class.java)
+                                .getPicSizeByPath(file.absolutePath)
+                            fileElement.picWidth = wh.first
+                            fileElement.picHeight = wh.second
+                            fileElement.picThumbPath[750] = file.absolutePath
+                        }
+                        2 -> {
+                            val thumbPic = FileUtils.getFileByMd5(MD5.genFileMd5Hex(file.absolutePath))
+                            withContext(Dispatchers.IO) {
+                                val fileOutputStream = FileOutputStream(thumbPic)
+                                val retriever = MediaMetadataRetriever()
+                                retriever.setDataSource(fileElement.filePath)
+                                retriever.frameAtTime?.compress(Bitmap.CompressFormat.JPEG, 60, fileOutputStream)
+                                fileOutputStream.flush()
+                                fileOutputStream.close()
+                            }
+                            val options = BitmapFactory.Options()
+                            BitmapFactory.decodeFile(thumbPic.absolutePath, options)
+                            fileElement.picHeight = options.outHeight
+                            fileElement.picWidth = options.outWidth
+                            fileElement.picThumbPath = hashMapOf(750 to thumbPic.absolutePath)
+                        }
+                    }
+                    elem.fileElement = fileElement
+                }*/
+                else -> throw IllegalArgumentException("unsupported elementType: $elementType")
             }
             return@map elem
-        }.filter {
-            it.elementType == MsgConstant.KELEMTYPEPIC
         }
         if (messages.isEmpty()) {
             return Result.failure(Exception("no valid image files"))
         }
-        val result: MutableList<CommonFileInfo> = withTimeoutOrNull(timeout) {
+        val contact = when(chatType) {
+            MsgConstant.KCHATTYPEC2C -> MessageHelper.generateContact(chatType, TicketSvc.getUin())
+            else -> Contact(chatType, GROUP_PIC_UPLOAD_TO, GROUP_PIC_UPLOAD_TO)
+        }
+        val result = mutableListOf<CommonFileInfo>()
+        withTimeoutOrNull(timeout) {
             suspendCancellableCoroutine {
-                val result = mutableListOf<CommonFileInfo>()
-                val uniseq = MessageHelper.generateMsgId(MsgConstant.KCHATTYPEGROUP)
-                val contact = Contact(MsgConstant.KCHATTYPEGROUP, GROUP_PIC_UPLOAD_TO, GROUP_PIC_UPLOAD_TO)
+                val uniseq = MessageHelper.generateMsgId(chatType)
                 RichMediaUploadHandler.registerListener(uniseq.qqMsgId) upload@{
                     if (uniseq.qqMsgId == msgId) {
                         result.add(commonFileInfo)
+                    }
+                    if (result.size == resources.size) {
+                        it.resume(true)
+                        return@upload true
                     }
                     return@upload false
                 }
@@ -136,22 +296,12 @@ internal object NtV2RichMediaSvc: BaseSvc() {
                     contact = contact,
                     message = ArrayList(messages),
                     uniseq = uniseq.qqMsgId
-                ) { code, _ ->
-                    NTServiceFetcher.kernelService
-                        .wrapperSession.msgService
-                        .deleteMsg(contact, arrayListOf(uniseq.qqMsgId), null)
-                    RichMediaUploadHandler.removeListener(uniseq.qqMsgId)
-                    if (code != 110 && code != 4) {
-                        it.resume(null)
-                    } else {
-                        it.resume(result)
-                    }
-                }
+                ) { _, _ -> }
                 it.invokeOnCancellation {
                     RichMediaUploadHandler.removeListener(uniseq.qqMsgId)
                 }
             }
-        } ?: return Result.failure(Exception("timeout"))
+        }
         return Result.success(result)
     }
 
