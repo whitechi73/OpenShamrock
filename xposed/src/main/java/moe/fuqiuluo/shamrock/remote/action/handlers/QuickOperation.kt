@@ -2,6 +2,8 @@ package moe.fuqiuluo.shamrock.remote.action.handlers
 
 import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
 import com.tencent.qqnt.kernel.nativeinterface.MsgRecord
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
@@ -13,20 +15,19 @@ import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.helper.MessageHelper
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
-import moe.fuqiuluo.shamrock.remote.service.HttpService
-import moe.fuqiuluo.shamrock.tools.asBoolean
 import moe.fuqiuluo.shamrock.tools.asBooleanOrNull
 import moe.fuqiuluo.shamrock.tools.asInt
 import moe.fuqiuluo.shamrock.tools.asIntOrNull
 import moe.fuqiuluo.shamrock.tools.asJsonObject
-import moe.fuqiuluo.shamrock.tools.asLong
 import moe.fuqiuluo.shamrock.tools.asString
 import moe.fuqiuluo.shamrock.tools.json
 import moe.fuqiuluo.shamrock.tools.jsonArray
 import moe.fuqiuluo.symbols.OneBotHandler
+import java.util.Timer
+import kotlin.concurrent.timerTask
 
 @OneBotHandler(".handle_quick_operation_async")
-internal object QuickOperation: IActionHandler() {
+internal object QuickOperation : IActionHandler() {
     val actionMsgTypes = arrayOf(
         "record", "voice", "video", "markdown"
     )
@@ -51,36 +52,27 @@ internal object QuickOperation: IActionHandler() {
 
         if (operation.containsKey("reply")) {
             LogCenter.log({ "websocket quickly reply successfully" }, Level.DEBUG)
-            val autoEscape = operation["auto_escape"].asBooleanOrNull ?: false
+            val autoEscape = operation["auto_escape"].asBooleanOrNull
             val atSender = operation["at_sender"].asBooleanOrNull ?: false
             val autoReply = operation["auto_reply"].asBooleanOrNull ?: true
             val message = operation["reply"]
             if (message is JsonPrimitive) {
-                if (autoEscape) {
-                    val msgList = mutableSetOf<JsonElement>()
-                    msgList.add(mapOf(
-                        "type" to "text",
-                        "data" to mapOf(
-                            "text" to message.asString
-                        )
-                    ).json)
-                    quicklyReply(
-                        record,
-                        msgList.jsonArray,
-                        msgHash,
-                        atSender,
-                        autoReply
-                    )
-                } else {
-                    val messageArray = MessageHelper.decodeCQCode(message.asString)
-                    quicklyReply(
-                        record,
-                        messageArray,
-                        msgHash,
-                        atSender,
-                        autoReply
-                    )
-                }
+                quicklyReply(
+                    record,
+                    if (autoEscape == true)
+                        listOf(
+                            mapOf(
+                                "type" to "text",
+                                "data" to mapOf(
+                                    "text" to message.asString
+                                )
+                            )
+                        ).json
+                    else MessageHelper.decodeCQCode(message.asString),
+                    msgHash,
+                    atSender,
+                    autoReply
+                )
             } else if (message is JsonArray) {
                 quicklyReply(
                     record,
@@ -92,17 +84,20 @@ internal object QuickOperation: IActionHandler() {
             }
         }
 
-        if (MsgConstant.KCHATTYPEGROUP == record.chatType && operation.containsKey("delete") && operation["delete"].asBoolean) {
-            Timer().schedule(object : TimerTask() {
-                override fun run() {
-                    MsgSvc.recallMsg(msgHash)
-                }
-            }, operation['delete_delay'].asIntOrNull?.toUInt() ?: 0)
+        if (MsgConstant.KCHATTYPEGROUP == record.chatType && operation["delete"].asBooleanOrNull == true) {
+            val duration = operation["delay"].asIntOrNull
+            if (duration != null) {
+                Timer().schedule(timerTask {
+                    GlobalScope.launch { MsgSvc.recallMsg(msgHash) }
+                }, duration.toLong())
+            } else {
+                MsgSvc.recallMsg(msgHash)
+            }
         }
-        if (MsgConstant.KCHATTYPEGROUP == record.chatType && operation.containsKey("kick") && operation["kick"].asBoolean) {
+        if (MsgConstant.KCHATTYPEGROUP == record.chatType && operation["kick"].asBooleanOrNull == true) {
             GroupSvc.kickMember(record.peerUin, false, "", record.senderUin)
         }
-        if (MsgConstant.KCHATTYPEGROUP == record.chatType && operation.containsKey("ban") && operation["ban"].asBoolean) {
+        if (MsgConstant.KCHATTYPEGROUP == record.chatType && operation["ban"].asBooleanOrNull == true) {
             val banTime = operation["ban_duration"].asIntOrNull ?: (30 * 60)
             if (banTime <= 0) return logic("禁言时间必须大于0", session.echo)
             GroupSvc.banMember(record.peerUin, record.senderUin, banTime)
@@ -132,19 +127,23 @@ internal object QuickOperation: IActionHandler() {
             }
         }
 
-        if (autoReply) messageList.add(mapOf(
-            "type" to "reply",
-            "data" to mapOf(
-                "id" to msgHash
-            )
-        ).json) // 添加回复
-        if (MsgConstant.KCHATTYPEGROUP == record.chatType && atSender) {
-            messageList.add(mapOf(
-                "type" to "at",
+        if (autoReply) messageList.add(
+            mapOf(
+                "type" to "reply",
                 "data" to mapOf(
-                    "qq" to record.senderUin
+                    "id" to msgHash
                 )
-            ).json) // 添加@发送者
+            ).json
+        ) // 添加回复
+        if (MsgConstant.KCHATTYPEGROUP == record.chatType && atSender) {
+            messageList.add(
+                mapOf(
+                    "type" to "at",
+                    "data" to mapOf(
+                        "qq" to record.senderUin
+                    )
+                ).json
+            ) // 添加@发送者
         }
         messageList.addAll(message)
         MsgSvc.sendToAio(record.chatType, record.peerUin.toString(), JsonArray(messageList), retryCnt = 3)
