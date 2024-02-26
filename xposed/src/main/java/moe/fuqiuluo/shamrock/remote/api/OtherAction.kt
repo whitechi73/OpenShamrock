@@ -92,9 +92,10 @@ fun Routing.otherAction() {
         val url = fetchOrNull("url")
         val b64 = fetchOrNull("base64")
         val name = fetchOrNull("name")
+        val root = fetchOrNull("root")
         val threadCnt = fetchOrNull("thread_cnt")?.toInt() ?: 0
         val headers = fetchOrNull("headers") ?: ""
-        call.respondText(DownloadFile(url, b64, threadCnt, headers.split("\r\n"), name), ContentType.Application.Json)
+        call.respondText(DownloadFile(url, b64, threadCnt, headers.split("\r\n"), name, root), ContentType.Application.Json)
     }
 
     post("/upload_file") {

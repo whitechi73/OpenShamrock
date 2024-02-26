@@ -32,7 +32,7 @@ internal enum class NoticeSubType {
     @SerialName("lift_ban") LiftBan,
 
     @SerialName("set") Set,
-    @SerialName("un_set") UnSet,
+    @SerialName("unset") UnSet,
 
     @SerialName("add") Add,
     @SerialName("invite") Invite,

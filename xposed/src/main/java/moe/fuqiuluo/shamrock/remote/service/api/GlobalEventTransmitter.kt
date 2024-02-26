@@ -357,6 +357,8 @@ internal object GlobalEventTransmitter: BaseSvc() {
                 type = NoticeType.GroupAdminChange,
                 subType = if (setAdmin) NoticeSubType.Set else NoticeSubType.UnSet,
                 operatorId = 0,
+                userId = target,
+                userUid = targetUid,
                 target = target,
                 targetUid = targetUid,
                 groupId = groupCode
