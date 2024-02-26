@@ -3,6 +3,7 @@ package moe.fuqiuluo.shamrock.remote.action.handlers
 import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
 import com.tencent.qqnt.kernel.nativeinterface.MsgRecord
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
@@ -23,8 +24,6 @@ import moe.fuqiuluo.shamrock.tools.asString
 import moe.fuqiuluo.shamrock.tools.json
 import moe.fuqiuluo.shamrock.tools.jsonArray
 import moe.fuqiuluo.symbols.OneBotHandler
-import java.util.Timer
-import kotlin.concurrent.timerTask
 
 @OneBotHandler(".handle_quick_operation_async")
 internal object QuickOperation : IActionHandler() {
@@ -87,9 +86,10 @@ internal object QuickOperation : IActionHandler() {
         if (MsgConstant.KCHATTYPEGROUP == record.chatType && operation["delete"].asBooleanOrNull == true) {
             val duration = operation["delay"].asIntOrNull
             if (duration != null) {
-                Timer().schedule(timerTask {
-                    GlobalScope.launch { MsgSvc.recallMsg(msgHash) }
-                }, duration.toLong())
+                GlobalScope.launch {
+                    delay(duration.toLong())
+                    MsgSvc.recallMsg(msgHash)
+                }
             } else {
                 MsgSvc.recallMsg(msgHash)
             }
