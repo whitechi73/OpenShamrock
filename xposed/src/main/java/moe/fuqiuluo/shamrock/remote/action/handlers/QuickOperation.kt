@@ -93,7 +93,11 @@ internal object QuickOperation: IActionHandler() {
         }
 
         if (MsgConstant.KCHATTYPEGROUP == record.chatType && operation.containsKey("delete") && operation["delete"].asBoolean) {
-            MsgSvc.recallMsg(msgHash)
+            Timer().schedule(object : TimerTask() {
+                override fun run() {
+                    MsgSvc.recallMsg(msgHash)
+                }
+            }, operation['delete_delay'].asIntOrNull?.toUInt() ?: 0)
         }
         if (MsgConstant.KCHATTYPEGROUP == record.chatType && operation.containsKey("kick") && operation["kick"].asBoolean) {
             GroupSvc.kickMember(record.peerUin, false, "", record.senderUin)
