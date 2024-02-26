@@ -14,7 +14,8 @@ export default defineUserConfig({
         name: 'viewport',
         content: 'width=device-width,initial-scale=1,user-scalable=no'
       }
-    ]
+    ],
+    ['script', { async: true, src: 'https://umami.zhenxin.me/script.js', 'data-website-id': 'a3220f2d-2267-4b95-b4aa-a5964cda0a0d' }]
   ],
   theme,
   plugins: [
