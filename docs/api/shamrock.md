@@ -92,6 +92,7 @@ url和base64至少一个不能为空
 | ---------- | ------------------- | ---- | -------------- | ------- |
 | url        | string              | 否   | 下载地址       |         |
 | name       | string              | 否   | 文件名称       | 文件md5 |
+| root       | string              | 否   | 保存文件的根目录，注意请确保QQ可以访问       | Shamrock缓存目录 |
 | base64     | string              | 否   | 文件base64内容 |         |
 | thread_cnt | int32               | 否   | 下载的线程数量 |         |
 | headers    | `string` or `array` | 否   | 请求头         |         |
