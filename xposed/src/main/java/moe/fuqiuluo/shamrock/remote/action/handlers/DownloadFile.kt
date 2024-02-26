@@ -12,6 +12,7 @@ import moe.fuqiuluo.shamrock.utils.DownloadUtils
 import moe.fuqiuluo.shamrock.utils.FileUtils
 import moe.fuqiuluo.shamrock.utils.MD5
 import moe.fuqiuluo.symbols.OneBotHandler
+import java.io.File
 
 @OneBotHandler("download_file")
 internal object DownloadFile: IActionHandler() {
@@ -19,6 +20,7 @@ internal object DownloadFile: IActionHandler() {
         val url = session.getStringOrNull("url")
         val name = session.getStringOrNull("name")
         val b64 = session.getStringOrNull("base64")
+        val rootDir = session.getStringOrNull("root")
         val threadCnt = session.getIntOrNull("thread_cnt") ?: 3
         val headers = if (session.has("headers")) (if (session.isArray("headers")) {
             session.getArray("headers").map {
@@ -27,7 +29,7 @@ internal object DownloadFile: IActionHandler() {
         } else {
             session.getString("headers").split("\r\n")
         }) else emptyList()
-        return invoke(url, b64, threadCnt, headers, name, session.echo)
+        return invoke(url, b64, threadCnt, headers, name, rootDir, session.echo)
     }
 
     suspend operator fun invoke(
@@ -36,6 +38,7 @@ internal object DownloadFile: IActionHandler() {
         threadCnt: Int,
         headers: List<String>,
         name: String?,
+        root: String?,
         echo: JsonElement = EmptyJsonString
     ): String {
         if (url != null) {
@@ -49,9 +52,9 @@ internal object DownloadFile: IActionHandler() {
                     headerMap[k] = v
                 }
             }
-            return invoke(url, threadCnt, headerMap, name, echo)
+            return invoke(url, threadCnt, headerMap, name, root, echo)
         } else if (base64 != null) {
-            return invoke(base64, name, echo)
+            return invoke(base64, name, root, echo)
         } else {
             return noParam("url/base64", echo)
         }
@@ -60,6 +63,7 @@ internal object DownloadFile: IActionHandler() {
     operator fun invoke(
         base64: String,
         name: String?,
+        root: String?,
         echo: JsonElement
     ): String {
         kotlin.runCatching {
@@ -68,11 +72,16 @@ internal object DownloadFile: IActionHandler() {
                 it.writeBytes(bytes)
             }
         }.onSuccess {
-            val tmp = if (name == null)
+            var tmp = if (name == null)
                 FileUtils.renameByMd5(it)
             else it.parentFile!!.resolve(name).also { target ->
                 it.renameTo(target)
                 it.delete()
+            }
+            if (root != null) {
+                tmp = File(root).resolve(name ?: tmp.name).also {
+                    tmp.renameTo(it)
+                }
             }
             return ok(data = DownloadResult(
                 file = tmp.absolutePath,
@@ -89,6 +98,7 @@ internal object DownloadFile: IActionHandler() {
         threadCnt: Int,
         headers: Map<String, String>,
         name: String?,
+        root: String?,
         echo: JsonElement = EmptyJsonString
     ): String {
         return kotlin.runCatching {
@@ -107,6 +117,11 @@ internal object DownloadFile: IActionHandler() {
                 val newFile = tmp.parentFile!!.resolve(name)
                 tmp.renameTo(newFile)
                 newFile
+            }
+            if (root != null) {
+                tmp = File(root).resolve(name ?: tmp.name).also {
+                    tmp.renameTo(it)
+                }
             }
             ok(data = DownloadResult(
                 file = tmp.absolutePath,

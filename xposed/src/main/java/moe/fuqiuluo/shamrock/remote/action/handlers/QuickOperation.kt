@@ -83,25 +83,28 @@ internal object QuickOperation : IActionHandler() {
             }
         }
 
-        if (MsgConstant.KCHATTYPEGROUP == record.chatType && operation["delete"].asBooleanOrNull == true) {
-            val duration = operation["delay"].asIntOrNull
-            if (duration != null) {
-                GlobalScope.launch {
-                    delay(duration.toLong())
+        if (MsgConstant.KCHATTYPEGROUP == record.chatType) {
+            if (operation["delete"].asBooleanOrNull == true) {
+                val duration = operation["delay"].asIntOrNull
+                if (duration != null) {
+                    GlobalScope.launch {
+                        delay(duration.toLong())
+                        MsgSvc.recallMsg(msgHash)
+                    }
+                } else {
                     MsgSvc.recallMsg(msgHash)
                 }
-            } else {
-                MsgSvc.recallMsg(msgHash)
+            }
+            if (operation["kick"].asBooleanOrNull == true) {
+                GroupSvc.kickMember(record.peerUin, false, "", record.senderUin)
+            }
+            if (operation["ban"].asBooleanOrNull == true) {
+                val banTime = operation["ban_duration"].asIntOrNull ?: (30 * 60)
+                if (banTime <= 0) return logic("禁言时间必须大于0", session.echo)
+                GroupSvc.banMember(record.peerUin, record.senderUin, banTime)
             }
         }
-        if (MsgConstant.KCHATTYPEGROUP == record.chatType && operation["kick"].asBooleanOrNull == true) {
-            GroupSvc.kickMember(record.peerUin, false, "", record.senderUin)
-        }
-        if (MsgConstant.KCHATTYPEGROUP == record.chatType && operation["ban"].asBooleanOrNull == true) {
-            val banTime = operation["ban_duration"].asIntOrNull ?: (30 * 60)
-            if (banTime <= 0) return logic("禁言时间必须大于0", session.echo)
-            GroupSvc.banMember(record.peerUin, record.senderUin, banTime)
-        }
+
 
         return logic("操作成功", session.echo)
     }
