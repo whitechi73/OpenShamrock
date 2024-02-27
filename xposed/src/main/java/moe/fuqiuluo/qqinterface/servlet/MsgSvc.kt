@@ -98,7 +98,7 @@ internal object MsgSvc : BaseSvc() {
                 }
                 continuation.invokeOnCancellation {
                     continuation.resume(null)
-                } // 貌似不会被取消，写了也没什么鸟用啊？
+                }
             }
         }
 

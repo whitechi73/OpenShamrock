@@ -21,6 +21,7 @@ internal data class MessageDetail(
     @SerialName("message_type") val msgType: String,
     @SerialName("message_id") val msgId: Int,
     @SerialName("message_seq") val msgSeq: Long,
+    @SerialName("real_id") val realId: Long = msgSeq,
     @SerialName("sender") val sender: MessageSender,
     @SerialName("message") val message: List<Map<String, JsonElement>>,
     @SerialName("group_id") val groupId: Long = 0,

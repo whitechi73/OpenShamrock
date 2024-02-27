@@ -70,6 +70,7 @@ internal object GetHistoryMsg : IActionHandler() {
                     msgType = MessageHelper.obtainDetailTypeByMsgType(msg.chatType),
                     msgId = msgHash,
                     msgSeq = msg.msgSeq,
+                    realId = msg.msgSeq,
                     sender = MessageSender(
                         msg.senderUin, msg.sendNickName, "unknown", 0, msg.senderUid, msg.senderUid
                     ),
@@ -92,6 +93,7 @@ internal object GetHistoryMsg : IActionHandler() {
                     msgType = MessageHelper.obtainDetailTypeByMsgType(msg.chatType),
                     msgId = MessageHelper.generateMsgIdHash(msg.chatType, msg.msgId),
                     msgSeq = msg.msgSeq,
+                    realId = msg.msgSeq,
                     sender = MessageSender(
                         msg.senderUin, msg.sendNickName
                             .ifEmpty { msg.sendMemberName }

@@ -30,6 +30,7 @@ internal object GetMsg: IActionHandler() {
             msgType = MessageHelper.obtainDetailTypeByMsgType(msg.chatType),
             msgId = msgHash,
             msgSeq = msg.msgSeq,
+            realId = msg.msgSeq,
             sender = MessageSender(
                 msg.senderUin, msg.sendNickName
                     .ifEmpty { msg.sendMemberName }
