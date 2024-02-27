@@ -238,7 +238,7 @@ internal object RichProtoSvc: BaseSvc() {
             }
             return "https://$domain$originalUrl"
         }
-        return "https://$$domain/offpic_new/0/123-0-${md5}/0?term=2"
+        return "https://$domain/offpic_new/0/123-0-${md5}/0?term=2"
     }
 
     suspend fun getGuildPicDownUrl(
