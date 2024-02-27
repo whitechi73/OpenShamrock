@@ -18,6 +18,8 @@ import moe.fuqiuluo.shamrock.helper.db.MessageDB
 import moe.fuqiuluo.shamrock.tools.asJsonObject
 import moe.fuqiuluo.shamrock.tools.asString
 import moe.fuqiuluo.shamrock.tools.hex2ByteArray
+import moe.fuqiuluo.shamrock.utils.PlatformUtils
+import moe.fuqiuluo.shamrock.utils.PlatformUtils.QQ_9_0_8_VER
 
 internal typealias IMsgElementConverter = suspend (Int, String, String, MsgElement) -> MessageSegment
 
@@ -167,6 +169,11 @@ internal object NtMsgElementConverter {
         val originalUrl = image.originImageUrl ?: ""
         LogCenter.log({ "receive image: $image" }, Level.DEBUG)
 
+        var storeId = 0
+        if (PlatformUtils.getQQVersionCode() > QQ_9_0_8_VER) {
+            storeId = image.storeID
+        }
+
         return MessageSegment(
             type = "image",
             data = hashMapOf(
@@ -192,6 +199,7 @@ internal object NtMsgElementConverter {
                         sha = "",
                         fileSize = image.fileSize.toULong(),
                         peer = peerId,
+                        storeId = storeId
                     )
 
                     MsgConstant.KCHATTYPEGUILD -> RichProtoSvc.getGuildPicDownUrl(

@@ -208,9 +208,10 @@ internal object RichProtoSvc: BaseSvc() {
         sha: String = "",
         fileSize: ULong = 0uL,
         width: UInt = 0u,
-        height: UInt = 0u
+        height: UInt = 0u,
+        storeId: Int = 0
     ): String {
-        val isNtServer = originalUrl.startsWith("/download")
+        val isNtServer = storeId == 1 || originalUrl.startsWith("/download")
         val domain = if (isNtServer) MULTIMEDIA_DOMAIN else C2C_PIC
         if (originalUrl.isNotEmpty()) {
             if (fileId.isNotEmpty()) getNtPicRKey(
@@ -238,7 +239,7 @@ internal object RichProtoSvc: BaseSvc() {
             }
             return "https://$domain$originalUrl"
         }
-        return "https://$domain/offpic_new/0/123-0-${md5}/0?term=2"
+        return "https://$domain/offpic_new/0/0-0-${md5}/0?term=2"
     }
 
     suspend fun getGuildPicDownUrl(

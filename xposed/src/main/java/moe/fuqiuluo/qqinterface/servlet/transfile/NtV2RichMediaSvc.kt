@@ -296,7 +296,12 @@ internal object NtV2RichMediaSvc: BaseSvc() {
                     contact = contact,
                     message = ArrayList(messages),
                     uniseq = uniseq.qqMsgId
-                ) { _, _ -> }
+                ) { _, _ ->
+                    val kernelService = NTServiceFetcher.kernelService
+                    val sessionService = kernelService.wrapperSession
+                    val msgService = sessionService.msgService
+                    msgService.deleteMsg(contact, arrayListOf(uniseq.qqMsgId), null)
+                }
                 it.invokeOnCancellation {
                     RichMediaUploadHandler.removeListener(uniseq.qqMsgId)
                 }
