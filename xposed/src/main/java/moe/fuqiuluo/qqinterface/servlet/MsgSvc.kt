@@ -298,6 +298,7 @@ internal object MsgSvc : BaseSvc() {
                         msgType = MessageHelper.obtainDetailTypeByMsgType(chatType),
                         msgId = 0, // MessageHelper.generateMsgIdHash(chatType, msg.content!!.msgViaRandom), msgViaRandom 为空
                         msgSeq = msg.contentHead!!.msgSeq ?: 0,
+                        realId = msg.contentHead!!.msgSeq ?: 0,
                         sender = MessageSender(
                             msg.msgHead?.peer ?: 0,
                             msg.msgHead?.responseGrp?.memberCard?.ifEmpty { msg.msgHead?.forward?.friendName }

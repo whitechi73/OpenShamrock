@@ -983,6 +983,7 @@ internal object GroupSvc: BaseSvc() {
                     operatorTime = obj["add_digest_time"].asLong,
                     messageId = 0,
                     messageSeq = msgSeq,
+                    realId = msgSeq,
                     messageContent = obj["msg_content"] ?: EmptyJsonArray
                 )
                 val mapping = MessageHelper.getMsgMappingBySeq(MsgConstant.KCHATTYPEGROUP, groupId.toString(), msgSeq)

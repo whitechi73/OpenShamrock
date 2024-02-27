@@ -21,7 +21,7 @@ internal data class MessageDetail(
     @SerialName("message_type") val msgType: String,
     @SerialName("message_id") val msgId: Int,
     @SerialName("message_seq") val msgSeq: Long,
-    @SerialName("real_id") val realId: Long = msgSeq,
+    @SerialName("real_id") val realId: Long,
     @SerialName("sender") val sender: MessageSender,
     @SerialName("message") val message: List<Map<String, JsonElement>>,
     @SerialName("group_id") val groupId: Long = 0,
@@ -49,5 +49,6 @@ internal data class EssenceMessage(
     @SerialName("operator_time") val operatorTime: Long,
     @SerialName("message_id") var messageId: Int,
     @SerialName("message_seq") val messageSeq: Int,
+    @SerialName("real_id") val realId: Int,
     @SerialName("message_content") val messageContent: JsonElement,
 )
