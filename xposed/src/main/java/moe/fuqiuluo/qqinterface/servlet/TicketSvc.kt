@@ -1,9 +1,12 @@
 package moe.fuqiuluo.qqinterface.servlet
 
+import com.tencent.guild.api.transfile.IGuildTransFileApi
 import com.tencent.mobileqq.app.QQAppInterface
 import com.tencent.mobileqq.pskey.oidb.cmd0x102a.oidb_cmd0x102a
+import com.tencent.mobileqq.qroute.QRoute
 import io.ktor.client.request.get
 import io.ktor.client.request.header
+import moe.fuqiuluo.shamrock.remote.service.data.BigDataTicket
 import moe.fuqiuluo.shamrock.tools.GlobalClientNoRedirect
 import moe.fuqiuluo.shamrock.tools.slice
 import mqq.app.MobileQQ
@@ -73,6 +76,14 @@ internal object TicketSvc: BaseSvc() {
         return "uin=o$uin; skey=$skey; p_uin=o$uin; p_skey=$pskey; pt4_token=$pt4token"
     }
 
+    fun getBigdataTicket(): BigDataTicket? {
+        return runCatching {
+            QRoute.api(IGuildTransFileApi::class.java).bigDataTicket?.let {
+                BigDataTicket(it.getSessionKey(), it.getSessionSig())
+            }
+        }.getOrNull()
+    }
+
     fun getCSRF(pskey: String = getPSKey(getUin())): String {
         if (pskey.isEmpty()) {
             return "0"
@@ -86,7 +97,7 @@ internal object TicketSvc: BaseSvc() {
 
     suspend fun getCSRF(uin: String, domain: String): String {
         // 是不是要用Skey？
-        return getBkn(getPSKey(uin, domain) ?: "")
+        return getBkn(getPSKey(uin, domain) ?: getSKey(uin))
     }
     
     fun getBkn(arg: String): String {
