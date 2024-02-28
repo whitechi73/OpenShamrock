@@ -10,7 +10,7 @@ import moe.fuqiuluo.shamrock.remote.service.data.MessageDetail
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
 import moe.fuqiuluo.symbols.OneBotHandler
 
-@OneBotHandler("get_forward_msg")
+@OneBotHandler("get_forward_msg", ["get_forward_message"])
 internal object GetForwardMsg : IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val id = session.getString("id")

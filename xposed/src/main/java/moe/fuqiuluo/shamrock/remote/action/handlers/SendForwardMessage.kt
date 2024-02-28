@@ -18,7 +18,7 @@ import protobuf.message.*
 import java.util.*
 import kotlin.random.Random
 
-@OneBotHandler("send_forward_msg")
+@OneBotHandler("send_forward_msg", ["send_forward_message"])
 internal object SendForwardMessage : IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val detailType = session.getStringOrNull("detail_type") ?: session.getStringOrNull("message_type")

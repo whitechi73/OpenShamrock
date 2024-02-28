@@ -19,7 +19,7 @@ import moe.fuqiuluo.symbols.OneBotHandler
 import moe.fuqiuluo.symbols.decodeProtobuf
 import protobuf.fav.WeiyunComm
 
-@OneBotHandler("fav.add_image_msg")
+@OneBotHandler("fav.add_image_msg", ["fav.add_image_message"])
 internal object FavAddImageMsg: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val uin = session.getLong("user_id")

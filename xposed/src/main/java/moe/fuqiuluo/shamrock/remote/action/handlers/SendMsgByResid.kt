@@ -16,7 +16,7 @@ import protobuf.message.routing.Grp
 import kotlin.random.Random
 import kotlin.random.nextUInt
 
-@OneBotHandler("send_msg_by_resid")
+@OneBotHandler("send_msg_by_resid", ["send_message_by_resid"])
 internal object SendMsgByResid : IActionHandler() {
     private val msgSeq = atomic(1000)
 
