@@ -21,7 +21,7 @@ import java.util.ArrayList
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
-@OneBotHandler("get_history_msg")
+@OneBotHandler("get_history_msg", ["get_history_message"])
 internal object GetHistoryMsg : IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val msgType = session.getString("message_type")

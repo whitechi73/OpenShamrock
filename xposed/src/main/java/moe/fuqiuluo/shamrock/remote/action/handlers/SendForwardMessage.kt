@@ -12,7 +12,7 @@ import moe.fuqiuluo.shamrock.remote.service.data.SendForwardMessageResult
 import moe.fuqiuluo.shamrock.tools.*
 import moe.fuqiuluo.symbols.OneBotHandler
 
-@OneBotHandler("send_forward_msg")
+@OneBotHandler("send_forward_msg", ["send_forward_message"])
 internal object SendForwardMessage : IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val detailType = session.getStringOrNull("detail_type") ?: session.getStringOrNull("message_type")

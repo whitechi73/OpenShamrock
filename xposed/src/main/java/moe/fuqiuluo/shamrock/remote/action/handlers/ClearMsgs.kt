@@ -8,7 +8,7 @@ import moe.fuqiuluo.shamrock.tools.EmptyJsonString
 import moe.fuqiuluo.shamrock.xposed.helper.NTServiceFetcher
 import moe.fuqiuluo.symbols.OneBotHandler
 
-@OneBotHandler("clear_msgs")
+@OneBotHandler("clear_msgs", ["clear_messages"])
 internal object ClearMsgs: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val msgType = session.getString("message_type")

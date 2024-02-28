@@ -5,7 +5,7 @@ import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.symbols.OneBotHandler
 
-@OneBotHandler("send_private_forward_msg")
+@OneBotHandler("send_private_forward_msg", ["send_private_forward_message"])
 internal object SendPrivateForwardMessage : IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val userId = session.getLong("user_id")

@@ -5,8 +5,8 @@ import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.symbols.OneBotHandler
 
-@OneBotHandler("send_group_forward_msg")
-internal object SendGroupForwardMessage : IActionHandler() {
+@OneBotHandler("send_group_forward_msg", ["send_group_forward_message"])
+internal object SendGroupForwardMessage: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val groupId = session.getLong("group_id")
         val retryCnt = session.getIntOrNull("retry_cnt") ?: 5

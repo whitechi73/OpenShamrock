@@ -12,7 +12,7 @@ internal object KickTroopMember: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val groupId = session.getLong("group_id")
         val userId = session.getLong("user_id")
-        val kickMsg = session.getStringOrNull("kick_msg") ?: ""
+        val kickMsg = session.getStringOrNull("kick_msg") ?: session.getStringOrNull("kick_message") ?: ""
         val rejectAddRequest = session.getBooleanOrDefault("reject_add_request", false)
 
         return invoke(groupId, userId, rejectAddRequest, kickMsg, session.echo)

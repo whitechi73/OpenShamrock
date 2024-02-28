@@ -10,7 +10,7 @@ import moe.fuqiuluo.shamrock.remote.service.data.FriendRequest
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
 import moe.fuqiuluo.symbols.OneBotHandler
 
-@OneBotHandler("get_friend_system_msg")
+@OneBotHandler("get_friend_system_msg", ["get_friend_system_message"])
 internal object GetFriendSystemMsg : IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         return invoke(echo = session.echo)
