@@ -36,9 +36,6 @@ class AntiDetection: IAction {
         antiMemoryWalking()
     }
 
-    // 虽然使用了getPackageGids来检测，但
-    // 事实上除了这个还有getPackageUid，getPackageUidAsUser，等乱七八糟的接口都可以用于检测，任君选择~
-    // 按这样来水检测，企鹅的工资可真好拿，每个接口都用来水一遍，这不得赢取白富美走向人生巅峰，俺也要来！>_<
     private fun antiGetPackageGidsDetection(ctx: Context) {
         //通过 android.content.pm.PackageManager->getPackageGids(Ljava/lang/String;)[I  扫 moe.fuqiuluo.shamrock
         ctx.packageManager::class.java.hookMethod("getPackageGids").before {
