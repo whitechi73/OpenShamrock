@@ -9,10 +9,20 @@ internal data class MessageResult(
     @SerialName("message_id") val msgId: Int,
     @SerialName("time") val time: Long
 )
+
 @Serializable
-internal data class ForwardMessageResult(
+internal data class UploadForwardMessageResult(
+    @SerialName("res_id") val resId: String,
+    @SerialName("filename") val filename: String,
+    @SerialName("summary") val summary: String,
+    @SerialName("desc") val desc: String,
+)
+
+@Serializable
+internal data class SendForwardMessageResult(
     @SerialName("message_id") val msgId: Int,
-    @SerialName("forward_id") val forwardId: String
+    @SerialName("res_id") val resId: String,
+    @SerialName("forward_id") val forwardId: String = resId
 )
 
 @Serializable
@@ -20,6 +30,7 @@ internal data class MessageDetail(
     @SerialName("time") val time: Int,
     @SerialName("message_type") val msgType: String,
     @SerialName("message_id") val msgId: Int,
+    @SerialName("message_id_qq") val qqMsgId: Long,
     @SerialName("message_seq") val msgSeq: Long,
     @SerialName("real_id") val realId: Long,
     @SerialName("sender") val sender: MessageSender,
@@ -27,6 +38,11 @@ internal data class MessageDetail(
     @SerialName("group_id") val groupId: Long = 0,
     @SerialName("peer_id") val peerId: Long,
     @SerialName("target_id") val targetId: Long = 0,
+)
+
+@Serializable
+internal data class GetForwardMsgResult(
+    @SerialName("messages") val msgs: List<MessageDetail>
 )
 
 @Serializable

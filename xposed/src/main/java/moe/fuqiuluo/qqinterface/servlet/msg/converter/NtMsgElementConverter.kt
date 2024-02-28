@@ -2,10 +2,6 @@ package moe.fuqiuluo.qqinterface.servlet.msg.converter
 
 import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
 import com.tencent.qqnt.kernel.nativeinterface.MsgElement
-import kotlinx.serialization.json.add
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.put
-import kotlinx.serialization.json.putJsonArray
 import moe.fuqiuluo.qqinterface.servlet.msg.MessageSegment
 import moe.fuqiuluo.qqinterface.servlet.transfile.RichProtoSvc
 import moe.fuqiuluo.shamrock.helper.ContactHelper
@@ -15,6 +11,7 @@ import moe.fuqiuluo.shamrock.helper.MessageHelper
 import moe.fuqiuluo.shamrock.helper.db.ImageDB
 import moe.fuqiuluo.shamrock.helper.db.ImageMapping
 import moe.fuqiuluo.shamrock.helper.db.MessageDB
+import moe.fuqiuluo.shamrock.tools.asJsonArray
 import moe.fuqiuluo.shamrock.tools.asJsonObject
 import moe.fuqiuluo.shamrock.tools.asString
 import moe.fuqiuluo.shamrock.tools.hex2ByteArray
@@ -242,16 +239,10 @@ internal object NtMsgElementConverter {
             data = hashMapOf(
                 "file" to md5,
                 "url" to when (chatType) {
-                    MsgConstant.KCHATTYPEGROUP -> RichProtoSvc.getGroupPttDownUrl(
-                        "0",
-                        record.md5HexStr,
-                        record.fileUuid
-                    )
-
                     MsgConstant.KCHATTYPEC2C -> RichProtoSvc.getC2CPttDownUrl("0", record.fileUuid)
-                    MsgConstant.KCHATTYPEGUILD -> RichProtoSvc.getGroupPttDownUrl(
+                    MsgConstant.KCHATTYPEGROUP, MsgConstant.KCHATTYPEGUILD -> RichProtoSvc.getGroupPttDownUrl(
                         "0",
-                        record.md5HexStr,
+                        md5.hex2ByteArray(),
                         record.fileUuid
                     )
 
@@ -343,7 +334,10 @@ internal object NtMsgElementConverter {
                 MessageSegment(
                     type = "forward",
                     data = mapOf(
-                        "id" to info["resid"].asString
+                        "id" to info["resid"].asString,
+                        "filename" to info["uniseq"].asString,
+                        "summary" to info["summary"].asString,
+                        "desc" to info["news"].asJsonArray.joinToString("\n") { it.asJsonObject["text"].asString }
                     )
                 )
             }

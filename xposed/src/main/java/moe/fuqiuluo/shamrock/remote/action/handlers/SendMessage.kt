@@ -21,7 +21,7 @@ import moe.fuqiuluo.shamrock.tools.jsonArray
 import moe.fuqiuluo.symbols.OneBotHandler
 
 @OneBotHandler("send_msg", ["send_message"])
-internal object SendMessage: IActionHandler() {
+internal object SendMessage : IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val detailType = session.getStringOrNull("detail_type") ?: session.getStringOrNull("message_type")
         try {
@@ -40,28 +40,61 @@ internal object SendMessage: IActionHandler() {
                     return noParam("detail_type/message_type", session.echo)
                 }
             }
-            val peerId = when(chatType) {
-                MsgConstant.KCHATTYPEGROUP -> session.getLongOrNull("group_id") ?: return noParam("group_id", session.echo)
-                MsgConstant.KCHATTYPEC2C, MsgConstant.KCHATTYPETEMPC2CFROMGROUP -> session.getLongOrNull("user_id") ?: return noParam("user_id", session.echo)
+            val peerId = when (chatType) {
+                MsgConstant.KCHATTYPEGROUP -> session.getLongOrNull("group_id") ?: return noParam(
+                    "group_id",
+                    session.echo
+                )
+
+                MsgConstant.KCHATTYPEC2C, MsgConstant.KCHATTYPETEMPC2CFROMGROUP -> session.getLongOrNull("user_id")
+                    ?: return noParam("user_id", session.echo)
+
                 else -> error("unknown chat type: $chatType")
             }.toString()
-            val fromId = when(chatType) {
-                MsgConstant.KCHATTYPEGROUP, MsgConstant.KCHATTYPETEMPC2CFROMGROUP -> session.getLongOrNull("group_id") ?: return noParam("group_id", session.echo)
+            val fromId = when (chatType) {
+                MsgConstant.KCHATTYPEGROUP, MsgConstant.KCHATTYPETEMPC2CFROMGROUP -> session.getLongOrNull("group_id")
+                    ?: return noParam("group_id", session.echo)
+
                 MsgConstant.KCHATTYPEC2C -> session.getLongOrNull("user_id") ?: return noParam("user_id", session.echo)
                 else -> error("unknown chat type: $chatType")
             }.toString()
-            val retryCnt = session.getIntOrNull("retry_cnt")
+            val retryCnt = session.getIntOrNull("retry_cnt") ?: 5
             val recallDuration = session.getLongOrNull("recall_duration")
             return if (session.isString("message")) {
                 val autoEscape = session.getBooleanOrDefault("auto_escape", false)
                 val message = session.getString("message")
-                invoke(chatType, peerId, message, autoEscape, echo = session.echo, fromId = fromId, retryCnt = retryCnt ?: 5, recallDuration = recallDuration)
+                invoke(
+                    chatType,
+                    peerId,
+                    message,
+                    autoEscape,
+                    echo = session.echo,
+                    fromId = fromId,
+                    retryCnt = retryCnt,
+                    recallDuration = recallDuration
+                )
             } else if (session.isArray("message")) {
                 val message = session.getArray("message")
-                invoke(chatType, peerId, message, session.echo, fromId = fromId, retryCnt ?: 5, recallDuration = recallDuration)
+                invoke(
+                    chatType,
+                    peerId,
+                    message,
+                    session.echo,
+                    fromId = fromId,
+                    retryCnt = retryCnt,
+                    recallDuration = recallDuration
+                )
             } else {
                 val message = session.getObject("message")
-                invoke(chatType, peerId, listOf( message ).jsonArray, session.echo, fromId = fromId, retryCnt ?: 5, recallDuration = recallDuration)
+                invoke(
+                    chatType,
+                    peerId,
+                    listOf(message).jsonArray,
+                    session.echo,
+                    fromId = fromId,
+                    retryCnt = retryCnt,
+                    recallDuration = recallDuration
+                )
             }
         } catch (e: ParamsException) {
             return noParam(e.message!!, session.echo)
@@ -82,14 +115,16 @@ internal object SendMessage: IActionHandler() {
         echo: JsonElement = EmptyJsonString
     ): String {
         val result = if (autoEscape) {
-            MsgSvc.sendToAio(chatType, peerId, listOf(
-                mapOf(
-                    "type" to "text",
-                    "data" to mapOf(
-                        "text" to message
+            MsgSvc.sendToAio(
+                chatType, peerId, listOf(
+                    mapOf(
+                        "type" to "text",
+                        "data" to mapOf(
+                            "text" to message
+                        )
                     )
-                )
-            ).json, fromId = fromId, retryCnt)
+                ).json, fromId = fromId, retryCnt
+            )
         } else {
             val msg = MessageHelper.decodeCQCode(message)
             if (msg.isEmpty()) {
@@ -98,44 +133,54 @@ internal object SendMessage: IActionHandler() {
             } else {
                 MsgSvc.sendToAio(chatType, peerId, msg, fromId = fromId, retryCnt)
             }
-        }
-        if (result.isFailure) {
-            return logic(result.exceptionOrNull()?.message ?: "", echo)
-        }
-        val sendMsgResult = result.getOrThrow()
-        if (sendMsgResult.msgHashId <= 0) {
+        }.getOrElse{ return logic(it.message ?: "", echo)}
+        if (result.msgHashId <= 0) {
             return logic("send message failed", echo = echo)
         }
-        recallDuration?.let { autoRecall(sendMsgResult.msgHashId, it) }
-        return ok(MessageResult(
-            msgId = sendMsgResult.msgHashId,
-            time = (sendMsgResult.msgTime * 0.001).toLong()
-        ), echo = echo)
+        if (recallDuration != null) {
+            GlobalScope.launch(Dispatchers.Default) {
+                delay(recallDuration)
+                MsgSvc.recallMsg(result.msgHashId)
+            }
+        }
+        return ok(
+            MessageResult(
+                msgId = result.msgHashId,
+                time = (result.msgTime * 0.001).toLong()
+            ), echo = echo
+        )
     }
 
     // 消息段格式消息
     suspend operator fun invoke(
-        chatType: Int, peerId: String, message: JsonArray, echo: JsonElement = EmptyJsonString, fromId: String = peerId, retryCnt: Int, recallDuration: Long?,
+        chatType: Int,
+        peerId: String,
+        message: JsonArray,
+        echo: JsonElement = EmptyJsonString,
+        fromId: String = peerId,
+        retryCnt: Int,
+        recallDuration: Long?,
     ): String {
         //if (!ContactHelper.checkContactAvailable(chatType, peerId)) {
         //    return logic("contact is not found", echo = echo)
         //}
-        val result = MsgSvc.sendToAio(chatType, peerId, message, fromId = fromId, retryCnt).getOrElse { return logic(it.message ?: "", echo) }
+        val result = MsgSvc.sendToAio(chatType, peerId, message, fromId, retryCnt)
+            .getOrElse { return logic(it.message ?: "", echo) }
         if (result.msgHashId <= 0) {
             return logic("send message failed", echo = echo)
         }
-        recallDuration?.let { autoRecall(result.msgHashId, it) }
-        return ok(MessageResult(
-            msgId = result.msgHashId,
-            time = (result.msgTime * 0.001).toLong()
-        ), echo)
-    }
-
-    private fun autoRecall(msgHash: Int, duration: Long) {
-        GlobalScope.launch(Dispatchers.Default) {
-            delay(duration)
-            MsgSvc.recallMsg(msgHash)
+        if (recallDuration != null) {
+            GlobalScope.launch(Dispatchers.Default) {
+                delay(recallDuration)
+                MsgSvc.recallMsg(result.msgHashId)
+            }
         }
+        return ok(
+            MessageResult(
+                msgId = result.msgHashId,
+                time = (result.msgTime * 0.001).toLong()
+            ), echo
+        )
     }
 
     override val requiredParams: Array<String> = arrayOf("message")

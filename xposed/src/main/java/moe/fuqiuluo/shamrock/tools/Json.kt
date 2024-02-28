@@ -52,6 +52,7 @@ val Collection<Any?>.json: JsonArray
                     is Number -> arrayList.add(it.json)
                     is String -> arrayList.add(it.json)
                     is Boolean -> arrayList.add(it.json)
+                    is Pair<*, *> -> arrayList.add(mapOf(it as Pair<String, Any?>).json)
                     is Map<*, *> -> arrayList.add((it as Map<String, Any?>).json)
                     is Collection<*> -> arrayList.add((it as Collection<Any?>).json)
                     else -> error("unknown array type: ${it::class.java}")

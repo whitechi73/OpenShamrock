@@ -21,12 +21,9 @@ import moe.fuqiuluo.qqinterface.servlet.msg.maker.NtMsgElementMaker
 import moe.fuqiuluo.shamrock.helper.db.MessageDB
 import moe.fuqiuluo.shamrock.helper.db.MessageMapping
 import moe.fuqiuluo.shamrock.remote.structures.SendMsgResult
-import moe.fuqiuluo.shamrock.tools.EmptyJsonObject
-import moe.fuqiuluo.shamrock.tools.asJsonObjectOrNull
-import moe.fuqiuluo.shamrock.tools.asString
-import moe.fuqiuluo.shamrock.tools.json
-import moe.fuqiuluo.shamrock.tools.jsonArray
+import moe.fuqiuluo.shamrock.tools.*
 import protobuf.message.Elem
+import protobuf.message.RichText
 import kotlin.coroutines.resume
 import kotlin.math.abs
 import kotlin.time.Duration.Companion.seconds
@@ -75,7 +72,7 @@ internal object MessageHelper {
             }
             if (resendRet != 0 &&
                 resendRet != 4 // 使用OldBDH 100%触发
-                ) {
+            ) {
                 resendMsg(contact, msgId, retryCnt - 1, msgHashId)
             } else {
                 Result.success(SendMsgResult(msgHashId, msgId, System.currentTimeMillis()))
@@ -319,38 +316,30 @@ internal object MessageHelper {
         return hasActionMsg to msgList
     }
 
-    suspend fun messageArrayToMessageElements(
+    suspend fun messageArrayToRichText(
         chatType: Int,
         msgId: Long,
         peerId: String,
         messageList: JsonArray
-    ): Pair<Boolean, ArrayList<Elem>> {
-        val msgList = arrayListOf<Elem>()
-        var hasActionMsg = false
-        messageList.forEach {
-            val msg = it.jsonObject
+    ): Result<Pair<String, RichText>> {
+        val elemMaker = ElemMaker()
+        messageList.forEach { element ->
+            val msg = element.asJsonObject
             val maker = ElemMaker[msg["type"].asString]
             if (maker != null) {
                 try {
                     val data = msg["data"].asJsonObjectOrNull ?: EmptyJsonObject
-                    maker(chatType, msgId, peerId, data).onSuccess { msgElem ->
-                        msgList.add(msgElem)
-                    }.onFailure {
-                        if (it.javaClass != ActionMsgException::class.java) {
-                            throw it
-                        } else {
-                            hasActionMsg = true
-                        }
-                    }
+                    maker(elemMaker, chatType, msgId, peerId, data)
                 } catch (e: Throwable) {
-                    LogCenter.log(e.stackTraceToString(), Level.ERROR)
+                    if (e.javaClass != ActionMsgException::class.java) {
+                        LogCenter.log(e.stackTraceToString(), Level.ERROR)
+                    }
                 }
             } else {
                 LogCenter.log("不支持的消息类型: ${msg["type"].asString}", Level.ERROR)
-                return false to arrayListOf()
             }
         }
-        return hasActionMsg to msgList
+        return Result.success(elemMaker.getDesc() to elemMaker.getRich())
     }
 
     fun generateMsgIdHash(chatType: Int, msgId: Long): Int {

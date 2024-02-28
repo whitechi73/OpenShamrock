@@ -69,7 +69,6 @@ internal object PrimitiveListener {
                 528 -> when (subType) {
                     35 -> onFriendApply(msgTime, push.clientInfo!!, body)
                     39 -> onCardChange(msgTime, body)
-                    // invite
                     68 -> onGroupApply(msgTime, contentHead, body)
                     138 -> onC2CRecall(msgTime, body)
                     290 -> onC2CPoke(msgTime, body)
@@ -79,7 +78,7 @@ internal object PrimitiveListener {
                     12 -> onGroupBan(msgTime, body)
                     16 -> onGroupUniqueTitleChange(msgTime, body)
                     17 -> onGroupRecall(msgTime, body)
-                    20 -> onGroupPokeAndGroupSign(msgTime, body)
+                    20 -> onGroupCommonTips(msgTime, body)
                     21 -> onEssenceMessage(msgTime, push.clientInfo, body)
                 }
             }
@@ -281,7 +280,7 @@ internal object PrimitiveListener {
     }
 
 
-    private suspend fun onGroupPokeAndGroupSign(time: Long, body: MsgBody) {
+    private suspend fun onGroupCommonTips(time: Long, body: MsgBody) {
         val event = runCatching {
             body.msgContent!!.decodeProtobuf<GroupCommonTipsEvent>()
         }.getOrElse {
