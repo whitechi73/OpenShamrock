@@ -10,24 +10,18 @@ import io.ktor.utils.io.core.writeInt
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
 import moe.fuqiuluo.qqinterface.servlet.msg.MessageTempHandler
-
 import moe.fuqiuluo.shamrock.remote.action.handlers.GetHistoryMsg
-import moe.fuqiuluo.shamrock.remote.service.listener.AioListener
 import moe.fuqiuluo.shamrock.tools.broadcast
 import moe.fuqiuluo.shamrock.utils.DeflateTools
-import protobuf.message.element.LightAppElem
-import protobuf.message.PushMsgBody
-import protobuf.message.ContentHead
-import protobuf.message.Elem
-import protobuf.message.RichText
-import protobuf.message.ResponseHead
-import protobuf.message.MsgBody
-import protobuf.push.MessagePush
 import mqq.app.MobileQQ
 import protobuf.auto.toByteArray
+import protobuf.message.*
+import protobuf.message.element.LightAppElem
+import protobuf.push.MessagePush
 import kotlin.coroutines.resume
+import kotlin.text.toByteArray
 
-internal object PacketSvc: BaseSvc() {
+internal object PacketSvc : BaseSvc() {
     /**
      * 伪造收到Json卡片消息
      */
@@ -36,7 +30,7 @@ internal object PacketSvc: BaseSvc() {
             listOf(
                 Elem(
                     lightApp = LightAppElem((byteArrayOf(1) + DeflateTools.compress(content.toByteArray())))
-            )
+                )
             )
         }
     }
@@ -44,7 +38,12 @@ internal object PacketSvc: BaseSvc() {
     private suspend fun fakeReceiveSelfMsg(msgService: IKernelMsgService, builder: () -> List<Elem>): Long {
         val latestMsg = withTimeoutOrNull(3000) {
             suspendCancellableCoroutine {
-                msgService.getMsgs(Contact(MsgConstant.KCHATTYPEC2C, app.currentUid, ""), 0L, 1, true) { code, why, msgs ->
+                msgService.getMsgs(
+                    Contact(MsgConstant.KCHATTYPEC2C, app.currentUid, ""),
+                    0L,
+                    1,
+                    true
+                ) { code, why, msgs ->
                     it.resume(GetHistoryMsg.GetMsgResult(code, why, msgs))
                 }
             }
@@ -72,9 +71,11 @@ internal object PacketSvc: BaseSvc() {
                     u4 = msgSeq - 2,
                     u5 = msgSeq
                 ),
-                body = MsgBody(RichText(
-                    elements = builder()
-                ))
+                body = MsgBody(
+                    RichText(
+                        elements = builder()
+                    )
+                )
             )
         )
 

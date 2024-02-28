@@ -1,21 +1,46 @@
 package moe.fuqiuluo.qqinterface.servlet.msg
 
+import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
 import com.tencent.qqnt.kernel.nativeinterface.MsgElement
 import moe.fuqiuluo.qqinterface.servlet.msg.converter.ElemConverter
 import moe.fuqiuluo.qqinterface.servlet.msg.converter.NtMsgElementConverter
+import moe.fuqiuluo.qqinterface.servlet.transfile.RichProtoSvc
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.helper.MessageHelper
+import moe.fuqiuluo.shamrock.tools.toHexString
 import protobuf.message.Elem
+import protobuf.message.RichText
 
-@JvmName("elemListToSegments")
-internal suspend fun List<Elem>.toSegments(
+@JvmName("richTextToSegments")
+internal suspend fun RichText.toSegments(
     chatType: Int,
     peerId: String,
     subPeer: String
 ): List<MessageSegment> {
     val messageData = arrayListOf<MessageSegment>()
-    this.forEach { msg ->
+    if (ptt != null) {
+        val md5 = ptt!!.fileMd5!!
+        messageData.add(
+            MessageSegment(
+                "record", mapOf(
+                    "file" to md5.toHexString(),
+                    "url" to when (chatType) {
+                        MsgConstant.KCHATTYPEC2C -> RichProtoSvc.getC2CPttDownUrl("0", ptt!!.fileUuid!!)
+                        MsgConstant.KCHATTYPEGROUP, MsgConstant.KCHATTYPEGUILD -> RichProtoSvc.getGroupPttDownUrl(
+                            "0",
+                            md5,
+                            ptt!!.groupFileKey!!
+                        )
+
+                        else -> throw UnsupportedOperationException("Not supported chat type: $chatType")
+                    },
+                    "magic" to ptt!!.pbReserve?.magic,
+                )
+            )
+        )
+    }
+    elements?.forEach { msg ->
         kotlin.runCatching {
             val elementType = if (msg.text != null) {
                 1
@@ -29,7 +54,7 @@ internal suspend fun List<Elem>.toSegments(
                 37
             } else if (msg.srcMsg != null) {
                 45
-            }  else if (msg.lightApp != null) {
+            } else if (msg.lightApp != null) {
                 51
             } else if (msg.commonElem != null) {
                 53

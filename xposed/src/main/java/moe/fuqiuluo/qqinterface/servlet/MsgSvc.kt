@@ -9,7 +9,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.JsonArray
-
+import kotlinx.serialization.json.JsonObject
+import moe.fuqiuluo.qqinterface.servlet.msg.MessageSegment
+import moe.fuqiuluo.qqinterface.servlet.msg.toJson
 import moe.fuqiuluo.qqinterface.servlet.msg.toListMap
 import moe.fuqiuluo.qqinterface.servlet.msg.toSegments
 import moe.fuqiuluo.shamrock.helper.ContactHelper
@@ -25,10 +27,12 @@ import moe.fuqiuluo.shamrock.xposed.helper.NTServiceFetcher
 import moe.fuqiuluo.shamrock.xposed.helper.msgService
 import moe.fuqiuluo.symbols.decodeProtobuf
 import protobuf.auto.toByteArray
-import protobuf.message.PushMsgBody
+import protobuf.message.*
 import protobuf.message.longmsg.*
+import java.util.*
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
+import kotlin.random.Random
 
 internal object MsgSvc : BaseSvc() {
     private suspend fun prepareTempChatFromGroup(
@@ -207,45 +211,195 @@ internal object MsgSvc : BaseSvc() {
         }
         val result =
             MessageHelper.sendMessageWithoutMsgId(chatType, peedId, message, fromId, MessageCallback(peedId, 0))
-        if (result.isFailure) {
-            LogCenter.log("sendToAio: " + result.exceptionOrNull()?.stackTraceToString(), Level.ERROR)
-            return result
-        }
-        val sendResult = result.getOrThrow()
-        return if (sendResult.isTimeout) {
+                .getOrElse { return Result.failure(it) }
+        return if (result.isTimeout) {
             // 发送失败，可能网络问题出现红色感叹号，重试
             // 例如 rich media transfer failed
             delay(100)
-            MessageHelper.resendMsg(chatType, peedId, fromId, sendResult.qqMsgId, retryCnt, sendResult.msgHashId)
+            MessageHelper.resendMsg(chatType, peedId, fromId, result.qqMsgId, retryCnt, result.msgHashId)
         } else {
-            result
+            Result.success(result)
         }
     }
 
     suspend fun uploadMultiMsg(
-        uid: String,
-        groupUin: String?,
-        messages: List<PushMsgBody>,
-    ): Result<String> {
+        chatType: Int,
+        peerId: String,
+        fromId: String,
+        messages: JsonArray,
+        retryCnt: Int,
+    ): Result<MessageSegment> {
+        var i = -1
+        val desc = MutableList(messages.size) { "" }
+        val forwardMsg = mutableMapOf<String, String>()
+
+        val msgs = messages.mapNotNull { msg ->
+            kotlin.runCatching {
+                val data = msg.asJsonObject["data"].asJsonObject
+                if (data.containsKey("id")) {
+                    val record = getMsg(data["id"].asInt).getOrElse {
+                        error("合并转发消息节点消息(id = ${data["id"].asInt})获取失败：$it")
+                    }
+                    PushMsgBody(
+                        msgHead = ResponseHead(
+                            peerUid = record.senderUid,
+                            receiverUid = record.peerUid,
+                            forward = ResponseForward(
+                                friendName = record.sendNickName
+                            ),
+                            responseGrp = if (record.chatType == MsgConstant.KCHATTYPEGROUP) ResponseGrp(
+                                groupCode = record.peerUin.toULong(),
+                                memberCard = record.sendMemberName,
+                                u1 = 2
+                            ) else null
+                        ),
+                        contentHead = ContentHead(
+                            msgType = when (record.chatType) {
+                                MsgConstant.KCHATTYPEC2C -> 9
+                                MsgConstant.KCHATTYPEGROUP -> 82
+                                else -> throw UnsupportedOperationException(
+                                    "Unsupported chatType: $chatType"
+                                )
+                            },
+                            msgSubType = if (record.chatType == MsgConstant.KCHATTYPEC2C) 175 else null,
+                            divSeq = if (record.chatType == MsgConstant.KCHATTYPEC2C) 175 else null,
+                            msgViaRandom = record.msgId,
+                            sequence = record.msgSeq, // idk what this is(i++)
+                            msgTime = record.msgTime,
+                            u2 = 1,
+                            u6 = 0,
+                            u7 = 0,
+                            msgSeq = if (record.chatType == MsgConstant.KCHATTYPEC2C) record.msgSeq else null, // seq for dm
+                            forwardHead = ForwardHead(
+                                u1 = 0,
+                                u2 = 0,
+                                u3 = 0,
+                                ub641 = "",
+                                avatar = ""
+                            )
+                        ),
+                        body = MsgBody(
+                            richText = MessageHelper.messageArrayToRichText(
+                                record.chatType,
+                                record.msgId,
+                                record.peerUin.toString(),
+                                record.elements.toSegments(
+                                    record.chatType,
+                                    record.peerUin.toString(),
+                                    "0"
+                                ).onEach { segment ->
+                                    if (segment.type == "forward")
+                                        forwardMsg[segment.data["filename"] as String] =
+                                            segment.data["id"] as String
+                                }.toJson()
+                            ).getOrElse { throw Exception("消息合成失败: $it") }.let {
+                                desc[++i] = record.sendMemberName.ifEmpty { record.sendNickName } + ": " + it.first
+                                it.second
+                            }
+                        )
+                    )
+                } else if (data.containsKey("content")) {
+                    PushMsgBody(
+                        msgHead = ResponseHead(
+                            peer = data["uin"]?.asLong ?: TicketSvc.getUin().toLong(),
+                            peerUid = data["uid"]?.asString ?: TicketSvc.getUid(),
+                            receiverUid = TicketSvc.getUid(),
+                            forward = ResponseForward(
+                                friendName = data["name"]?.asStringOrNull ?: TicketSvc.getNickname()
+                            )
+                        ),
+                        contentHead = ContentHead(
+                            msgType = 9,
+                            msgSubType = 175,
+                            divSeq = 175,
+                            msgViaRandom = Random.nextLong(),
+                            sequence = data["seq"]?.asLong ?: Random.nextLong(),
+                            msgTime = data["time"]?.asLong ?: (System.currentTimeMillis() / 1000),
+                            u2 = 1,
+                            u6 = 0,
+                            u7 = 0,
+                            msgSeq = data["seq"]?.asLong ?: Random.nextLong(),
+                            forwardHead = ForwardHead(
+                                u1 = 0,
+                                u2 = 0,
+                                u3 = 2,
+                                ub641 = "",
+                                avatar = ""
+                            )
+                        ),
+                        body = MsgBody(
+                            richText = MessageHelper.messageArrayToRichText(
+                                chatType = chatType,
+                                msgId = Random.nextLong(),
+                                peerId = data["uin"]?.asString ?: TicketSvc.getUin(),
+                                messageList = when (data["content"]) {
+                                    is JsonObject -> listOf(data["content"] as JsonObject).json
+                                    is JsonArray -> data["content"] as JsonArray
+                                    else -> MessageHelper.decodeCQCode(data["content"].asString)
+                                }.onEach { element ->
+                                    val elementData = element.asJsonObject["data"].asJsonObject
+                                    if (element.asJsonObject["type"].asString == "forward")
+                                        forwardMsg[elementData["filename"].asString] =
+                                            elementData["id"].asString
+                                }
+                            ).getOrElse { throw Exception("消息合成失败: $it") }.let {
+                                desc[++i] =
+                                    (data["name"].asStringOrNull ?: data["uin"].asStringOrNull
+                                    ?: TicketSvc.getNickname()) + ": " + it.first
+                                it.second
+                            }
+                        )
+                    )
+                } else {
+                    error("消息节点缺少id或content字段")
+                }
+            }.getOrElse {
+                LogCenter.log("消息节点解析失败：$it", Level.WARN)
+                null
+            }
+        }.ifEmpty { return Result.failure(Exception("消息节点为空")) }
+
         val payload = LongMsgPayload(
-            action = listOf(
+            action = mutableListOf(
                 LongMsgAction(
                     command = "MultiMsg",
                     data = LongMsgContent(
-                        body = messages
+                        body = msgs
                     )
                 )
-            )
+            ).apply {
+                forwardMsg.map { msg ->
+                    addAll(getMultiMsg(msg.value).getOrElse { return Result.failure(Exception("无法获取嵌套转发消息: $it")) }
+                        .map { action ->
+                            if (action.command == "MultiMsg") LongMsgAction(
+                                command = msg.key,
+                                data = action.data
+                            ) else action
+                        })
+                }
+            }
         )
         LogCenter.log(payload.toByteArray().toHexString(), Level.DEBUG)
 
         val req = LongMsgReq(
-            sendInfo = SendLongMsgInfo(
-                type = if (groupUin == null) 1 else 3,
-                uid = LongMsgUid(groupUin ?: uid),
-                groupUin = groupUin?.toInt(),
-                payload = DeflateTools.gzip(payload.toByteArray())
-            ),
+            sendInfo = when (chatType) {
+                MsgConstant.KCHATTYPEC2C -> SendLongMsgInfo(
+                    type = 1,
+                    uid = LongMsgUid(peerId),
+                    payload = DeflateTools.gzip(payload.toByteArray())
+                )
+
+                MsgConstant.KCHATTYPEGROUP -> SendLongMsgInfo(
+                    type = 3,
+                    uid = LongMsgUid(fromId),
+                    groupUin = fromId.toInt(),
+                    payload = DeflateTools.gzip(payload.toByteArray())
+                )
+
+                else -> throw UnsupportedOperationException(
+                    "Unsupported chatType: $chatType"
+                )
+            },
             setting = LongMsgSettings(
                 field1 = 4,
                 field2 = 2,
@@ -253,17 +407,29 @@ internal object MsgSvc : BaseSvc() {
                 field4 = 0
             )
         )
+
         val buffer = sendBufferAW(
             "trpc.group.long_msg_interface.MsgService.SsoSendLongMsg",
             true,
             req.toByteArray()
         ) ?: return Result.failure(Exception("unable to upload multi message"))
         val rsp = buffer.slice(4).decodeProtobuf<LongMsgRsp>()
-        return rsp.sendResult?.resId?.let { Result.success(it) }
-            ?: Result.failure(Exception("unable to upload multi message"))
+        val resId = rsp.sendResult?.resId ?: return Result.failure(Exception("unable to upload multi message"))
+        val filename = UUID.randomUUID().toString().uppercase()
+        return Result.success(
+            MessageSegment(
+                "forward",
+                mapOf(
+                    "id" to resId,
+                    "filename" to filename,
+                    "summary" to "查看${desc.size}条转发消息",
+                    "desc" to desc.slice(0..if (i < 3) i else 3).joinToString("\n")
+                )
+            )
+        )
     }
 
-    suspend fun getMultiMsg(resId: String): Result<List<MessageDetail>> {
+    suspend fun getMultiMsg(resId: String): Result<List<LongMsgAction>> {
         val req = LongMsgReq(
             recvInfo = RecvLongMsgInfo(
                 uid = LongMsgUid(TicketSvc.getUid()),
@@ -284,11 +450,18 @@ internal object MsgSvc : BaseSvc() {
         ) ?: return Result.failure(Exception("unable to get multi message"))
         val rsp = buffer.slice(4).decodeProtobuf<LongMsgRsp>()
         val zippedPayload = DeflateTools.ungzip(
-            rsp.recvResult?.payload ?: return Result.failure(Exception("unable to get multi message"))
+            rsp.recvResult?.payload ?: return Result.failure(Exception("payload is empty"))
         )
         LogCenter.log(zippedPayload.toHexString(), Level.DEBUG)
-        val payload = zippedPayload.decodeProtobuf<LongMsgPayload>()
-        payload.action?.forEach {
+        return Result.success(
+            zippedPayload.decodeProtobuf<LongMsgPayload>().action
+                ?: return Result.failure(Exception("action is empty"))
+        )
+    }
+
+    suspend fun getForwardMsg(resId: String): Result<List<MessageDetail>> {
+        val result = getMultiMsg(resId).getOrElse { return Result.failure(it) }
+        result.forEach {
             if (it.command == "MultiMsg") {
                 return Result.success(it.data?.body?.map { msg ->
                     val chatType =
@@ -296,27 +469,29 @@ internal object MsgSvc : BaseSvc() {
                     MessageDetail(
                         time = msg.contentHead?.msgTime?.toInt() ?: 0,
                         msgType = MessageHelper.obtainDetailTypeByMsgType(chatType),
-                        msgId = 0, // MessageHelper.generateMsgIdHash(chatType, msg.content!!.msgViaRandom), msgViaRandom 为空
+                        msgId = 0, // msgViaRandom为空 tx不给
+                        qqMsgId = 0,
                         msgSeq = msg.contentHead!!.msgSeq ?: 0,
                         realId = msg.contentHead!!.msgSeq ?: 0,
                         sender = MessageSender(
                             msg.msgHead?.peer ?: 0,
-                            msg.msgHead?.responseGrp?.memberCard?.ifEmpty { msg.msgHead?.forward?.friendName }
-                                ?: msg.msgHead?.forward?.friendName ?: "",
+                            msg.msgHead?.responseGrp?.memberCard ?: msg.msgHead?.forward?.friendName ?: "",
                             "unknown",
                             0,
                             msg.msgHead?.peerUid ?: "",
                             msg.msgHead?.peerUid ?: ""
                         ),
-                        message = msg.body?.richText?.elements?.toSegments(chatType, msg.msgHead?.peer.toString(), "0")
-                            ?.toListMap() ?: emptyList(),
+                        message = msg.body?.richText?.toSegments(
+                            chatType,
+                            msg.msgHead?.peer.toString(),
+                            "0"
+                        )?.toListMap() ?: emptyList(),
                         peerId = msg.msgHead?.peer ?: 0,
                         groupId = if (chatType == MsgConstant.KCHATTYPEGROUP) msg.msgHead?.responseGrp?.groupCode?.toLong()
                             ?: 0 else 0,
                         targetId = if (chatType != MsgConstant.KCHATTYPEGROUP) msg.msgHead?.peer ?: 0 else 0
                     )
-                }
-                    ?: return Result.failure(Exception("Msg is empty")))
+                } ?: return Result.failure(Exception("Msg is empty")))
             }
         }
         return Result.failure(Exception("Can't find msg"))

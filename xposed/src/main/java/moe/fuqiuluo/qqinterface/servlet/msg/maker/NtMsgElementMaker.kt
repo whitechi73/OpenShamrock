@@ -16,6 +16,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import moe.fuqiuluo.qqinterface.servlet.CardSvc
 import moe.fuqiuluo.qqinterface.servlet.GroupSvc
 import moe.fuqiuluo.qqinterface.servlet.LbsSvc
+import moe.fuqiuluo.qqinterface.servlet.MsgSvc
 import moe.fuqiuluo.qqinterface.servlet.ark.data.ArkAppInfo
 import moe.fuqiuluo.qqinterface.servlet.ark.ArkMsgSvc
 import moe.fuqiuluo.qqinterface.servlet.ark.WeatherSvc
@@ -51,6 +52,8 @@ import tencent.im.oidb.cmd0xb77.oidb_cmd0xb77
 import tencent.im.oidb.cmd0xdc2.oidb_cmd0xdc2
 import tencent.im.oidb.oidb_sso
 import java.io.File
+import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.math.roundToInt
 import kotlin.random.Random
 import kotlin.random.nextInt
@@ -80,16 +83,81 @@ internal object NtMsgElementMaker {
         "touch" to NtMsgElementMaker::createTouchElem,
         "weather" to NtMsgElementMaker::createWeatherElem,
         "json" to NtMsgElementMaker::createJsonElem,
+        "forward" to NtMsgElementMaker::createForwardStruct,
         "new_dice" to NtMsgElementMaker::createNewDiceElem,
         "new_rps" to NtMsgElementMaker::createNewRpsElem,
         "basketball" to NtMsgElementMaker::createBasketballElem,
-        //"multi_msg" to MessageMaker::createLongMsgStruct,
+        //"multi_msg" to NtMsgElementMaker::createLongMsgStruct,
         "bubble_face" to NtMsgElementMaker::createBubbleFaceElem,
         "button" to NtMsgElementMaker::createInlineKeywordElem,
         "inline_keyboard" to NtMsgElementMaker::createInlineKeywordElem
     )
 
     operator fun get(type: String): IMsgElementMaker? = makerMap[type]
+
+    private suspend fun createForwardStruct(
+        chatType: Int,
+        msgId: Long,
+        peerId: String,
+        data: JsonObject
+    ): Result<MsgElement> {
+        data.checkAndThrow("id")
+        val resId = data["id"].asString
+        val filename = data["filename"].asStringOrNull ?: UUID.randomUUID().toString().uppercase()
+        var summary = data["summary"].asStringOrNull
+        val descriptions = data["desc"].asStringOrNull
+        var news = descriptions?.split("\n")?.map { "text" to it }
+
+        if (news == null || summary == null) {
+            val forwardMsg = MsgSvc.getForwardMsg(resId).getOrElse { return Result.failure(it) }
+            if (news == null) {
+                news = forwardMsg.map {
+                    "text" to it.sender.nickName + ": " + MessageHelper.messageArrayToRichText(
+                        MessageHelper.obtainMessageTypeByDetailType(it.msgType),
+                        it.qqMsgId,
+                        it.peerId.toString(),
+                        it.message.json
+                    ).getOrThrow().first
+                }
+            }
+            if (summary == null) {
+                summary = "查看${forwardMsg.size}条转发消息"
+            }
+        }
+
+        val json = mapOf(
+            "app" to "com.tencent.multimsg",
+            "config" to mapOf(
+                "autosize" to 1,
+                "forward" to 1,
+                "round" to 1,
+                "type" to "normal",
+                "width" to 300
+            ),
+            "desc" to "[聊天记录]",
+            "extra" to mapOf(
+                "filename" to filename,
+                "tsum" to 2
+            ).json.toString(),
+            "meta" to mapOf(
+                "detail" to mapOf(
+                    "news" to news,
+                    "resid" to resId,
+                    "source" to "群聊的聊天记录",
+                    "summary" to summary,
+                    "uniseq" to filename
+                )
+            ),
+            "prompt" to "[聊天记录]",
+            "ver" to "0.0.0.5",
+            "view" to "contact"
+        )
+        return createJsonElem(
+            chatType, msgId, peerId, mapOf(
+                "data" to json
+            ).json
+        )
+    }
 
     private suspend fun createInlineKeywordElem(
         chatType: Int,
@@ -262,19 +330,21 @@ internal object NtMsgElementMaker {
     ): Result<MsgElement> {
         data.checkAndThrow("data")
         val jsonStr = data["data"].let {
-            if (it is JsonObject) it.asJsonObject.toString() else {
-                val str = it.asStringOrNull ?: ""
+            if (it is JsonObject) {
+                it.asJsonObject.toString()
+            } else {
                 // 检查字符串是否是合法json，不然qq会闪退
                 try {
+                    val str = it.asString
                     val element = Json.decodeFromString<JsonElement>(str)
                     if (element !is JsonObject) {
                         return Result.failure(Exception("不合法的JSON字符串"))
                     }
+                    str
                 } catch (err: Throwable) {
                     LogCenter.log(err.stackTraceToString(), Level.ERROR)
                     return Result.failure(Exception("不合法的JSON字符串"))
                 }
-                str
             }
         }
         val element = MsgElement()

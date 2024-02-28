@@ -13,64 +13,84 @@ import moe.fuqiuluo.qqinterface.servlet.msg.toJson
 import moe.fuqiuluo.qqinterface.servlet.msg.toSegments
 import moe.fuqiuluo.qqinterface.servlet.transfile.NtV2RichMediaSvc
 import moe.fuqiuluo.shamrock.helper.*
-import moe.fuqiuluo.shamrock.helper.MessageHelper.messageArrayToMessageElements
+import moe.fuqiuluo.shamrock.helper.MessageHelper.messageArrayToRichText
+import moe.fuqiuluo.shamrock.helper.MessageHelper.obtainMessageTypeByDetailType
 import moe.fuqiuluo.shamrock.tools.*
 import moe.fuqiuluo.shamrock.utils.DeflateTools
 import moe.fuqiuluo.shamrock.utils.FileUtils
 import protobuf.auto.toByteArray
 import protobuf.message.Elem
+import protobuf.message.RichText
 import protobuf.message.element.*
 import protobuf.message.element.commelem.*
 import java.io.File
 import java.nio.ByteBuffer
+import java.util.*
 import kotlin.random.Random
 import kotlin.random.nextULong
 import kotlin.time.Duration.Companion.seconds
 
-internal typealias IElemMaker = suspend (Int, Long, String, JsonObject) -> Result<Elem>
+internal typealias IElemMaker = suspend (ElemMaker, Int, Long, String, JsonObject) -> Unit
 
-internal object ElemMaker {
-    private val makerArray = hashMapOf(
-        "text" to ElemMaker::createTextElem,
-        "at" to ElemMaker::createAtElem,
-        "face" to ElemMaker::createFaceElem,
-        "pic" to ElemMaker::createImageElem,
-        "image" to ElemMaker::createImageElem,
+internal class ElemMaker {
+    companion object {
+        private val makerArray = hashMapOf(
+            "text" to ElemMaker::createTextElem,
+            "at" to ElemMaker::createAtElem,
+            "face" to ElemMaker::createFaceElem,
+            "pic" to ElemMaker::createImageElem,
+            "image" to ElemMaker::createImageElem,
 //        "voice" to ElemMaker::createRecordElem,
 //        "record" to ElemMaker::createRecordElem,
 //        "video" to ElemMaker::createVideoElem,
-        "markdown" to ElemMaker::createMarkdownElem,
-        "button" to ElemMaker::createButtonElem,
-        "dice" to ElemMaker::createNewDiceElem,
-        "rps" to ElemMaker::createNewRpsElem,
-        "poke" to ElemMaker::createPokeElem,
+            "forward" to ElemMaker::createForwardStruct,
+            "json" to ElemMaker::createJsonElem,
+            "poke" to ElemMaker::createPokeElem,
+            "dice" to ElemMaker::createNewDiceElem,
+            "rps" to ElemMaker::createNewRpsElem,
+            "markdown" to ElemMaker::createMarkdownElem,
+            "button" to ElemMaker::createButtonElem,
 //        "anonymous" to ElemMaker::createAnonymousElem,
 //        "share" to ElemMaker::createShareElem,
 //        "contact" to ElemMaker::createContactElem,
 //        "location" to ElemMaker::createLocationElem,
 //        "music" to ElemMaker::createMusicElem,
-        "reply" to ElemMaker::createReplyElem,
+            "reply" to ElemMaker::createReplyElem,
 //        "touch" to ElemMaker::createTouchElem,
-        "weather" to ElemMaker::createWeatherElem,
-        "json" to ElemMaker::createJsonElem,
-        //"forward" to MessageMaker::createForwardElem,
-        //"multi_msg" to MessageMaker::createLongMsgStruct,
-        //"bubble_face" to ElemMaker::createBubbleFaceElem,
-    )
+            "weather" to ElemMaker::createWeatherElem,
+            //"forward" to MessageMaker::createForwardElem,
+            //"multi_msg" to MessageMaker::createLongMsgStruct,
+            //"bubble_face" to ElemMaker::createBubbleFaceElem,
+        )
 
-    operator fun get(type: String): IElemMaker? = makerArray[type]
+        operator fun get(type: String): IElemMaker? = makerArray[type]
+    }
+
+    private var rich = RichText()
+    private val elems = mutableListOf<Elem>()
+    private var desc = ""
+
+    fun getRich(): RichText {
+        rich.elements = elems
+        return rich
+    }
+
+    fun getDesc(): String {
+        return desc
+    }
 
     private suspend fun createTextElem(
         chatType: Int,
         msgId: Long,
         peerId: String,
         data: JsonObject
-    ): Result<Elem> {
+    ) {
         data.checkAndThrow("text")
         val elem = Elem(
             text = TextMsg(data["text"].asString)
         )
-        return Result.success(elem)
+        elems.add(elem)
+        desc += data["text"].asString
     }
 
     private suspend fun createAtElem(
@@ -78,8 +98,8 @@ internal object ElemMaker {
         msgId: Long,
         peerId: String,
         data: JsonObject
-    ): Result<Elem> {
-        return when (chatType) {
+    ) {
+        when (chatType) {
             MsgConstant.KCHATTYPEGROUP -> {
                 data.checkAndThrow("qq")
 
@@ -105,15 +125,14 @@ internal object ElemMaker {
                             peerId.toLong(),
                             qq,
                             true
-                        )
-                            .let {
-                                val info = it.getOrNull()
-                                if (info == null)
-                                    LogCenter.log("无法获取群成员信息: $qqStr", Level.ERROR)
-                                info?.troopnick
-                                    .ifNullOrEmpty(info?.friendnick)
-                                    .ifNullOrEmpty(qqStr)
-                            })
+                        ).let {
+                            val info = it.getOrNull()
+                            if (info == null)
+                                LogCenter.log("无法获取群成员信息: $qqStr", Level.ERROR)
+                            else info.troopnick
+                                .ifNullOrEmpty(info.friendnick)
+                                .ifNullOrEmpty(qqStr)
+                        })
                     }
                 }
 
@@ -126,7 +145,8 @@ internal object ElemMaker {
                 val elem = Elem(
                     text = TextMsg(str = display, attr6Buf = attr6.array())
                 )
-                Result.success(elem)
+                elems.add(elem)
+                desc += display
             }
 
             MsgConstant.KCHATTYPEC2C -> {
@@ -144,10 +164,11 @@ internal object ElemMaker {
                 val elem = Elem(
                     text = TextMsg(str = display)
                 )
-                Result.success(elem)
+                elems.add(elem)
+                desc += display
             }
 
-            else -> Result.failure(ActionMsgException)
+            else -> throw UnsupportedOperationException("Unsupported chatType($chatType) for AtMsg")
         }
     }
 
@@ -156,7 +177,7 @@ internal object ElemMaker {
         msgId: Long,
         peerId: String,
         data: JsonObject
-    ): Result<Elem> {
+    ) {
         data.checkAndThrow("id")
         val faceId = data["id"].asInt
         val elem = if (data["big"].asBooleanOrNull == true) {
@@ -183,7 +204,8 @@ internal object ElemMaker {
                 )
             )
         }
-        return Result.success(elem)
+        elems.add(elem)
+        desc += "[表情]"
     }
 
     private suspend fun createImageElem(
@@ -191,7 +213,7 @@ internal object ElemMaker {
         msgId: Long,
         peerId: String,
         data: JsonObject
-    ): Result<Elem> {
+    ) {
         val isOriginal = data["original"].asBooleanOrNull ?: true
         val isFlash = data["flash"].asBooleanOrNull ?: false
         val filePath = data["file"].asStringOrNull
@@ -307,7 +329,8 @@ internal object ElemMaker {
 
             else -> throw LogicException("Not supported chatType($chatType) for PictureMsg")
         }
-        return Result.success(elem)
+        elems.add(elem)
+        desc += "[图片]"
     }
 
     private suspend fun createReplyElem(
@@ -315,16 +338,15 @@ internal object ElemMaker {
         msgId: Long,
         peerId: String,
         data: JsonObject
-    ): Result<Elem> {
+    ) {
         data.checkAndThrow("id")
         val msgHash = data["id"].asInt
         val mapping = MessageHelper.getMsgMappingByHash(msgHash)
-            ?: return Result.failure(Exception("不存在该消息映射，无法回复消息"))
+            ?: throw Exception("不存在该消息映射，无法回复消息")
 
         if (mapping.qqMsgId == 0L) {
             // 貌似获取失败了，555
-            LogCenter.log("无法获取被回复消息", Level.ERROR)
-            return Result.failure(Exception("无法获取被回复消息"))
+            throw Exception("无法获取被回复消息")
         }
 
         val elem = if (data.containsKey("text")) {
@@ -351,16 +373,15 @@ internal object ElemMaker {
             )
         } else {
             val msg =
-                MsgSvc.getMsgByQMsgId(chatType, mapping.peerId, mapping.qqMsgId).getOrNull() ?: return Result.failure(
-                    Exception("无法获取被回复消息")
-                )
+                MsgSvc.getMsgByQMsgId(chatType, mapping.peerId, mapping.qqMsgId).getOrNull()
+                    ?: throw Exception("无法获取被回复消息")
             Elem(
                 srcMsg = SourceMsg(
                     origSeqs = listOf(msg.msgSeq.toInt()),
                     senderUin = msg.senderUin.toULong(),
                     time = msg.msgTime.toULong(),
                     flag = 1u,
-                    elems = messageArrayToMessageElements(
+                    elems = messageArrayToRichText(
                         msg.chatType,
                         msg.msgId,
                         msg.peerUin.toString(),
@@ -369,7 +390,7 @@ internal object ElemMaker {
                             if (msg.chatType == MsgConstant.KCHATTYPEGUILD) msg.guildId else msg.peerUin.toString(),
                             msg.channelId ?: msg.peerUin.toString()
                         ).toJson()
-                    ).second,
+                    ).getOrElse { throw Exception("解析回复消息失败: $it") }.second.elements,
                     type = 0u,
                     pbReserve = SourceMsg.Companion.PbReserve(
                         msgRand = Random.nextULong(),
@@ -380,7 +401,8 @@ internal object ElemMaker {
                 )
             )
         }
-        return Result.success(elem)
+        elems.add(elem)
+        desc += "[回复消息]"
     }
 
     private suspend fun createJsonElem(
@@ -388,15 +410,82 @@ internal object ElemMaker {
         msgId: Long,
         peerId: String,
         data: JsonObject
-    ): Result<Elem> {
+    ) {
         data.checkAndThrow("data")
 
         val elem = Elem(
             lightApp = LightAppElem(
-                data = DeflateTools.compress(data.toString().toByteArray())
+                data = byteArrayOf(1) + DeflateTools.compress(data.toString().toByteArray())
             )
         )
-        return Result.success(elem)
+        elems.add(elem)
+        desc += "[Json消息]"
+    }
+
+    private suspend fun createForwardStruct(
+        chatType: Int,
+        msgId: Long,
+        peerId: String,
+        data: JsonObject
+    ) {
+        data.checkAndThrow("id")
+        val resId = data["id"].asString
+        val filename = data["filename"].asStringOrNull ?: UUID.randomUUID().toString().uppercase()
+        var summary = data["summary"].asStringOrNull
+        val descriptions = data["desc"].asStringOrNull
+        var news = descriptions?.split("\n")?.map { "text" to it }
+
+        if (news == null || summary == null) {
+            val forwardMsg = MsgSvc.getForwardMsg(resId).getOrThrow()
+            if (news == null) {
+                news = forwardMsg.map {
+                    "text" to it.sender.nickName + ": " + messageArrayToRichText(
+                        obtainMessageTypeByDetailType(it.msgType),
+                        it.qqMsgId,
+                        it.peerId.toString(),
+                        it.message.json
+                    ).getOrThrow().first
+                }
+            }
+            if (summary == null) {
+                summary = "查看${forwardMsg.size}条转发消息"
+            }
+        }
+
+        val json = mapOf(
+            "app" to "com.tencent.multimsg",
+            "config" to mapOf(
+                "autosize" to 1,
+                "forward" to 1,
+                "round" to 1,
+                "type" to "normal",
+                "width" to 300
+            ),
+            "desc" to "[聊天记录]",
+            "extra" to mapOf(
+                "filename" to filename,
+                "tsum" to 2
+            ).json.toString(),
+            "meta" to mapOf(
+                "detail" to mapOf(
+                    "news" to news,
+                    "resid" to resId,
+                    "source" to "群聊的聊天记录",
+                    "summary" to summary,
+                    "uniseq" to filename
+                )
+            ),
+            "prompt" to "[聊天记录]",
+            "ver" to "0.0.0.5",
+            "view" to "contact"
+        )
+        val elem = Elem(
+            lightApp = LightAppElem(
+                data = byteArrayOf(1) + DeflateTools.compress(json.json.toString().toByteArray())
+            )
+        )
+        elems.add(elem)
+        desc += "[聊天记录]"
     }
 
     private suspend fun createWeatherElem(
@@ -404,7 +493,7 @@ internal object ElemMaker {
         msgId: Long,
         peerId: String,
         data: JsonObject
-    ): Result<Elem> {
+    ) {
         var code = data["code"].asIntOrNull
 
         if (code == null) {
@@ -416,19 +505,22 @@ internal object ElemMaker {
         }
 
         if (code != null) {
-            WeatherSvc.fetchWeatherCard(code).onSuccess {
-//              OidbSvc.0xdc2_34
-//              00 00 00 DF 08 C2 1B 10 22 22 C4 01 0A B7 01 08 A2 E0 F2 2F 10 01 18 00 2A 02 08 01 58 FB 91 F6 AE 02 62 A1 01 08 01 52 08 E5 8C 97 E4 BA AC 20 20 5A 19 2D 33 C2 B0 2F 33 C2 B0 0A E7 A9 BA E6 B0 94 E8 B4 A8 E9 87 8F 3A E8 89 AF 62 11 5B E5 88 86 E4 BA AB 5D 20 E5 8C 97 E4 BA AC 20 20 6A 25 68 74 74 70 73 3A 2F 2F 77 65 61 74 68 65 72 2E 6D 70 2E 71 71 2E 63 6F 6D 2F 3F 73 74 3D 30 26 5F 77 76 3D 31 72 3E 68 74 74 70 73 3A 2F 2F 69 6D 67 63 61 63 68 65 2E 71 71 2E 63 6F 6D 2F 61 63 2F 71 71 77 65 61 74 68 65 72 2F 69 6D 61 67 65 2F 73 68 61 72 65 5F 69 63 6F 6E 2F 66 69 6E 65 2E 70 6E 67 12 08 08 01 10 FB 91 F6 AE 02 32 0D 61 6E 64 72 6F 69 64 20 39 2E 30 2E 38
-                return createJsonElem(
-                    chatType, msgId, peerId, it["weekStore"]
-                        .asJsonObject["share"].asJsonObject
+            val weatherCard = WeatherSvc.fetchWeatherCard(code).getOrThrow()
+//          OidbSvc.0xdc2_34
+//          00 00 00 DF 08 C2 1B 10 22 22 C4 01 0A B7 01 08 A2 E0 F2 2F 10 01 18 00 2A 02 08 01 58 FB 91 F6 AE 02 62 A1 01 08 01 52 08 E5 8C 97 E4 BA AC 20 20 5A 19 2D 33 C2 B0 2F 33 C2 B0 0A E7 A9 BA E6 B0 94 E8 B4 A8 E9 87 8F 3A E8 89 AF 62 11 5B E5 88 86 E4 BA AB 5D 20 E5 8C 97 E4 BA AC 20 20 6A 25 68 74 74 70 73 3A 2F 2F 77 65 61 74 68 65 72 2E 6D 70 2E 71 71 2E 63 6F 6D 2F 3F 73 74 3D 30 26 5F 77 76 3D 31 72 3E 68 74 74 70 73 3A 2F 2F 69 6D 67 63 61 63 68 65 2E 71 71 2E 63 6F 6D 2F 61 63 2F 71 71 77 65 61 74 68 65 72 2F 69 6D 61 67 65 2F 73 68 61 72 65 5F 69 63 6F 6E 2F 66 69 6E 65 2E 70 6E 67 12 08 08 01 10 FB 91 F6 AE 02 32 0D 61 6E 64 72 6F 69 64 20 39 2E 30 2E 38
+            val elem = Elem(
+                lightApp = LightAppElem(
+                    data = byteArrayOf(1) + DeflateTools.compress(
+                        weatherCard["weekStore"]
+                            .asJsonObject["share"].asString.toByteArray()
+                    )
                 )
-            }.onFailure {
-                LogCenter.log("无法发送天气分享", Level.ERROR)
-            }
+            )
+            elems.add(elem)
+            desc += "[天气卡片]"
+        } else {
+            throw LogicException("无法获取城市天气")
         }
-
-        return Result.failure(ActionMsgException)
     }
 
     private suspend fun createPokeElem(
@@ -436,7 +528,7 @@ internal object ElemMaker {
         msgId: Long,
         peerId: String,
         data: JsonObject
-    ): Result<Elem> {
+    ) {
         data.checkAndThrow("type", "id")
         val elem = Elem(
             commonElem = CommonElem(
@@ -449,7 +541,8 @@ internal object ElemMaker {
                 businessType = data["id"].asInt
             )
         )
-        return Result.success(elem)
+        elems.add(elem)
+        desc += "[戳一戳]"
     }
 
     private suspend fun createNewDiceElem(
@@ -457,7 +550,7 @@ internal object ElemMaker {
         msgId: Long,
         peerId: String,
         data: JsonObject
-    ): Result<Elem> {
+    ) {
         val elem = Elem(
             commonElem = CommonElem(
                 serviceType = 37,
@@ -474,7 +567,8 @@ internal object ElemMaker {
                 businessType = 2
             )
         )
-        return Result.success(elem)
+        elems.add(elem)
+        desc += "[骰子]"
     }
 
     private suspend fun createNewRpsElem(
@@ -482,7 +576,7 @@ internal object ElemMaker {
         msgId: Long,
         peerId: String,
         data: JsonObject
-    ): Result<Elem> {
+    ) {
         val elem = Elem(
             commonElem = CommonElem(
                 serviceType = 37,
@@ -499,7 +593,8 @@ internal object ElemMaker {
                 businessType = 1
             )
         )
-        return Result.success(elem)
+        elems.add(elem)
+        desc += "[包剪锤]"
     }
 
     private suspend fun createMarkdownElem(
@@ -507,7 +602,7 @@ internal object ElemMaker {
         msgId: Long,
         peerId: String,
         data: JsonObject
-    ): Result<Elem> {
+    ) {
         data.checkAndThrow("content")
         val elem = Elem(
             commonElem = CommonElem(
@@ -516,7 +611,8 @@ internal object ElemMaker {
                 businessType = 1
             )
         )
-        return Result.success(elem)
+        elems.add(elem)
+        desc += "[Markdown消息]"
     }
 
     private suspend fun createButtonElem(
@@ -524,7 +620,7 @@ internal object ElemMaker {
         msgId: Long,
         peerId: String,
         data: JsonObject
-    ): Result<Elem> {
+    ) {
         data.checkAndThrow("buttons")
         val elem = Elem(
             commonElem = CommonElem(
@@ -565,7 +661,8 @@ internal object ElemMaker {
                 businessType = 1
             )
         )
-        return Result.success(elem)
+        elems.add(elem)
+        desc += "[Button消息]"
     }
 
     private fun JsonObject.checkAndThrow(vararg key: String) {

@@ -6,7 +6,6 @@ import com.tencent.mobileqq.transfile.FileMsg
 import com.tencent.mobileqq.transfile.api.IProtoReqManager
 import com.tencent.mobileqq.transfile.protohandler.RichProto
 import com.tencent.mobileqq.transfile.protohandler.RichProtoProc
-import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.serialization.ExperimentalSerializationApi
 import moe.fuqiuluo.qqinterface.servlet.BaseSvc
@@ -22,23 +21,9 @@ import moe.fuqiuluo.shamrock.xposed.helper.AppRuntimeFetcher
 import moe.fuqiuluo.symbols.decodeProtobuf
 import mqq.app.MobileQQ
 import protobuf.auto.toByteArray
-import protobuf.oidb.TrpcOidb
 import protobuf.oidb.cmd0x11c5.C2CUserInfo
 import protobuf.oidb.cmd0x11c5.ChannelUserInfo
-import protobuf.oidb.cmd0x11c5.ClientMeta
-import protobuf.oidb.cmd0x11c5.CodecConfigReq
-import protobuf.oidb.cmd0x11c5.CommonHead
-import protobuf.oidb.cmd0x11c5.DownloadExt
-import protobuf.oidb.cmd0x11c5.DownloadReq
-import protobuf.oidb.cmd0x11c5.FileInfo
-import protobuf.oidb.cmd0x11c5.FileType
 import protobuf.oidb.cmd0x11c5.GroupUserInfo
-import protobuf.oidb.cmd0x11c5.IndexNode
-import protobuf.oidb.cmd0x11c5.MultiMediaReqHead
-import protobuf.oidb.cmd0x11c5.NtV2RichMediaReq
-import protobuf.oidb.cmd0x11c5.NtV2RichMediaRsp
-import protobuf.oidb.cmd0x11c5.SceneInfo
-import protobuf.oidb.cmd0x11c5.VideoDownloadExt
 import protobuf.oidb.cmd0xfc2.Oidb0xfc2ChannelInfo
 import protobuf.oidb.cmd0xfc2.Oidb0xfc2MsgApplyDownloadReq
 import protobuf.oidb.cmd0xfc2.Oidb0xfc2ReqBody
@@ -405,8 +390,8 @@ internal object RichProtoSvc: BaseSvc() {
 
     suspend fun getGroupPttDownUrl(
         peerId: String,
-        md5Hex: String,
-        fileUUId: String
+        md5: ByteArray,
+        groupFileKey: String
     ): String {
         return suspendCancellableCoroutine {
             val runtime = AppRuntimeFetcher.appRuntime
@@ -417,8 +402,8 @@ internal object RichProtoSvc: BaseSvc() {
             groupPttDownReq.secondUin = peerId
             groupPttDownReq.uinType = FileMsg.UIN_TROOP
             groupPttDownReq.groupFileID = 0
-            groupPttDownReq.groupFileKey = fileUUId
-            groupPttDownReq.md5 = md5Hex.hex2ByteArray()
+            groupPttDownReq.groupFileKey = groupFileKey
+            groupPttDownReq.md5 = md5
             groupPttDownReq.voiceType = 1
             groupPttDownReq.downType = 1
             richProtoReq.callback = RichProtoProc.RichProtoCallback { _, resp ->

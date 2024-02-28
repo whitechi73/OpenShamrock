@@ -7,9 +7,9 @@ import kotlinx.serialization.protobuf.ProtoNumber
 data class Ptt(
     @ProtoNumber(1) var fileType: UInt?=null,
     @ProtoNumber(2) var srcUin: ULong?=null,
-    @ProtoNumber(3) var fileUuid: ByteArray?=null,
+    @ProtoNumber(3) var fileUuid: String?=null,
     @ProtoNumber(4) var fileMd5: ByteArray?=null,
-    @ProtoNumber(5) var fileName: ByteArray?=null,
+    @ProtoNumber(5) var fileName: String?=null,
     @ProtoNumber(6) var fileSize: UInt?=null,
     @ProtoNumber(7) var reserve: ByteArray?=null,
     @ProtoNumber(8) var fileId: UInt?=null,
@@ -22,11 +22,19 @@ data class Ptt(
     @ProtoNumber(15) var magicPttIndex: UInt?=null,
     @ProtoNumber(16) var voiceSwitch: UInt?=null,
     @ProtoNumber(17) var pttUrl: ByteArray?=null,
-    @ProtoNumber(18) var groupFileKey: ByteArray?=null,
+    @ProtoNumber(18) var groupFileKey: String?=null,
     @ProtoNumber(19) var time: UInt?=null,
     @ProtoNumber(20) var downPara: ByteArray?=null,
     @ProtoNumber(29) var format: UInt?=null,
-    @ProtoNumber(30) var pbReserve: ByteArray?=null,
+    @ProtoNumber(30) var pbReserve: PbReserve?=null,
     @ProtoNumber(31) var rptPttUrls: List<String>? = null,
     @ProtoNumber(32) var downloadFlag: UInt?=null,
-)
+){
+    companion object{
+        @Serializable
+        data class PbReserve(
+            @ProtoNumber(2) var magic: Int?=null,
+            @ProtoNumber(7) var reserve: Int?=null,
+        )
+    }
+}

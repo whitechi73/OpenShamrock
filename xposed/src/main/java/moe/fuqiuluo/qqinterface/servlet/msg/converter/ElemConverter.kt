@@ -13,11 +13,13 @@ import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.helper.db.ImageDB
 import moe.fuqiuluo.shamrock.helper.db.ImageMapping
 import moe.fuqiuluo.shamrock.helper.db.MessageDB
+import moe.fuqiuluo.shamrock.tools.asJsonArray
 import moe.fuqiuluo.shamrock.utils.DeflateTools
 import moe.fuqiuluo.shamrock.tools.asJsonObject
 import moe.fuqiuluo.shamrock.tools.asString
 import moe.fuqiuluo.shamrock.tools.toHexString
 import moe.fuqiuluo.symbols.decodeProtobuf
+import moe.fuqiuluo.shamrock.tools.slice
 import protobuf.message.Elem
 import protobuf.message.element.commelem.ButtonExtra
 import protobuf.message.element.commelem.MarkdownExtra
@@ -335,10 +337,8 @@ internal object ElemConverter {
         element: Elem
     ): MessageSegment {
         val data = element.lightApp!!.data!!
-        val jsonStr =
-            (if (data[0].toInt() == 1) DeflateTools.uncompress(data.sliceArray(1 until data.size)) else data.sliceArray(
-                1 until data.size
-            )).toString()
+        val jsonStr = String(if (data[0].toInt() == 1) DeflateTools.uncompress(data.slice(1)) else data.slice(1))
+        LogCenter.log(jsonStr, Level.DEBUG)
         val json = jsonStr.asJsonObject
         return when (json["app"].asString) {
             "com.tencent.multimsg" -> {
@@ -346,7 +346,10 @@ internal object ElemConverter {
                 MessageSegment(
                     type = "forward",
                     data = mapOf(
-                        "id" to info["resid"].asString
+                        "id" to info["resid"].asString,
+                        "filename" to info["uniseq"].asString,
+                        "summary" to info["summary"].asString,
+                        "desc" to info["news"].asJsonArray.joinToString("\n") { it.asJsonObject["text"].asString }
                     )
                 )
             }

@@ -12,8 +12,8 @@ internal data class MessageSegment(
 ) {
     fun toJson(): JsonObject {
         return mapOf(
-            "type" to type.json,
-            "data" to data.json
+            "type" to type,
+            "data" to data
         ).json
     }
 }
@@ -29,6 +29,6 @@ internal fun List<MessageSegment>.toListMap(): List<Map<String, JsonElement>> {
         mapOf(
             "type" to it.type.json,
             "data" to it.data.json
-        ).json
+        )
     }
 }

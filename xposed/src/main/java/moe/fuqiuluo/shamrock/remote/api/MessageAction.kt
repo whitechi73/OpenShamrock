@@ -44,49 +44,6 @@ fun Routing.messageAction() {
         }
     }
 
-    route("/send_group_forward_(msg|message)".toRegex()) {
-        post {
-            val groupId = fetchPostOrNull("group_id")
-            val messages = fetchPostJsonArray("messages")
-            call.respondText(
-                SendForwardMessage(MsgConstant.KCHATTYPEGROUP, groupId ?: "", messages),
-                ContentType.Application.Json
-            )
-        }
-        get {
-            respond(false, Status.InternalHandlerError, "Not support GET method")
-        }
-    }
-
-    route("/send_private_forward_(msg|message)".toRegex()) {
-        post {
-            val userId = fetchPostOrNull("user_id")
-            val messages = fetchPostJsonArray("messages")
-            call.respondText(
-                SendForwardMessage(MsgConstant.KCHATTYPEC2C, userId ?: "", messages),
-                ContentType.Application.Json
-            )
-        }
-        get {
-            respond(false, Status.InternalHandlerError, "Not support GET method")
-        }
-    }
-
-    route("/send_forward_(msg|message)".toRegex()) {
-        post {
-            val userId = fetchPostOrNull("user_id")
-            val groupId = fetchPostOrNull("group_id")
-            val messages = fetchPostJsonArray("messages")
-            call.respondText(
-                SendForwardMessage(MsgConstant.KCHATTYPEC2C, userId ?: groupId ?: "", messages),
-                ContentType.Application.Json
-            )
-        }
-        get {
-            respond(false, Status.InternalHandlerError, "Not support GET method")
-        }
-    }
-
     getOrPost("/get_forward_msg") {
         val id = fetchOrThrow("id")
         call.respondText(GetForwardMsg(id), ContentType.Application.Json)
@@ -144,7 +101,7 @@ fun Routing.messageAction() {
         get {
             val msgType = fetchGetOrThrow("message_type")
             val message = fetchGetOrThrow("message")
-            val retryCnt = fetchGetOrNull("retry_cnt")?.toInt() ?: 3
+            val retryCnt = fetchGetOrNull("retry_cnt")?.toInt() ?: 5
             val autoEscape = fetchGetOrNull("auto_escape")?.toBooleanStrict() ?: false
             val chatType = MessageHelper.obtainMessageTypeByDetailType(msgType)
 
@@ -288,11 +245,11 @@ fun Routing.messageAction() {
         post {
             val userId = fetchPostOrThrow("user_id")
             val groupId = fetchPostOrNull("group_id")
-            val retryCnt = fetchPostOrNull("retry_cnt")?.toInt() ?: 3
-            val autoEscape = fetchPostOrNull("auto_escape")?.toBooleanStrict() ?: false
 
             val chatType = if (groupId == null) MsgConstant.KCHATTYPEC2C else MsgConstant.KCHATTYPETEMPC2CFROMGROUP
-            val fromId = groupId ?: userId
+
+            val retryCnt = fetchPostOrNull("retry_cnt")?.toInt() ?: 3
+            val autoEscape = fetchPostOrNull("auto_escape")?.toBooleanStrict() ?: false
             val recallDuration = fetchPostOrNull("recall_duration")?.toLongOrNull()
 
             val result = if (isJsonData()) {
@@ -302,8 +259,9 @@ fun Routing.messageAction() {
                         peerId = userId,
                         message = fetchPostJsonString("message"),
                         autoEscape = autoEscape,
-                        fromId = fromId,
-                        retryCnt = retryCnt, recallDuration = recallDuration
+                        fromId = groupId ?: userId,
+                        retryCnt = retryCnt,
+                        recallDuration = recallDuration
                     )
                 } else {
                     SendMessage(
@@ -312,7 +270,7 @@ fun Routing.messageAction() {
                         message = if (isJsonObject("message")) listOf(fetchPostJsonObject("message")).jsonArray else fetchPostJsonArray(
                             "message"
                         ),
-                        fromId = groupId ?: userId ?: "",
+                        fromId = groupId ?: userId,
                         retryCnt = retryCnt,
                         recallDuration = recallDuration
                     )
@@ -323,12 +281,96 @@ fun Routing.messageAction() {
                     peerId = userId,
                     message = fetchPostOrThrow("message"),
                     autoEscape = autoEscape,
-                    fromId = fromId,
-                    retryCnt = retryCnt, recallDuration = recallDuration
+                    fromId = groupId ?: userId,
+                    retryCnt = retryCnt,
+                    recallDuration = recallDuration
                 )
             }
 
             call.respondText(result, ContentType.Application.Json)
+        }
+    }
+
+    route("/upload_multi_(msg|message)".toRegex()) {
+        post {
+            val msgType = fetchPostOrThrow("message_type")
+            val chatType = MessageHelper.obtainMessageTypeByDetailType(msgType)
+            val retryCnt = fetchPostOrNull("retry_cnt")?.toInt() ?: 5
+
+            val userId = fetchPostOrNull("user_id")
+            val groupId = fetchPostOrNull("group_id")
+            val messages = fetchPostJsonArray("messages")
+            call.respondText(
+                UploadMultiMessage(
+                    chatType,
+                    if (chatType == MsgConstant.KCHATTYPEC2C) userId!! else groupId!!,
+                    groupId ?: userId ?: "",
+                    messages,
+                    retryCnt
+                ),
+                ContentType.Application.Json
+            )
+        }
+        get {
+            respond(false, Status.InternalHandlerError, "Not support GET method")
+        }
+    }
+
+    route("/send_forward_(msg|message)".toRegex()) {
+        post {
+            val msgType = fetchPostOrThrow("message_type")
+            val chatType = MessageHelper.obtainMessageTypeByDetailType(msgType)
+            val retryCnt = fetchPostOrNull("retry_cnt")?.toInt() ?: 5
+
+            val userId = fetchPostOrNull("user_id")
+            val groupId = fetchPostOrNull("group_id")
+            val messages = fetchPostJsonArray("messages")
+            call.respondText(
+                SendForwardMessage(
+                    chatType,
+                    if (chatType == MsgConstant.KCHATTYPEC2C) userId!! else groupId!!,
+                    groupId ?: userId ?: "",
+                    messages,
+                    retryCnt
+                ),
+                ContentType.Application.Json
+            )
+        }
+        get {
+            respond(false, Status.InternalHandlerError, "Not support GET method")
+        }
+    }
+
+    route("/send_private_forward_(msg|message)".toRegex()) {
+        post {
+            val userId = fetchPostOrThrow("user_id")
+            val groupId = fetchPostOrNull("group_id")
+
+            val retryCnt = fetchPostOrNull("retry_cnt")?.toInt() ?: 5
+            val messages = fetchPostJsonArray("messages")
+            call.respondText(
+                SendForwardMessage(MsgConstant.KCHATTYPEC2C, userId, groupId ?: userId, messages, retryCnt),
+                ContentType.Application.Json
+            )
+        }
+        get {
+            respond(false, Status.InternalHandlerError, "Not support GET method")
+        }
+    }
+
+    route("/send_group_forward_(msg|message)".toRegex()) {
+        post {
+            val groupId = fetchPostOrThrow("group_id")
+
+            val retryCnt = fetchPostOrNull("retry_cnt")?.toInt() ?: 5
+            val messages = fetchPostJsonArray("messages")
+            call.respondText(
+                SendForwardMessage(MsgConstant.KCHATTYPEGROUP, groupId, messages = messages, retryCnt = retryCnt),
+                ContentType.Application.Json
+            )
+        }
+        get {
+            respond(false, Status.InternalHandlerError, "Not support GET method")
         }
     }
 }

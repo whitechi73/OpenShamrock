@@ -3,17 +3,16 @@ package moe.fuqiuluo.shamrock.remote.action.handlers
 import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
 import kotlinx.serialization.json.*
 import moe.fuqiuluo.qqinterface.servlet.MsgSvc
-import moe.fuqiuluo.qqinterface.servlet.msg.toJson
 import moe.fuqiuluo.shamrock.helper.MessageHelper
 import moe.fuqiuluo.shamrock.helper.ParamsException
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
-import moe.fuqiuluo.shamrock.remote.service.data.SendForwardMessageResult
+import moe.fuqiuluo.shamrock.remote.service.data.UploadForwardMessageResult
 import moe.fuqiuluo.shamrock.tools.*
 import moe.fuqiuluo.symbols.OneBotHandler
 
-@OneBotHandler("send_forward_msg", ["send_forward_message"])
-internal object SendForwardMessage : IActionHandler() {
+@OneBotHandler("upload_multi_message")
+internal object UploadMultiMessage : IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val detailType = session.getStringOrNull("detail_type") ?: session.getStringOrNull("message_type")
         try {
@@ -57,7 +56,7 @@ internal object SendForwardMessage : IActionHandler() {
             val retryCnt = session.getIntOrNull("retry_cnt") ?: 5
             return if (session.isArray("messages")) {
                 val messages = session.getArray("messages")
-                invoke(chatType, peerId, fromId, messages, retryCnt, session.echo)
+                invoke(chatType, peerId, fromId, messages, retryCnt, echo = session.echo)
             } else {
                 logic("未知格式合并转发消息", session.echo)
             }
@@ -80,13 +79,12 @@ internal object SendForwardMessage : IActionHandler() {
             val message = MsgSvc.uploadMultiMsg(chatType, peerId, fromId, messages, retryCnt)
                 .getOrElse { return logic(it.message ?: "", echo) }
 
-            val result = MsgSvc.sendToAio(chatType, peerId, listOf(message).toJson(), fromId, retryCnt)
-                .getOrElse { return logic(it.message ?: "", echo) }
-
             return ok(
-                SendForwardMessageResult(
-                    msgId = result.msgHashId,
-                    resId = message.data["id"] as String
+                UploadForwardMessageResult(
+                    resId = message.data["id"] as String,
+                    filename = message.data["filename"] as String,
+                    summary = message.data["summary"] as String,
+                    desc = message.data["desc"] as String
                 ), echo = echo
             )
         }.onFailure {
