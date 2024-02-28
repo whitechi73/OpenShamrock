@@ -1,12 +1,10 @@
 @file:Suppress("UNCHECKED_CAST", "LocalVariableName")
 package moe.fuqiuluo.shamrock.xposed.hooks
 
-import android.content.ContentProviderClient
 import android.content.ContentResolver
 import android.content.Context
 import android.content.pm.PackageManager
 import android.content.pm.VersionedPackage
-import android.net.Uri
 import android.os.Build
 import android.os.Looper
 import de.robv.android.xposed.XC_MethodReplacement
@@ -18,7 +16,6 @@ import moe.fuqiuluo.shamrock.remote.service.config.ShamrockConfig
 import moe.fuqiuluo.shamrock.tools.MethodHooker
 import moe.fuqiuluo.shamrock.tools.hookMethod
 import moe.fuqiuluo.shamrock.xposed.XposedEntry
-import moe.fuqiuluo.shamrock.xposed.helper.AppTalker
 import moe.fuqiuluo.shamrock.xposed.loader.LuoClassloader
 import moe.fuqiuluo.shamrock.xposed.loader.NativeLoader
 import moe.fuqiuluo.symbols.XposedHook
@@ -28,12 +25,30 @@ class AntiDetection: IAction {
     private external fun antiNativeDetections(): Boolean
 
     override fun invoke(ctx: Context) {
-        antiFindPackage(ctx)
+        try {
+            antiFindPackage(ctx)
+        }catch(_:Throwable){ } //某个大聪明在外面隐藏了shamrock，导致这个代码抛出异常，俺不说是谁>_<
+        antiGetPackageGidsDetection(ctx)
         antiProviderDetection()
         antiNativeDetection()
         if (ShamrockConfig.isAntiTrace())
             antiTrace()
         antiMemoryWalking()
+    }
+
+    // 虽然使用了getPackageGids来检测，但
+    // 事实上除了这个还有getPackageUid，getPackageUidAsUser，等乱七八糟的接口都可以用于检测，任君选择~
+    // 按这样来水检测，企鹅的工资可真好拿，每个接口都用来水一遍，这不得赢取白富美走向人生巅峰，俺也要来！>_<
+    private fun antiGetPackageGidsDetection(ctx: Context) {
+        //通过 android.content.pm.PackageManager->getPackageGids(Ljava/lang/String;)[I  扫 moe.fuqiuluo.shamrock
+        ctx.packageManager::class.java.hookMethod("getPackageGids").before {
+            val packageName = it.args[0] as String
+            if (packageName == "moe.fuqiuluo.shamrock") {
+                it.result = null
+                it.throwable = PackageManager.NameNotFoundException(packageName)
+                LogCenter.log("AntiDetection: 检测到对Shamrock的检测，欺骗GetPackageGids")
+            }
+        }
     }
 
     private fun antiProviderDetection() {
