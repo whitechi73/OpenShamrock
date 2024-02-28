@@ -221,7 +221,7 @@ internal object NtMsgElementMaker {
             }
             rows.add(InlineKeyboardRow(buttons))
         }
-        elem.inlineKeyboardElement = InlineKeyboardElement(rows, keyboard["bot_appid"].asLong)
+        elem.inlineKeyboardElement = InlineKeyboardElement(rows, keyboard["appid"].asLong)
         return Result.success(elem)
     }
 

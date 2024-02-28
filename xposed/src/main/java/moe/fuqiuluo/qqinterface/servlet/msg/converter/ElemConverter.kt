@@ -206,53 +206,6 @@ internal object ElemConverter {
         throw UnknownError("no segment")
     }
 
-//
-//    /**
-//     * 语音消息转换消息段
-//     */
-//    private suspend fun convertVoiceElem(
-//        chatType: Int,
-//        peerId: String,
-//        subPeer: String,
-//        element: Elem
-//    ): MessageSegment {
-//        val record = element.pttElement
-//
-//        val md5 = if (record.fileName.startsWith("silk"))
-//            record.fileName.substring(5)
-//        else record.md5HexStr
-//
-//        return MessageSegment(
-//            type = "record",
-//            data = mapOf(
-//                "file" to md5,
-//                "url" to when (chatType) {
-//                    MsgConstant.KCHATTYPEGROUP -> RichProtoSvc.getGroupPttDownUrl(
-//                        "0",
-//                        record.md5HexStr,
-//                        record.fileUuid
-//                    )
-//
-//                    MsgConstant.KCHATTYPEC2C -> RichProtoSvc.getC2CPttDownUrl("0", record.fileUuid)
-//                    MsgConstant.KCHATTYPEGUILD -> RichProtoSvc.getGroupPttDownUrl(
-//                        "0",
-//                        record.md5HexStr,
-//                        record.fileUuid
-//                    )
-//
-//                    else -> throw UnsupportedOperationException("Not supported chat type: $chatType")
-//                }
-//            ).also {
-//                if (record.voiceChangeType != MsgConstant.KPTTVOICECHANGETYPENONE) {
-//                    it["magic"] = "1"
-//                }
-//                if ((it["url"] as String).isBlank()) {
-//                    it.remove("url")
-//                }
-//            }
-//        )
-//    }
-//
 //    /**
 //     * 视频消息转换消息段
 //     */
@@ -354,7 +307,6 @@ internal object ElemConverter {
     ): MessageSegment {
         val data = element.lightApp!!.data!!
         val jsonStr = String(if (data[0].toInt() == 1) DeflateTools.uncompress(data.slice(1)) else data.slice(1))
-        LogCenter.log(jsonStr, Level.DEBUG)
         val json = jsonStr.asJsonObject
         return when (json["app"].asString) {
             "com.tencent.multimsg" -> {

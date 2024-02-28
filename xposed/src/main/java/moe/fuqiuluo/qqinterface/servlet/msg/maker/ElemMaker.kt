@@ -20,6 +20,7 @@ import moe.fuqiuluo.shamrock.utils.DeflateTools
 import moe.fuqiuluo.shamrock.utils.FileUtils
 import protobuf.auto.toByteArray
 import protobuf.message.Elem
+import protobuf.message.Ptt
 import protobuf.message.RichText
 import protobuf.message.element.*
 import protobuf.message.element.commelem.*
@@ -40,10 +41,9 @@ internal class ElemMaker {
             "face" to ElemMaker::createFaceElem,
             "pic" to ElemMaker::createImageElem,
             "image" to ElemMaker::createImageElem,
-//        "voice" to ElemMaker::createRecordElem,
-//        "record" to ElemMaker::createRecordElem,
-//        "video" to ElemMaker::createVideoElem,
+            "reply" to ElemMaker::createReplyElem,
             "forward" to ElemMaker::createForwardStruct,
+            "weather" to ElemMaker::createWeatherElem,
             "json" to ElemMaker::createJsonElem,
             "poke" to ElemMaker::createPokeElem,
             "dice" to ElemMaker::createNewDiceElem,
@@ -55,12 +55,12 @@ internal class ElemMaker {
 //        "contact" to ElemMaker::createContactElem,
 //        "location" to ElemMaker::createLocationElem,
 //        "music" to ElemMaker::createMusicElem,
-            "reply" to ElemMaker::createReplyElem,
 //        "touch" to ElemMaker::createTouchElem,
-            "weather" to ElemMaker::createWeatherElem,
-            //"forward" to MessageMaker::createForwardElem,
-            //"multi_msg" to MessageMaker::createLongMsgStruct,
-            //"bubble_face" to ElemMaker::createBubbleFaceElem,
+//        "multi_msg" to MessageMaker::createLongMsgStruct,
+//        "bubble_face" to ElemMaker::createBubbleFaceElem,
+        "voice" to ElemMaker::createRecordElem,
+        "record" to ElemMaker::createRecordElem,
+//        "video" to ElemMaker::createVideoElem,
         )
 
         operator fun get(type: String): IElemMaker? = makerArray[type]
@@ -627,8 +627,8 @@ internal class ElemMaker {
                 serviceType = 46,
                 elem = ButtonExtra(
                     field1 = Object1(
-                        rows = data["buttons"].asJsonArray.map { row ->
-                            Row(buttons = row.asJsonArray.map {
+                        rows = data["rows"].asJsonArray.map { row ->
+                            Row(buttons = row.asJsonObject["buttons"].asJsonArray.map {
                                 val button = it.asJsonObject
                                 val renderData = button["render_data"].asJsonObject
                                 val action = button["action"].asJsonObject
@@ -663,6 +663,19 @@ internal class ElemMaker {
         )
         elems.add(elem)
         desc += "[Button消息]"
+    }
+
+    private suspend fun createRecordElem(
+        chatType: Int,
+        msgId: Long,
+        peerId: String,
+        data: JsonObject
+    ) {
+        data.checkAndThrow("content")
+        rich.ptt= Ptt(
+
+        )
+        desc += "[语音消息]"
     }
 
     private fun JsonObject.checkAndThrow(vararg key: String) {

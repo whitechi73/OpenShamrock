@@ -10,8 +10,8 @@ import kotlinx.serialization.protobuf.ProtoNumber
 data class RichText(
     @ProtoNumber(1) val attr: Attr? = null,
     @ProtoNumber(2) var elements: List<Elem>? = null,
-    @ProtoNumber(3) val not_online_file: NotOnlineFile? = null,
-    @ProtoNumber(4) val ptt: Ptt? = null,
+    @ProtoNumber(3) var not_online_file: NotOnlineFile? = null,
+    @ProtoNumber(4) var ptt: Ptt? = null,
     @ProtoNumber(5) val tmp_ptt: TmpPtt? = null,
     @ProtoNumber(6) val trans_211_tmp_msg: Trans211TmpMsg? = null,
 )
