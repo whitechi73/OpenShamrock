@@ -119,7 +119,7 @@ internal object ElemConverter {
                 chatType = chatType,
                 size = customFace.size!!.toLong(),
                 sha = "",
-                fileId = customFace.fileUuid,
+                fileId = "",
                 storeId = 0,
             )
         )
@@ -162,7 +162,7 @@ internal object ElemConverter {
                 chatType = chatType,
                 size = notOnlineImage.fileLen!!.toLong(),
                 sha = "",
-                fileId = notOnlineImage.fileUuid,
+                fileId = "",
                 storeId = 0,
             )
         )

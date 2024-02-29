@@ -160,7 +160,7 @@ internal object RichProtoSvc: BaseSvc() {
         width: UInt = 0u,
         height: UInt = 0u
     ): String {
-        val isNtServer = !fileId.startsWith("/") || originalUrl.startsWith("/download")
+        val isNtServer = originalUrl.startsWith("/download")
         val domain = if (isNtServer) MULTIMEDIA_DOMAIN else GPRO_PIC
         if (originalUrl.isNotEmpty()) {
             if (isNtServer && !originalUrl.contains("rkey=")) {
@@ -196,7 +196,7 @@ internal object RichProtoSvc: BaseSvc() {
         height: UInt = 0u,
         storeId: Int = 0
     ): String {
-        val isNtServer = storeId == 1 || !fileId.startsWith("/") || originalUrl.startsWith("/download")
+        val isNtServer = storeId == 1 || originalUrl.startsWith("/download")
         val domain = if (isNtServer) MULTIMEDIA_DOMAIN else C2C_PIC
         if (originalUrl.isNotEmpty()) {
             if (fileId.isNotEmpty()) getNtPicRKey(
@@ -238,7 +238,7 @@ internal object RichProtoSvc: BaseSvc() {
         width: UInt = 0u,
         height: UInt = 0u
     ): String {
-        val isNtServer = !fileId.startsWith("/") || originalUrl.startsWith("/download")
+        val isNtServer = originalUrl.startsWith("/download")
         val domain = if (isNtServer) MULTIMEDIA_DOMAIN else GPRO_PIC
         if (originalUrl.isNotEmpty()) {
             if (isNtServer && !originalUrl.contains("rkey=")) {
