@@ -457,7 +457,7 @@ internal object GroupSvc: BaseSvc() {
             }
         }
 
-        METHOD_REQ_MODIFY_GROUP_NAME.invoke(businessHandler, groupId, name, false)
+        METHOD_REQ_MODIFY_GROUP_NAME.invoke(businessHandler, groupId.toString(), name, false)
     }
 
     fun parseHonor(honor: String?): List<Int> {
@@ -763,7 +763,7 @@ internal object GroupSvc: BaseSvc() {
             }
         }
 
-        METHOD_REQ_TROOP_MEM_LIST.invoke(businessHandler, true, groupId, groupUin2GroupCode(groupId).toString(), 5)
+        METHOD_REQ_TROOP_MEM_LIST.invoke(businessHandler, true, groupId.toString(), groupUin2GroupCode(groupId).toString(), 5)
     }
 
     private fun refreshTroopList() {
