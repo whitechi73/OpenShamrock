@@ -38,8 +38,9 @@ internal object NativeLoader {
                 val field = clazz.getDeclaredField("vmInstructionSet")
                 field.isAccessible = true
                 val instructionSet = field.get(runtime) as String
-                instructionSet.contains("x86")
-                XposedBridge.log("[Shamrock] 反射检测到 Android x86")
+                if ( instructionSet.contains("x86") ) {
+                    XposedBridge.log("[Shamrock] 反射检测到 Android x86")
+                    true } else { false }
             } catch (e: Exception) {
                 XposedBridge.log("[Shamrock] $e")
                 false
