@@ -69,8 +69,6 @@ dependencies {
 
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
 
-    implementation("cn.hutool:hutool-core:5.8.0.M1")
-
     DEPENDENCY_ANDROIDX.forEach {
         implementation(it)
     }

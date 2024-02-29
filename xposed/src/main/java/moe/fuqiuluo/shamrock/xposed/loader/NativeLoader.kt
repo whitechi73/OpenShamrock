@@ -3,17 +3,12 @@ package moe.fuqiuluo.shamrock.xposed.loader
 import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Build
-import cn.hutool.core.io.FileUtil
-import cn.hutool.core.io.IoUtil
-import com.tencent.mmkv.MMKV
 import de.robv.android.xposed.XposedBridge
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
-import moe.fuqiuluo.shamrock.xposed.XposedEntry
 import moe.fuqiuluo.shamrock.xposed.loader.tmpnativehelper.moduleClassLoader
 import mqq.app.MobileQQ
-import java.io.BufferedInputStream
-import java.io.ByteArrayOutputStream
+import oicq.wlogin_sdk.tools.MD5
 import java.io.File
 
 internal object NativeLoader {
@@ -40,7 +35,8 @@ internal object NativeLoader {
                 val instructionSet = field.get(runtime) as String
                 if ( instructionSet.contains("x86") ) {
                     XposedBridge.log("[Shamrock] 反射检测到 Android x86")
-                    true } else { false }
+                    true
+                } else false
             } catch (e: Exception) {
                 XposedBridge.log("[Shamrock] $e")
                 false
@@ -58,7 +54,7 @@ internal object NativeLoader {
     fun load(name: String) {
         try {
             if (name == "shamrock" || name == "clover") {
-                onload(name, getCtx())
+                onLoadByCopiedLibrary(name, getCtx())
             } else {
                 val sourceFile = externalLibPath.resolve("lib$name.so")
                 val soFile = MobileQQ.getContext().filesDir.parentFile!!.resolve("txlib").resolve("lib$name.so")
@@ -79,10 +75,10 @@ internal object NativeLoader {
         }
     }
 
-    private fun getCtx() = MobileQQ.getContext()
+    private inline fun getCtx() = MobileQQ.getContext()
 
     @SuppressLint("UnsafeDynamicallyLoadedCode")
-    fun onload(name: String, context: Context) {
+    private fun onLoadByCopiedLibrary(name: String, context: Context) {
         val soDir = File(context.filesDir, "SM_LIBS")
         if (soDir.isFile) {
             soDir.delete()
@@ -90,26 +86,32 @@ internal object NativeLoader {
         if (!soDir.exists()) {
             soDir.mkdirs()
         }
-        val soPath = NativeLoader.getLibFilePath(name)
+        val soPath = getLibFilePath(name)
         val soFile = File(soDir, name)
-        val libStream =
-            BufferedInputStream(moduleClassLoader.getResourceAsStream(soPath))
-        val tmpSoFile = File(soDir, "$name.tmp")
+        fun reloadSo(tmp: File? = null) {
+            LogCenter.log("SO文件大小不一致或不存在，正在重新加载", Level.INFO)
+            soFile.delete()
+            if (tmp == null) moduleClassLoader.getResourceAsStream(soPath).use { origin ->
+                soFile.outputStream().use { origin.copyTo(it) }
+            } else tmp.renameTo(soFile)
+        }
         try {
-            FileUtil.writeFromStream(libStream, tmpSoFile)
             if (!soFile.exists()) {
-                LogCenter.log("SO文件 $name 不存在，正在尝试加载", Level.INFO)
-                tmpSoFile.renameTo(soFile)
+                reloadSo()
             } else {
-                val oldStream = FileUtil.getInputStream(soFile)
-                val newStream = FileUtil.getInputStream(tmpSoFile)
-                if (!IoUtil.contentEquals(oldStream, newStream)) {
-                    LogCenter.log("SO文件版本不一致，正在重新加载", Level.INFO)
-                    soFile.delete()
-                    tmpSoFile.renameTo(soFile)
+                val tmpSoFile = soFile.resolve("$name.tmp").also {  file ->
+                    if (file.exists()) file.delete()
+                    file.outputStream().use {
+                        moduleClassLoader.getResourceAsStream(soPath).use { origin ->
+                            origin.copyTo(it)
+                        }
+                    }
                 }
-                oldStream.close()
-                newStream.close()
+                if (soFile.length() != tmpSoFile.length() || MD5.getFileMD5(soFile).let {
+                    it != MD5.getFileMD5(tmpSoFile)
+                }) {
+                    reloadSo(tmpSoFile)
+                }
             }
             try {
                 System.load(soFile.absolutePath)
@@ -121,13 +123,6 @@ internal object NativeLoader {
         } catch (e: Exception) {
             LogCenter.log(e.toString(), Level.WARN)
             throw e
-        } finally {
-            try {
-                libStream.close()
-                if (tmpSoFile.exists()) { tmpSoFile.delete() }
-                System.gc()
-            } catch (e: Exception) { LogCenter.log(e.toString(), Level.WARN) }
         }
     }
-
 }
