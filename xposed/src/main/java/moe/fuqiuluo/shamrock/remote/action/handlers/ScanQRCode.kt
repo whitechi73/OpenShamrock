@@ -7,7 +7,7 @@ import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.symbols.OneBotHandler
 
-@OneBotHandler("sanc_qrcode")
+@OneBotHandler("scan_qrcode")
 internal object ScanQRCode: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val qrcode = QRoute.api(IQRCodeApi::class.java)
