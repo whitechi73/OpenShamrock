@@ -16,7 +16,7 @@ import moe.fuqiuluo.symbols.OneBotHandler
 import moe.fuqiuluo.symbols.decodeProtobuf
 import protobuf.fav.WeiyunComm
 
-@OneBotHandler("fav.add_text_msg", ["fav.add_text_msg"])
+@OneBotHandler("fav.add_text_msg", ["fav.add_text_message"])
 internal object FavAddTextMsg: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val uin = session.getLong("user_id")
