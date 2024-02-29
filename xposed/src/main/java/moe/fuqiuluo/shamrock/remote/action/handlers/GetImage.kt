@@ -3,6 +3,7 @@ package moe.fuqiuluo.shamrock.remote.action.handlers
 import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
+import moe.fuqiuluo.qqinterface.servlet.TicketSvc
 import moe.fuqiuluo.qqinterface.servlet.transfile.RichProtoSvc
 import moe.fuqiuluo.shamrock.helper.db.ImageDB
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
@@ -10,7 +11,7 @@ import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
 import moe.fuqiuluo.symbols.OneBotHandler
 
-@OneBotHandler("get_image")
+@OneBotHandler("get_image", ["get_img"])
 internal object GetImage: IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val echo = session.echo
@@ -35,8 +36,27 @@ internal object GetImage: IActionHandler() {
             image.size,
             image.fileName,
             when(image.chatType) {
-                MsgConstant.KCHATTYPEGROUP -> RichProtoSvc.getGroupPicDownUrl("", fileMd5)
-                MsgConstant.KCHATTYPEC2C -> RichProtoSvc.getC2CPicDownUrl("", fileMd5)
+                MsgConstant.KCHATTYPEGROUP -> RichProtoSvc.getGroupPicDownUrl(
+                    originalUrl = "",
+                    md5 = fileMd5,
+                    fileSize = image.size.toULong(),
+                    sha = "",
+                    fileId = image.fileId,
+                    width = 100u,
+                    height = 100u,
+                    peer = TicketSvc.getUin()
+                )
+                MsgConstant.KCHATTYPEC2C -> RichProtoSvc.getC2CPicDownUrl(
+                    originalUrl = "",
+                    md5 = fileMd5,
+                    fileSize = image.size.toULong(),
+                    sha = "",
+                    fileId = image.fileId,
+                    storeId = image.storeId,
+                    width = 100u,
+                    height = 100u,
+                    peer = TicketSvc.getUin()
+                )
                 else -> error("Not supported chat type: ${image.chatType}, convertMsgElementsToMsgSegment::Pic")
             }
         ), echo = echo)

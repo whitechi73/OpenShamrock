@@ -113,7 +113,15 @@ internal object ElemConverter {
         val md5 = customFace.md5.toHexString()
 
         ImageDB.getInstance().imageMappingDao().insert(
-            ImageMapping(md5.uppercase(), chatType, customFace.size!!.toLong())
+            ImageMapping(
+                fileName = md5.uppercase(),
+                md5 = md5.uppercase(),
+                chatType = chatType,
+                size = customFace.size!!.toLong(),
+                sha = "",
+                fileId = customFace.fileUuid,
+                storeId = 0,
+            )
         )
 
         val origUrl = customFace.origUrl!!
@@ -148,7 +156,15 @@ internal object ElemConverter {
         val md5 = notOnlineImage.picMd5.toHexString()
 
         ImageDB.getInstance().imageMappingDao().insert(
-            ImageMapping(md5.uppercase(), chatType, notOnlineImage.fileLen!!.toLong())
+            ImageMapping(
+                fileName = md5.uppercase(),
+                md5 = md5.uppercase(),
+                chatType = chatType,
+                size = notOnlineImage.fileLen!!.toLong(),
+                sha = "",
+                fileId = notOnlineImage.fileUuid,
+                storeId = 0,
+            )
         )
 
         val origUrl = notOnlineImage.origUrl!!

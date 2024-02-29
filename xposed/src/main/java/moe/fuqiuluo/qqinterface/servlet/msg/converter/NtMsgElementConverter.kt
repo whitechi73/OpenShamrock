@@ -157,19 +157,27 @@ internal object NtMsgElementConverter {
             .replace("-", "").split(".")[0])
             .uppercase()
 
+        var storeId = 0
+        if (PlatformUtils.getQQVersionCode() > QQ_9_0_8_VER) {
+            storeId = image.storeID
+        }
+
         ImageDB.getInstance().imageMappingDao().insert(
-            ImageMapping(md5, chatType, image.fileSize)
+            ImageMapping(
+                fileName = md5,
+                md5 = md5,
+                chatType = chatType,
+                size = image.fileSize,
+                sha = "",
+                fileId = image.fileUuid,
+                storeId = storeId,
+            )
         )
 
         //LogCenter.log(image.toString())
 
         val originalUrl = image.originImageUrl ?: ""
         LogCenter.log({ "receive image: $image" }, Level.DEBUG)
-
-        var storeId = 0
-        if (PlatformUtils.getQQVersionCode() > QQ_9_0_8_VER) {
-            storeId = image.storeID
-        }
 
         /*
         PicElement{picSubType=0,fileName=A655FCDADABC40D0CEAF6F9AF92937CD.jpg,fileSize=142865,picWidth=886,picHeight=1920,original=false,md5HexStr=a655fcdadabc40d0ceaf6f9af92937cd,sourcePath=null,thumbPath=null,transferStatus=2,progress=0,picType=1000,invalidState=0,fileUuid=CgoxMDI5Mzc0MTE1EhTnucgrUbp3MJjjagUM2-VxSQ5V7hiR3Agg_goo9ZCZt-HNhANQgJqeAQ,fileSubId=,thumbFileSize=0,fileBizId=null,downloadIndex=null,summary=,emojiFrom=null,emojiWebUrl=null,emojiAd=EmojiAD{url=,desc=,},emojiMall=EmojiMall{packageId=0,emojiId=0,},emojiZplan=EmojiZPlan{actionId=0,actionName=,actionType=0,playerNumber=0,peerUid=0,bytesReserveInfo=,},originImageMd5=,originImageUrl=null,importRichMediaContext=null,isFlashPic=false,}

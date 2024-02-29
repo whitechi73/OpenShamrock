@@ -17,7 +17,12 @@ data class ImageMapping (
     @PrimaryKey
     val fileName: String,
     val chatType: Int,
-    val size: Long
+    val size: Long,
+
+    val md5: String,
+    val sha: String,
+    val fileId: String,
+    val storeId: Int
 )
 
 @Dao
@@ -34,7 +39,7 @@ internal abstract class ImageDB: RoomDatabase() {
     abstract fun imageMappingDao(): ImageMappingDao
 
     companion object {
-        private const val DB_NAME = "image_mapping.db"
+        private const val DB_NAME = "image_mapping_v2.db"
 
         @Volatile
         private var instance: ImageDB? = null
