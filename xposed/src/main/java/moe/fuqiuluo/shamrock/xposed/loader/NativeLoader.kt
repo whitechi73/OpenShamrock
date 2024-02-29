@@ -58,21 +58,7 @@ internal object NativeLoader {
     fun load(name: String) {
         try {
             if (name == "shamrock" || name == "clover") {
-
-/*                val context = MobileQQ.getContext()
-                val packageManager = context.packageManager
-                val applicationInfo = packageManager.getApplicationInfo("moe.fuqiuluo.shamrock.hided", 0)
-                val file = File(applicationInfo.nativeLibraryDir)
-                LogCenter.log("LoadLibrary(name = $name)")
-                System.load(file.resolve("lib$name.so").also {
-                    if (!it.exists()) {
-                        LogCenter.log("LoadLibrary(name = $name) failed, file not exists.", level = Level.ERROR)
-                        return
-                    }
-                }.absolutePath)*/
-
                 onload(name, getCtx())
-
             } else {
                 val sourceFile = externalLibPath.resolve("lib$name.so")
                 val soFile = MobileQQ.getContext().filesDir.parentFile!!.resolve("txlib").resolve("lib$name.so")
@@ -93,7 +79,7 @@ internal object NativeLoader {
         }
     }
 
-    fun getCtx() = MobileQQ.getContext()
+    private fun getCtx() = MobileQQ.getContext()
 
     @SuppressLint("UnsafeDynamicallyLoadedCode")
     fun onload(name: String, context: Context) {
@@ -112,7 +98,7 @@ internal object NativeLoader {
         try {
             FileUtil.writeFromStream(libStream, tmpSoFile)
             if (!soFile.exists()) {
-                LogCenter.log("SO文件 ${name} 不存在，正在尝试加载", Level.INFO)
+                LogCenter.log("SO文件 $name 不存在，正在尝试加载", Level.INFO)
                 tmpSoFile.renameTo(soFile)
             } else {
                 val oldStream = FileUtil.getInputStream(soFile)
@@ -122,6 +108,8 @@ internal object NativeLoader {
                     soFile.delete()
                     tmpSoFile.renameTo(soFile)
                 }
+                oldStream.close()
+                newStream.close()
             }
             try {
                 System.load(soFile.absolutePath)
@@ -134,9 +122,11 @@ internal object NativeLoader {
             LogCenter.log(e.toString(), Level.WARN)
             throw e
         } finally {
-            if (tmpSoFile.exists()) {
-                tmpSoFile.delete()
-            }
+            try {
+                libStream.close()
+                if (tmpSoFile.exists()) { tmpSoFile.delete() }
+                System.gc()
+            } catch (e: Exception) { LogCenter.log(e.toString(), Level.WARN) }
         }
     }
 
