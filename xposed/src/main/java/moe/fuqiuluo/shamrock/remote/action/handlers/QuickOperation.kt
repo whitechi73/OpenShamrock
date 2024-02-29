@@ -106,7 +106,7 @@ internal object QuickOperation : IActionHandler() {
         }
 
 
-        return logic("操作成功", session.echo)
+        return ok("操作成功", session.echo)
     }
 
     override val requiredParams: Array<String> = arrayOf("context", "operation", "self_id")
