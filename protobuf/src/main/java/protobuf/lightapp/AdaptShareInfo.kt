@@ -32,6 +32,11 @@ data class AdaptShareInfoReq(
 
 @Serializable
 data class Template(
-    @ProtoNumber(1) var templateId: UInt? = null,
+    @ProtoNumber(1) var templateId: ULong? = null,
     @ProtoNumber(2) var templateData: ByteArray? = null,
 )
+
+@Serializable
+data class AdaptShareInfoResp(
+    @ProtoNumber(2) var json: String? = null,
+): Protobuf<AdaptShareInfoResp>

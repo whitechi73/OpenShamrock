@@ -81,7 +81,6 @@ class AntiDetection: IAction {
             } else if (!pref.getBoolean("super_anti", false)) {
                 return
             }
-            //System.loadLibrary("clover")
             NativeLoader.load("clover")
             val env = XposedEntry.hasEnv()
             val injected = XposedEntry.injected()

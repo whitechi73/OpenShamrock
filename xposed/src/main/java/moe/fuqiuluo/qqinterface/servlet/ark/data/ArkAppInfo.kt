@@ -5,7 +5,8 @@ sealed class ArkAppInfo(
     val version: String,
     val packageName: String,
     val signature: String,
-    val miniAppId: Long = 0
+    val miniAppId: Long = 0,
+    val appName: String = ""
 ) {
     data object QQMusic: ArkAppInfo(
         appId = 100497308,
@@ -25,7 +26,8 @@ sealed class ArkAppInfo(
         version = "0.0.0",
         packageName = "tv.danmaku.bili",
         signature = "7194d531cbe7960a22007b9f6bdaa38b",
-        miniAppId = 1109937557
+        miniAppId = 1109937557,
+        appName = "哔哩哔哩"
     )
 
     data object Docs: ArkAppInfo(

@@ -31,16 +31,21 @@ import moe.fuqiuluo.shamrock.tools.jsonArray
 import moe.fuqiuluo.shamrock.tools.respond
 
 fun Routing.messageAction() {
-    route("/sign_ark_message") {
+    route("/adapt_share_json") {
         get {
-            val json = fetchGetOrThrow("json")
-            call.respondText(SignArkMessage(json), ContentType.Application.Json)
+            val cover = fetchGetOrThrow("cover")
+            val desc = fetchGetOrThrow("desc")
+            val url = fetchGetOrNull("url") ?: ""
+            call.respondText(AdaptShareJson(cover, desc, url), ContentType.Application.Json)
         }
         post {
-            val json = if (isJsonData() && (isJsonObject("json") || isJsonArray("json")))
-                fetchPostJsonElement("json").toString()
-            else fetchPostOrThrow("json")
-            call.respondText(SignArkMessage(json), ContentType.Application.Json)
+            //val json = if (isJsonData() && (isJsonObject("json") || isJsonArray("json")))
+            //    fetchPostJsonElement("json").toString()
+            //else fetchPostOrThrow("json")
+            val cover = fetchPostOrThrow("cover")
+            val desc = fetchPostOrThrow("desc")
+            val url = fetchPostOrNull("url") ?: ""
+            call.respondText(AdaptShareJson(cover, desc, url), ContentType.Application.Json)
         }
     }
 
@@ -95,6 +100,13 @@ fun Routing.messageAction() {
     getOrPost("/get_msg") {
         val msgHash = fetchOrThrow("message_id").toInt()
         call.respondText(GetMsg(msgHash), ContentType.Application.Json)
+    }
+
+    getOrPost("/send_msg_by_resid") {
+        val resId = fetchOrThrow("res_id")
+        val peerId = fetchOrThrow("peer_Id")
+        val messageType = fetchOrThrow("message_type")
+        call.respondText(SendMsgByResid(peerId, resId, messageType))
     }
 
     route("/(send_msg|send_message)".toRegex()) {

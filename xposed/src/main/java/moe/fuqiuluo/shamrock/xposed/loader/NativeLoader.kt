@@ -1,12 +1,11 @@
 package moe.fuqiuluo.shamrock.xposed.loader
 
 import android.annotation.SuppressLint
-import android.content.Context
 import android.os.Build
 import de.robv.android.xposed.XposedBridge
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
-import moe.fuqiuluo.shamrock.xposed.loader.tmpnativehelper.moduleClassLoader
+import moe.fuqiuluo.shamrock.xposed.loader.LuoClassloader.moduleLoader
 import mqq.app.MobileQQ
 import oicq.wlogin_sdk.tools.MD5
 import java.io.File
@@ -20,28 +19,24 @@ internal object NativeLoader {
             return externalLibPath.resolve("libffmpegkit.so").exists()
         }
 
-    private val isEmu: Boolean
-        get() {
-            if (Build.SUPPORTED_ABIS.any { it.contains("x86") }) {
-                XposedBridge.log("[Shamrock] 通过SUPPORTED_ABIS检测到 Android x86")
-                return true
-            }
-            return try {
-                val clazz = Class.forName("dalvik.system.VMRuntime")
-                val method = clazz.getDeclaredMethod("getRuntime")
-                val runtime = method.invoke(null)
-                val field = clazz.getDeclaredField("vmInstructionSet")
-                field.isAccessible = true
-                val instructionSet = field.get(runtime) as String
-                if ( instructionSet.contains("x86") ) {
-                    XposedBridge.log("[Shamrock] 反射检测到 Android x86")
-                    true
-                } else false
-            } catch (e: Exception) {
-                XposedBridge.log("[Shamrock] $e")
-                false
-            }
+    private val isEmu: Boolean = runCatching {
+        if (Build.SUPPORTED_ABIS.any { it.contains("x86") }) {
+            XposedBridge.log("[Shamrock] 通过SUPPORTED_ABIS检测到 Android x86")
+            return@runCatching true
         }
+        val clazz = Class.forName("dalvik.system.VMRuntime")
+        val method = clazz.getDeclaredMethod("getRuntime")
+        val runtime = method.invoke(null)
+        val field = clazz.getDeclaredField("vmInstructionSet")
+        field.isAccessible = true
+        val instructionSet = field.get(runtime) as String
+        if (instructionSet.contains("x86") ) {
+            XposedBridge.log("[Shamrock] 反射检测到 Android x86")
+            true
+        } else false
+    }.onFailure {
+        XposedBridge.log("[Shamrock] ${it.stackTraceToString()}")
+    }.getOrElse { false }
 
     private fun getLibFilePath(name: String): String {
         return if (isEmu) "lib/x86_64/lib${name}.so" else "lib/arm64-v8a/lib$name.so"
@@ -50,49 +45,61 @@ internal object NativeLoader {
     /**
      * 使目标进程可以使用来自模块的库
      */
-    @SuppressLint("UnsafeDynamicallyLoadedCode")
     fun load(name: String) {
         try {
-            if (name == "shamrock" || name == "clover") {
-                onLoadByCopiedLibrary(name, getCtx())
-            } else {
-                val sourceFile = externalLibPath.resolve("lib$name.so")
-                val soFile = MobileQQ.getContext().filesDir.parentFile!!.resolve("txlib").resolve("lib$name.so")
-                if (!soFile.exists()) {
-                    if (!sourceFile.exists()) {
-                        LogCenter.log("LoadExternalLibrary(name = $name) failed, file not exists.", level = Level.ERROR)
-                        return
-                    } else {
-                        sourceFile.copyTo(soFile)
-                        Runtime.getRuntime().exec("chmod 755 ${soFile.absolutePath}").waitFor()
-                    }
-                }
-                LogCenter.log("LoadExternalLibrary(name = $name)")
-                System.load(soFile.absolutePath)
+            if (name == "shamrock"
+                || (name == "clover" && isEmu)
+                ) {
+                onLoadByResource(name)
+            } else if (!onLoadByAbsolutePath(name)) {
+                onLoadByExternalFile(name)
             }
         } catch (e: Throwable) {
             XposedBridge.log(e)
         }
     }
 
-    private inline fun getCtx() = MobileQQ.getContext()
+    private fun onLoadByAbsolutePath(name: String): Boolean {
+        val context = MobileQQ.getContext()
+        val packageManager = context.packageManager
+        val applicationInfo = packageManager.getApplicationInfo("moe.fuqiuluo.shamrock.hided", 0)
+        val file = File(applicationInfo.nativeLibraryDir)
+        LogCenter.log("LoadLibrary(name = $name)")
+        loadLibrary(file.resolve("lib$name.so").also {
+            if (!it.exists()) {
+                LogCenter.log("LoadLibrary(name = $name) failed, file not exists.", level = Level.ERROR)
+                return false
+            }
+        }.absolutePath, false)
+        return true
+    }
 
-    @SuppressLint("UnsafeDynamicallyLoadedCode")
-    private fun onLoadByCopiedLibrary(name: String, context: Context) {
-        val soDir = File(context.filesDir, "SM_LIBS")
-        if (soDir.isFile) {
-            soDir.delete()
+    private fun onLoadByExternalFile(name: String) {
+        val sourceFile = externalLibPath.resolve("lib$name.so")
+        val soFile = MobileQQ.getContext().filesDir.parentFile!!
+            .resolve("txlib").resolve("lib$name.so")
+        if (!soFile.exists()) {
+            if (!sourceFile.exists()) {
+                LogCenter.log("LoadExternalLibrary(name = $name) failed, file not exists.", level = Level.ERROR)
+                return
+            } else {
+                sourceFile.copyTo(soFile)
+            }
         }
-        if (!soDir.exists()) {
-            soDir.mkdirs()
-        }
+        LogCenter.log("LoadExternalLibrary(name = $name)")
+        loadLibrary(soFile.absolutePath)
+    }
+
+    private fun onLoadByResource(name: String) {
+        val soDir = File(MobileQQ.getContext().filesDir, "SM_LIBS")
+        if (soDir.isFile) soDir.delete()
+        if (!soDir.exists()) soDir.mkdirs()
         val soPath = getLibFilePath(name)
         val soFile = File(soDir, name)
         fun reloadSo(tmp: File? = null) {
-            XposedBridge.log("[Shamrock] 重载SO文件 $soFile")
             LogCenter.log("SO文件大小不一致或不存在，正在重新加载", Level.INFO)
             soFile.delete()
-            if (tmp == null) moduleClassLoader.getResourceAsStream(soPath).use { origin ->
+            if (tmp == null) moduleLoader.getResourceAsStream(soPath).use { origin ->
                 soFile.outputStream().use { origin.copyTo(it) }
             } else tmp.renameTo(soFile)
         }
@@ -103,28 +110,29 @@ internal object NativeLoader {
                 val tmpSoFile = File(soDir, "$name.tmp").also {  file ->
                     if (file.exists()) file.delete()
                     file.outputStream().use {
-                        moduleClassLoader.getResourceAsStream(soPath).use { origin ->
+                        moduleLoader.getResourceAsStream(soPath).use { origin ->
                             origin.copyTo(it)
                         }
                     }
                 }
-                XposedBridge.log("[Shamrock] 正在校验${name}库文件")
                 if (soFile.length() != tmpSoFile.length() || MD5.getFileMD5(soFile).let {
                     it != MD5.getFileMD5(tmpSoFile)
                 }) {
                     reloadSo(tmpSoFile)
                 } else { tmpSoFile.delete() }
             }
-            try {
-                System.load(soFile.absolutePath)
-                LogCenter.log("加载SO文件成功 -> ${soFile.path}", Level.INFO)
-            } catch (e: Throwable) {
-                LogCenter.log(e.toString(), Level.WARN)
-                throw e
-            }
+            loadLibrary(soFile.absolutePath)
         } catch (e: Exception) {
-            LogCenter.log(e.toString(), Level.WARN)
+            LogCenter.log(e.toString(), Level.ERROR)
             throw e
         }
+    }
+
+    @SuppressLint("UnsafeDynamicallyLoadedCode")
+    private fun loadLibrary(path: String, autoChmod: Boolean = true) {
+        if (autoChmod) Runtime.getRuntime()
+            .exec("chmod 755 $path").waitFor()
+        System.load(path)
+        LogCenter.log({ "加载SO文件成功 -> $path" }, Level.DEBUG)
     }
 }

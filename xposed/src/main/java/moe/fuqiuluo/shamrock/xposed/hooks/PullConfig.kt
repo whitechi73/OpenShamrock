@@ -9,9 +9,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import moe.fuqiuluo.shamrock.remote.HTTPServer
 import moe.fuqiuluo.shamrock.remote.service.config.ShamrockConfig
-import moe.fuqiuluo.shamrock.utils.MMKVFetcher
 import moe.fuqiuluo.shamrock.utils.PlatformUtils
-import moe.fuqiuluo.shamrock.xposed.loader.tmpnativehelper.PutDefaultConfig
 import moe.fuqiuluo.shamrock.xposed.helper.internal.DataRequester
 import moe.fuqiuluo.shamrock.xposed.helper.internal.DynamicReceiver
 import moe.fuqiuluo.shamrock.xposed.helper.internal.IPCRequest
@@ -72,7 +70,7 @@ class PullConfig: IAction {
             DataRequester.request("init", onFailure = {
                 if (!ShamrockConfig.isInit()) {
                     ctx.toast("请启动Shamrock主进程以初始化服务，进程将退出。")
-                        PutDefaultConfig.putSettings()
+                    ShamrockConfig.putDefaultSettings()
                     thread {
                         Thread.sleep(3000)
                         exitProcess(1)

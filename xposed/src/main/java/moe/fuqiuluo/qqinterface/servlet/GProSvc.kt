@@ -37,6 +37,7 @@ import protobuf.oidb.cmx0xf57.Oidb0xf57Req
 import protobuf.oidb.cmx0xf57.Oidb0xf57Rsp
 import protobuf.oidb.cmx0xf57.Oidb0xf57U1
 import protobuf.oidb.cmx0xf57.Oidb0xf57U2
+import protobuf.qweb.DEFAULT_DEVICE_INFO
 import protobuf.qweb.QWebExtInfo
 import protobuf.qweb.QWebReq
 import protobuf.qweb.QWebRsp
@@ -73,7 +74,7 @@ internal object GProSvc: BaseSvc() {
         val buffer = sendBufferAW("QChannelSvr.trpc.qchannel.commreader.ComReader.GetGuildFeeds", true, QWebReq(
             seq = 10,
             qua = PlatformUtils.getQUA(),
-            deviceInfo = "i=&imsi=&mac=02:00:00:00:00:00&m=Shamrock&o=114514&a=1919810&sd=0&c64=1&sc=1&p=8000*8000&aid=123456789012345678901234567890abcdef&f=Tencent&mm=5610&cf=1726&cc=8&qimei=&qimei36=&sharpP=1&n=nether_world&support_xsj_live=false&client_mod=concise&timezone=America/La_Paz&material_sdk_version=&vh265=&refreshrate=10086&hwlevel=9&suphdr=1&is_teenager_mod=8&liveH265=&bmst=5&AV1=0",
+            deviceInfo = DEFAULT_DEVICE_INFO,
             buffer = GetGuildFeedsReq(
                 count = 12,
                 from = startIndex,
