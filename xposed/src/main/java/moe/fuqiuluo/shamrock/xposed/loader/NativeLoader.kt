@@ -89,6 +89,7 @@ internal object NativeLoader {
         val soPath = getLibFilePath(name)
         val soFile = File(soDir, name)
         fun reloadSo(tmp: File? = null) {
+            XposedBridge.log("[Shamrock] 重载SO文件 $soFile")
             LogCenter.log("SO文件大小不一致或不存在，正在重新加载", Level.INFO)
             soFile.delete()
             if (tmp == null) moduleClassLoader.getResourceAsStream(soPath).use { origin ->
@@ -99,7 +100,7 @@ internal object NativeLoader {
             if (!soFile.exists()) {
                 reloadSo()
             } else {
-                val tmpSoFile = soFile.resolve("$name.tmp").also {  file ->
+                val tmpSoFile = File(soDir, "$name.tmp").also {  file ->
                     if (file.exists()) file.delete()
                     file.outputStream().use {
                         moduleClassLoader.getResourceAsStream(soPath).use { origin ->
@@ -107,11 +108,12 @@ internal object NativeLoader {
                         }
                     }
                 }
+                XposedBridge.log("[Shamrock] 正在校验${name}库文件")
                 if (soFile.length() != tmpSoFile.length() || MD5.getFileMD5(soFile).let {
                     it != MD5.getFileMD5(tmpSoFile)
                 }) {
                     reloadSo(tmpSoFile)
-                }
+                } else { tmpSoFile.delete() }
             }
             try {
                 System.load(soFile.absolutePath)
