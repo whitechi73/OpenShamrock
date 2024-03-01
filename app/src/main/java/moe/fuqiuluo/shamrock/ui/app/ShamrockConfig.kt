@@ -162,6 +162,17 @@ object ShamrockConfig {
         pushUpdate(ctx)
     }
 
+    fun getUploadResourceGroup(ctx: Context): String {
+        val preferences = ctx.getSharedPreferences("config", 0)
+        return preferences.getString("up_res_group", "100000000")!!
+    }
+
+    fun setUploadResourceGroup(ctx: Context, v: String) {
+        val preferences = ctx.getSharedPreferences("config", 0)
+        preferences.edit().putString("up_res_group", v).apply()
+        pushUpdate(ctx)
+    }
+
     fun getHttpPort(ctx: Context): Int {
         val preferences = ctx.getSharedPreferences("config", 0)
         return preferences.getInt("port", 5700)
@@ -354,6 +365,7 @@ object ShamrockConfig {
             "disable_auto_sync_setting" to preferences.getBoolean("disable_auto_sync_setting", false),
             "forbid_useless_process" to preferences.getBoolean("forbid_useless_process", false),
             "enable_old_bdh" to preferences.getBoolean("enable_old_bdh", false),
+            "up_res_group" to preferences.getString("up_res_group", ""),
         )
     }
 

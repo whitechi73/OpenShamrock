@@ -261,7 +261,7 @@ internal class ElemMaker {
             resources = arrayListOf(file),
             timeout = 30.seconds
         ).getOrThrow().first()
-        LogCenter.log(uploadRet.toString(), Level.DEBUG)
+        LogCenter.log({ uploadRet.toString() }, Level.DEBUG)
 
         val elem = when (chatType) {
             MsgConstant.KCHATTYPEGROUP -> Elem(

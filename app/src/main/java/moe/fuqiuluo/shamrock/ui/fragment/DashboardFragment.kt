@@ -356,6 +356,36 @@ private fun FunctionCard(
                 return@Function true
             }
 
+            run {
+                val uploadResourceGroup = remember { mutableStateOf(ShamrockConfig.getUploadResourceGroup(ctx)) }
+                Column(
+                    modifier = Modifier
+                        .absolutePadding(left = 8.dp, right = 8.dp, top = 12.dp, bottom = 0.dp)
+                ) {
+                    Text(
+                        modifier = Modifier.padding(2.dp),
+                        text = "用来上传资源的群聊，错误的资源上传终点可能导致封禁，请自建一个群聊并填写在下方。",
+                        color = Color.Red,
+                        fontSize = 11.sp
+                    )
+                }
+                TextItem(
+                    title = "接受资源群聊",
+                    desc = "用来上传资源的群聊，请自建一个群聊并填写在下方。",
+                    text = uploadResourceGroup,
+                    hint = "请输入群号",
+                    error = "群号不合法",
+                    checker = {
+                        it.isNotBlank() && it.toULongOrNull() != null
+                    },
+                    confirm = {
+                        val groupId = uploadResourceGroup.value
+                        ShamrockConfig.setUploadResourceGroup(ctx, groupId)
+                        AppRuntime.log("设置接受资源群聊为[$groupId]。")
+                    }
+                )
+            }
+
             /*
             Function(
                 title = "专业级接口",
@@ -445,9 +475,7 @@ private fun InfoItem(
             .fillMaxWidth()
             .combinedClickable(onDoubleClick = {
                 doubleClick?.invoke(content)
-            }) {
-                true
-            }
+            }) { true }
         ,
         verticalAlignment = Alignment.CenterVertically
     ) {

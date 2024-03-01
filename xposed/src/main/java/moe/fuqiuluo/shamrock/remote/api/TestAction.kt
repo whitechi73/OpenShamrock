@@ -24,13 +24,6 @@ fun Routing.testAction() {
         return
     }
 
-    getOrPost("/send_msg_by_resid") {
-        val resId = fetchOrThrow("res_id")
-        val peerId = fetchOrThrow("peer_Id")
-        val messageType = fetchOrThrow("message_type")
-        call.respondText(SendMsgByResid(peerId, resId, messageType))
-    }
-
     getOrPost("/createUidFromTinyId") {
         val selfId = fetchOrThrow("selfId").toLong()
         val peerId = fetchOrThrow("peerId")

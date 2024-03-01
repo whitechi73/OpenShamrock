@@ -338,13 +338,13 @@ internal object MsgSvc : BaseSvc() {
                                     else -> MessageHelper.decodeCQCode(data["content"].asString)
                                 }.onEach { element ->
                                     val elementData = element.asJsonObject["data"].asJsonObject
-                                    if (element.asJsonObject["type"].asString == "forward")
+                                    if (element.asJsonObject["type"].asString == "forward") {
                                         forwardMsg[elementData["filename"].asString] =
                                             elementData["id"].asString
+                                    }
                                 }
-                            ).getOrElse { throw Exception("消息合成失败: $it") }.let {
-                                desc[++i] =
-                                    (data["name"].asStringOrNull ?: data["uin"].asStringOrNull
+                            ).getOrElse { error("消息合成失败: $it") }.let {
+                                desc[++i] = (data["name"].asStringOrNull ?: data["uin"].asStringOrNull
                                     ?: TicketSvc.getNickname()) + ": " + it.first
                                 it.second
                             }
@@ -353,8 +353,9 @@ internal object MsgSvc : BaseSvc() {
                 } else {
                     error("消息节点缺少id或content字段")
                 }
+            }.onFailure {
+                LogCenter.log("消息节点解析失败：${it.stackTraceToString()}", Level.WARN)
             }.getOrElse {
-                LogCenter.log("消息节点解析失败：$it", Level.WARN)
                 null
             }
         }.ifEmpty { return Result.failure(Exception("消息节点为空")) }
