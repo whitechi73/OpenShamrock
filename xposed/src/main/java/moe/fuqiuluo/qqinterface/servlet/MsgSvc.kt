@@ -225,9 +225,22 @@ internal object MsgSvc : BaseSvc() {
     suspend fun uploadMultiMsg(
         chatType: Int,
         peerId: String,
-        fromId: String,
+        fromId: String = peerId,
         messages: JsonArray,
-        retryCnt: Int,
+        retryCnt: Int
+    ): Result<MessageSegment> {
+        return uploadMultiMsg(chatType, peerId, fromId, messages).onFailure {
+            if (retryCnt > 0) {
+                return uploadMultiMsg(chatType, peerId, fromId, messages, retryCnt - 1)
+            }
+        }
+    }
+
+    private suspend fun uploadMultiMsg(
+        chatType: Int,
+        peerId: String,
+        fromId: String = peerId,
+        messages: JsonArray,
     ): Result<MessageSegment> {
         var i = -1
         val desc = MutableList(messages.size) { "" }
@@ -237,9 +250,10 @@ internal object MsgSvc : BaseSvc() {
             kotlin.runCatching {
                 val data = msg.asJsonObject["data"].asJsonObject
                 if (data.containsKey("id")) {
-                    val record = getMsg(data["id"].asInt).getOrElse {
+                    val msgId = data["id"].asInt
+                    val record = getMsg(msgId).onFailure {
                         error("合并转发消息节点消息(id = ${data["id"].asInt})获取失败：$it")
-                    }
+                    }.getOrThrow()
                     PushMsgBody(
                         msgHead = ResponseHead(
                             peerUid = record.senderUid,
@@ -257,9 +271,7 @@ internal object MsgSvc : BaseSvc() {
                             msgType = when (record.chatType) {
                                 MsgConstant.KCHATTYPEC2C -> 9
                                 MsgConstant.KCHATTYPEGROUP -> 82
-                                else -> throw UnsupportedOperationException(
-                                    "Unsupported chatType: $chatType"
-                                )
+                                else -> throw UnsupportedOperationException("Unsupported chatType: $chatType")
                             },
                             msgSubType = if (record.chatType == MsgConstant.KCHATTYPEC2C) 175 else null,
                             divSeq = if (record.chatType == MsgConstant.KCHATTYPEC2C) 175 else null,
@@ -288,14 +300,16 @@ internal object MsgSvc : BaseSvc() {
                                     record.peerUin.toString(),
                                     "0"
                                 ).onEach { segment ->
-                                    if (segment.type == "forward")
+                                    if (segment.type == "forward") {
                                         forwardMsg[segment.data["filename"] as String] =
                                             segment.data["id"] as String
+                                    }
                                 }.toJson()
-                            ).getOrElse { throw Exception("消息合成失败: $it") }.let {
+                            ).onFailure {
+                                error("消息合成失败: ${it.stackTraceToString()}")
+                            }.onSuccess {
                                 desc[++i] = record.sendMemberName.ifEmpty { record.sendNickName } + ": " + it.first
-                                it.second
-                            }
+                            }.getOrThrow().second
                         )
                     )
                 } else if (data.containsKey("content")) {
@@ -343,22 +357,21 @@ internal object MsgSvc : BaseSvc() {
                                             elementData["id"].asString
                                     }
                                 }
-                            ).getOrElse { error("消息合成失败: $it") }.let {
+                            ).onSuccess {
                                 desc[++i] = (data["name"].asStringOrNull ?: data["uin"].asStringOrNull
-                                    ?: TicketSvc.getNickname()) + ": " + it.first
-                                it.second
-                            }
+                                ?: TicketSvc.getNickname()) + ": " + it.first
+                            }.onFailure {
+                                error("消息合成失败: ${it.stackTraceToString()}")
+                            }.getOrThrow().second
                         )
                     )
-                } else {
-                    error("消息节点缺少id或content字段")
-                }
+                } else error("消息节点缺少id或content字段")
             }.onFailure {
                 LogCenter.log("消息节点解析失败：${it.stackTraceToString()}", Level.WARN)
-            }.getOrElse {
-                null
-            }
-        }.ifEmpty { return Result.failure(Exception("消息节点为空")) }
+            }.getOrNull()
+        }.ifEmpty {
+            return Result.failure(Exception("消息节点为空"))
+        }
 
         val payload = LongMsgPayload(
             action = mutableListOf(
@@ -380,26 +393,22 @@ internal object MsgSvc : BaseSvc() {
                 }
             }
         )
-        LogCenter.log(payload.toByteArray().toHexString(), Level.DEBUG)
+        LogCenter.log({ payload.toByteArray().toHexString() }, Level.DEBUG)
 
         val req = LongMsgReq(
             sendInfo = when (chatType) {
                 MsgConstant.KCHATTYPEC2C -> SendLongMsgInfo(
                     type = 1,
-                    uid = LongMsgUid(peerId),
+                    uid = LongMsgUid(if(peerId.startsWith("u_")) peerId else ContactHelper.getUidByUinAsync(peerId.toLong()) ),
                     payload = DeflateTools.gzip(payload.toByteArray())
                 )
-
                 MsgConstant.KCHATTYPEGROUP -> SendLongMsgInfo(
                     type = 3,
                     uid = LongMsgUid(fromId),
-                    groupUin = fromId.toInt(),
+                    groupUin = fromId.toULong(),
                     payload = DeflateTools.gzip(payload.toByteArray())
                 )
-
-                else -> throw UnsupportedOperationException(
-                    "Unsupported chatType: $chatType"
-                )
+                else -> throw UnsupportedOperationException("Unsupported chatType: $chatType")
             },
             setting = LongMsgSettings(
                 field1 = 4,
@@ -407,27 +416,25 @@ internal object MsgSvc : BaseSvc() {
                 field3 = 9,
                 field4 = 0
             )
-        )
+        ).toByteArray()
 
-        val buffer = sendBufferAW(
-            "trpc.group.long_msg_interface.MsgService.SsoSendLongMsg",
-            true,
-            req.toByteArray()
-        ) ?: return Result.failure(Exception("unable to upload multi message"))
-        val rsp = buffer.slice(4).decodeProtobuf<LongMsgRsp>()
+        val buffer = sendBufferAW("trpc.group.long_msg_interface.MsgService.SsoSendLongMsg", true, req, timeout = 30_000)
+            ?: return Result.failure(Exception("unable to upload multi message, response timeout"))
+        val rsp = runCatching {
+            buffer.slice(4).decodeProtobuf<LongMsgRsp>()
+        }.getOrElse {
+            buffer.decodeProtobuf<LongMsgRsp>()
+        }
         val resId = rsp.sendResult?.resId ?: return Result.failure(Exception("unable to upload multi message"))
-        val filename = UUID.randomUUID().toString().uppercase()
-        return Result.success(
-            MessageSegment(
-                "forward",
-                mapOf(
-                    "id" to resId,
-                    "filename" to filename,
-                    "summary" to "查看${desc.size}条转发消息",
-                    "desc" to desc.slice(0..if (i < 3) i else 3).joinToString("\n")
-                )
+        return Result.success(MessageSegment(
+            type = "forward",
+            data = mapOf(
+                "id" to resId,
+                "filename" to UUID.randomUUID().toString(),
+                "summary" to "查看${desc.size}条转发消息",
+                "desc" to desc.slice(0..if (i < 3) i else 3).joinToString("\n")
             )
-        )
+        ))
     }
 
     suspend fun getMultiMsg(resId: String): Result<List<LongMsgAction>> {

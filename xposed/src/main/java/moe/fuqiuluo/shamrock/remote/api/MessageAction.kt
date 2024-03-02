@@ -312,16 +312,13 @@ fun Routing.messageAction() {
             val userId = fetchPostOrNull("user_id")
             val groupId = fetchPostOrNull("group_id")
             val messages = fetchPostJsonArray("messages")
-            call.respondText(
-                UploadMultiMessage(
-                    chatType,
-                    if (chatType == MsgConstant.KCHATTYPEC2C) userId!! else groupId!!,
-                    groupId ?: userId ?: "",
-                    messages,
-                    retryCnt
-                ),
-                ContentType.Application.Json
-            )
+            call.respondText(UploadMultiMessage(
+                chatType = chatType,
+                peerId = if (chatType == MsgConstant.KCHATTYPEC2C) userId!! else groupId!!,
+                fromId = groupId ?: userId ?: "",
+                messages = messages,
+                retryCnt = retryCnt
+            ), ContentType.Application.Json)
         }
         get {
             respond(false, Status.InternalHandlerError, "Not support GET method")

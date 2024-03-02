@@ -24,6 +24,8 @@ import protobuf.message.Ptt
 import protobuf.message.RichText
 import protobuf.message.element.*
 import protobuf.message.element.commelem.*
+import protobuf.oidb.cmd0x11c5.C2CUserInfo
+import protobuf.oidb.cmd0x11c5.GroupUserInfo
 import java.io.File
 import java.nio.ByteBuffer
 import java.util.*
@@ -68,7 +70,7 @@ internal class ElemMaker {
 
     private var rich = RichText()
     private val elems = mutableListOf<Elem>()
-    private var desc = ""
+    private var summary = StringBuilder()
 
     fun getRich(): RichText {
         rich.elements = elems
@@ -76,7 +78,7 @@ internal class ElemMaker {
     }
 
     fun getDesc(): String {
-        return desc
+        return summary.toString()
     }
 
     private suspend fun createTextElem(
@@ -86,11 +88,12 @@ internal class ElemMaker {
         data: JsonObject
     ) {
         data.checkAndThrow("text")
+        val text = data["text"].asString
         val elem = Elem(
-            text = TextMsg(data["text"].asString)
+            text = TextMsg(text)
         )
         elems.add(elem)
-        desc += data["text"].asString
+        summary.append(text)
     }
 
     private suspend fun createAtElem(
@@ -102,7 +105,6 @@ internal class ElemMaker {
         when (chatType) {
             MsgConstant.KCHATTYPEGROUP -> {
                 data.checkAndThrow("qq")
-
                 val qq: Long
                 val type: Int
                 val display = when (val qqStr = data["qq"].asString) {
@@ -146,7 +148,7 @@ internal class ElemMaker {
                     text = TextMsg(str = display, attr6Buf = attr6.array())
                 )
                 elems.add(elem)
-                desc += display
+                summary.append(display)
             }
 
             MsgConstant.KCHATTYPEC2C -> {
@@ -165,7 +167,7 @@ internal class ElemMaker {
                     text = TextMsg(str = display)
                 )
                 elems.add(elem)
-                desc += display
+                summary.append(display)
             }
 
             else -> throw UnsupportedOperationException("Unsupported chatType($chatType) for AtMsg")
@@ -205,7 +207,7 @@ internal class ElemMaker {
             )
         }
         elems.add(elem)
-        desc += "[表情]"
+        summary.append("[表情]")
     }
 
     private suspend fun createImageElem(
@@ -215,7 +217,6 @@ internal class ElemMaker {
         data: JsonObject
     ) {
         val isOriginal = data["original"].asBooleanOrNull ?: true
-        val isFlash = data["flash"].asBooleanOrNull ?: false
         val filePath = data["file"].asStringOrNull
         val url = data["url"].asStringOrNull
         var file: File? = null
@@ -255,82 +256,111 @@ internal class ElemMaker {
             picHeight = options.outWidth
         }
 
-        val uploadRet = NtV2RichMediaSvc.tryUploadResourceByNt(
+        val fileInfo = NtV2RichMediaSvc.tryUploadResourceByNt(
             chatType = chatType,
             elementType = MsgConstant.KELEMTYPEPIC,
             resources = arrayListOf(file),
             timeout = 30.seconds
         ).getOrThrow().first()
-        LogCenter.log({ uploadRet.toString() }, Level.DEBUG)
 
-        val elem = when (chatType) {
-            MsgConstant.KCHATTYPEGROUP -> Elem(
-                customFace = CustomFace(
-                    filePath = uploadRet.fileName,
-                    fileId = uploadRet.uuid.toUInt(),
-                    serverIp = 0u,
-                    serverPort = 0u,
-                    fileType = FileUtils.getPicType(file).toUInt(),
-                    useful = 1u,
-                    md5 = uploadRet.md5.hex2ByteArray(),
-                    bizType = data["subType"].asIntOrNull?.toUInt(),
-                    imageType = FileUtils.getPicType(file).toUInt(),
-                    width = picWidth.toUInt(),
-                    height = picHeight.toUInt(),
-                    size = uploadRet.fileSize.toUInt(),
-                    origin = isOriginal,
-                    thumbWidth = 0u,
-                    thumbHeight = 0u,
-                    pbReserve = CustomFace.Companion.PbReserve(
-                        field1 = 0,
-                        field3 = 0,
-                        field4 = 0,
-                        field10 = 0,
-                        field21 = CustomFace.Companion.Object1(
+        runCatching {
+            fileInfo.uuid.toUInt()
+        }.onFailure {
+            NtV2RichMediaSvc.requestUploadNtPic(file, fileInfo.md5, fileInfo.sha, fileInfo.fileName, picWidth.toUInt(), picHeight.toUInt(), 5) {
+                when(chatType) {
+                    MsgConstant.KCHATTYPEGROUP -> {
+                        sceneType = 2u
+                        grp = GroupUserInfo(peerId.toULong())
+                    }
+                    MsgConstant.KCHATTYPEC2C -> {
+                        sceneType = 1u
+                        c2c = C2CUserInfo(
+                            accountType = 2u,
+                            uid = ContactHelper.getUidByUinAsync(peerId.toLong())
+                        )
+                    }
+                    else -> error("不支持的合并转发图片类型")
+                }
+            }.onFailure {
+                LogCenter.log("获取MultiMedia图片信息失败: $it", Level.ERROR)
+            }.onSuccess {
+                //LogCenter.log({ "获取MultiMedia图片信息成功: ${it.hashCode()}" }, Level.INFO)
+                elems.add(Elem(
+                    commonElem = CommonElem(
+                        serviceType = 48,
+                        businessType = 10,
+                        elem = it.msgInfo!!.toByteArray()
+                    )
+                ))
+            }
+        }.onSuccess { uuid ->
+            elems.add(when (chatType) {
+                MsgConstant.KCHATTYPEGROUP -> Elem(
+                    customFace = CustomFace(
+                        filePath = fileInfo.fileName,
+                        fileId = uuid,
+                        serverIp = 0u,
+                        serverPort = 0u,
+                        fileType = FileUtils.getPicType(file).toUInt(),
+                        useful = 1u,
+                        md5 = fileInfo.md5.hex2ByteArray(),
+                        bizType = data["subType"].asIntOrNull?.toUInt(),
+                        imageType = FileUtils.getPicType(file).toUInt(),
+                        width = picWidth.toUInt(),
+                        height = picHeight.toUInt(),
+                        size = fileInfo.fileSize.toUInt(),
+                        origin = isOriginal,
+                        thumbWidth = 0u,
+                        thumbHeight = 0u,
+                        pbReserve = CustomFace.Companion.PbReserve(
                             field1 = 0,
-                            field2 = "",
                             field3 = 0,
                             field4 = 0,
-                            field5 = 0,
-                            md5Str = uploadRet.md5
+                            field10 = 0,
+                            field21 = CustomFace.Companion.Object1(
+                                field1 = 0,
+                                field2 = "",
+                                field3 = 0,
+                                field4 = 0,
+                                field5 = 0,
+                                md5Str = fileInfo.md5
+                            )
                         )
                     )
                 )
-            )
-
-            MsgConstant.KCHATTYPEC2C -> Elem(
-                notOnlineImage = NotOnlineImage(
-                    filePath = uploadRet.fileName,
-                    fileLen = uploadRet.fileSize.toUInt(),
-                    downloadPath = uploadRet.uuid,
-                    imgType = FileUtils.getPicType(file).toUInt(),
-                    picMd5 = uploadRet.md5.hex2ByteArray(),
-                    picHeight = picWidth.toUInt(),
-                    picWidth = picHeight.toUInt(),
-                    resId = uploadRet.uuid,
-                    original = isOriginal, // true
-                    pbReserve = NotOnlineImage.Companion.PbReserve(
-                        field1 = 0,
-                        field3 = 0,
-                        field4 = 0,
-                        field10 = 0,
-                        field20 = NotOnlineImage.Companion.Object1(
+                MsgConstant.KCHATTYPEC2C -> Elem(
+                    notOnlineImage = NotOnlineImage(
+                        filePath = fileInfo.fileName,
+                        fileLen = fileInfo.fileSize.toUInt(),
+                        downloadPath = fileInfo.uuid,
+                        imgType = FileUtils.getPicType(file).toUInt(),
+                        picMd5 = fileInfo.md5.hex2ByteArray(),
+                        picHeight = picWidth.toUInt(),
+                        picWidth = picHeight.toUInt(),
+                        resId = fileInfo.uuid,
+                        original = isOriginal, // true
+                        pbReserve = NotOnlineImage.Companion.PbReserve(
                             field1 = 0,
-                            field2 = "",
                             field3 = 0,
                             field4 = 0,
-                            field5 = 0,
-                            field7 = "",
-                        ),
-                        md5Str = uploadRet.md5
+                            field10 = 0,
+                            field20 = NotOnlineImage.Companion.Object1(
+                                field1 = 0,
+                                field2 = "",
+                                field3 = 0,
+                                field4 = 0,
+                                field5 = 0,
+                                field7 = "",
+                            ),
+                            md5Str = fileInfo.md5
+                        )
                     )
                 )
-            )
-
-            else -> throw LogicException("Not supported chatType($chatType) for PictureMsg")
+                else -> throw LogicException("Not supported chatType($chatType) for PictureMsg")
+            })
         }
-        elems.add(elem)
-        desc += "[图片]"
+
+        summary.append("[图片]")
     }
 
     private suspend fun createReplyElem(
@@ -402,7 +432,7 @@ internal class ElemMaker {
             )
         }
         elems.add(elem)
-        desc += "[回复消息]"
+        summary.append("[回复消息]")
     }
 
     private suspend fun createJsonElem(
@@ -419,7 +449,7 @@ internal class ElemMaker {
             )
         )
         elems.add(elem)
-        desc += "[Json消息]"
+        summary .append( "[Json消息]" )
     }
 
     private suspend fun createForwardStruct(
@@ -485,7 +515,7 @@ internal class ElemMaker {
             )
         )
         elems.add(elem)
-        desc += "[聊天记录]"
+        this.summary .append( "[聊天记录]" )
     }
 
     private suspend fun createWeatherElem(
@@ -517,7 +547,7 @@ internal class ElemMaker {
                 )
             )
             elems.add(elem)
-            desc += "[天气卡片]"
+            summary .append( "[天气卡片]" )
         } else {
             throw LogicException("无法获取城市天气")
         }
@@ -542,7 +572,7 @@ internal class ElemMaker {
             )
         )
         elems.add(elem)
-        desc += "[戳一戳]"
+        summary .append( "[戳一戳]" )
     }
 
     private suspend fun createNewDiceElem(
@@ -568,7 +598,7 @@ internal class ElemMaker {
             )
         )
         elems.add(elem)
-        desc += "[骰子]"
+        summary .append( "[骰子]" )
     }
 
     private suspend fun createNewRpsElem(
@@ -594,7 +624,7 @@ internal class ElemMaker {
             )
         )
         elems.add(elem)
-        desc += "[包剪锤]"
+        summary .append( "[包剪锤]" )
     }
 
     private suspend fun createMarkdownElem(
@@ -612,7 +642,7 @@ internal class ElemMaker {
             )
         )
         elems.add(elem)
-        desc += "[Markdown消息]"
+        summary.append("[Markdown消息]")
     }
 
     private suspend fun createButtonElem(
@@ -662,7 +692,7 @@ internal class ElemMaker {
             )
         )
         elems.add(elem)
-        desc += "[Button消息]"
+        summary.append("[Button消息]")
     }
 
     private suspend fun createRecordElem(
@@ -675,7 +705,7 @@ internal class ElemMaker {
         rich.ptt= Ptt(
 
         )
-        desc += "[语音消息]"
+        summary .append( "[语音消息]" )
     }
 
     private fun JsonObject.checkAndThrow(vararg key: String) {

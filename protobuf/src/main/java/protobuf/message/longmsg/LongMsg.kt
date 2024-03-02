@@ -31,7 +31,7 @@ data class RecvLongMsgInfo(
 data class SendLongMsgInfo(
     @ProtoNumber(1) val type: Int? = null,
     @ProtoNumber(2) val uid: LongMsgUid? = null,
-    @ProtoNumber(3) val groupUin: Int? = null,
+    @ProtoNumber(3) val groupUin: ULong? = null,
     @ProtoNumber(4) val payload: ByteArray? = null,
 )
 

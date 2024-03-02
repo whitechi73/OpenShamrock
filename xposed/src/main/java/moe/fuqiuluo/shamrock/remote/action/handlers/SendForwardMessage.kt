@@ -33,31 +33,17 @@ internal object SendForwardMessage : IActionHandler() {
                 }
             }
             val peerId = when (chatType) {
-                MsgConstant.KCHATTYPEGROUP -> session.getLongOrNull("group_id") ?: return noParam(
-                    "group_id",
-                    session.echo
-                )
-
-                MsgConstant.KCHATTYPEC2C, MsgConstant.KCHATTYPETEMPC2CFROMGROUP -> session.getLongOrNull("user_id")
-                    ?: return noParam("user_id", session.echo)
-
-                else -> error("unknown chat type: $chatType")
-            }.toString()
-            val fromId = when (chatType) {
-                MsgConstant.KCHATTYPEGROUP, MsgConstant.KCHATTYPETEMPC2CFROMGROUP -> session.getLongOrNull("group_id")
+                MsgConstant.KCHATTYPEGROUP -> session.getStringOrNull("group_id")
                     ?: return noParam("group_id", session.echo)
-
-                MsgConstant.KCHATTYPEC2C -> session.getLongOrNull("user_id") ?: return noParam(
-                    "user_id",
-                    session.echo
-                )
-
+                MsgConstant.KCHATTYPEC2C, MsgConstant.KCHATTYPETEMPC2CFROMGROUP -> session.getStringOrNull("user_id")
+                    ?: return noParam("user_id", session.echo)
                 else -> error("unknown chat type: $chatType")
-            }.toString()
+            }
+            val fromId = session.getStringOrNull("group_id")
             val retryCnt = session.getIntOrNull("retry_cnt") ?: 5
             return if (session.isArray("messages")) {
                 val messages = session.getArray("messages")
-                invoke(chatType, peerId, fromId, messages, retryCnt, session.echo)
+                invoke(chatType, peerId, fromId ?: peerId, messages, retryCnt, session.echo)
             } else {
                 logic("未知格式合并转发消息", session.echo)
             }
@@ -77,18 +63,16 @@ internal object SendForwardMessage : IActionHandler() {
         echo: JsonElement = EmptyJsonString
     ): String {
         kotlin.runCatching {
-            val message = MsgSvc.uploadMultiMsg(chatType, peerId, fromId, messages, retryCnt)
-                .getOrElse { return logic(it.message ?: "", echo) }
-
-            val result = MsgSvc.sendToAio(chatType, peerId, listOf(message).toJson(), fromId, retryCnt)
-                .getOrElse { return logic(it.message ?: "", echo) }
-
-            return ok(
-                SendForwardMessageResult(
-                    msgId = result.msgHashId,
-                    resId = message.data["id"] as String
-                ), echo = echo
-            )
+            val message = MsgSvc.uploadMultiMsg(chatType, peerId, fromId, messages, retryCnt).onFailure {
+                return error(it.message ?: it.stackTraceToString(), echo)
+            }.getOrThrow()
+            val result = MsgSvc.sendToAio(chatType, peerId, listOf(message).toJson(), fromId, retryCnt).onFailure {
+                return error(it.message ?: it.stackTraceToString(), echo)
+            }.getOrThrow()
+            return ok(SendForwardMessageResult(
+                msgId = result.msgHashId,
+                resId = message.data["id"] as String
+            ), echo = echo)
         }.onFailure {
             return error("合并转发消息失败: $it", echo)
         }

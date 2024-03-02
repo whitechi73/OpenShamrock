@@ -49,8 +49,8 @@ data class UploadCompletedReq(
 @Serializable
 data class MsgInfo(
     @ProtoNumber(1) val msgInfoBody: List<MsgInfoBody>,
-    @ProtoNumber(2) val extBizInfo: ExtBizInfo,
-)
+    @ProtoNumber(2) val extBizInfo: ExtBizInfo?,
+): Protobuf<MsgInfo>
 
 @Serializable
 data class MsgInfoBody(
@@ -106,7 +106,7 @@ data class UploadReq(
     @ProtoNumber(5) val compatQMsgSceneType: UInt? = null,
     @ProtoNumber(6) val extBizInfo: ExtBizInfo? = null,
     @ProtoNumber(7) val clientSeq: UInt? = null,
-    @ProtoNumber(8) val noNeedCompatMsg: Boolean = false,
+    @ProtoNumber(8) val noNeedCompatMsg: Boolean? = null,
 )
 
 @Serializable
@@ -114,7 +114,7 @@ data class ExtBizInfo(
     @ProtoNumber(1) val pic: PicExtBizInfo? = null,
     @ProtoNumber(2) val video: VideoExtBizInfo? = null,
     @ProtoNumber(3) val ptt: PttExtBizInfo? = null,
-    @ProtoNumber(10) val busiType: UInt,
+    @ProtoNumber(10) val busiType: UInt?,
 )
 
 @Serializable
@@ -132,15 +132,15 @@ data class PttExtBizInfo(
 
 @Serializable
 data class VideoExtBizInfo(
-    @ProtoNumber(1) val fromScene: UInt,
-    @ProtoNumber(2) val toScene: UInt,
-    @ProtoNumber(3) val bytesPbReserve: ByteArray,
+    @ProtoNumber(1) val fromScene: UInt?,
+    @ProtoNumber(2) val toScene: UInt?,
+    @ProtoNumber(3) val bytesPbReserve: ByteArray?,
 )
 
 @Serializable
 data class PicExtBizInfo(
-    @ProtoNumber(1) val bizType: UInt,
-    @ProtoNumber(2) val textSummary: String,
+    @ProtoNumber(1) val bizType: UInt?,
+    @ProtoNumber(2) val textSummary: String?,
     @ProtoNumber(11) val bytesPbReserveC2c: ByteArray? = null,
     @ProtoNumber(12) val bytesPbReserveTroop: ByteArray? = null,
     @ProtoNumber(1001) val fromScene: UInt? = null,
@@ -156,15 +156,15 @@ data class UploadInfo(
 
 @Serializable
 data class FileInfo(
-    @ProtoNumber(1) val fileSize: ULong,
-    @ProtoNumber(2) val md5: String,
-    @ProtoNumber(3) val sha1: String,
-    @ProtoNumber(4) val name: String,
-    @ProtoNumber(5) val fileType: FileType,
-    @ProtoNumber(6) val width: UInt,
-    @ProtoNumber(7) val height: UInt,
-    @ProtoNumber(8) val time: UInt,
-    @ProtoNumber(9) val original: UInt,
+    @ProtoNumber(1) val fileSize: ULong?,
+    @ProtoNumber(2) val md5: String?,
+    @ProtoNumber(3) val sha1: String?,
+    @ProtoNumber(4) val name: String?,
+    @ProtoNumber(5) val fileType: FileType?,
+    @ProtoNumber(6) val width: UInt?,
+    @ProtoNumber(7) val height: UInt?,
+    @ProtoNumber(8) val time: UInt?,
+    @ProtoNumber(9) val original: UInt?,
 )
 
 @Serializable
@@ -217,7 +217,7 @@ data class IndexNode(
     @ProtoNumber(3) val storeId: UInt, // 0为旧服务器 1为nt服务器
     @ProtoNumber(4) val uploadTime: ULong,
     @ProtoNumber(5) val ttl: ULong,
-    @ProtoNumber(6) val subType: UInt,
+    @ProtoNumber(6) val subType: UInt? = null,
     @ProtoNumber(7) val storeAppId: UInt? = null
 )
 

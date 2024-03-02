@@ -26,8 +26,8 @@ class DownloadSafeRsp
 
 @Serializable
 data class UploadKeyRenewalRsp(
-    @ProtoNumber(1) val ukey: String,
-    @ProtoNumber(2) val ukeyTtlSec: ULong,
+    @ProtoNumber(1) val ukey: String?,
+    @ProtoNumber(2) val ukeyTtlSec: ULong?,
 )
 
 @Serializable
@@ -39,7 +39,7 @@ data class MsgInfoAuthRsp(
 
 @Serializable
 data class UploadCompletedRsp(
-    @ProtoNumber(1) val msgSeq: ULong
+    @ProtoNumber(1) val msgSeq: ULong?
 )
 
 @Serializable
@@ -47,13 +47,13 @@ class DeleteRsp
 
 @Serializable
 data class DownloadRkeyRsp(
-    @ProtoNumber(1) val rkeys: List<RKeyInfo>
+    @ProtoNumber(1) val rkeys: List<RKeyInfo>?
 )
 
 @Serializable
 data class RKeyInfo(
-    @ProtoNumber(1) val rkey: String,
-    @ProtoNumber(2) val rkeyTtlSec: ULong,
+    @ProtoNumber(1) val rkey: String?,
+    @ProtoNumber(2) val rkeyTtlSec: ULong?,
     @ProtoNumber(3) val storeId: UInt = 0u,
     @ProtoNumber(4) val rkeyCreateTime: UInt?,
     @ProtoNumber(4) val type: UInt?,
@@ -61,8 +61,8 @@ data class RKeyInfo(
 
 @Serializable
 data class DownloadRsp(
-    @ProtoNumber(1) val rkeyParam: String,
-    @ProtoNumber(2) val rkeyTtlSec: ULong,
+    @ProtoNumber(1) val rkeyParam: String?,
+    @ProtoNumber(2) val rkeyTtlSec: ULong?,
     @ProtoNumber(3) val downloadInfo: DownloadInfo?,
     @ProtoNumber(4) val rkeyCreateTime: UInt?
 )
@@ -80,16 +80,16 @@ data class DownloadInfo(
 
 @Serializable
 data class VideoExtInfo(
-    @ProtoNumber(1) val videoCodecFormat: UInt,
+    @ProtoNumber(1) val videoCodecFormat: UInt? = null,
 )
 
 @Serializable
 data class UploadRsp(
-    @ProtoNumber(1) val ukey: String,
-    @ProtoNumber(2) val ukeyTtlSec: ULong,
-    @ProtoNumber(3) val ipv4: List<Ipv4>,
-    @ProtoNumber(4) val ipv6: List<Ipv6>,
-    @ProtoNumber(5) val msgSeq: ULong,
+    @ProtoNumber(1) val ukey: String?,
+    @ProtoNumber(2) val ukeyTtlSec: ULong?,
+    @ProtoNumber(3) val ipv4: List<Ipv4>?,
+    @ProtoNumber(4) val ipv6: List<Ipv6>?,
+    @ProtoNumber(5) val msgSeq: ULong?,
     @ProtoNumber(6) val msgInfo: MsgInfo? = null,
     @ProtoNumber(7) val ext: List<RichmediaStorageTransInfo>? = null,
     @ProtoNumber(8) val compatQMsg: ByteArray? = null,
@@ -98,11 +98,11 @@ data class UploadRsp(
 
 @Serializable
 data class SubFileInfo(
-    @ProtoNumber(1) val subType: UInt,
-    @ProtoNumber(2) val ukey: String,
-    @ProtoNumber(3) val ukeyTTLSec: ULong,
-    @ProtoNumber(4) val ipv4: List<Ipv4>,
-    @ProtoNumber(5) val ipv6: List<Ipv6>,
+    @ProtoNumber(1) val subType: UInt?,
+    @ProtoNumber(2) val ukey: String?,
+    @ProtoNumber(3) val ukeyTTLSec: ULong?,
+    @ProtoNumber(4) val ipv4: List<Ipv4>?,
+    @ProtoNumber(5) val ipv6: List<Ipv6>?,
 )
 
 @Serializable
@@ -132,8 +132,8 @@ data class Ipv6(
 
 @Serializable
 data class RspHead(
-    @ProtoNumber(1) val commonHead: CommonHead,
+    @ProtoNumber(1) val commonHead: CommonHead?,
     @ProtoNumber(2) val retCode: UInt = 0u,
-    @ProtoNumber(3) val msg: String
+    @ProtoNumber(3) val msg: String?
 )
 

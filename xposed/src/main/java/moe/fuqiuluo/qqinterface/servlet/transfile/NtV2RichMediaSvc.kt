@@ -46,6 +46,7 @@ import protobuf.oidb.cmd0x11c5.NtV2RichMediaRsp
 import protobuf.oidb.cmd0x11c5.SceneInfo
 import protobuf.oidb.cmd0x11c5.UploadInfo
 import protobuf.oidb.cmd0x11c5.UploadReq
+import protobuf.oidb.cmd0x11c5.UploadRsp
 import protobuf.oidb.cmd0x11c5.VideoDownloadExt
 import protobuf.oidb.cmd0x388.Cmd0x388ReqBody
 import protobuf.oidb.cmd0x388.Cmd0x388RspBody
@@ -281,7 +282,6 @@ internal object NtV2RichMediaSvc: BaseSvc() {
             MsgConstant.KCHATTYPEC2C -> MessageHelper.generateContact(chatType, TicketSvc.getUin())
             else -> Contact(chatType, fetchGroupResUploadTo(), null)
         }
-        LogCenter.log(contact.toString())
         val result = mutableListOf<CommonFileInfo>()
         withTimeoutOrNull(timeout) {
             suspendCancellableCoroutine {
@@ -313,6 +313,11 @@ internal object NtV2RichMediaSvc: BaseSvc() {
                 }
             }
         }
+
+        if (result.isEmpty()) {
+            return Result.failure(Exception("upload failed"))
+        }
+
         return Result.success(result)
     }
 
@@ -392,9 +397,6 @@ internal object NtV2RichMediaSvc: BaseSvc() {
         return Result.failure(Exception("unable to get c2c nt pic"))
     }
 
-    /**
-     * 请求上传Nt图片
-     */
     suspend fun requestUploadNtPic(
         file: File,
         md5: String,
@@ -402,8 +404,27 @@ internal object NtV2RichMediaSvc: BaseSvc() {
         name: String,
         width: UInt,
         height: UInt,
+        retryCnt: Int,
         sceneBuilder: suspend SceneInfo.() -> Unit
-    ) {
+    ): Result<UploadRsp> {
+        return runCatching {
+            requestUploadNtPic(file, md5, sha, name, width, height, sceneBuilder).getOrThrow()
+        }.onFailure {
+            if (retryCnt > 0) {
+                return requestUploadNtPic(file, md5, sha, name, width, height, retryCnt - 1, sceneBuilder)
+            }
+        }
+    }
+
+    private suspend fun requestUploadNtPic(
+        file: File,
+        md5: String,
+        sha: String,
+        name: String,
+        width: UInt,
+        height: UInt,
+        sceneBuilder: suspend SceneInfo.() -> Unit
+    ): Result<UploadRsp> {
         val req = NtV2RichMediaReq(
             head = MultiMediaReqHead(
                 commonHead = CommonHead(
@@ -443,12 +464,17 @@ internal object NtV2RichMediaSvc: BaseSvc() {
                 clientRandomId = Random.nextULong(),
                 compatQMsgSceneType = 1u,
                 clientSeq = Random.nextUInt(),
-                noNeedCompatMsg = true
+                noNeedCompatMsg = false
             )
         ).toByteArray()
-        val buffer = sendOidbAW("OidbSvcTrpcTcp.0x11c5_100", 4549, 100, req, true)?.slice(4)
-        val rsp = buffer?.decodeProtobuf<TrpcOidb>()?.buffer?.decodeProtobuf<NtV2RichMediaRsp>()
-        LogCenter.log("requestUploadPic => rsp: $rsp")
+        val buffer = sendOidbAW("OidbSvcTrpcTcp.0x11c5_100", 4549, 100, req, true, timeout = 3_000)?.slice(4)
+            ?: return Result.failure(Exception("no response: timeout"))
+        val rspBuffer = buffer.decodeProtobuf<TrpcOidb>().buffer
+        val rsp = rspBuffer.decodeProtobuf<NtV2RichMediaRsp>()
+        if (rsp.upload == null) {
+            return Result.failure(Exception("unable to request upload nt pic: ${rsp.head}"))
+        }
+        return Result.success(rsp.upload!!)
     }
 
     /**
