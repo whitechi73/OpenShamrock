@@ -216,7 +216,8 @@ internal class ElemMaker {
         peerId: String,
         data: JsonObject
     ) {
-        val isOriginal = data["original"].asBooleanOrNull ?: true
+        val type = data["type"].asStringOrNull ?: "original"
+        val isOriginal = type == "original"
         val filePath = data["file"].asStringOrNull
         val url = data["url"].asStringOrNull
         var file: File? = null
