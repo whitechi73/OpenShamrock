@@ -652,7 +652,7 @@ internal class ElemMaker {
         peerId: String,
         data: JsonObject
     ) {
-        data.checkAndThrow("buttons")
+        data.checkAndThrow("rows")
         val elem = Elem(
             commonElem = CommonElem(
                 serviceType = 46,
