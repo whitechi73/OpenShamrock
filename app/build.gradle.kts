@@ -17,7 +17,7 @@ android {
         minSdk = 27
         targetSdk = 34
         versionCode = getVersionCode()
-        versionName = "1.0.9" + ".r${getGitCommitCount()}." + getVersionName()
+        versionName = "1.1.0" + ".r${getGitCommitCount()}." + getVersionName()
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -201,11 +201,6 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.4.0")
 
     implementation(kotlinx("io-jvm", "0.1.16"))
-    implementation(ktor("server", "core"))
-    implementation(ktor("server", "host-common"))
-    implementation(ktor("server", "status-pages"))
-    implementation(ktor("server", "netty"))
-    implementation(ktor("server", "content-negotiation"))
     implementation(ktor("client", "core"))
     implementation(ktor("client", "content-negotiation"))
     implementation(ktor("client", "cio"))

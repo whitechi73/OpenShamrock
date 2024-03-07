@@ -23,7 +23,14 @@ import androidx.compose.ui.unit.sp
 import moe.fuqiuluo.shamrock.R
 import moe.fuqiuluo.shamrock.ui.app.AppRuntime
 import moe.fuqiuluo.shamrock.ui.app.Level
-import moe.fuqiuluo.shamrock.ui.app.ShamrockConfig
+import moe.fuqiuluo.shamrock.app.config.ShamrockConfig
+import moe.fuqiuluo.shamrock.config.AliveReply
+import moe.fuqiuluo.shamrock.config.AntiJvmTrace
+import moe.fuqiuluo.shamrock.config.B2Mode
+import moe.fuqiuluo.shamrock.config.DebugMode
+import moe.fuqiuluo.shamrock.config.EnableOldBDH
+import moe.fuqiuluo.shamrock.config.EnableSelfMessage
+import moe.fuqiuluo.shamrock.ui.service.handlers.InitHandler
 import moe.fuqiuluo.shamrock.ui.theme.GlobalColor
 import moe.fuqiuluo.shamrock.ui.theme.LocalString
 import moe.fuqiuluo.shamrock.ui.tools.NoticeTextDialog
@@ -68,9 +75,9 @@ fun LabFragment() {
                     title = LocalString.b2Mode,
                     desc = LocalString.b2ModeDesc,
                     descColor = it,
-                    isSwitch = ShamrockConfig.is2B(ctx)
+                    isSwitch = ShamrockConfig[ctx, B2Mode]
                 ) {
-                    ShamrockConfig.set2B(ctx, it)
+                    ShamrockConfig[ctx, B2Mode] = it
                     scope.toast(ctx, LocalString.restartToast)
                     return@Function true
                 }
@@ -79,10 +86,10 @@ fun LabFragment() {
                     title = LocalString.showDebugLog,
                     desc = LocalString.showDebugLogDesc,
                     descColor = it,
-                    isSwitch = ShamrockConfig.isDebug(ctx)
+                    isSwitch = ShamrockConfig[ctx, DebugMode]
                 ) {
-                    ShamrockConfig.setDebug(ctx, it)
-                    ShamrockConfig.pushUpdate(ctx)
+                    ShamrockConfig[ctx, DebugMode] = it
+                    InitHandler.update(ctx)
                     return@Function true
                 }
             }
@@ -101,53 +108,12 @@ fun LabFragment() {
                 )
 
                 Function(
-                    title = "禁止无用进程",
-                    desc = "禁止QQ生成无用进程浪费内存，可能造成部分功能闪退。",
-                    descColor = color,
-                    isSwitch = ShamrockConfig.isForbidUselessProcess(ctx)
-                ) {
-                    ShamrockConfig.setForbidUselessProcess(ctx, it)
-                    ShamrockConfig.pushUpdate(ctx)
-                    return@Function true
-                }
-
-                Function(
                     title = "自回复测试",
                     desc = "发送[ping]，机器人发送一个具有调试信息的返回。",
                     descColor = color,
-                    isSwitch = ShamrockConfig.enableAliveReply(ctx)
+                    isSwitch = ShamrockConfig[ctx, AliveReply]
                 ) {
-                    ShamrockConfig.setAliveReply(ctx, it)
-                    return@Function true
-                }
-
-                Function(
-                    title = "开启Shell接口",
-                    desc = "可能导致设备被入侵，请勿随意开启。",
-                    descColor = color,
-                    isSwitch = ShamrockConfig.allowShell(ctx)
-                ) {
-                    ShamrockConfig.setShellStatus(ctx, it)
-                    return@Function true
-                }
-
-                Function(
-                    title = "自动唤醒QQ",
-                    desc = "QQ进程死亡时重新打开QQ进程，前提本进程存活。",
-                    descColor = color,
-                    isSwitch = ShamrockConfig.enableAutoStart(ctx)
-                ) {
-                    ShamrockConfig.setAutoStart(ctx, it)
-                    return@Function true
-                }
-
-                Function(
-                    title = "禁止Shamrock同步设置",
-                    desc = "禁止Shamrock同步设置，防止恢复手动修改后的配置文件。",
-                    descColor = color,
-                    isSwitch = ShamrockConfig.disableAutoSyncSetting(ctx)
-                ) {
-                    ShamrockConfig.setDisableAutoSyncSetting(ctx, it)
+                    ShamrockConfig[ctx, AliveReply] = it
                     return@Function true
                 }
 
@@ -195,24 +161,13 @@ fun LabFragment() {
                 )
 
                 Function(
-                    title = LocalString.injectPacket,
-                    desc = LocalString.injectPacketDesc,
-                    descColor = color,
-                    isSwitch = ShamrockConfig.isInjectPacket(ctx)
-                ) {
-                    ShamrockConfig.setInjectPacket(ctx, it)
-                    ShamrockConfig.pushUpdate(ctx)
-                    return@Function true
-                }
-
-                Function(
                     title = LocalString.antiTrace,
                     desc = LocalString.antiTraceDesc,
                     descColor = color,
-                    isSwitch = ShamrockConfig.isAntiTrace(ctx)
+                    isSwitch = ShamrockConfig[ctx, AntiJvmTrace]
                 ) {
-                    ShamrockConfig.setAntiTrace(ctx, it)
-                    ShamrockConfig.pushUpdate(ctx)
+                    ShamrockConfig[ctx, AntiJvmTrace] = it
+                    scope.toast(ctx, LocalString.restartToast)
                     return@Function true
                 }
 
@@ -277,21 +232,10 @@ fun LabFragment() {
                     title = "自发消息推送",
                     desc = "推送Bot发送的消息，未做特殊处理请勿打开。",
                     descColor = it,
-                    isSwitch = ShamrockConfig.enableSelfMsg(ctx)
+                    isSwitch = ShamrockConfig[ctx, EnableSelfMessage]
                 ) {
-                    ShamrockConfig.setEnableSelfMsg(ctx, it)
-                    ShamrockConfig.pushUpdate(ctx)
-                    return@Function true
-                }
-
-                Function(
-                    title = "同步消息推送类型异换",
-                    desc = "推送来自同号异设备消息，将同步消息作为自发消息推送。",
-                    descColor = it,
-                    isSwitch = ShamrockConfig.enableSyncMsgAsSentMsg(ctx)
-                ) {
-                    ShamrockConfig.setEnableSyncMsgAsSentMsg(ctx, it)
-                    ShamrockConfig.pushUpdate(ctx)
+                    ShamrockConfig[ctx, EnableSelfMessage] = it
+                    InitHandler.update(ctx)
                     return@Function true
                 }
 
@@ -299,10 +243,10 @@ fun LabFragment() {
                     title = "启用旧版资源上传系统",
                     desc = "如果NT内核无法上传资源，请打开本开关。",
                     descColor = it,
-                    isSwitch = ShamrockConfig.enableOldBDH(ctx)
+                    isSwitch = ShamrockConfig[ctx, EnableOldBDH]
                 ) {
-                    ShamrockConfig.setEnableOldBDH(ctx, it)
-                    ShamrockConfig.pushUpdate(ctx)
+                    ShamrockConfig[ctx, EnableOldBDH] = it
+                    InitHandler.update(ctx)
                     return@Function true
                 }
             }

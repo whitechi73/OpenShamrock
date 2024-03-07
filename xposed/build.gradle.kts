@@ -72,9 +72,7 @@ dependencies {
     DEPENDENCY_ANDROIDX.forEach {
         implementation(it)
     }
-    implementation(DEPENDENCY_JAVA_WEBSOCKET)
     implementation(DEPENDENCY_PROTOBUF)
-    implementation(DEPENDENCY_JSON5K)
 
     implementation(room("runtime"))
     kapt(room("compiler"))
@@ -83,11 +81,6 @@ dependencies {
     implementation(kotlinx("io-jvm", "0.1.16"))
     implementation(kotlinx("serialization-protobuf", "1.6.2"))
 
-    implementation(ktor("server", "core"))
-    implementation(ktor("server", "host-common"))
-    implementation(ktor("server", "status-pages"))
-    implementation(ktor("server", "netty"))
-    implementation(ktor("server", "content-negotiation"))
     implementation(ktor("client", "core"))
     implementation(ktor("client", "content-negotiation"))
     implementation(ktor("client", "cio"))
@@ -99,8 +92,4 @@ dependencies {
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
     androidTestImplementation(platform("androidx.compose:compose-bom:2023.06.01"))
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
-}
-
-tasks.withType<KotlinCompile>().configureEach {
-    kotlinOptions.freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
 }

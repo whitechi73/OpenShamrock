@@ -32,7 +32,7 @@ class ProtobufProcessor(
         }.toList()
 
         if (actions.isNotEmpty()) {
-            actions.forEachIndexed { index, clz ->
+            actions.forEachIndexed { _, clz ->
                 if (clz.isInternal()) return@forEachIndexed
                 if (clz.isPrivate()) return@forEachIndexed
 

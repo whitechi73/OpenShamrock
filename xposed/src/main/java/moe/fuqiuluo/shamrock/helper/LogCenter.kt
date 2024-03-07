@@ -8,9 +8,10 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import moe.fuqiuluo.shamrock.remote.service.config.ShamrockConfig
-import moe.fuqiuluo.shamrock.xposed.hooks.toast
-import moe.fuqiuluo.shamrock.xposed.helper.internal.DataRequester
+import moe.fuqiuluo.shamrock.config.DebugMode
+import moe.fuqiuluo.shamrock.config.ShamrockConfig
+import moe.fuqiuluo.shamrock.tools.toast
+import moe.fuqiuluo.shamrock.xposed.helper.AppTalker
 import mqq.app.MobileQQ
 import java.io.File
 import java.util.Date
@@ -51,19 +52,18 @@ internal object LogCenter {
     private val format = SimpleDateFormat("[HH:mm:ss] ")
 
     fun log(string: String, level: Level = Level.INFO, toast: Boolean = false) {
-        if (!ShamrockConfig.isDebug() && level == Level.DEBUG) {
+        if (!ShamrockConfig[DebugMode] && level == Level.DEBUG) {
             return
         }
 
         if (toast) {
             MobileQQ.getContext().toast(string)
         }
-        // 把日志广播到主进程
         GlobalScope.launch(Dispatchers.Default) {
-            DataRequester.request("send_message", bodyBuilder = {
+            AppTalker.talk("send_message") {
                 put("string", string)
                 put("level", level.id)
-            })
+            }
         }
 
         if (!LogFile.exists()) {
@@ -79,7 +79,7 @@ internal object LogCenter {
         level: Level = Level.INFO,
         toast: Boolean = false
     ) {
-        if (!ShamrockConfig.isDebug() && level == Level.DEBUG) {
+        if (!ShamrockConfig[DebugMode] && level == Level.DEBUG) {
             return
         }
 
@@ -89,10 +89,10 @@ internal object LogCenter {
         }
         // 把日志广播到主进程
         GlobalScope.launch(Dispatchers.Default) {
-            DataRequester.request("send_message", bodyBuilder = {
+            AppTalker.talk("send_message") {
                 put("string", log)
                 put("level", level.id)
-            })
+            }
         }
 
         if (!LogFile.exists()) {
@@ -102,10 +102,6 @@ internal object LogCenter {
 
         LogFile.appendText(format)
     }
-
-//    fun getAllLog(): File {
-//        return LogFile
-//    }
 
     fun getLogLines(start: Int, recent: Boolean = false): List<String> {
         val logData = LogFile.readLines()

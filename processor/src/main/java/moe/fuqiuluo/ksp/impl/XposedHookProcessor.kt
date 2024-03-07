@@ -1,5 +1,5 @@
 @file:Suppress("UNCHECKED_CAST", "LocalVariableName", "PrivatePropertyName")
-@file:OptIn(KspExperimental::class)
+@file:OptIn(KspExperimental::class, KspExperimental::class)
 
 package moe.fuqiuluo.ksp.impl
 
@@ -27,10 +27,14 @@ class XposedHookProcessor(
     private val logger: KSPLogger
 ): SymbolProcessor {
     override fun process(resolver: Resolver): List<KSAnnotated> {
-        val symbols = resolver.getSymbolsWithAnnotation(XposedHook::class.qualifiedName!!)
+        val symbols = resolver.getSymbolsWithAnnotation(
+            annotationName = XposedHook::class.qualifiedName!!,
+            inDepth = true
+        )
+        logger.warn("Found ${symbols.count()} classes annotated with XposedHook")
         val unableToProcess = symbols.filterNot { it.validate() }
         val actions = (symbols.filter {
-            it is KSClassDeclaration && it.validate()  && it.classKind == ClassKind.CLASS
+            it is KSClassDeclaration && it.classKind == ClassKind.CLASS
         } as Sequence<KSClassDeclaration>).toList()
 
         if (actions.isNotEmpty()) {
@@ -46,7 +50,7 @@ class XposedHookProcessor(
             }
 
             val context = ClassName("android.content", "Context")
-            val packageName = "moe.fuqiuluo.shamrock.xposed.hooks"
+            val packageName = "moe.fuqiuluo.shamrock.xposed.actions"
             val fileSpec = FileSpec.builder(packageName, "AutoActionLoader").addFunction(FunSpec.builder("runFirstActions")
                 .addParameter("ctx", context)
                 .apply {
@@ -96,16 +100,6 @@ class XposedHookProcessor(
                 }
             }
         }
-
         return unableToProcess.toList()
-    }
-
-    inner class ActionLoaderVisitor(
-        private val firstActions: List<KSClassDeclaration>,
-        private val serviceActions: List<KSClassDeclaration>,
-    ): KSVisitorVoid() {
-        override fun visitClassDeclaration(classDeclaration: KSClassDeclaration, data: Unit) {
-
-        }
     }
 }

@@ -1,6 +1,5 @@
 package moe.fuqiuluo.shamrock.helper
 
-import moe.fuqiuluo.shamrock.remote.service.data.GroupMemberHonor
 
 object TroopHonorHelper {
     data class Honor(
@@ -60,4 +59,13 @@ object TroopHonorHelper {
             else -> flag shr 4
         } and 3
     }
+
+    data class GroupMemberHonor(
+        val uin: Long,
+        val honorUrl: String,
+        val honorIconUrl: String,
+        val honorLevel: Int,
+        val honorId: Int,
+        val honorName: String
+    )
 }
