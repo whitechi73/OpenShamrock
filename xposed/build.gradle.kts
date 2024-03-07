@@ -82,8 +82,7 @@ dependencies {
     implementation(kotlinx("serialization-protobuf", "1.6.2"))
 
     implementation(ktor("client", "core"))
-    implementation(ktor("client", "content-negotiation"))
-    implementation(ktor("client", "cio"))
+    implementation(ktor("client", "okhttp"))
     implementation(ktor("serialization", "kotlinx-json"))
     implementation(ktor("network", "tls-certificates"))
 

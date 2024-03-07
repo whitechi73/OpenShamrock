@@ -202,8 +202,7 @@ dependencies {
 
     implementation(kotlinx("io-jvm", "0.1.16"))
     implementation(ktor("client", "core"))
-    implementation(ktor("client", "content-negotiation"))
-    implementation(ktor("client", "cio"))
+    implementation(ktor("client", "okhttp"))
     implementation(ktor("serialization", "kotlinx-json"))
 
     implementation(project(":xposed"))
