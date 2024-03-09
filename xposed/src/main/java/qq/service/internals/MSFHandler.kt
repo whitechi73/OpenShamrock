@@ -48,7 +48,7 @@ internal object MSFHandler {
 
     fun onResp(toServiceMsg: ToServiceMsg, fromServiceMsg: FromServiceMsg) {
         runCatching {
-            val cmd = toServiceMsg.getAttribute("__respkey") as? Int?
+            val cmd = toServiceMsg.getAttribute("shamrock_uid") as? Int?
                 ?: return@runCatching
             val resp = mRespHandler[cmd]
             resp?.invoke(toServiceMsg, fromServiceMsg)

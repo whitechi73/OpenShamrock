@@ -14,6 +14,7 @@ private val configFile = configDir.resolve("config.prop")
 
 private val configKeys = setOf(
     ActiveRPC,
+    AntiJvmTrace,
     ForceTablet,
     PassiveRPC,
     ResourceGroup,
