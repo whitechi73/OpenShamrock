@@ -1,7 +1,7 @@
 @file:OptIn(ExperimentalSerializationApi::class)
 package protobuf.oidb.cmd0x11c5
 
-import com.google.protobuf.Internal.EMPTY_BYTE_ARRAY
+import moe.fuqiuluo.symbols.EMPTY_BYTE_ARRAY
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.protobuf.ProtoNumber

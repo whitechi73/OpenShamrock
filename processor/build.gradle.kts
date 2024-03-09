@@ -15,7 +15,7 @@ dependencies {
     implementation("com.google.devtools.ksp:symbol-processing-api:1.9.21-1.0.15")
     implementation("com.squareup:kotlinpoet:1.14.2")
 
-    implementation(DEPENDENCY_PROTOBUF)
+    //implementation(DEPENDENCY_PROTOBUF)
     implementation(kotlinx("serialization-protobuf", "1.6.2"))
 
     ksp("dev.zacsweers.autoservice:auto-service-ksp:1.1.0")

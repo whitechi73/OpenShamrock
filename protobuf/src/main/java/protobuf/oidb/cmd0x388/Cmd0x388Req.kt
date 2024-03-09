@@ -1,6 +1,6 @@
 package protobuf.oidb.cmd0x388
 
-import com.google.protobuf.Internal.EMPTY_BYTE_ARRAY
+import moe.fuqiuluo.symbols.EMPTY_BYTE_ARRAY
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.protobuf.ProtoNumber
 import moe.fuqiuluo.symbols.Protobuf

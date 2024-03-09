@@ -75,7 +75,7 @@ dependencies {
     DEPENDENCY_ANDROIDX.forEach {
         implementation(it)
     }
-    implementation(DEPENDENCY_PROTOBUF)
+    //implementation(DEPENDENCY_PROTOBUF)
 
     implementation(room("runtime"))
     kapt(room("compiler"))
@@ -89,9 +89,8 @@ dependencies {
     implementation(ktor("serialization", "kotlinx-json"))
 
     implementation("io.grpc:grpc-stub:1.62.2")
-    implementation("io.grpc:grpc-protobuf:1.62.2")
-    implementation("com.google.protobuf:protobuf-java-util:3.25.1")
-    implementation("com.google.protobuf:protobuf-kotlin:3.25.3")
+    implementation("io.grpc:grpc-protobuf-lite:1.62.2")
+    implementation("com.google.protobuf:protobuf-kotlin-lite:3.25.3")
     implementation("io.grpc:grpc-kotlin-stub:1.4.1")
     implementation("io.grpc:grpc-okhttp:1.62.2")
 
@@ -102,11 +101,20 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
 }
 
+tasks.withType<KotlinCompile>().all {
+    kotlinOptions {
+        freeCompilerArgs = listOf("-opt-in=kotlin.RequiresOptIn")
+    }
+}
+
 protobuf {
     protoc {
         artifact = "com.google.protobuf:protoc:3.25.3"
     }
     plugins {
+        create("java") {
+            artifact = "io.grpc:protoc-gen-grpc-java:1.62.2"
+        }
         create("grpc") {
             artifact = "io.grpc:protoc-gen-grpc-java:1.62.2"
         }
@@ -117,11 +125,20 @@ protobuf {
     generateProtoTasks {
         all().forEach {
             it.plugins {
-                create("grpc")
-                create("grpckt")
+                create("java") {
+                    option("lite")
+                }
+                create("grpc") {
+                    option("lite")
+                }
+                create("grpckt") {
+                    option("lite")
+                }
             }
             it.builtins {
-                create("kotlin")
+                create("kotlin") {
+                    option("lite")
+                }
             }
         }
     }
