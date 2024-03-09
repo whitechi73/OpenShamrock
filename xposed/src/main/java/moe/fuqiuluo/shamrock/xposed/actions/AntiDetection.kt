@@ -16,6 +16,7 @@ import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.tools.MethodHooker
 import moe.fuqiuluo.shamrock.tools.hookMethod
+import moe.fuqiuluo.shamrock.utils.PlatformUtils
 import moe.fuqiuluo.shamrock.xposed.XposedEntry
 import moe.fuqiuluo.shamrock.xposed.loader.LuoClassloader
 import moe.fuqiuluo.shamrock.xposed.loader.NativeLoader
@@ -85,7 +86,12 @@ class AntiDetection: IAction {
                 LogCenter.log("[Shamrock] Shamrock反检测启动失败(env=$env, injected=$injected)", Level.ERROR)
             } else {
                 XposedEntry.secStaticNativehookInited = true
-                LogCenter.log("[Shamrock] Shamrock反检测启动成功: ${antiNativeDetections()}", Level.INFO)
+                if (PlatformUtils.isMainProcess()) {
+                    LogCenter.log(
+                        "[Shamrock] Shamrock反检测启动成功: ${antiNativeDetections()}",
+                        Level.INFO
+                    )
+                }
             }
         } catch (e: Throwable) {
             LogCenter.log("[Shamrock] Shamrock反检测启动失败，请检查LSPosed版本使用大于100: ${e.message}", Level.ERROR)

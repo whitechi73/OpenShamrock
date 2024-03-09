@@ -24,4 +24,12 @@ internal object AppTalker {
         bodyBuilder.invoke(values)
         talk(values)
     }
+
+    fun talk(action: String, onFailure: ((Throwable) -> Unit)? = null, bodyBuilder: ContentValues.() -> Unit = {}) {
+        val values = ContentValues()
+        values.put("__cmd", action)
+        values.put("__hash", 0)
+        bodyBuilder.invoke(values)
+        talk(values, onFailure)
+    }
 }

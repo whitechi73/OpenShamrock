@@ -8,7 +8,7 @@ private val configDir = MobileQQ.getContext().getExternalFilesDir(null)!!
     .parentFile!!.resolve("Tencent/Shamrock").also {
         if (!it.exists()) it.mkdirs()
     }
-private val configFile = configDir.resolve("config.properties")
+private val configFile = configDir.resolve("config.prop")
 
 private val configKeys = setOf(
     ActiveRPC,
@@ -42,6 +42,7 @@ internal object ShamrockConfig: Properties() {
                 val value = intent.getStringExtra(key.name())
                 if (value != null) setProperty(key.name(), value)
             }
+            setProperty(IsInit.name(), "true")
         }
         configFile.outputStream().use {
             store(it, "Shamrock Config ${System.currentTimeMillis()}")

@@ -7,6 +7,8 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
 import de.robv.android.xposed.XposedBridge
+import moe.fuqiuluo.shamrock.helper.Level
+import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.xposed.actions.interacts.SwitchStatus
 import moe.fuqiuluo.shamrock.xposed.actions.interacts.Init
 import moe.fuqiuluo.symbols.Process
@@ -38,7 +40,12 @@ class DynamicBroadcast: IAction {
 
         override fun onReceive(context: Context, intent: Intent) {
             val cmd = intent.getStringExtra("__cmd") ?: ""
-            handlers[cmd]?.invoke(intent)
+            val handler = handlers[cmd]
+            if (handler == null) {
+                LogCenter.log("DynamicReceiver.onReceive: unknown cmd=$cmd", Level.ERROR)
+            } else {
+                handler(intent)
+            }
         }
     }
 }

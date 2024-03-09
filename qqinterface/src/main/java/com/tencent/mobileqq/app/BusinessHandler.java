@@ -8,6 +8,8 @@ public abstract class BusinessHandler extends BaseBusinessHandler {
     public BusinessHandler(AppInterface appInterface) {
     }
 
+    protected abstract Class<? extends BusinessObserver> observerClass();
+
     @Override
     public Set<String> getCommandList() {
         return null;

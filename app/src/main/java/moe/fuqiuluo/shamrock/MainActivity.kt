@@ -91,7 +91,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             LaunchedEffect(Unit) {
                 while (true) {
-                    delay(15_000) // Delay in milliseconds
+                    delay(5_000) // Delay in milliseconds
                     broadcastToModule {
                         putExtra("__cmd", "switch_status")
                     }
