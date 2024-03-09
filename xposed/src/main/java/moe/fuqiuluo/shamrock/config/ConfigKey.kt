@@ -10,3 +10,6 @@ abstract class ConfigKey<T> {
     }
 }
 
+internal inline fun <reified Type, reified T: ConfigKey<Type>> T.get(): Type {
+    return ShamrockConfig[this]
+}

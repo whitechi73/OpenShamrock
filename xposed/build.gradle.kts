@@ -5,6 +5,7 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("kotlin-kapt")
     id("com.google.devtools.ksp") version "1.9.22-1.0.17"
+    id("com.google.protobuf") version "0.9.4"
     kotlin("plugin.serialization") version "1.9.22"
 }
 
@@ -63,6 +64,8 @@ dependencies {
     compileOnly ("de.robv.android.xposed:api:82")
     compileOnly (project(":qqinterface"))
 
+    protobuf(project(":kritor"))
+
     implementation(project(":protobuf"))
     implementation(project(":annotations"))
     ksp(project(":processor"))
@@ -84,11 +87,42 @@ dependencies {
     implementation(ktor("client", "core"))
     implementation(ktor("client", "okhttp"))
     implementation(ktor("serialization", "kotlinx-json"))
-    implementation(ktor("network", "tls-certificates"))
+
+    implementation("io.grpc:grpc-stub:1.62.2")
+    implementation("io.grpc:grpc-protobuf:1.62.2")
+    implementation("com.google.protobuf:protobuf-java-util:3.25.1")
+    implementation("com.google.protobuf:protobuf-kotlin:3.25.3")
+    implementation("io.grpc:grpc-kotlin-stub:1.4.1")
+    implementation("io.grpc:grpc-okhttp:1.62.2")
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
     androidTestImplementation(platform("androidx.compose:compose-bom:2023.06.01"))
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+}
+
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:3.25.3"
+    }
+    plugins {
+        create("grpc") {
+            artifact = "io.grpc:protoc-gen-grpc-java:1.62.2"
+        }
+        create("grpckt") {
+            artifact = "io.grpc:protoc-gen-grpc-kotlin:1.4.1:jdk8@jar"
+        }
+    }
+    generateProtoTasks {
+        all().forEach {
+            it.plugins {
+                create("grpc")
+                create("grpckt")
+            }
+            it.builtins {
+                create("kotlin")
+            }
+        }
+    }
 }

@@ -16,7 +16,8 @@ private val configKeys = setOf(
     PassiveRPC,
     ResourceGroup,
     RPCAddress,
-    RPCPort
+    RPCPort,
+
 )
 
 internal object ShamrockConfig: Properties() {

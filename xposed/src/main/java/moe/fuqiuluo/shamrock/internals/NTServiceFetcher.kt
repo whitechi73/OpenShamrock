@@ -10,6 +10,7 @@ import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.tools.hookMethod
 import moe.fuqiuluo.shamrock.utils.PlatformUtils
+import qq.service.internals.AioListener
 import qq.service.internals.msgService
 
 internal object NTServiceFetcher {
@@ -58,7 +59,7 @@ internal object NTServiceFetcher {
 
         try {
             LogCenter.log("Register MSG listener successfully.")
-            //msgService.addMsgListener(AioListener)
+            msgService.addMsgListener(AioListener)
 
             // 接口缺失 暂不使用
             //groupService.addKernelGroupListener(GroupEventListener)

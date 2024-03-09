@@ -18,12 +18,17 @@ internal object InitHandler: ModuleHandler() {
 
         val maps = hashMapOf<String, Any?>()
 
-        RPCPort.update(context, maps)
-        RPCAddress.update(context, maps)
-        ForceTablet.update(context, maps)
         ActiveRPC.update(context, maps)
+        AliveReply.update(context, maps)
+        AntiJvmTrace.update(context, maps)
+        DebugMode.update(context, maps)
+        EnableOldBDH.update(context, maps)
+        EnableSelfMessage.update(context, maps)
+        ForceTablet.update(context, maps)
         PassiveRPC.update(context, maps)
         ResourceGroup.update(context, maps)
+        RPCAddress.update(context, maps)
+        RPCPort.update(context, maps)
 
         callback(context, 1, maps)
     }
