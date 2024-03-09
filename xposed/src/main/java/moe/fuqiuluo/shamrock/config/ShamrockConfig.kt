@@ -1,6 +1,8 @@
 package moe.fuqiuluo.shamrock.config
 
 import android.content.Intent
+import moe.fuqiuluo.shamrock.helper.LogCenter
+import moe.fuqiuluo.shamrock.xposed.loader.LuoClassloader.moduleLoader
 import mqq.app.MobileQQ
 import java.util.Properties
 
@@ -17,11 +19,22 @@ private val configKeys = setOf(
     ResourceGroup,
     RPCAddress,
     RPCPort,
-
 )
 
 internal object ShamrockConfig: Properties() {
     init {
+        if (!configFile.exists()) {
+            moduleLoader.getResourceAsStream("assets/config.properties")?.use {
+                configDir.resolve("default.prop").outputStream().use { output ->
+                    it.copyTo(output)
+                }
+            }
+            moduleLoader.getResourceAsStream("assets/config.properties")?.use {
+                configFile.outputStream().use { output ->
+                    it.copyTo(output)
+                }
+            }
+        }
         if (configFile.exists()) configFile.inputStream().use {
             load(it)
         }
@@ -40,13 +53,34 @@ internal object ShamrockConfig: Properties() {
     fun updateConfig(intent: Intent? = null) {
         intent?.let {
             for (key in configKeys) {
-                val value = intent.getStringExtra(key.name())
-                if (value != null) setProperty(key.name(), value)
+                when (key.default()) {
+                    is String -> {
+                        val value = intent.getStringExtra(key.name())
+                        if (value != null) setProperty(key.name(), value)
+                    }
+                    is Boolean -> {
+                        val value = intent.getBooleanExtra(key.name(), key.default() as Boolean)
+                        setProperty(key.name(), value.toString())
+                    }
+                    is Int -> {
+                        val value = intent.getIntExtra(key.name(), key.default() as Int)
+                        setProperty(key.name(), value.toString())
+                    }
+                    is Long -> {
+                        val value = intent.getLongExtra(key.name(), key.default() as Long)
+                        setProperty(key.name(), value.toString())
+                    }
+                }
             }
+
+            if (getProperty(ActiveTicket.name()).isNullOrEmpty()) {
+                setProperty(ActiveTicket.name(), "") // 初始化ticket
+            }
+
             setProperty(IsInit.name(), "true")
         }
         configFile.outputStream().use {
-            store(it, "Shamrock Config ${System.currentTimeMillis()}")
+            store(it, "Shamrock Config")
         }
     }
 

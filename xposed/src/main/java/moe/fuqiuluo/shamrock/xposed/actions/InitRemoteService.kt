@@ -4,6 +4,8 @@ package moe.fuqiuluo.shamrock.xposed.actions
 
 import android.content.Context
 import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import kritor.server.KritorServer
 import moe.fuqiuluo.shamrock.config.ActiveRPC
 import moe.fuqiuluo.shamrock.config.RPCPort
@@ -17,10 +19,11 @@ private lateinit var server: KritorServer
 @XposedHook(Process.MAIN, priority = 10)
 internal class InitRemoteService : IAction {
     override fun invoke(ctx: Context) {
-        if (ActiveRPC.get() && !::server.isInitialized) {
-            server = KritorServer(RPCPort.get())
-            server.start()
+        GlobalScope.launch {
+            if (ActiveRPC.get() && !::server.isInitialized) {
+                server = KritorServer(RPCPort.get())
+                server.start()
+            }
         }
-
     }
 }

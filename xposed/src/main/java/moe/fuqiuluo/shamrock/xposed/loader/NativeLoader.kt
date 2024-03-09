@@ -34,8 +34,6 @@ internal object NativeLoader {
             XposedBridge.log("[Shamrock] 反射检测到 Android x86")
             true
         } else false
-    }.onFailure {
-        XposedBridge.log("[Shamrock] ${it.stackTraceToString()}")
     }.getOrElse { false }
 
     private fun getLibFilePath(name: String): String {

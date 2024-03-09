@@ -4,6 +4,8 @@ import com.tencent.qphone.base.remote.FromServiceMsg
 import com.tencent.qphone.base.remote.ToServiceMsg
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import moe.fuqiuluo.shamrock.helper.Level
+import moe.fuqiuluo.shamrock.helper.LogCenter
 
 typealias MsfPush = (FromServiceMsg) -> Unit
 typealias MsfResp = (ToServiceMsg, FromServiceMsg) -> Unit
@@ -45,8 +47,13 @@ internal object MSFHandler {
     }
 
     fun onResp(toServiceMsg: ToServiceMsg, fromServiceMsg: FromServiceMsg) {
-        val cmd = toServiceMsg.getAttribute("respkey") as Int
-        val resp = mRespHandler[cmd]
-        resp?.invoke(toServiceMsg, fromServiceMsg)
+        runCatching {
+            val cmd = toServiceMsg.getAttribute("__respkey") as? Int?
+                ?: return@runCatching
+            val resp = mRespHandler[cmd]
+            resp?.invoke(toServiceMsg, fromServiceMsg)
+        }.onFailure {
+            LogCenter.log("MSF.onResp failed: ${it.message}", Level.ERROR)
+        }
     }
 }
