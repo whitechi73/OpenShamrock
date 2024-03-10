@@ -1,4 +1,4 @@
-package qq.service.contact
+package qq.service.internals
 
 import moe.fuqiuluo.shamrock.utils.FileUtils
 import mqq.app.MobileQQ
