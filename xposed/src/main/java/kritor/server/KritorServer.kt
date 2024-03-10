@@ -7,6 +7,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.asExecutor
+import kritor.auth.AuthInterceptor
 import kritor.service.*
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import kotlin.coroutines.CoroutineContext
@@ -16,6 +17,7 @@ class KritorServer(
 ): CoroutineScope {
     private val server = Grpc.newServerBuilderForPort(port, InsecureServerCredentials.create())
         .executor(Dispatchers.IO.asExecutor())
+        .intercept(AuthInterceptor)
         .addService(Authentication)
         .addService(ContactService)
         .build()!!
