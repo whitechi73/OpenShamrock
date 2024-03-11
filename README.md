@@ -28,8 +28,24 @@
 ## 兼容|迁移|替代 说明
 
 - 一键移植：本项目基于 go-cqhttp 的文档进行开发实现。
-- 平行部署：可多平台部署，未来将会支持 Docker 部署的教程。  
-- 替代方案：[Lagrange.Core](https://github.com/LagrangeDev/Lagrange.Core)
+- 平行部署：可多平台部署，未来将会支持 Docker 部署的教程。
+  
+## 相关项目
+
+<table>
+<tr>
+  <td><a href="https://github.com/LagrangeDev/Lagrange.Core">Lagrange.Core</a></td>
+  <td>NTQQ 的协议实现</td>
+</tr>
+<tr>
+  <td><a href="https://github.com/whitechi73/OpenShamrock">OpenShamrock</a></td>
+  <td>基于 Xposed 实现 OneBot 标准的机器人框架（👈你在这里</td>
+</tr>
+<tr>
+  <td><a href="https://github.com/chrononeko/chronocat">Chronocat</a></td>
+  <td>基于 Electron 的、模块化的 Satori 框架</td>
+</tr>
+</table>
 
 ## 权限声明
 
