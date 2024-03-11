@@ -20,6 +20,7 @@ class KritorServer(
         .intercept(AuthInterceptor)
         .addService(Authentication)
         .addService(ContactService)
+        .addService(KritorService)
         .build()!!
 
     fun start(block: Boolean = false) {
