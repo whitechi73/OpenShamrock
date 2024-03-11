@@ -1,10 +1,16 @@
 package kritor.service
 
+import io.grpc.Status
+import io.grpc.StatusRuntimeException
 import io.kritor.AuthCode
 import io.kritor.AuthReq
 import io.kritor.AuthRsp
 import io.kritor.AuthenticationGrpcKt
+import io.kritor.GetAuthStateReq
+import io.kritor.GetAuthStateRsp
 import io.kritor.authRsp
+import io.kritor.getAuthStateRsp
+import kritor.auth.AuthInterceptor
 import moe.fuqiuluo.shamrock.config.ActiveTicket
 import moe.fuqiuluo.shamrock.config.ShamrockConfig
 import qq.service.QQInterfaces
@@ -44,6 +50,17 @@ object Authentication: AuthenticationGrpcKt.AuthenticationCoroutineImplBase() {
         return authRsp {
             code = AuthCode.NO_TICKET
             msg = "Invalid ticket"
+        }
+    }
+
+    @Grpc("Authentication", "GetAuthState")
+    override suspend fun getAuthState(request: GetAuthStateReq): GetAuthStateRsp {
+        if (request.account != QQInterfaces.app.account) {
+            throw StatusRuntimeException(Status.CANCELLED.withDescription("No such account"))
+        }
+
+        return getAuthStateRsp {
+            isRequiredAuth = AuthInterceptor.getAllTicket().isNotEmpty()
         }
     }
 }

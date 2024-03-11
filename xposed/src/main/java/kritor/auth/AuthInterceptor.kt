@@ -42,7 +42,7 @@ object AuthInterceptor: ServerInterceptor {
         }
     }
 
-    private fun getAllTicket(): List<String> {
+    fun getAllTicket(): List<String> {
         val result = arrayListOf<String>()
         val activeTicketName = ActiveTicket.name()
         var index = 0
