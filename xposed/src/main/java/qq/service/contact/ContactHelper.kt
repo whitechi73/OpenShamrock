@@ -10,7 +10,7 @@ import com.tencent.mobileqq.profilecard.observer.ProfileCardObserver
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import moe.fuqiuluo.shamrock.internals.NTServiceFetcher
+import qq.service.internals.NTServiceFetcher
 import qq.service.QQInterfaces
 import kotlin.coroutines.resume
 

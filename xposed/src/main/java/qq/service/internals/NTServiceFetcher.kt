@@ -1,4 +1,4 @@
-package moe.fuqiuluo.shamrock.internals
+package qq.service.internals
 
 import com.tencent.qqnt.kernel.api.IKernelService
 import com.tencent.qqnt.kernel.api.impl.MsgService
@@ -10,8 +10,6 @@ import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.tools.hookMethod
 import moe.fuqiuluo.shamrock.utils.PlatformUtils
-import qq.service.internals.AioListener
-import qq.service.internals.msgService
 
 internal object NTServiceFetcher {
     private lateinit var iKernelService: IKernelService
