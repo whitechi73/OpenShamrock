@@ -21,8 +21,11 @@ import io.kritor.contact.SetProfileCardResponse
 import io.kritor.contact.StrangerExt
 import io.kritor.contact.StrangerInfo
 import io.kritor.contact.StrangerInfoRequest
+import io.kritor.contact.VoteUserRequest
+import io.kritor.contact.VoteUserResponse
 import io.kritor.contact.profileCard
 import io.kritor.contact.strangerInfo
+import io.kritor.contact.voteUserResponse
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
 import qq.service.QQInterfaces
@@ -31,10 +34,32 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 object ContactService: ContactServiceGrpcKt.ContactServiceCoroutineImplBase() {
+    @Grpc("ContactService", "VoteUser")
+    override suspend fun voteUser(request: VoteUserRequest): VoteUserResponse {
+        ContactHelper.voteUser(when(request.accountCase!!) {
+            VoteUserRequest.AccountCase.ACCOUNT_UIN -> request.accountUin
+            VoteUserRequest.AccountCase.ACCOUNT_UID -> ContactHelper.getUinByUidAsync(request.accountUid).toLong()
+            VoteUserRequest.AccountCase.ACCOUNT_NOT_SET -> throw StatusRuntimeException(Status.INVALID_ARGUMENT
+                .withDescription("account not set")
+            )
+        }, request.voteCount).onFailure {
+            throw StatusRuntimeException(Status.INTERNAL
+                .withDescription(it.stackTraceToString())
+            )
+        }
+        return voteUserResponse {  }
+    }
+
     @Grpc("ContactService", "GetProfileCard")
     override suspend fun getProfileCard(request: ProfileCardRequest): ProfileCard {
-        val uin = if (request.hasUin()) request.uin
-        else ContactHelper.getUinByUidAsync(request.uid).toLong()
+        val uin = when (request.accountCase!!) {
+            ProfileCardRequest.AccountCase.ACCOUNT_UIN -> request.accountUin
+            ProfileCardRequest.AccountCase.ACCOUNT_UID -> ContactHelper.getUinByUidAsync(request.accountUid).toLong()
+            ProfileCardRequest.AccountCase.ACCOUNT_NOT_SET -> throw StatusRuntimeException(Status.INVALID_ARGUMENT
+                .withDescription("account not set")
+            )
+        }
+
         val contact = ContactHelper.getProfileCard(uin)
 
         contact.onFailure {
@@ -46,7 +71,7 @@ object ContactService: ContactServiceGrpcKt.ContactServiceCoroutineImplBase() {
         contact.onSuccess {
             return profileCard {
                 this.uin = it.uin.toLong()
-                this.uid = if (request.hasUid()) request.uid
+                this.uid = if (request.hasAccountUid()) request.accountUid
                 else ContactHelper.getUidByUinAsync(it.uin.toLong())
                 this.name = it.strNick ?: ""
                 this.remark = it.strReMark ?: ""

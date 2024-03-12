@@ -104,8 +104,11 @@ object KritorService: KritorServiceGrpcKt.KritorServiceCoroutineImplBase() {
 
     @Grpc("KritorService", "SwitchAccount")
     override suspend fun switchAccount(request: SwitchAccountRequest): SwitchAccountResponse {
-        val uin = if (request.hasAccountUin()) request.accountUin.toString()
-        else ContactHelper.getUinByUidAsync(request.accountUid)
+        val uin = when(request.accountCase!!) {
+            SwitchAccountRequest.AccountCase.ACCOUNT_UID -> ContactHelper.getUinByUidAsync(request.accountUid)
+            SwitchAccountRequest.AccountCase.ACCOUNT_UIN -> request.accountUin.toString()
+            SwitchAccountRequest.AccountCase.ACCOUNT_NOT_SET -> throw StatusRuntimeException(Status.INVALID_ARGUMENT.withDescription("account not found"))
+        }
         val account = MobileQQ.getMobileQQ().allAccounts.firstOrNull { it.uin == uin }
             ?: throw StatusRuntimeException(Status.NOT_FOUND.withDescription("account not found"))
         runCatching {

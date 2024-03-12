@@ -47,8 +47,8 @@ fun ByteArray.slice(off: Int, length: Int = size - off): ByteArray {
         .let { s -> if (uppercase) s.lowercase(Locale.getDefault()) else s }
 } ?: "null"
 
-fun String?.ifNullOrEmpty(defaultValue: String?): String? {
-    return if (this.isNullOrEmpty()) defaultValue else this
+fun String?.ifNullOrEmpty(defaultValue: () -> String?): String? {
+    return if (this.isNullOrEmpty()) defaultValue() else this
 }
 
 @JvmOverloads fun String.hex2ByteArray(replace: Boolean = false): ByteArray {

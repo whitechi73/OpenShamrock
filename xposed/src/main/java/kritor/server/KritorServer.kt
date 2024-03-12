@@ -21,6 +21,9 @@ class KritorServer(
         .addService(Authentication)
         .addService(ContactService)
         .addService(KritorService)
+        .addService(FriendService)
+        .addService(GroupService)
+        .addService(GroupFileService)
         .build()!!
 
     fun start(block: Boolean = false) {
