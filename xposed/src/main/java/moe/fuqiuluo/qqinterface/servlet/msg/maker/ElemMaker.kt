@@ -12,6 +12,7 @@ import moe.fuqiuluo.qqinterface.servlet.ark.WeatherSvc
 import moe.fuqiuluo.qqinterface.servlet.msg.toJson
 import moe.fuqiuluo.qqinterface.servlet.msg.toSegments
 import moe.fuqiuluo.qqinterface.servlet.transfile.NtV2RichMediaSvc
+import moe.fuqiuluo.qqinterface.servlet.transfile.NtV2RichMediaSvc.fetchGroupResUploadTo
 import moe.fuqiuluo.shamrock.helper.*
 import moe.fuqiuluo.shamrock.helper.MessageHelper.messageArrayToRichText
 import moe.fuqiuluo.shamrock.helper.MessageHelper.obtainMessageTypeByDetailType
@@ -271,7 +272,7 @@ internal class ElemMaker {
                 when(chatType) {
                     MsgConstant.KCHATTYPEGROUP -> {
                         sceneType = 2u
-                        grp = GroupUserInfo(peerId.toULong())
+                        grp = GroupUserInfo(fetchGroupResUploadTo().toULong())
                     }
                     MsgConstant.KCHATTYPEC2C -> {
                         sceneType = 1u

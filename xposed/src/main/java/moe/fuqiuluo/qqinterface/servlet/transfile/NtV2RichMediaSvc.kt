@@ -19,7 +19,6 @@ import kotlinx.coroutines.withTimeoutOrNull
 import moe.fuqiuluo.qqinterface.servlet.BaseSvc
 import moe.fuqiuluo.qqinterface.servlet.TicketSvc
 import moe.fuqiuluo.qqinterface.servlet.transfile.data.TryUpPicData
-import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.helper.MessageHelper
 import moe.fuqiuluo.shamrock.remote.service.config.ShamrockConfig
 import moe.fuqiuluo.shamrock.tools.hex2ByteArray
@@ -62,7 +61,7 @@ import kotlin.time.Duration
 internal object NtV2RichMediaSvc: BaseSvc() {
     private val requestIdSeq = atomic(2L)
 
-    private fun fetchGroupResUploadTo(): String {
+    fun fetchGroupResUploadTo(): String {
         return ShamrockConfig.getUpResGroup().ifEmpty { "100000000" }
     }
 
@@ -462,12 +461,12 @@ internal object NtV2RichMediaSvc: BaseSvc() {
                 tryFastUploadCompleted = true,
                 srvSendMsg = false,
                 clientRandomId = Random.nextULong(),
-                compatQMsgSceneType = 1u,
+                compatQMsgSceneType = 2u,
                 clientSeq = Random.nextUInt(),
-                noNeedCompatMsg = false
+                noNeedCompatMsg = true
             )
         ).toByteArray()
-        val buffer = sendOidbAW("OidbSvcTrpcTcp.0x11c5_100", 4549, 100, req, true, timeout = 3_000)?.slice(4)
+        val buffer = sendOidbAW("OidbSvcTrpcTcp.0x11c4_100", 4548, 100, req, true, timeout = 3_000)?.slice(4)
             ?: return Result.failure(Exception("no response: timeout"))
         val rspBuffer = buffer.decodeProtobuf<TrpcOidb>().buffer
         val rsp = rspBuffer.decodeProtobuf<NtV2RichMediaRsp>()
