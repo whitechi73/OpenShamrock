@@ -404,13 +404,14 @@ internal object NtV2RichMediaSvc: BaseSvc() {
         width: UInt,
         height: UInt,
         retryCnt: Int,
+        chatType: Int = MsgConstant.KCHATTYPEGROUP,
         sceneBuilder: suspend SceneInfo.() -> Unit
     ): Result<UploadRsp> {
         return runCatching {
-            requestUploadNtPic(file, md5, sha, name, width, height, sceneBuilder).getOrThrow()
+            requestUploadNtPic(file, md5, sha, name, width, height, chatType, sceneBuilder).getOrThrow()
         }.onFailure {
             if (retryCnt > 0) {
-                return requestUploadNtPic(file, md5, sha, name, width, height, retryCnt - 1, sceneBuilder)
+                return requestUploadNtPic(file, md5, sha, name, width, height, retryCnt - 1, chatType, sceneBuilder)
             }
         }
     }
@@ -422,6 +423,7 @@ internal object NtV2RichMediaSvc: BaseSvc() {
         name: String,
         width: UInt,
         height: UInt,
+        chatType: Int,
         sceneBuilder: suspend SceneInfo.() -> Unit
     ): Result<UploadRsp> {
         val req = NtV2RichMediaReq(
@@ -466,8 +468,18 @@ internal object NtV2RichMediaSvc: BaseSvc() {
                 noNeedCompatMsg = true
             )
         ).toByteArray()
-        val buffer = sendOidbAW("OidbSvcTrpcTcp.0x11c4_100", 4548, 100, req, true, timeout = 3_000)?.slice(4)
-            ?: return Result.failure(Exception("no response: timeout"))
+        val buffer = when (chatType) {
+            MsgConstant.KCHATTYPEGROUP -> {
+                sendOidbAW("OidbSvcTrpcTcp.0x11c4_100", 4548, 100, req, true, timeout = 3_000)?.slice(4)
+                    ?: return Result.failure(Exception("no response: timeout"))
+            }
+            MsgConstant.KCHATTYPEC2C -> {
+                sendOidbAW("OidbSvcTrpcTcp.0x11c5_100", 4549, 100, req, true, timeout = 3_000)?.slice(4)
+                    ?: return Result.failure(Exception("no response: timeout"))
+            }
+
+            else -> return Result.failure(Exception("unknown chat type: $chatType"))
+        }
         val rspBuffer = buffer.decodeProtobuf<TrpcOidb>().buffer
         val rsp = rspBuffer.decodeProtobuf<NtV2RichMediaRsp>()
         if (rsp.upload == null) {
