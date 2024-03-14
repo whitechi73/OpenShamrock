@@ -4,17 +4,42 @@ package moe.fuqiuluo.shamrock.internals
 
 import com.tencent.qqnt.kernel.nativeinterface.MsgElement
 import com.tencent.qqnt.kernel.nativeinterface.MsgRecord
+import io.kritor.event.GroupApplyType
+import io.kritor.event.GroupMemberBanType
+import io.kritor.event.GroupMemberDecreasedType
+import io.kritor.event.GroupMemberIncreasedType
 import io.kritor.event.MessageEvent
+import io.kritor.event.NoticeEvent
+import io.kritor.event.NoticeType
+import io.kritor.event.RequestType
+import io.kritor.event.RequestsEvent
 import io.kritor.event.Scene
 import io.kritor.event.contact
+import io.kritor.event.essenceMessageNotice
+import io.kritor.event.friendApplyRequest
+import io.kritor.event.friendFileComeNotice
+import io.kritor.event.friendPokeNotice
+import io.kritor.event.friendRecallNotice
+import io.kritor.event.groupAdminChangedNotice
+import io.kritor.event.groupApplyRequest
+import io.kritor.event.groupFileComeNotice
+import io.kritor.event.groupMemberBannedNotice
+import io.kritor.event.groupMemberDecreasedNotice
+import io.kritor.event.groupMemberIncreasedNotice
+import io.kritor.event.groupPokeNotice
+import io.kritor.event.groupRecallNotice
+import io.kritor.event.groupSignNotice
+import io.kritor.event.groupUniqueTitleChangedNotice
+import io.kritor.event.groupWholeBanNotice
 import io.kritor.event.messageEvent
+import io.kritor.event.noticeEvent
+import io.kritor.event.requestsEvent
 import io.kritor.event.sender
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
-import kotlinx.io.core.BytePacketBuilder
 import qq.service.QQInterfaces
 import qq.service.msg.toKritorMessages
 
@@ -22,16 +47,16 @@ internal object GlobalEventTransmitter: QQInterfaces() {
     private val messageEventFlow by lazy {
         MutableSharedFlow<Pair<MsgRecord, MessageEvent>>()
     }
-    //private val noticeEventFlow by lazy {
-    //    MutableSharedFlow<NoticeEvent>()
-    //}
-    //private val requestEventFlow by lazy {
-    //    MutableSharedFlow<RequestEvent>()
-    //}
+    private val noticeEventFlow by lazy {
+        MutableSharedFlow<NoticeEvent>()
+    }
+    private val requestEventFlow by lazy {
+        MutableSharedFlow<RequestsEvent>()
+    }
 
-    //private suspend fun pushNotice(noticeEvent: NoticeEvent) = noticeEventFlow.emit(noticeEvent)
+    private suspend fun pushNotice(noticeEvent: NoticeEvent) = noticeEventFlow.emit(noticeEvent)
 
-    //private suspend fun pushRequest(requestEvent: RequestEvent) = requestEventFlow.emit(requestEvent)
+    private suspend fun pushRequest(requestEvent: RequestsEvent) = requestEventFlow.emit(requestEvent)
 
     private suspend fun transMessageEvent(record: MsgRecord, message: MessageEvent) = messageEventFlow.emit(record to message)
 
@@ -135,10 +160,9 @@ internal object GlobalEventTransmitter: QQInterfaces() {
         }
     }
 
-    /*
     /**
      * 文件通知 通知器
-     */
+     **/
     object FileNoticeTransmitter {
         /**
          * 推送私聊文件事件
@@ -153,23 +177,19 @@ internal object GlobalEventTransmitter: QQInterfaces() {
             expireTime: Long,
             url: String
         ): Boolean {
-            pushNotice(NoticeEvent(
-                time = msgTime,
-                selfId = app.longAccountUin,
-                postType = PostType.Notice,
-                type = NoticeType.PrivateUpload,
-                operatorId = userId,
-                userId = userId,
-                senderId = userId,
-                privateFile = PrivateFileMsg(
-                    id = fileId,
-                    name = fileName,
-                    size = fileSize,
-                    url = url,
-                    subId = fileSubId,
-                    expire = expireTime
-                )
-            ))
+            pushNotice(noticeEvent {
+                this.type = NoticeType.FRIEND_FILE_COME
+                this.time = msgTime.toInt()
+                this.friendFileCome = friendFileComeNotice {
+                    this.fileId = fileId
+                    this.fileName = fileName
+                    this.operator = userId
+                    this.fileSize = fileSize
+                    this.expireTime = expireTime.toInt()
+                    this.fileSubId = fileSubId
+                    this.url = url
+                }
+            })
             return true
         }
 
@@ -186,22 +206,19 @@ internal object GlobalEventTransmitter: QQInterfaces() {
             bizId: Int,
             url: String
         ): Boolean {
-            pushNotice(NoticeEvent(
-                time = msgTime,
-                selfId = app.longAccountUin,
-                postType = PostType.Notice,
-                type = NoticeType.GroupUpload,
-                operatorId = userId,
-                userId = userId,
-                groupId = groupId,
-                file = GroupFileMsg(
-                    id = uuid,
-                    name = fileName,
-                    size = fileSize,
-                    busid = bizId.toLong(),
-                    url = url
-                )
-            ))
+            pushNotice(noticeEvent {
+                this.type = NoticeType.GROUP_FILE_COME
+                this.time = msgTime.toInt()
+                this.groupFileCome = groupFileComeNotice {
+                    this.groupId = groupId
+                    this.operator = userId
+                    this.fileId = uuid
+                    this.fileName = fileName
+                    this.fileSize = fileSize
+                    this.biz = bizId
+                    this.url = url
+                }
+            })
             return true
         }
     }
@@ -211,68 +228,80 @@ internal object GlobalEventTransmitter: QQInterfaces() {
      */
     object GroupNoticeTransmitter {
         suspend fun transGroupSign(time: Long, target: Long, action: String?, rankImg: String?, groupCode: Long): Boolean {
-            pushNotice(NoticeEvent(
-                time = time,
-                selfId = app.longAccountUin,
-                postType = PostType.Notice,
-                type = NoticeType.Notify,
-                subType = NoticeSubType.Sign,
-                userId = target,
-                groupId = groupCode,
-                target = target,
-                signDetail = SignDetail(
-                    rankImg = rankImg,
-                    action = action
-                )
-            ))
+            pushNotice(noticeEvent {
+                this.type = NoticeType.GROUP_SIGN
+                this.time = time.toInt()
+                this.groupSign = groupSignNotice {
+                    this.groupId = groupCode
+                    this.targetUin = target
+                    this.action = action ?: ""
+                    this.suffix = ""
+                    this.rankImage = rankImg ?: ""
+                }
+            })
             return true
         }
 
-        suspend fun transGroupPoke(time: Long, operation: Long, target: Long, action: String?, suffix: String?, actionImg: String?, groupCode: Long): Boolean {
-            pushNotice(NoticeEvent(
-                time = time,
-                selfId = app.longAccountUin,
-                postType = PostType.Notice,
-                type = NoticeType.Notify,
-                subType = NoticeSubType.Poke,
-                operatorId = operation,
-                userId = operation,
-                groupId = groupCode,
-                target = target,
-                pokeDetail = PokeDetail(
-                    action = action,
-                    suffix = suffix,
-                    actionImg = actionImg
-                )
-            ))
+        suspend fun transGroupPoke(time: Long, operator: Long, target: Long, action: String?, suffix: String?, actionImg: String?, groupCode: Long): Boolean {
+            pushNotice(noticeEvent {
+                this.type = NoticeType.GROUP_POKE
+                this.time = time.toInt()
+                this.groupPoke = groupPokeNotice {
+                    this.action = action ?: ""
+                    this.target = target
+                    this.operator = operator
+                    this.suffix = suffix ?: ""
+                    this.actionImage = actionImg ?: ""
+                }
+            })
             return true
         }
 
-        suspend fun transGroupMemberNumChanged(
+        suspend fun transGroupMemberNumIncreased(
             time: Long,
             target: Long,
             targetUid: String,
             groupCode: Long,
             operator: Long,
             operatorUid: String,
-            noticeType: NoticeType,
-            noticeSubType: NoticeSubType
+            type: GroupMemberIncreasedType
         ): Boolean {
-            pushNotice(NoticeEvent(
-                time = time,
-                selfId = app.longAccountUin,
-                postType = PostType.Notice,
-                type = noticeType,
-                subType = noticeSubType,
-                operatorId = operator,
-                userId = target,
-                senderId = operator,
-                target = target,
-                groupId = groupCode,
-                targetUid = targetUid,
-                operatorUid = operatorUid,
-                userUid = targetUid
-            ))
+            pushNotice(noticeEvent {
+                this.type = NoticeType.GROUP_MEMBER_INCREASE
+                this.time = time.toInt()
+                this.groupMemberIncrease = groupMemberIncreasedNotice {
+                    this.groupId = groupCode
+                    this.operatorUid = operatorUid
+                    this.operatorUin = operator
+                    this.targetUid = targetUid
+                    this.targetUin = target
+                    this.type = type
+                }
+            })
+            return true
+        }
+
+        suspend fun transGroupMemberNumDecreased(
+            time: Long,
+            target: Long,
+            targetUid: String,
+            groupCode: Long,
+            operator: Long,
+            operatorUid: String,
+            type: GroupMemberDecreasedType
+        ): Boolean {
+            pushNotice(noticeEvent {
+                this.type = NoticeType.GROUP_MEMBER_INCREASE
+                this.time = time.toInt()
+                this.groupMemberDecrease = groupMemberDecreasedNotice {
+                    this.groupId = groupCode
+                    this.operatorUid = operatorUid
+                    this.operatorUin = operator
+                    this.targetUid = targetUid
+                    this.targetUin = target
+                    this.type = type
+                }
+            })
             return true
         }
 
@@ -283,25 +312,39 @@ internal object GlobalEventTransmitter: QQInterfaces() {
             groupCode: Long,
             setAdmin: Boolean
         ): Boolean {
-            pushNotice(NoticeEvent(
-                time = msgTime,
-                selfId = app.longAccountUin,
-                postType = PostType.Notice,
-                type = NoticeType.GroupAdminChange,
-                subType = if (setAdmin) NoticeSubType.Set else NoticeSubType.UnSet,
-                operatorId = 0,
-                userId = target,
-                userUid = targetUid,
-                target = target,
-                targetUid = targetUid,
-                groupId = groupCode
-            ))
+            pushNotice(noticeEvent {
+                this.type = NoticeType.GROUP_ADMIN_CHANGED
+                this.time = msgTime.toInt()
+                this.groupAdminChanged = groupAdminChangedNotice {
+                    this.groupId = groupCode
+                    this.targetUid = targetUid
+                    this.targetUin = target
+                    this.isAdmin = setAdmin
+                }
+            })
+            return true
+        }
+
+        suspend fun transGroupWholeBan(
+            msgTime: Long,
+            operator: Long,
+            groupCode: Long,
+            isOpen: Boolean
+        ): Boolean {
+            pushNotice(noticeEvent {
+                this.type = NoticeType.GROUP_WHOLE_BAN
+                this.time = msgTime.toInt()
+                this.groupWholeBan = groupWholeBanNotice {
+                    this.groupId = groupCode
+                    this.isWholeBan = isOpen
+                    this.operator = operator
+                }
+            })
             return true
         }
 
         suspend fun transGroupBan(
             msgTime: Long,
-            subType: NoticeSubType,
             operator: Long,
             operatorUid: String,
             target: Long,
@@ -309,43 +352,46 @@ internal object GlobalEventTransmitter: QQInterfaces() {
             groupCode: Long,
             duration: Int
         ): Boolean {
-            pushNotice(NoticeEvent(
-                time = msgTime,
-                selfId = app.longAccountUin,
-                postType = PostType.Notice,
-                type = NoticeType.GroupBan,
-                subType = subType,
-                operatorId = operator,
-                userId = target,
-                senderId = operator,
-                target = target,
-                groupId = groupCode,
-                duration = duration,
-                operatorUid = operatorUid,
-                targetUid = targetUid
-            ))
+            pushNotice(noticeEvent {
+                this.type = NoticeType.GROUP_MEMBER_BANNED
+                this.time = msgTime.toInt()
+                this.groupMemberBanned = groupMemberBannedNotice {
+                    this.groupId = groupCode
+                    this.operatorUid = operatorUid
+                    this.operatorUin = operator
+                    this.targetUid = targetUid
+                    this.targetUin = target
+                    this.duration = duration
+                    this.type = if (duration > 0) GroupMemberBanType.BAN
+                    else GroupMemberBanType.LIFT_BAN
+                }
+            })
             return true
         }
 
         suspend fun transGroupMsgRecall(
             time: Long,
             operator: Long,
+            operatorUid: String,
             target: Long,
+            targetUid: String,
             groupCode: Long,
-            msgHash: Int,
+            msgId: Long,
             tipText: String
         ): Boolean {
-            pushNotice(NoticeEvent(
-                time = time,
-                selfId = app.longAccountUin,
-                postType = PostType.Notice,
-                type = NoticeType.GroupRecall,
-                operatorId = operator,
-                userId = target,
-                msgId = msgHash,
-                tip = tipText,
-                groupId = groupCode
-            ))
+            pushNotice(noticeEvent {
+                this.type = NoticeType.GROUP_RECALL
+                this.time = time.toInt()
+                this.groupRecall = groupRecallNotice {
+                    this.groupId = groupCode
+                    this.operatorUid = operatorUid
+                    this.operatorUin = operator
+                    this.targetUid = targetUid
+                    this.targetUin = target
+                    this.messageId = msgId
+                    this.tipText = tipText
+                }
+            })
             return true
         }
 
@@ -356,16 +402,7 @@ internal object GlobalEventTransmitter: QQInterfaces() {
             newCard: String,
             groupId: Long
         ): Boolean {
-            pushNotice(NoticeEvent(
-                time = time,
-                selfId = app.longAccountUin,
-                postType = PostType.Notice,
-                type = NoticeType.GroupCard,
-                userId = targetId,
-                cardNew = newCard,
-                cardOld = oldCard,
-                groupId = groupId
-            ))
+
             return true
         }
 
@@ -375,16 +412,15 @@ internal object GlobalEventTransmitter: QQInterfaces() {
             title: String,
             groupId: Long
         ): Boolean {
-            pushNotice(NoticeEvent(
-                time = time,
-                selfId = app.longAccountUin,
-                postType = PostType.Notice,
-                type = NoticeType.Notify,
-                userId = targetId,
-                groupId = groupId,
-                title = title,
-                subType = NoticeSubType.Title
-            ))
+            pushNotice(noticeEvent {
+                this.type = NoticeType.GROUP_MEMBER_UNIQUE_TITLE_CHANGED
+                this.time = time.toInt()
+                this.groupMemberUniqueTitleChanged = groupUniqueTitleChangedNotice {
+                    this.groupId = groupId
+                    this.target = targetId
+                    this.title = title
+                }
+            })
             return true
         }
 
@@ -392,21 +428,21 @@ internal object GlobalEventTransmitter: QQInterfaces() {
             time: Long,
             senderUin: Long,
             operatorUin: Long,
-            msgId: Int,
+            msgId: Long,
             groupId: Long,
-            subType: NoticeSubType
+            subType: UInt
         ): Boolean {
-            pushNotice(NoticeEvent(
-                time = time,
-                selfId = app.longAccountUin,
-                postType = PostType.Notice,
-                type = NoticeType.Essence,
-                senderId = senderUin,
-                groupId = groupId,
-                operatorId = operatorUin,
-                msgId = msgId,
-                subType = subType
-            ))
+            pushNotice(noticeEvent {
+                this.type = NoticeType.GROUP_ESSENCE_CHANGED
+                this.time = time.toInt()
+                this.groupEssenceChanged = essenceMessageNotice {
+                    this.groupId = groupId
+                    this.messageId = msgId
+                    this.sender = senderUin
+                    this.operator = operatorUin
+                    this.subType = subType.toInt()
+                }
+            })
             return true
         }
     }
@@ -415,37 +451,31 @@ internal object GlobalEventTransmitter: QQInterfaces() {
      * 私聊通知 通知器
      */
     object PrivateNoticeTransmitter {
-        suspend fun transPrivatePoke(msgTime: Long, operation: Long, target: Long, action: String?, suffix: String?, actionImg: String?): Boolean {
-            pushNotice(NoticeEvent(
-                time = msgTime,
-                selfId = app.longAccountUin,
-                postType = PostType.Notice,
-                type = NoticeType.Notify,
-                subType = NoticeSubType.Poke,
-                operatorId = operation,
-                userId = operation,
-                senderId = operation,
-                target = target,
-                pokeDetail = PokeDetail(
-                    actionImg = actionImg,
-                    action = action,
-                    suffix = suffix
-                )
-            ))
+        suspend fun transPrivatePoke(msgTime: Long, operator: Long, target: Long, action: String?, suffix: String?, actionImg: String?): Boolean {
+            pushNotice(noticeEvent {
+                this.type = NoticeType.FRIEND_POKE
+                this.time = msgTime.toInt()
+                this.friendPoke = friendPokeNotice {
+                    this.action = action ?: ""
+                    this.target = target
+                    this.operator = operator
+                    this.suffix = suffix ?: ""
+                    this.actionImage = actionImg ?: ""
+                }
+            })
             return true
         }
 
-        suspend fun transPrivateRecall(time: Long, operation: Long, msgHashId: Int, tipText: String): Boolean {
-            pushNotice(NoticeEvent(
-                time = time,
-                selfId = app.longAccountUin,
-                postType = PostType.Notice,
-                type = NoticeType.FriendRecall,
-                operatorId = operation,
-                userId = operation,
-                msgId = msgHashId,
-                tip = tipText
-            ))
+        suspend fun transPrivateRecall(time: Long, operator: Long, msgId: Long, tipText: String): Boolean {
+            pushNotice(noticeEvent {
+                this.type = NoticeType.FRIEND_RECALL
+                this.time = time.toInt()
+                this.friendRecall = friendRecallNotice {
+                    this.operator = operator
+                    this.messageId = msgId
+                    this.tipText = tipText
+                }
+            })
             return true
         }
 
@@ -455,16 +485,16 @@ internal object GlobalEventTransmitter: QQInterfaces() {
      * 请求 通知器
      */
     object RequestTransmitter {
-        suspend fun transFriendApp(time: Long, operation: Long, tipText: String, flag: String): Boolean {
-            pushRequest(RequestEvent(
-                time = time,
-                selfId = app.longAccountUin,
-                postType = PostType.Request,
-                type = RequestType.Friend,
-                userId = operation,
-                comment = tipText,
-                flag = flag
-            ))
+        suspend fun transFriendApp(time: Long, operator: Long, tipText: String, flag: String): Boolean {
+            pushRequest(requestsEvent {
+                this.type = RequestType.FRIEND_APPLY
+                this.time = time.toInt()
+                this.friendApply = friendApplyRequest {
+                    this.applierUin = operator
+                    this.message = tipText
+                    this.flag = flag
+                }
+            })
             return true
         }
 
@@ -475,23 +505,23 @@ internal object GlobalEventTransmitter: QQInterfaces() {
             reason: String,
             groupCode: Long,
             flag: String,
-            subType: RequestSubType
+            type: GroupApplyType
         ): Boolean {
-            pushRequest(RequestEvent(
-                time = time,
-                selfId = app.longAccountUin,
-                postType = PostType.Request,
-                type = RequestType.Group,
-                userId = applier,
-                userUid = applierUid,
-                comment = reason,
-                groupId = groupCode,
-                subType = subType,
-                flag = flag
-            ))
+            pushRequest(requestsEvent {
+                this.type = RequestType.GROUP_APPLY
+                this.time = time.toInt()
+                this.groupApply = groupApplyRequest {
+                    this.applierUid = applierUid
+                    this.applierUin = applier
+                    this.groupId = groupCode
+                    this.reason = reason
+                    this.flag = flag
+                    this.type = type
+                }
+            })
             return true
         }
-    }*/
+    }
 
     suspend inline fun onMessageEvent(collector: FlowCollector<Pair<MsgRecord, MessageEvent>>) {
         messageEventFlow.collect {
@@ -501,7 +531,6 @@ internal object GlobalEventTransmitter: QQInterfaces() {
         }
     }
 
-    /*
     suspend inline fun onNoticeEvent(collector: FlowCollector<NoticeEvent>) {
         noticeEventFlow.collect {
             GlobalScope.launch {
@@ -510,11 +539,11 @@ internal object GlobalEventTransmitter: QQInterfaces() {
         }
     }
 
-    suspend inline fun onRequestEvent(collector: FlowCollector<RequestEvent>) {
+    suspend inline fun onRequestEvent(collector: FlowCollector<RequestsEvent>) {
         requestEventFlow.collect {
             GlobalScope.launch {
                 collector.emit(it)
             }
         }
-    }*/
+    }
 }

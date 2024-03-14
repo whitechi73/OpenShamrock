@@ -3,6 +3,7 @@ package qq.service.msg
 import com.tencent.qqnt.kernel.api.IKernelService
 import com.tencent.qqnt.kernel.nativeinterface.Contact
 import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
+import com.tencent.qqnt.kernel.nativeinterface.MsgRecord
 import com.tencent.qqnt.kernel.nativeinterface.TempChatInfo
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
@@ -32,12 +33,28 @@ internal object MessageHelper: QQInterfaces() {
         return Result.success(info)
     }
 
+    suspend fun generateContact(record: MsgRecord): Contact {
+        val peerId = when (record.chatType) {
+            MsgConstant.KCHATTYPEC2C, MsgConstant.KCHATTYPETEMPC2CFROMGROUP -> record.senderUid
+            MsgConstant.KCHATTYPEGUILD -> record.channelId
+            else -> record.peerUin.toString()
+        }
+        return Contact(record.chatType, peerId, if (record.chatType == MsgConstant.KCHATTYPEGUILD) {
+            record.guildId
+        } else if(record.chatType == MsgConstant.KCHATTYPETEMPC2CFROMGROUP) {
+            val tempInfo = getTempChatInfo(record.chatType, peerId).getOrThrow()
+            tempInfo.groupCode
+        } else {
+            null
+        })
+    }
+
     suspend fun generateContact(chatType: Int, id: String, subId: String = ""): Contact {
         val peerId = when (chatType) {
             MsgConstant.KCHATTYPEC2C, MsgConstant.KCHATTYPETEMPC2CFROMGROUP -> {
-                ContactHelper.getUidByUinAsync(id.toLong())
+                if (id.startsWith("u_")) id
+                else ContactHelper.getUidByUinAsync(id.toLong())
             }
-
             else -> id
         }
         return if (chatType == MsgConstant.KCHATTYPEGUILD) {

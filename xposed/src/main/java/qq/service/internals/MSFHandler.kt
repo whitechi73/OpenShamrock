@@ -52,8 +52,12 @@ internal object MSFHandler {
 
     fun onPush(fromServiceMsg: FromServiceMsg) {
         val cmd = fromServiceMsg.serviceCmd
-        val push = mPushHandlers[cmd]
-        push?.invoke(fromServiceMsg)
+        if (cmd == "trpc.msg.olpush.OlPushService.MsgPush") {
+            PrimitiveListener.onPush(fromServiceMsg)
+        } else {
+            val push = mPushHandlers[cmd]
+            push?.invoke(fromServiceMsg)
+        }
     }
 
     fun onResp(toServiceMsg: ToServiceMsg, fromServiceMsg: FromServiceMsg) {

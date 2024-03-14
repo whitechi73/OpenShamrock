@@ -1,8 +1,10 @@
 package qq.service.msg
 
+import com.tencent.mobileqq.qroute.QRoute
 import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
 import com.tencent.qqnt.kernel.nativeinterface.MsgElement
 import com.tencent.qqnt.kernel.nativeinterface.MsgRecord
+import com.tencent.qqnt.msg.api.IMsgService
 import io.kritor.event.AtElement
 import io.kritor.event.Element
 import io.kritor.event.ElementKt
@@ -21,10 +23,13 @@ import io.kritor.event.imageElement
 import io.kritor.event.jsonElement
 import io.kritor.event.locationElement
 import io.kritor.event.pokeElement
+import io.kritor.event.replyElement
 import io.kritor.event.rpsElement
 import io.kritor.event.textElement
 import io.kritor.event.videoElement
 import io.kritor.event.voiceElement
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withTimeoutOrNull
 import moe.fuqiuluo.shamrock.helper.ActionMsgException
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
@@ -40,6 +45,7 @@ import moe.fuqiuluo.shamrock.utils.PlatformUtils
 import moe.fuqiuluo.shamrock.utils.PlatformUtils.QQ_9_0_8_VER
 import qq.service.bdh.RichProtoSvc
 import qq.service.contact.ContactHelper
+import kotlin.coroutines.resume
 
 typealias NtMessages = ArrayList<MsgElement>
 typealias Convertor = suspend (MsgRecord, MsgElement) -> Result<Element>
@@ -308,8 +314,22 @@ private object MsgConvertor {
     suspend fun convertReply(record: MsgRecord, element: MsgElement): Result<Element> {
         val reply = element.replyElement
         val elem = Element.newBuilder()
-        elem.setReply(io.kritor.event.replyElement {
-            this.messageId = reply.replayMsgId
+        elem.setReply(replyElement {
+            val msgSeq = reply.replayMsgSeq
+            val contact = MessageHelper.generateContact(record)
+            val sourceRecords = withTimeoutOrNull(3000) {
+                suspendCancellableCoroutine {
+                    QRoute.api(IMsgService::class.java).getMsgsBySeqAndCount(contact, msgSeq, 1, true) { _, _, records ->
+                        it.resume(records)
+                    }
+                }
+            }
+            if (sourceRecords.isNullOrEmpty()) {
+                LogCenter.log("无法查询到回复的消息ID: seq = $msgSeq", Level.WARN)
+                this.messageId = reply.replayMsgId
+            } else {
+                this.messageId = sourceRecords.first().msgId
+            }
         })
         return Result.success(elem.build())
     }

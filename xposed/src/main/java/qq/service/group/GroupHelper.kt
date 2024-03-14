@@ -37,6 +37,7 @@ import tencent.im.oidb.cmd0x8fc.Oidb_0x8fc
 import tencent.im.oidb.cmd0xed3.oidb_cmd0xed3
 import tencent.im.oidb.oidb_sso
 import tencent.im.troop.honor.troop_honor
+import tencent.mobileim.structmsg.structmsg
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import java.nio.ByteBuffer
@@ -215,6 +216,106 @@ internal object GroupHelper: QQInterfaces() {
         buffer.put(if (enable) 1 else 0)
         val array = buffer.array()
         sendOidb("OidbSvc.0x55c_1", 1372, 1, array)
+    }
+
+    // ProfileService.Pb.ReqSystemMsgAction.Group
+    suspend fun requestGroupRequest(
+        msgSeq: Long,
+        uin: Long,
+        gid: Long,
+        msg: String? = "",
+        approve: Boolean? = true,
+        notSee: Boolean? = false,
+        subType: String
+    ): Result<String>{
+        val req = structmsg.ReqSystemMsgAction().apply {
+            if (subType == "invite") {
+                msg_type.set(1)
+                src_id.set(3)
+                sub_src_id.set(10016)
+                group_msg_type.set(2)
+            } else {
+                msg_type.set(2)
+                src_id.set(2)
+                sub_src_id.set(30024)
+                group_msg_type.set(1)
+            }
+            msg_seq.set(msgSeq)
+            req_uin.set(uin)
+            sub_type.set(1)
+            action_info.set(structmsg.SystemMsgActionInfo().apply {
+                type.set(if (approve != false) 11 else 12)
+                group_code.set(gid)
+                if (subType == "add") {
+                    this.msg.set(msg)
+                    this.blacklist.set(notSee != false)
+                }
+            })
+            language.set(1000)
+        }
+        val fromServiceMsg = sendBufferAW("ProfileService.Pb.ReqSystemMsgAction.Group", true, req.toByteArray())
+            ?: return Result.failure(Exception("ReqSystemMsgAction.Group: No Response"))
+        if (fromServiceMsg.wupBuffer == null) {
+            return Result.failure(Exception("ReqSystemMsgAction.Group: No WupBuffer"))
+        }
+        val rsp = structmsg.RspSystemMsgAction().mergeFrom(fromServiceMsg.wupBuffer.slice(4))
+        return if (rsp.head.result.has()) {
+            if (rsp.head.result.get() == 0) {
+                Result.success(rsp.msg_detail.get())
+            } else {
+                Result.failure(Exception(rsp.head.msg_fail.get()))
+            }
+        } else {
+            Result.failure(Exception("操作失败"))
+        }
+    }
+
+    suspend fun requestGroupSystemMsgNew(msgNum: Int, reqMsgType: Int = 1, latestFriendSeq: Long = 0, latestGroupSeq: Long = 0, retryCnt: Int = 5): List<structmsg.StructMsg> {
+        if (retryCnt < 0) {
+            return ArrayList()
+        }
+        val req = structmsg.ReqSystemMsgNew()
+        req.msg_num.set(msgNum)
+        req.latest_friend_seq.set(latestFriendSeq)
+        req.latest_group_seq.set(latestGroupSeq)
+        req.version.set(1000)
+        req.checktype.set(3)
+        val flag = structmsg.FlagInfo()
+        flag.GrpMsg_Kick_Admin.set(1)
+        flag.GrpMsg_HiddenGrp.set(1)
+        flag.GrpMsg_WordingDown.set(1)
+//        flag.FrdMsg_GetBusiCard.set(1)
+        flag.GrpMsg_GetOfficialAccount.set(1)
+        flag.GrpMsg_GetPayInGroup.set(1)
+        flag.FrdMsg_Discuss2ManyChat.set(1)
+        flag.GrpMsg_NotAllowJoinGrp_InviteNotFrd.set(1)
+        flag.FrdMsg_NeedWaitingMsg.set(1)
+//        flag.FrdMsg_uint32_need_all_unread_msg.set(1)
+        flag.GrpMsg_NeedAutoAdminWording.set(1)
+        flag.GrpMsg_get_transfer_group_msg_flag.set(1)
+        flag.GrpMsg_get_quit_pay_group_msg_flag.set(1)
+        flag.GrpMsg_support_invite_auto_join.set(1)
+        flag.GrpMsg_mask_invite_auto_join.set(1)
+        flag.GrpMsg_GetDisbandedByAdmin.set(1)
+        flag.GrpMsg_GetC2cInviteJoinGroup.set(1)
+        req.flag.set(flag)
+        req.is_get_frd_ribbon.set(false)
+        req.is_get_grp_ribbon.set(false)
+        req.friend_msg_type_flag.set(1)
+        req.uint32_req_msg_type.set(reqMsgType)
+        req.uint32_need_uid.set(1)
+        val fromServiceMsg = sendBufferAW("ProfileService.Pb.ReqSystemMsgNew.Group", true, req.toByteArray())
+        return if (fromServiceMsg == null || fromServiceMsg.wupBuffer == null) {
+            ArrayList()
+        } else {
+            try {
+                val msg = structmsg.RspSystemMsgNew()
+                msg.mergeFrom(fromServiceMsg.wupBuffer.slice(4))
+                return msg.groupmsgs.get().orEmpty()
+            } catch (err: Throwable) {
+                requestGroupSystemMsgNew(msgNum, reqMsgType, latestFriendSeq, latestGroupSeq, retryCnt - 1)
+            }
+        }
     }
 
     suspend fun setGroupUniqueTitle(groupId: Long, userId: Long, title: String) {

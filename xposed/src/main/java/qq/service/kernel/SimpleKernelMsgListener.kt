@@ -195,7 +195,7 @@ abstract class SimpleKernelMsgListener: IKernelMsgListener {
         
     }
 
-    override fun onMsgRecall(i2: Int, str: String?, j2: Long) {
+    override fun onMsgRecall(chatType: Int, tips: String?, msgId: Long) {
         
     }
 
