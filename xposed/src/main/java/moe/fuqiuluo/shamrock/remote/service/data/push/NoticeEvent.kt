@@ -27,27 +27,20 @@ internal enum class RequestType {
 @Serializable
 internal enum class NoticeSubType {
     @SerialName("none") None,
-
     @SerialName("ban") Ban,
     @SerialName("lift_ban") LiftBan,
-
     @SerialName("set") Set,
     @SerialName("unset") UnSet,
-
     @SerialName("add") Add,
     @SerialName("invite") Invite,
     @SerialName("approve") Approve,
     @SerialName("leave") Leave,
     @SerialName("kick") Kick,
     @SerialName("kick_me") KickMe,
-
     @SerialName("poke") Poke,
     @SerialName("sign") Sign,
-
-
     @SerialName("title") Title,
     @SerialName("delete") Delete,
-
 }
 
 @Serializable
@@ -55,6 +48,13 @@ internal enum class RequestSubType {
     @SerialName("none") None,
     @SerialName("add") Add,
     @SerialName("invite") Invite,
+}
+
+@Serializable
+internal enum class MessageSource {
+    @SerialName("group") Group,
+
+    @SerialName("private") Private,
 }
 
 /**
@@ -97,6 +97,7 @@ internal data class NoticeEvent(
 
     // 群打卡
     @SerialName("sign_detail") val signDetail: SignDetail? = null,
+    @SerialName("source") val messageSource: MessageSource? = null,
 
     )
 
@@ -138,7 +139,7 @@ internal data class PrivateFileMsg(
 )
 
 @Serializable
-internal data class PokeDetail (
+internal data class PokeDetail(
     val action: String? = "戳了戳",
     val suffix: String? = "",
     @SerialName("action_img_url")
@@ -146,7 +147,7 @@ internal data class PokeDetail (
 )
 
 @Serializable
-internal data class SignDetail (
+internal data class SignDetail(
     val action: String? = "今日第1个打卡",
     @SerialName("rank_img")
     val rankImg: String? = "",

@@ -21,6 +21,7 @@ import moe.fuqiuluo.shamrock.remote.service.data.push.MsgSubType
 import moe.fuqiuluo.shamrock.remote.service.data.push.MsgType
 import moe.fuqiuluo.shamrock.remote.service.data.push.PostType
 import moe.fuqiuluo.shamrock.remote.service.data.push.MessageEvent
+import moe.fuqiuluo.shamrock.remote.service.data.push.MessageSource
 import moe.fuqiuluo.shamrock.remote.service.data.push.MessageTempSource
 import moe.fuqiuluo.shamrock.remote.service.data.push.NoticeEvent
 import moe.fuqiuluo.shamrock.remote.service.data.push.NoticeSubType
@@ -235,7 +236,8 @@ internal object GlobalEventTransmitter: BaseSvc() {
                     url = url,
                     subId = fileSubId,
                     expire = expireTime
-                )
+                ),
+                messageSource =MessageSource.Private
             ))
             return true
         }
@@ -258,16 +260,17 @@ internal object GlobalEventTransmitter: BaseSvc() {
                 selfId = app.longAccountUin,
                 postType = PostType.Notice,
                 type = NoticeType.GroupUpload,
+                groupId = groupId,
                 operatorId = userId,
                 userId = userId,
-                groupId = groupId,
                 file = GroupFileMsg(
                     id = uuid,
                     name = fileName,
                     size = fileSize,
                     busid = bizId.toLong(),
                     url = url
-                )
+                ),
+                messageSource =MessageSource.Private
             ))
             return true
         }
@@ -284,13 +287,14 @@ internal object GlobalEventTransmitter: BaseSvc() {
                 postType = PostType.Notice,
                 type = NoticeType.Notify,
                 subType = NoticeSubType.Sign,
-                userId = target,
                 groupId = groupCode,
+                userId = target,
                 target = target,
                 signDetail = SignDetail(
                     rankImg = rankImg,
                     action = action
-                )
+                ),
+                messageSource =MessageSource.Group
             ))
             return true
         }
@@ -306,6 +310,7 @@ internal object GlobalEventTransmitter: BaseSvc() {
                 userId = operation,
                 groupId = groupCode,
                 target = target,
+                messageSource =MessageSource.Group,
                 pokeDetail = PokeDetail(
                     action = action,
                     suffix = suffix,
@@ -331,14 +336,15 @@ internal object GlobalEventTransmitter: BaseSvc() {
                 postType = PostType.Notice,
                 type = noticeType,
                 subType = noticeSubType,
+                groupId = groupCode,
                 operatorId = operator,
+                operatorUid = operatorUid,
                 userId = target,
+                userUid = targetUid,
                 senderId = operator,
                 target = target,
-                groupId = groupCode,
                 targetUid = targetUid,
-                operatorUid = operatorUid,
-                userUid = targetUid
+                messageSource =MessageSource.Group,
             ))
             return true
         }
@@ -356,12 +362,13 @@ internal object GlobalEventTransmitter: BaseSvc() {
                 postType = PostType.Notice,
                 type = NoticeType.GroupAdminChange,
                 subType = if (setAdmin) NoticeSubType.Set else NoticeSubType.UnSet,
+                groupId = groupCode,
                 operatorId = 0,
                 userId = target,
                 userUid = targetUid,
                 target = target,
                 targetUid = targetUid,
-                groupId = groupCode
+                messageSource =MessageSource.Group,
             ))
             return true
         }
@@ -382,14 +389,15 @@ internal object GlobalEventTransmitter: BaseSvc() {
                 postType = PostType.Notice,
                 type = NoticeType.GroupBan,
                 subType = subType,
+                groupId = groupCode,
                 operatorId = operator,
+                operatorUid = operatorUid,
                 userId = target,
                 senderId = operator,
-                target = target,
-                groupId = groupCode,
                 duration = duration,
-                operatorUid = operatorUid,
-                targetUid = targetUid
+                target = target,
+                targetUid = targetUid,
+                messageSource =MessageSource.Group,
             ))
             return true
         }
@@ -407,11 +415,12 @@ internal object GlobalEventTransmitter: BaseSvc() {
                 selfId = app.longAccountUin,
                 postType = PostType.Notice,
                 type = NoticeType.GroupRecall,
+                groupId = groupCode,
                 operatorId = operator,
                 userId = target,
                 msgId = msgHash,
                 tip = tipText,
-                groupId = groupCode
+                messageSource =MessageSource.Group,
             ))
             return true
         }
@@ -428,10 +437,11 @@ internal object GlobalEventTransmitter: BaseSvc() {
                 selfId = app.longAccountUin,
                 postType = PostType.Notice,
                 type = NoticeType.GroupCard,
+                groupId = groupId,
                 userId = targetId,
                 cardNew = newCard,
                 cardOld = oldCard,
-                groupId = groupId
+                messageSource =MessageSource.Group,
             ))
             return true
         }
@@ -447,10 +457,11 @@ internal object GlobalEventTransmitter: BaseSvc() {
                 selfId = app.longAccountUin,
                 postType = PostType.Notice,
                 type = NoticeType.Notify,
-                userId = targetId,
+                subType = NoticeSubType.Title,
                 groupId = groupId,
+                userId = targetId,
                 title = title,
-                subType = NoticeSubType.Title
+                messageSource =MessageSource.Group,
             ))
             return true
         }
@@ -468,11 +479,12 @@ internal object GlobalEventTransmitter: BaseSvc() {
                 selfId = app.longAccountUin,
                 postType = PostType.Notice,
                 type = NoticeType.Essence,
-                senderId = senderUin,
+                subType = subType,
                 groupId = groupId,
                 operatorId = operatorUin,
+                senderId = senderUin,
                 msgId = msgId,
-                subType = subType
+                messageSource =MessageSource.Group,
             ))
             return true
         }
@@ -497,7 +509,8 @@ internal object GlobalEventTransmitter: BaseSvc() {
                     actionImg = actionImg,
                     action = action,
                     suffix = suffix
-                )
+                ),
+                messageSource =MessageSource.Private
             ))
             return true
         }
@@ -511,7 +524,8 @@ internal object GlobalEventTransmitter: BaseSvc() {
                 operatorId = operation,
                 userId = operation,
                 msgId = msgHashId,
-                tip = tipText
+                tip = tipText,
+                messageSource =MessageSource.Private,
             ))
             return true
         }
