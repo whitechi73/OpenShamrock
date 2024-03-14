@@ -1,18 +1,22 @@
+@file:OptIn(DelicateCoroutinesApi::class)
+
 package moe.fuqiuluo.shamrock.internals
 
 import com.tencent.qqnt.kernel.nativeinterface.MsgElement
 import com.tencent.qqnt.kernel.nativeinterface.MsgRecord
-import io.kritor.Scene
-import io.kritor.contact
 import io.kritor.event.MessageEvent
+import io.kritor.event.Scene
+import io.kritor.event.contact
 import io.kritor.event.messageEvent
-import io.kritor.sender
+import io.kritor.event.sender
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.io.core.BytePacketBuilder
 import qq.service.QQInterfaces
+import qq.service.msg.toKritorMessages
 
 internal object GlobalEventTransmitter: QQInterfaces() {
     private val messageEventFlow by lazy {
@@ -51,6 +55,7 @@ internal object GlobalEventTransmitter: QQInterfaces() {
                     this.uid = record.senderUid
                     this.nick = record.sendNickName
                 }
+                this.elements.addAll(elements.toKritorMessages(record))
             })
             return true
         }
@@ -59,9 +64,23 @@ internal object GlobalEventTransmitter: QQInterfaces() {
             record: MsgRecord,
             elements: ArrayList<MsgElement>,
         ): Boolean {
-            val botUin = app.longAccountUin
-            var nickName = record.sendNickName
-
+            transMessageEvent(record, messageEvent {
+                this.time = record.msgTime.toInt()
+                this.scene = Scene.FRIEND
+                this.messageId = record.msgId
+                this.messageSeq = record.msgSeq
+                this.contact = contact {
+                    this.scene = scene
+                    this.peer = record.senderUin.toString()
+                    this.subPeer = record.senderUid
+                }
+                this.sender = sender {
+                    this.uin = record.senderUin
+                    this.uid = record.senderUid
+                    this.nick = record.sendNickName
+                }
+                this.elements.addAll(elements.toKritorMessages(record))
+            })
             return true
         }
 
@@ -71,9 +90,23 @@ internal object GlobalEventTransmitter: QQInterfaces() {
             groupCode: Long,
             fromNick: String,
         ): Boolean {
-            val botUin = app.longAccountUin
-            var nickName = record.sendNickName
-
+            transMessageEvent(record, messageEvent {
+                this.time = record.msgTime.toInt()
+                this.scene = Scene.FRIEND
+                this.messageId = record.msgId
+                this.messageSeq = record.msgSeq
+                this.contact = contact {
+                    this.scene = scene
+                    this.peer = record.senderUin.toString()
+                    this.subPeer = groupCode.toString()
+                }
+                this.sender = sender {
+                    this.uin = record.senderUin
+                    this.uid = record.senderUid
+                    this.nick = record.sendNickName
+                }
+                this.elements.addAll(elements.toKritorMessages(record))
+            })
             return true
         }
 
@@ -81,9 +114,23 @@ internal object GlobalEventTransmitter: QQInterfaces() {
             record: MsgRecord,
             elements: ArrayList<MsgElement>,
         ): Boolean {
-            val botUin = app.longAccountUin
-            var nickName = record.sendNickName
-
+            transMessageEvent(record, messageEvent {
+                this.time = record.msgTime.toInt()
+                this.scene = Scene.GUILD
+                this.messageId = record.msgId
+                this.messageSeq = record.msgSeq
+                this.contact = contact {
+                    this.scene = scene
+                    this.peer = record.channelId.toString()
+                    this.subPeer = record.guildId
+                }
+                this.sender = sender {
+                    this.uin = record.senderUin
+                    this.uid = record.senderUid
+                    this.nick = record.sendNickName
+                }
+                this.elements.addAll(elements.toKritorMessages(record))
+            })
             return true
         }
     }

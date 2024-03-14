@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.content.pm.VersionedPackage
 import android.os.Build
 import android.os.Looper
+import com.tencent.qphone.base.remote.ToServiceMsg
 import de.robv.android.xposed.XC_MethodReplacement
 import de.robv.android.xposed.XSharedPreferences
 import de.robv.android.xposed.XposedHelpers
@@ -21,6 +22,8 @@ import moe.fuqiuluo.shamrock.xposed.XposedEntry
 import moe.fuqiuluo.shamrock.xposed.loader.LuoClassloader
 import moe.fuqiuluo.shamrock.xposed.loader.NativeLoader
 import moe.fuqiuluo.symbols.XposedHook
+import mqq.app.MobileQQ
+import qq.service.QQInterfaces
 
 @XposedHook(priority = 0)
 class AntiDetection: IAction {
@@ -36,6 +39,17 @@ class AntiDetection: IAction {
         if (ShamrockConfig[AntiJvmTrace])
             antiTrace()
         antiMemoryWalking()
+        antiO3Report()
+    }
+
+    private fun antiO3Report() {
+        QQInterfaces.app.javaClass.hookMethod("sendToService").before {
+            val toServiceMsg = it.args[0] as ToServiceMsg?
+            if (toServiceMsg != null && toServiceMsg.serviceCmd.startsWith("trpc.o3")) {
+                LogCenter.log("拦截trpc.o3环境上报包", Level.WARN)
+                it.result = null
+            }
+        }
     }
 
     private fun antiGetPackageGidsDetection(ctx: Context) {

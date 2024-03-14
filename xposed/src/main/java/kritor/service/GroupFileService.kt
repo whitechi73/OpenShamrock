@@ -31,7 +31,7 @@ internal object GroupFileService: GroupFileServiceGrpcKt.GroupFileServiceCorouti
         ).toByteArray()
         val fromServiceMsg = QQInterfaces.sendOidbAW("OidbSvc.0x6d7_0", 1751, 0, data)
             ?: throw StatusRuntimeException(Status.INTERNAL.withDescription("unable to send oidb request"))
-        if (!fromServiceMsg.isSuccess) {
+        if (fromServiceMsg.wupBuffer == null) {
             throw StatusRuntimeException(Status.INTERNAL.withDescription("oidb request failed"))
         }
         val oidbPkg = oidb_sso.OIDBSSOPkg()
@@ -57,7 +57,7 @@ internal object GroupFileService: GroupFileServiceGrpcKt.GroupFileServiceCorouti
                 folderId = request.folderId
             )
         ).toByteArray()) ?: throw StatusRuntimeException(Status.INTERNAL.withDescription("unable to send oidb request"))
-        if (!fromServiceMsg.isSuccess) {
+        if (fromServiceMsg.wupBuffer == null) {
             throw StatusRuntimeException(Status.INTERNAL.withDescription("oidb request failed"))
         }
         val oidbPkg = oidb_sso.OIDBSSOPkg()
@@ -82,7 +82,7 @@ internal object GroupFileService: GroupFileServiceGrpcKt.GroupFileServiceCorouti
         }
         val fromServiceMsg = QQInterfaces.sendOidbAW("OidbSvc.0x6d6_3", 1750, 3, oidb0x6d6ReqBody.toByteArray())
             ?: throw StatusRuntimeException(Status.INTERNAL.withDescription("unable to send oidb request"))
-        if (!fromServiceMsg.isSuccess) {
+        if (fromServiceMsg.wupBuffer == null) {
             throw StatusRuntimeException(Status.INTERNAL.withDescription("oidb request failed"))
         }
         val oidbPkg = oidb_sso.OIDBSSOPkg()
@@ -106,7 +106,7 @@ internal object GroupFileService: GroupFileServiceGrpcKt.GroupFileServiceCorouti
                 folderName = request.name
             )
         ).toByteArray()) ?: throw StatusRuntimeException(Status.INTERNAL.withDescription("unable to send oidb request"))
-        if (!fromServiceMsg.isSuccess) {
+        if (fromServiceMsg.wupBuffer == null) {
             throw StatusRuntimeException(Status.INTERNAL.withDescription("oidb request failed"))
         }
         val oidbPkg = oidb_sso.OIDBSSOPkg()

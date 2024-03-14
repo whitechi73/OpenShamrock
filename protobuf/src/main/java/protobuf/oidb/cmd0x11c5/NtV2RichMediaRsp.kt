@@ -9,7 +9,7 @@ import moe.fuqiuluo.symbols.Protobuf
 
 @Serializable
 data class NtV2RichMediaRsp(
-    @ProtoNumber(1) val head: RspHead,
+    @ProtoNumber(1) val head: RspHead?,
     @ProtoNumber(2) val upload: UploadRsp?,
     @ProtoNumber(3) val download: DownloadRsp?,
     @ProtoNumber(4) val downloadRkeyRsp: DownloadRkeyRsp?,

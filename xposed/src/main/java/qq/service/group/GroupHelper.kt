@@ -269,7 +269,7 @@ internal object GroupHelper: QQInterfaces() {
                 uint32_shutup_timestap.set(0)
             })
         }.toByteArray()) ?: return Result.failure(RuntimeException("[oidb] timeout"))
-        if (!fromServiceMsg.isSuccess) {
+        if (fromServiceMsg.wupBuffer == null) {
             return Result.failure(RuntimeException("[oidb] failed"))
         }
         val body = oidb_sso.OIDBSSOPkg()
@@ -291,7 +291,7 @@ internal object GroupHelper: QQInterfaces() {
             uint64_uin.set(app.longAccountUin)
             uint64_group_code.set(groupId)
         }.toByteArray(), trpc = true) ?: return Result.failure(RuntimeException("[oidb] timeout"))
-        if (!fromServiceMsg.isSuccess) {
+        if (fromServiceMsg.wupBuffer == null) {
             return Result.failure(RuntimeException("[oidb] failed"))
         }
         val body = oidb_sso.OIDBSSOPkg()
@@ -311,7 +311,7 @@ internal object GroupHelper: QQInterfaces() {
             toServiceMsg.extraData.putBoolean("is_admin", false)
             toServiceMsg.extraData.putInt("from", 0)
             val fromServiceMsg = sendToServiceMsgAW(toServiceMsg) ?: return@timeout Result.failure(Exception("获取群信息超时"))
-            if (!fromServiceMsg.isSuccess) {
+            if (fromServiceMsg.wupBuffer == null) {
                 return@timeout Result.failure(Exception("获取群信息失败"))
             }
             val uniPacket = UniPacket(true)
@@ -393,7 +393,7 @@ internal object GroupHelper: QQInterfaces() {
                 req.uint32_client_type.set(1)
                 req.uint32_rich_card_name_ver.set(1)
                 val fromServiceMsg = sendBufferAW("group_member_card.get_group_member_card_info", true, req.toByteArray())
-                if (fromServiceMsg != null && fromServiceMsg.isSuccess) {
+                if (fromServiceMsg != null && fromServiceMsg.wupBuffer != null) {
                     val rsp = group_member_info.RspBody()
                     rsp.mergeFrom(fromServiceMsg.wupBuffer.slice(4))
                     if (rsp.msg_meminfo.str_location.has()) {

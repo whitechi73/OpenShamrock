@@ -1,12 +1,15 @@
 package qq.service.msg
 
 import com.tencent.qqnt.kernel.api.IKernelService
+import com.tencent.qqnt.kernel.nativeinterface.Contact
+import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
 import com.tencent.qqnt.kernel.nativeinterface.TempChatInfo
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import qq.service.QQInterfaces
+import qq.service.contact.ContactHelper
 import qq.service.internals.msgService
 import kotlin.coroutines.resume
 
@@ -28,4 +31,25 @@ internal object MessageHelper: QQInterfaces() {
         } ?: return Result.failure(Exception("获取临时会话信息失败"))
         return Result.success(info)
     }
+
+    suspend fun generateContact(chatType: Int, id: String, subId: String = ""): Contact {
+        val peerId = when (chatType) {
+            MsgConstant.KCHATTYPEC2C, MsgConstant.KCHATTYPETEMPC2CFROMGROUP -> {
+                ContactHelper.getUidByUinAsync(id.toLong())
+            }
+
+            else -> id
+        }
+        return if (chatType == MsgConstant.KCHATTYPEGUILD) {
+            Contact(chatType, subId, peerId)
+        } else {
+            Contact(chatType, peerId, subId)
+        }
+    }
+
+    fun generateMsgId(chatType: Int): Long {
+        return createMessageUniseq(chatType, System.currentTimeMillis())
+    }
+
+    external fun createMessageUniseq(chatType: Int, time: Long): Long
 }

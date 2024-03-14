@@ -33,7 +33,7 @@ internal object GroupFileHelper: QQInterfaces() {
                 it.uint32_bus_id.set(0)
             })
         }.toByteArray()) ?: throw StatusRuntimeException(Status.INTERNAL.withDescription("unable to send oidb request"))
-        if (!fromServiceMsg.isSuccess) {
+        if (fromServiceMsg.wupBuffer == null) {
             throw StatusRuntimeException(Status.INTERNAL.withDescription("oidb request failed"))
         }
         val fileCnt: Int
@@ -104,7 +104,7 @@ internal object GroupFileHelper: QQInterfaces() {
                 uint32_show_onlinedoc_folder.set(0)
             })
         }.toByteArray(), timeout = 15.seconds) ?: throw StatusRuntimeException(Status.INTERNAL.withDescription("unable to send oidb request"))
-        if (!fromServiceMsg.isSuccess) {
+        if (fromServiceMsg.wupBuffer == null) {
             throw StatusRuntimeException(Status.INTERNAL.withDescription("oidb request failed"))
         }
         val files = arrayListOf<File>()
