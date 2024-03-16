@@ -155,11 +155,11 @@ abstract class SimpleKernelMsgListener: IKernelMsgListener {
         
     }
 
-    override fun onKickedOffLine(kickedInfo: KickedInfo?) {
+    override fun onKickedOffLine(kickedInfo: KickedInfo) {
         
     }
 
-    override fun onLineDev(arrayList: ArrayList<DevInfo>?) {
+    override fun onLineDev(devs: ArrayList<DevInfo>) {
         
     }
 

@@ -188,13 +188,13 @@ internal object GroupService: GroupServiceGrpcKt.GroupServiceCoroutineImplBase()
             )
         }
 
-        GroupHelper.setGroupUniqueTitle(request.groupId, when(request.targetCase!!) {
+        GroupHelper.setGroupUniqueTitle(request.groupId.toString(), when(request.targetCase!!) {
             SetGroupUniqueTitleRequest.TargetCase.TARGET_UIN -> request.targetUin
             SetGroupUniqueTitleRequest.TargetCase.TARGET_UID -> ContactHelper.getUinByUidAsync(request.targetUid).toLong()
             else -> throw StatusRuntimeException(Status.INVALID_ARGUMENT
                 .withDescription("target not set")
             )
-        }, request.uniqueTitle)
+        }.toString(), request.uniqueTitle)
 
         return setGroupUniqueTitleResponse {  }
     }
@@ -253,13 +253,13 @@ internal object GroupService: GroupServiceGrpcKt.GroupServiceCoroutineImplBase()
 
     @Grpc("GroupService", "GetGroupMemberInfo")
     override suspend fun getGroupMemberInfo(request: GetGroupMemberInfoRequest): GetGroupMemberInfoResponse {
-        val memberInfo = GroupHelper.getTroopMemberInfoByUin(request.groupId, when(request.targetCase!!) {
+        val memberInfo = GroupHelper.getTroopMemberInfoByUin(request.groupId.toString(), when(request.targetCase!!) {
             GetGroupMemberInfoRequest.TargetCase.UIN -> request.uin
             GetGroupMemberInfoRequest.TargetCase.UID -> ContactHelper.getUinByUidAsync(request.uid).toLong()
             else -> throw StatusRuntimeException(Status.INVALID_ARGUMENT
                 .withDescription("target not set")
             )
-        }).onFailure {
+        }.toString()).onFailure {
             throw StatusRuntimeException(Status.INTERNAL.withDescription("unable to get group member info").withCause(it))
         }.getOrThrow()
         return getGroupMemberInfoResponse {

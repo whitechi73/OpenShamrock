@@ -41,7 +41,7 @@ import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import qq.service.QQInterfaces
-import qq.service.msg.toKritorMessages
+import qq.service.msg.toKritorEventMessages
 
 internal object GlobalEventTransmitter: QQInterfaces() {
     private val messageEventFlow by lazy {
@@ -80,7 +80,7 @@ internal object GlobalEventTransmitter: QQInterfaces() {
                     this.uid = record.senderUid
                     this.nick = record.sendNickName
                 }
-                this.elements.addAll(elements.toKritorMessages(record))
+                this.elements.addAll(elements.toKritorEventMessages(record))
             })
             return true
         }
@@ -104,7 +104,7 @@ internal object GlobalEventTransmitter: QQInterfaces() {
                     this.uid = record.senderUid
                     this.nick = record.sendNickName
                 }
-                this.elements.addAll(elements.toKritorMessages(record))
+                this.elements.addAll(elements.toKritorEventMessages(record))
             })
             return true
         }
@@ -130,7 +130,7 @@ internal object GlobalEventTransmitter: QQInterfaces() {
                     this.uid = record.senderUid
                     this.nick = record.sendNickName
                 }
-                this.elements.addAll(elements.toKritorMessages(record))
+                this.elements.addAll(elements.toKritorEventMessages(record))
             })
             return true
         }
@@ -146,15 +146,15 @@ internal object GlobalEventTransmitter: QQInterfaces() {
                 this.messageSeq = record.msgSeq
                 this.contact = contact {
                     this.scene = scene
-                    this.peer = record.channelId.toString()
-                    this.subPeer = record.guildId
+                    this.peer = record.guildId ?: ""
+                    this.subPeer = record.channelId ?: ""
                 }
                 this.sender = sender {
                     this.uin = record.senderUin
                     this.uid = record.senderUid
                     this.nick = record.sendNickName
                 }
-                this.elements.addAll(elements.toKritorMessages(record))
+                this.elements.addAll(elements.toKritorEventMessages(record))
             })
             return true
         }

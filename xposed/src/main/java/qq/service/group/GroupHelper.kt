@@ -42,6 +42,7 @@ import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import java.nio.ByteBuffer
 import kotlin.coroutines.resume
+import kotlin.time.Duration.Companion.seconds
 
 internal object GroupHelper: QQInterfaces() {
     private val RefreshTroopMemberInfoLock by lazy { Mutex() }
@@ -97,6 +98,61 @@ internal object GroupHelper: QQInterfaces() {
             }
         }
         return Result.success(troopList)
+    }
+
+    suspend fun getTroopMemberInfoByUinV2(
+        groupId: String,
+        uin: String,
+        refresh: Boolean = false
+    ): Result<TroopMemberInfo> {
+        val service = app.getRuntimeService(ITroopMemberInfoService::class.java, "all")
+        var info = service.getTroopMember(groupId, uin)
+        if (refresh || !service.isMemberInCache(groupId, uin) || info == null || info.troopnick == null) {
+            info = requestTroopMemberInfo(service, groupId, uin, timeout = 2000).getOrNull()
+        }
+        if (info == null) {
+            info = getTroopMemberInfoByUinViaNt(groupId, uin, timeout = 2000L).getOrNull()?.let {
+                TroopMemberInfo().apply {
+                    troopnick = it.cardName
+                    friendnick = it.nick
+                }
+            }
+        }
+        try {
+            if (info != null && (info.alias == null || info.alias.isBlank())) {
+                val req = group_member_info.ReqBody()
+                req.uint64_group_code.set(groupId.toLong())
+                req.uint64_uin.set(uin.toLong())
+                req.bool_new_client.set(true)
+                req.uint32_client_type.set(1)
+                req.uint32_rich_card_name_ver.set(1)
+                val fromServiceMsg = sendBufferAW("group_member_card.get_group_member_card_info", true, req.toByteArray(), timeout = 2.seconds)
+                if (fromServiceMsg != null && fromServiceMsg.wupBuffer != null) {
+                    val rsp = group_member_info.RspBody()
+                    rsp.mergeFrom(fromServiceMsg.wupBuffer.slice(4))
+                    if (rsp.msg_meminfo.str_location.has()) {
+                        info.alias = rsp.msg_meminfo.str_location.get().toStringUtf8()
+                    }
+                    if (rsp.msg_meminfo.uint32_age.has()) {
+                        info.age = rsp.msg_meminfo.uint32_age.get().toByte()
+                    }
+                    if (rsp.msg_meminfo.bytes_group_honor.has()) {
+                        val honorBytes = rsp.msg_meminfo.bytes_group_honor.get().toByteArray()
+                        val honor = troop_honor.GroupUserCardHonor()
+                        honor.mergeFrom(honorBytes)
+                        info.level = honor.level.get()
+                        // 10315: medal_id not real group level
+                    }
+                }
+            }
+        } catch (err: Throwable) {
+            LogCenter.log(err.stackTraceToString(), Level.WARN)
+        }
+        return if (info != null) {
+            Result.success(info)
+        } else {
+            Result.failure(Exception("获取群成员信息失败"))
+        }
     }
 
     private suspend fun requestGroupInfo(
@@ -318,12 +374,12 @@ internal object GroupHelper: QQInterfaces() {
         }
     }
 
-    suspend fun setGroupUniqueTitle(groupId: Long, userId: Long, title: String) {
+    suspend fun setGroupUniqueTitle(groupId: String, userId: String, title: String) {
         val localMemberInfo = getTroopMemberInfoByUin(groupId, userId, true).getOrThrow()
         val req = Oidb_0x8fc.ReqBody()
-        req.uint64_group_code.set(groupId)
+        req.uint64_group_code.set(groupId.toLong())
         val memberInfo = Oidb_0x8fc.MemberInfo()
-        memberInfo.uint64_uin.set(userId)
+        memberInfo.uint64_uin.set(userId.toLong())
         memberInfo.bytes_uin_name.set(ByteStringMicro.copyFromUtf8(localMemberInfo.troopnick.ifEmpty {
             localMemberInfo.troopremark.ifNullOrEmpty { "" }
         }))
@@ -468,13 +524,13 @@ internal object GroupHelper: QQInterfaces() {
     }
 
     suspend fun getTroopMemberInfoByUin(
-        groupId: Long,
-        uin: Long,
+        groupId: String,
+        uin: String,
         refresh: Boolean = false
     ): Result<TroopMemberInfo> {
         val service = app.getRuntimeService(ITroopMemberInfoService::class.java, "all")
-        var info = service.getTroopMember(groupId.toString(), uin.toString())
-        if (refresh || !service.isMemberInCache(groupId.toString(), uin.toString()) || info == null || info.troopnick == null) {
+        var info = service.getTroopMember(groupId, uin)
+        if (refresh || !service.isMemberInCache(groupId, uin) || info == null || info.troopnick == null) {
             info = requestTroopMemberInfo(service, groupId, uin).getOrNull()
         }
         if (info == null) {
@@ -488,8 +544,8 @@ internal object GroupHelper: QQInterfaces() {
         try {
             if (info != null && (info.alias == null || info.alias.isBlank())) {
                 val req = group_member_info.ReqBody()
-                req.uint64_group_code.set(groupId)
-                req.uint64_uin.set(uin)
+                req.uint64_group_code.set(groupId.toLong())
+                req.uint64_uin.set(uin.toLong())
                 req.bool_new_client.set(true)
                 req.uint32_client_type.set(1)
                 req.uint32_rich_card_name_ver.set(1)
@@ -523,8 +579,8 @@ internal object GroupHelper: QQInterfaces() {
     }
 
     suspend fun getTroopMemberInfoByUinViaNt(
-        groupId: Long,
-        qq: Long,
+        groupId: String,
+        qq: String,
         timeout: Long = 5000L
     ): Result<MemberInfo> {
         return runCatching {
@@ -533,13 +589,13 @@ internal object GroupHelper: QQInterfaces() {
             val groupService = sessionService.groupService
             val info = withTimeoutOrNull(timeout) {
                 suspendCancellableCoroutine {
-                    groupService.getTransferableMemberInfo(groupId) { code, _, data ->
+                    groupService.getTransferableMemberInfo(groupId.toLong()) { code, _, data ->
                         if (code != 0) {
                             it.resume(null)
                             return@getTransferableMemberInfo
                         }
                         data.forEach { (_, info) ->
-                            if (info.uin == qq) {
+                            if (info.uin == qq.toLong()) {
                                 it.resume(info)
                                 return@forEach
                             }
@@ -556,21 +612,18 @@ internal object GroupHelper: QQInterfaces() {
         }
     }
 
-    private suspend fun requestTroopMemberInfo(service: ITroopMemberInfoService, groupId: Long, memberUin: Long, timeout: Long = 10_000): Result<TroopMemberInfo> {
+    private suspend fun requestTroopMemberInfo(service: ITroopMemberInfoService, groupId: String, memberUin: String, timeout: Long = 10_000): Result<TroopMemberInfo> {
         val info = RefreshTroopMemberInfoLock.withLock {
-            val groupIdStr = groupId.toString()
-            val memberUinStr = memberUin.toString()
-
-            service.deleteTroopMember(groupIdStr, memberUinStr)
+            service.deleteTroopMember(groupId, memberUin)
 
             requestMemberInfoV2(groupId, memberUin)
             requestMemberInfo(groupId, memberUin)
 
             withTimeoutOrNull(timeout) {
-                while (!service.isMemberInCache(groupIdStr, memberUinStr)) {
+                while (!service.isMemberInCache(groupId, memberUin)) {
                     delay(200)
                 }
-                return@withTimeoutOrNull service.getTroopMember(groupIdStr, memberUinStr)
+                return@withTimeoutOrNull service.getTroopMember(groupId, memberUin)
             }
         }
         return if (info != null) {
@@ -580,7 +633,7 @@ internal object GroupHelper: QQInterfaces() {
         }
     }
 
-    private fun requestMemberInfo(groupId: Long, memberUin: Long) {
+    private fun requestMemberInfo(groupId: String, memberUin: String) {
         val businessHandler = app.getBusinessHandler(BusinessHandlerFactory.TROOP_MEMBER_CARD_HANDLER)
 
         if (!::METHOD_REQ_MEMBER_INFO.isInitialized) {
@@ -592,10 +645,10 @@ internal object GroupHelper: QQInterfaces() {
             }
         }
 
-        METHOD_REQ_MEMBER_INFO.invoke(businessHandler, groupId, memberUin)
+        METHOD_REQ_MEMBER_INFO.invoke(businessHandler, groupId.toLong(), memberUin.toLong())
     }
 
-    private fun requestMemberInfoV2(groupId: Long, memberUin: Long) {
+    private fun requestMemberInfoV2(groupId: String, memberUin: String) {
         val businessHandler = app.getBusinessHandler(BusinessHandlerFactory.TROOP_MEMBER_CARD_HANDLER)
 
         if (!::METHOD_REQ_MEMBER_INFO_V2.isInitialized) {
@@ -607,7 +660,8 @@ internal object GroupHelper: QQInterfaces() {
             }
         }
 
-        METHOD_REQ_MEMBER_INFO_V2.invoke(businessHandler, groupId.toString(), groupUin2GroupCode(groupId).toString(), arrayListOf(memberUin.toString()))
+        METHOD_REQ_MEMBER_INFO_V2.invoke(businessHandler,
+            groupId, groupUin2GroupCode(groupId.toLong()).toString(), arrayListOf(memberUin))
     }
 
     private suspend fun requestTroopMemberInfo(service: ITroopMemberInfoService, groupId: String): Result<List<TroopMemberInfo>> {

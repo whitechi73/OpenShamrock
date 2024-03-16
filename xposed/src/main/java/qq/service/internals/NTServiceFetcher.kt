@@ -58,6 +58,7 @@ internal object NTServiceFetcher {
         try {
             LogCenter.log("Register MSG listener successfully.")
             msgService.addMsgListener(AioListener)
+            msgService.addMsgListener(LineDevListener)
 
             // 接口缺失 暂不使用
             //groupService.addKernelGroupListener(GroupEventListener)

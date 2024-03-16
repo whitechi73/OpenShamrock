@@ -1,31 +1,10 @@
 package qq.service.msg
 
 import com.tencent.mobileqq.qroute.QRoute
-import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
-import com.tencent.qqnt.kernel.nativeinterface.MsgElement
-import com.tencent.qqnt.kernel.nativeinterface.MsgRecord
+import com.tencent.qqnt.kernel.nativeinterface.*
+import com.tencent.qqnt.kernel.nativeinterface.Contact
 import com.tencent.qqnt.msg.api.IMsgService
-import io.kritor.event.Element
-import io.kritor.event.ImageType
-import io.kritor.event.Scene
-import io.kritor.event.atElement
-import io.kritor.event.basketballElement
-import io.kritor.event.buttonAction
-import io.kritor.event.buttonActionPermission
-import io.kritor.event.buttonRender
-import io.kritor.event.contactElement
-import io.kritor.event.diceElement
-import io.kritor.event.faceElement
-import io.kritor.event.forwardElement
-import io.kritor.event.imageElement
-import io.kritor.event.jsonElement
-import io.kritor.event.locationElement
-import io.kritor.event.pokeElement
-import io.kritor.event.replyElement
-import io.kritor.event.rpsElement
-import io.kritor.event.textElement
-import io.kritor.event.videoElement
-import io.kritor.event.voiceElement
+import io.kritor.message.*
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
 import moe.fuqiuluo.shamrock.helper.ActionMsgException
@@ -43,16 +22,16 @@ import moe.fuqiuluo.shamrock.utils.PlatformUtils
 import moe.fuqiuluo.shamrock.utils.PlatformUtils.QQ_9_0_8_VER
 import qq.service.bdh.RichProtoSvc
 import qq.service.contact.ContactHelper
+import qq.service.contact.longPeer
 import kotlin.coroutines.resume
 
 /**
- * 将NT消息（com.tencent.qqnt.*）转换为事件消息（io.kritor.event.*）推送
+ * 将NT消息（com.tencent.qqnt.*）转换为请求消息（io.kritor.message.*）推送
  */
 
-typealias NtMessages = ArrayList<MsgElement>
-typealias Convertor = suspend (MsgRecord, MsgElement) -> Result<Element>
+private typealias ReqConvertor = suspend (Contact, MsgElement) -> Result<Element>
 
-private object MsgConvertor {
+private object ReqMsgConvertor {
     private val convertorMap = hashMapOf(
         MsgConstant.KELEMTYPETEXT to ::convertText,
         MsgConstant.KELEMTYPEFACE to ::convertFace,
@@ -71,7 +50,7 @@ private object MsgConvertor {
         MsgConstant.KELEMTYPEINLINEKEYBOARD to ::convertInlineKeyboard
     )
 
-    suspend fun convertText(record: MsgRecord, element: MsgElement): Result<Element> {
+    suspend fun convertText(contact: Contact, element: MsgElement): Result<Element> {
         val text = element.textElement
         val elem = Element.newBuilder()
         if (text.atType != MsgConstant.ATTYPEUNKNOWN) {
@@ -87,7 +66,7 @@ private object MsgConvertor {
         return Result.success(elem.build())
     }
 
-    suspend fun convertFace(record: MsgRecord, element: MsgElement): Result<Element> {
+    suspend fun convertFace(contact: Contact, element: MsgElement): Result<Element> {
         val face = element.faceElement
         val elem = Element.newBuilder()
         if (face.faceType == 5) {
@@ -121,7 +100,7 @@ private object MsgConvertor {
         return Result.success(elem.build())
     }
 
-    suspend fun convertImage(record: MsgRecord, element: MsgElement): Result<Element> {
+    suspend fun convertImage(contact: Contact, element: MsgElement): Result<Element> {
         val image = element.picElement
         val md5 = (image.md5HexStr ?: image.fileName
             .replace("{", "")
@@ -138,7 +117,7 @@ private object MsgConvertor {
             ImageMapping(
                 fileName = md5,
                 md5 = md5,
-                chatType = record.chatType,
+                chatType = contact.chatType,
                 size = image.fileSize,
                 sha = "",
                 fileId = image.fileUuid,
@@ -152,7 +131,7 @@ private object MsgConvertor {
         val elem = Element.newBuilder()
         elem.setImage(imageElement {
             this.file = md5
-            this.url = when (record.chatType) {
+            this.url = when (contact.chatType) {
                 MsgConstant.KCHATTYPEDISC, MsgConstant.KCHATTYPEGROUP -> RichProtoSvc.getGroupPicDownUrl(
                     originalUrl = originalUrl,
                     md5 = md5,
@@ -161,7 +140,7 @@ private object MsgConvertor {
                     height = image.picHeight.toUInt(),
                     sha = "",
                     fileSize = image.fileSize.toULong(),
-                    peer = record.peerUin.toString()
+                    peer = contact.longPeer().toString()
                 )
 
                 MsgConstant.KCHATTYPEC2C -> RichProtoSvc.getC2CPicDownUrl(
@@ -172,7 +151,7 @@ private object MsgConvertor {
                     height = image.picHeight.toUInt(),
                     sha = "",
                     fileSize = image.fileSize.toULong(),
-                    peer = record.senderUin.toString(),
+                    peer = contact.longPeer().toString(),
                     storeId = storeId
                 )
 
@@ -184,11 +163,11 @@ private object MsgConvertor {
                     height = image.picHeight.toUInt(),
                     sha = "",
                     fileSize = image.fileSize.toULong(),
-                    peer = record.channelId.ifNullOrEmpty { record.peerUin.toString() } ?: "0",
-                    subPeer = record.guildId ?: "0"
+                    peer = contact.longPeer().toString(),
+                    subPeer ="0"
                 )
 
-                else -> throw UnsupportedOperationException("Not supported chat type: ${record.chatType}")
+                else -> throw UnsupportedOperationException("Not supported chat type: ${contact.chatType}")
             }
             this.type = if (image.isFlashPic == true) ImageType.FLASH else if (image.original) ImageType.ORIGIN else ImageType.COMMON
             this.subType = image.picSubType
@@ -197,7 +176,7 @@ private object MsgConvertor {
         return Result.success(elem.build())
     }
 
-    suspend fun convertVoice(record: MsgRecord, element: MsgElement): Result<Element> {
+    suspend fun convertVoice(contact: Contact, element: MsgElement): Result<Element> {
         val ptt = element.pttElement
         val elem = Element.newBuilder()
 
@@ -206,11 +185,11 @@ private object MsgConvertor {
         else ptt.md5HexStr
 
         elem.setVoice(voiceElement {
-            this.url = when (record.chatType) {
+            this.url = when (contact.chatType) {
                 MsgConstant.KCHATTYPEC2C -> RichProtoSvc.getC2CPttDownUrl("0", ptt.fileUuid)
                 MsgConstant.KCHATTYPEGROUP, MsgConstant.KCHATTYPEGUILD -> RichProtoSvc.getGroupPttDownUrl("0", md5.hex2ByteArray(), ptt.fileUuid)
 
-                else -> throw UnsupportedOperationException("Not supported chat type: ${record.chatType}")
+                else -> throw UnsupportedOperationException("Not supported chat type: ${contact.chatType}")
             }
             this.file = md5
             this.magic = ptt.voiceChangeType != MsgConstant.KPTTVOICECHANGETYPENONE
@@ -219,7 +198,7 @@ private object MsgConvertor {
         return Result.success(elem.build())
     }
 
-    suspend fun convertVideo(record: MsgRecord, element: MsgElement): Result<Element> {
+    suspend fun convertVideo(contact: Contact, element: MsgElement): Result<Element> {
         val video = element.videoElement
         val elem = Element.newBuilder()
         val md5 = if (video.fileName.contains("/")) {
@@ -231,26 +210,23 @@ private object MsgConvertor {
         } else video.fileName.split(".")[0].hex2ByteArray()
         elem.setVideo(videoElement {
             this.file = md5.toHexString()
-            this.url = when (record.chatType) {
+            this.url = when (contact.chatType) {
                 MsgConstant.KCHATTYPEGROUP -> RichProtoSvc.getGroupVideoDownUrl("0", md5, video.fileUuid)
                 MsgConstant.KCHATTYPEC2C -> RichProtoSvc.getC2CVideoDownUrl("0", md5, video.fileUuid)
                 MsgConstant.KCHATTYPEGUILD -> RichProtoSvc.getGroupVideoDownUrl("0", md5, video.fileUuid)
-                else -> throw UnsupportedOperationException("Not supported chat type: ${record.chatType}")
+                else -> throw UnsupportedOperationException("Not supported chat type: ${contact.chatType}")
             }
         })
         return Result.success(elem.build())
     }
 
-    suspend fun convertMarketFace(record: MsgRecord, element: MsgElement): Result<Element> {
+    suspend fun convertMarketFace(contact: Contact, element: MsgElement): Result<Element> {
         val marketFace = element.marketFaceElement
         val elem = Element.newBuilder()
-        elem.setMarketFace(io.kritor.event.marketFaceElement {
-            this.id = marketFace.emojiId.lowercase()
-        })
-        return Result.success(elem.build())
+        return Result.failure(ActionMsgException)
     }
 
-    suspend fun convertStructJson(record: MsgRecord, element: MsgElement): Result<Element> {
+    suspend fun convertStructJson(contact: Contact, element: MsgElement): Result<Element> {
         val data = element.arkElement.bytesData.asJsonObject
         val elem = Element.newBuilder()
         when (data["app"].asString) {
@@ -299,12 +275,11 @@ private object MsgConvertor {
         return Result.success(elem.build())
     }
 
-    suspend fun convertReply(record: MsgRecord, element: MsgElement): Result<Element> {
+    suspend fun convertReply(contact: Contact, element: MsgElement): Result<Element> {
         val reply = element.replyElement
         val elem = Element.newBuilder()
         elem.setReply(replyElement {
             val msgSeq = reply.replayMsgSeq
-            val contact = MessageHelper.generateContact(record)
             val sourceRecords = withTimeoutOrNull(3000) {
                 suspendCancellableCoroutine {
                     QRoute.api(IMsgService::class.java).getMsgsBySeqAndCount(contact, msgSeq, 1, true) { _, _, records ->
@@ -322,7 +297,7 @@ private object MsgConvertor {
         return Result.success(elem.build())
     }
 
-    suspend fun convertFile(record: MsgRecord, element: MsgElement): Result<Element> {
+    suspend fun convertFile(contact: Contact, element: MsgElement): Result<Element> {
         val fileMsg = element.fileElement
         val fileName = fileMsg.fileName
         val fileSize = fileMsg.fileSize
@@ -330,13 +305,13 @@ private object MsgConvertor {
         val fileId = fileMsg.fileUuid
         val bizId = fileMsg.fileBizId ?: 0
         val fileSubId = fileMsg.fileSubId ?: ""
-        val url = when (record.chatType) {
+        val url = when (contact.chatType) {
             MsgConstant.KCHATTYPEC2C -> RichProtoSvc.getC2CFileDownUrl(fileId, fileSubId)
-            MsgConstant.KCHATTYPEGUILD -> RichProtoSvc.getGuildFileDownUrl(record.guildId, record.channelId, fileId, bizId)
-            else -> RichProtoSvc.getGroupFileDownUrl(record.peerUin, fileId, bizId)
+            MsgConstant.KCHATTYPEGUILD -> RichProtoSvc.getGuildFileDownUrl(contact.guildId, contact.longPeer().toString(), fileId, bizId)
+            else -> RichProtoSvc.getGroupFileDownUrl(contact.longPeer(), fileId, bizId)
         }
         val elem = Element.newBuilder()
-        elem.setFile(io.kritor.event.fileElement {
+        elem.setFile(fileElement {
             this.name = fileName
             this.size = fileSize
             this.url = url
@@ -348,34 +323,34 @@ private object MsgConvertor {
         return Result.success(elem.build())
     }
 
-    suspend fun convertMarkdown(record: MsgRecord, element: MsgElement): Result<Element> {
+    suspend fun convertMarkdown(contact: Contact, element: MsgElement): Result<Element> {
         val markdown = element.markdownElement
         val elem = Element.newBuilder()
-        elem.setMarkdown(io.kritor.event.markdownElement {
+        elem.setMarkdown(markdownElement {
             this.markdown = markdown.content
         })
         return Result.success(elem.build())
     }
 
-    suspend fun convertBubbleFace(record: MsgRecord, element: MsgElement): Result<Element> {
+    suspend fun convertBubbleFace(contact: Contact, element: MsgElement): Result<Element> {
         val bubbleFace = element.faceBubbleElement
         val elem = Element.newBuilder()
-        elem.setBubbleFace(io.kritor.event.bubbleFaceElement {
+        elem.setBubbleFace(bubbleFaceElement {
             this.id = bubbleFace.yellowFaceInfo.index
             this.count = bubbleFace.faceCount ?: 1
         })
         return Result.success(elem.build())
     }
 
-    suspend fun convertInlineKeyboard(record: MsgRecord, element: MsgElement): Result<Element> {
+    suspend fun convertInlineKeyboard(contact: Contact, element: MsgElement): Result<Element> {
         val inlineKeyboard = element.inlineKeyboardElement
         val elem = Element.newBuilder()
-        elem.setButton(io.kritor.event.buttonElement {
+        elem.setButton(buttonElement {
             inlineKeyboard.rows.forEach { row ->
-                this.rows.add(io.kritor.event.row {
+                this.rows.add(row {
                     row.buttons.forEach buttonsLoop@ { button ->
                         if (button == null) return@buttonsLoop
-                        this.buttons.add(io.kritor.event.button {
+                        this.buttons.add(button {
                             this.id = button.id
                             this.action = buttonAction {
                                 this.type = button.type
@@ -406,15 +381,15 @@ private object MsgConvertor {
         return Result.success(elem.build())
     }
 
-    operator fun get(case: Int): Convertor? {
+    operator fun get(case: Int): ReqConvertor? {
         return convertorMap[case]
     }
 }
 
-suspend fun NtMessages.toKritorEventMessages(record: MsgRecord): ArrayList<Element> {
+suspend fun NtMessages.toKritorReqMessages(contact: Contact): ArrayList<Element> {
     val result = arrayListOf<Element>()
     forEach {
-        MsgConvertor[it.elementType]?.invoke(record, it)?.onSuccess {
+        ReqMsgConvertor[it.elementType]?.invoke(contact, it)?.onSuccess {
             result.add(it)
         }?.onFailure {
             if (it !is ActionMsgException) {

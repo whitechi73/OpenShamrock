@@ -83,6 +83,17 @@ abstract class QQInterfaces {
             app.sendToService(to)
         }
 
+        fun sendBuffer(
+            cmd: String,
+            isProto: Boolean,
+            data: ByteArray,
+        ) {
+            val toServiceMsg = createToServiceMsg(cmd)
+            toServiceMsg.putWupBuffer(data)
+            toServiceMsg.addAttribute("req_pb_protocol_flag", isProto)
+            sendToServiceMsg(toServiceMsg)
+        }
+
         @DelicateCoroutinesApi
         suspend fun sendBufferAW(
             cmd: String,

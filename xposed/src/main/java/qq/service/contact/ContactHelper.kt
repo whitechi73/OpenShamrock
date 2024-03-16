@@ -7,11 +7,15 @@ import com.tencent.mobileqq.profilecard.api.IProfileProtocolConst.PARAM_SELF_UIN
 import com.tencent.mobileqq.profilecard.api.IProfileProtocolConst.PARAM_TARGET_UIN
 import com.tencent.mobileqq.profilecard.api.IProfileProtocolService
 import com.tencent.mobileqq.profilecard.observer.ProfileCardObserver
+import com.tencent.protofile.join_group_link.join_group_link
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import moe.fuqiuluo.shamrock.tools.slice
 import qq.service.internals.NTServiceFetcher
 import qq.service.QQInterfaces
+import tencent.im.oidb.cmd0x11b2.oidb_0x11b2
+import tencent.im.oidb.oidb_sso
 import kotlin.coroutines.resume
 
 internal object ContactHelper: QQInterfaces() {
@@ -176,5 +180,32 @@ internal object ContactHelper: QQInterfaces() {
                 continuation.resume(it)
             }
         }[peerId]!!
+    }
+
+    suspend fun getSharePrivateArkMsg(peerId: Long): String {
+        val reqBody = oidb_0x11b2.BusinessCardV3Req()
+        reqBody.uin.set(peerId)
+        reqBody.jump_url.set("mqqapi://card/show_pslcard?src_type=internal&source=sharecard&version=1&uin=$peerId")
+
+        val fromServiceMsg = sendOidbAW("OidbSvcTrpcTcp.0x11ca_0", 4790, 0, reqBody.toByteArray())
+            ?: error("unable to fetch contact ark_json_text")
+
+        val body = oidb_sso.OIDBSSOPkg()
+        body.mergeFrom(fromServiceMsg.wupBuffer.slice(4))
+        val rsp = oidb_0x11b2.BusinessCardV3Rsp()
+        rsp.mergeFrom(body.bytes_bodybuffer.get().toByteArray())
+        return rsp.signed_ark_msg.get()
+    }
+
+    suspend fun getShareTroopArkMsg(groupId: Long): String {
+        val reqBody = join_group_link.ReqBody()
+        reqBody.get_ark.set(true)
+        reqBody.type.set(1)
+        reqBody.group_code.set(groupId)
+        val fromServiceMsg = sendBufferAW("GroupSvc.JoinGroupLink", true, reqBody.toByteArray())
+            ?: error("unable to fetch contact ark_json_text")
+        val body = join_group_link.RspBody()
+        body.mergeFrom(fromServiceMsg.wupBuffer.slice(4))
+        return body.signed_ark.get().toStringUtf8()
     }
 }
