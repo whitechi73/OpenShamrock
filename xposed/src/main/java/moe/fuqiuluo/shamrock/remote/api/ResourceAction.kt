@@ -26,6 +26,12 @@ fun Routing.fetchRes() {
         call.respondText(GetRecord(file, format), ContentType.Application.Json)
     }
 
+    getOrPost("/get_file") {
+        val file = formatFileName( fetchGetOrThrow("file") )
+        val fileType = fetchOrThrow("file_type")
+        call.respondText(GetFile(file, fileType), ContentType.Application.Json)
+    }
+
     getOrPost("/get_image") {
         val file = formatFileName( fetchGetOrThrow("file") )
         call.respondText(GetImage(file), ContentType.Application.Json)

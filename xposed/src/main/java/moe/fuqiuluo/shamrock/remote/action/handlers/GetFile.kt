@@ -3,10 +3,8 @@ package moe.fuqiuluo.shamrock.remote.action.handlers
 import kotlinx.serialization.json.JsonElement
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
-import moe.fuqiuluo.shamrock.remote.service.data.OutResource
 import moe.fuqiuluo.shamrock.remote.service.data.OutResourceByBase64
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
-import moe.fuqiuluo.shamrock.utils.AudioUtils
 import moe.fuqiuluo.shamrock.utils.FileUtils
 import moe.fuqiuluo.symbols.OneBotHandler
 import java.util.Base64
@@ -17,7 +15,7 @@ import java.util.Base64
             .replace(regex = "[{}\\-]".toRegex(), replacement = "")
             .replace(" ", "")
             .split(".")[0].lowercase()
-        val fileType = session.getString("file_type")
+        val fileType = session.getString("type")
         return invoke(file, fileType, session.echo)
     }
 
