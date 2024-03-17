@@ -28,6 +28,7 @@ import java.util.Base64
                         "/res/${targetFile.nameWithoutExtension}",
                         Base64.getEncoder()
                             .encodeToString(targetFile.readBytes()),
+                        targetFile.nameWithoutExtension,
                     ), echo
                 )
 
