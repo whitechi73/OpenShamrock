@@ -15,7 +15,7 @@ import java.util.Base64
             .replace(regex = "[{}\\-]".toRegex(), replacement = "")
             .replace(" ", "")
             .split(".")[0].lowercase()
-        val fileType = session.getString("type")
+        val fileType = session.getString("file_type")
         return invoke(file, fileType, session.echo)
     }
 
