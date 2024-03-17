@@ -9,8 +9,7 @@ import moe.fuqiuluo.shamrock.tools.EmptyJsonString
 import moe.fuqiuluo.shamrock.utils.AudioUtils
 import moe.fuqiuluo.symbols.OneBotHandler
 
-@OneBotHandler("get_record")
-internal object GetRecord: IActionHandler() {
+@OneBotHandler("get_record") internal object GetRecord : IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val file = session.getString("file")
             .replace(regex = "[{}\\-]".toRegex(), replacement = "")
@@ -22,17 +21,17 @@ internal object GetRecord: IActionHandler() {
 
     operator fun invoke(file: String, format: String, echo: JsonElement = EmptyJsonString): String {
         val pttFile = LocalCacheHelper.getCachePttFile(file)
-        return if(pttFile.exists()) {
+        return if (pttFile.exists()) {
             val isSilk = AudioUtils.isSilk(pttFile)
-            val audioFile = when(format) {
+            val audioFile = when (format) {
                 "amr" -> AudioUtils.audioToAmr(pttFile, isSilk)
                 else -> AudioUtils.audioToFormat(pttFile, isSilk, format)
             }
             ok(
                 OutResource(
-                audioFile.toString(),
-                url = "/res/${audioFile.nameWithoutExtension}"
-            ), echo)
+                    audioFile.toString(), url = "/res/${audioFile.nameWithoutExtension}", md5 = audioFile.nameWithoutExtension
+                ), echo
+            )
         } else {
             error("not found record file from cache", echo)
         }
