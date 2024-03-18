@@ -42,7 +42,7 @@ import java.util.zip.GZIPOutputStream
                     ), echo
                 )
 
-                else -> error("only support base64", echo)
+                else -> error("filt_type error", echo)
             }
 
         } else {
