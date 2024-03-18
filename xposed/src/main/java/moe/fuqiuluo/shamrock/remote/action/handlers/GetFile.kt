@@ -9,13 +9,14 @@ import moe.fuqiuluo.shamrock.utils.FileUtils
 import moe.fuqiuluo.symbols.OneBotHandler
 import java.util.Base64
 
-@OneBotHandler("get_file") internal object GetFile : IActionHandler() {
+@OneBotHandler("get_file") 
+internal object GetFile : IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val file = session.getString("file")
             .replace(regex = "[{}\\-]".toRegex(), replacement = "")
             .replace(" ", "")
             .split(".")[0].lowercase()
-        val fileType = session.getString("file_type")
+        val fileType = session.getStringOrNull("file_type") ?: "base64"
         return invoke(file, fileType, session.echo)
     }
 
@@ -40,5 +41,5 @@ import java.util.Base64
         }
     }
 
-    override val requiredParams: Array<String> = arrayOf("file", "file_type")
+    override val requiredParams: Array<String> = arrayOf("file")
 }
