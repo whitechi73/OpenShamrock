@@ -19,7 +19,7 @@ import java.util.Base64
         return invoke(file, fileType, session.echo)
     }
 
-    operator fun invoke(file: String, fileType: String, echo: JsonElement = EmptyJsonString): String {
+    operator fun invoke(file: String, fileType: String = "base64", echo: JsonElement = EmptyJsonString): String {
         val targetFile = FileUtils.getFileByMd5(file)
         return if (targetFile.exists()) {
             when (fileType) {
