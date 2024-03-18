@@ -11,7 +11,7 @@ import io.kritor.friend.getFriendListResponse
 import qq.service.contact.ContactHelper
 import qq.service.friend.FriendHelper
 
-object FriendService: FriendServiceGrpcKt.FriendServiceCoroutineImplBase() {
+internal object FriendService: FriendServiceGrpcKt.FriendServiceCoroutineImplBase() {
     @Grpc("FriendService", "GetFriendList")
     override suspend fun getFriendList(request: GetFriendListRequest): GetFriendListResponse {
         val friendList = FriendHelper.getFriendList(if(request.hasRefresh()) request.refresh else false).onFailure {

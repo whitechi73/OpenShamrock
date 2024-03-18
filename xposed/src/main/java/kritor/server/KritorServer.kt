@@ -28,6 +28,7 @@ class KritorServer(
         .addService(EventService)
         .addService(ForwardMessageService)
         .addService(WebService)
+        .addService(DeveloperService)
         .build()!!
 
     fun start(block: Boolean = false) {

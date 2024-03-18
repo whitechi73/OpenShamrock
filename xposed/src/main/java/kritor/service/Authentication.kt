@@ -15,7 +15,7 @@ import moe.fuqiuluo.shamrock.config.ActiveTicket
 import moe.fuqiuluo.shamrock.config.ShamrockConfig
 import qq.service.QQInterfaces
 
-object Authentication: AuthenticationGrpcKt.AuthenticationCoroutineImplBase() {
+internal object Authentication: AuthenticationGrpcKt.AuthenticationCoroutineImplBase() {
     @Grpc("Authentication", "Auth")
     override suspend fun auth(request: AuthReq): AuthRsp {
         if (QQInterfaces.app.account != request.account) {

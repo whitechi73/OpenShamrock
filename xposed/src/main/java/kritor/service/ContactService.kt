@@ -33,7 +33,7 @@ import qq.service.contact.ContactHelper
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
-object ContactService: ContactServiceGrpcKt.ContactServiceCoroutineImplBase() {
+internal object ContactService: ContactServiceGrpcKt.ContactServiceCoroutineImplBase() {
     @Grpc("ContactService", "VoteUser")
     override suspend fun voteUser(request: VoteUserRequest): VoteUserResponse {
         ContactHelper.voteUser(when(request.accountCase!!) {

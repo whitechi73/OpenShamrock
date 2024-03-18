@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import moe.fuqiuluo.shamrock.internals.GlobalEventTransmitter
 
-object EventService: EventServiceGrpcKt.EventServiceCoroutineImplBase() {
+internal object EventService: EventServiceGrpcKt.EventServiceCoroutineImplBase() {
     override fun registerActiveListener(request: RequestPushEvent): Flow<EventStructure> {
         return channelFlow {
             when(request.type!!) {

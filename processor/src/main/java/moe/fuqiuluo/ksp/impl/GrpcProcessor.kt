@@ -30,8 +30,6 @@ class GrpcProcessor(
     private val codeGenerator: CodeGenerator,
     private val logger: KSPLogger
 ): SymbolProcessor {
-    private val subPackage = arrayOf("contact", "core", "file", "friend", "group", "message", "web")
-
     override fun process(resolver: Resolver): List<KSAnnotated> {
         val symbols = resolver.getSymbolsWithAnnotation(Grpc::class.qualifiedName!!)
         val actions = (symbols as Sequence<KSFunctionDeclaration>).toList()
@@ -77,6 +75,7 @@ class GrpcProcessor(
             .addStatement("import io.kritor.file.*")
             .addStatement("import io.kritor.message.*")
             .addStatement("import io.kritor.web.*")
+            .addStatement("import io.kritor.developer.*")
             .addFunction(funcBuilder.build())
             .addImport("moe.fuqiuluo.symbols", "EMPTY_BYTE_ARRAY")
         runCatching {

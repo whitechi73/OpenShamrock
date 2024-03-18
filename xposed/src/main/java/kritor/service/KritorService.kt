@@ -35,7 +35,7 @@ import qq.service.QQInterfaces.Companion.app
 import qq.service.contact.ContactHelper
 import java.io.File
 
-object KritorService: KritorServiceGrpcKt.KritorServiceCoroutineImplBase() {
+internal object KritorService: KritorServiceGrpcKt.KritorServiceCoroutineImplBase() {
     @Grpc("KritorService", "GetVersion")
     override suspend fun getVersion(request: GetVersionRequest): GetVersionResponse {
         return getVersionResponse {
