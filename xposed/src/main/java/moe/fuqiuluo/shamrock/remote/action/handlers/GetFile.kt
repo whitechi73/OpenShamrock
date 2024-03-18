@@ -23,7 +23,7 @@ import java.util.Base64
         val targetFile = FileUtils.getFileByMd5(file)
         return if (targetFile.exists()) {
             when (fileType) {
-                "base64" -> ok(
+                "base64", "" -> ok(
                     OutResourceByBase64(
                         "/res/${targetFile.nameWithoutExtension}",
                         Base64.getEncoder()
