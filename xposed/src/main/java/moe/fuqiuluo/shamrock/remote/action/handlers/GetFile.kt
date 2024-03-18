@@ -7,10 +7,11 @@ import moe.fuqiuluo.shamrock.remote.service.data.OutResourceByBase64
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
 import moe.fuqiuluo.shamrock.utils.FileUtils
 import moe.fuqiuluo.symbols.OneBotHandler
+import java.io.ByteArrayOutputStream
 import java.util.Base64
+import java.util.zip.GZIPOutputStream
 
-@OneBotHandler("get_file") 
-internal object GetFile : IActionHandler() {
+@OneBotHandler("get_file") internal object GetFile : IActionHandler() {
     override suspend fun internalHandle(session: ActionSession): String {
         val file = session.getString("file")
             .replace(regex = "[{}\\-]".toRegex(), replacement = "")
@@ -33,12 +34,34 @@ internal object GetFile : IActionHandler() {
                     ), echo
                 )
 
+                "gzip" -> ok(
+                    OutResourceByBase64(
+                        "/res/${targetFile.nameWithoutExtension}",
+                        compressAndEncode(targetFile.readBytes()),
+                        targetFile.nameWithoutExtension,
+                    ), echo
+                )
+
                 else -> error("only support base64", echo)
             }
 
         } else {
             error("not found record file from md5", echo)
         }
+    }
+
+
+    fun compressAndEncode(input: ByteArray): String {
+        // 压缩数据
+        val outputStream = ByteArrayOutputStream()
+        val gzip = GZIPOutputStream(outputStream)
+        gzip.write(input)
+        gzip.close()
+        val compressedBytes = outputStream.toByteArray()
+
+        // 编码为 Base64 字符串
+        return Base64.getEncoder()
+            .encodeToString(compressedBytes)
     }
 
     override val requiredParams: Array<String> = arrayOf("file")
