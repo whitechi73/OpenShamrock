@@ -99,6 +99,7 @@ icon: video-camera
 | ---- | ------ | -------- |
 | file | string | 文件路径 |
 | url  | string | 文件 URL |
+| md5 | string | 文件md5,get_file的时候用这个较稳定，然后你程序如果是反向ws，可以用这个作为record的等待ident |
 
 ## 检查是否可以发送语音 <Badge text="未实现" type="danger" />
 
@@ -143,7 +144,26 @@ icon: video-camera
 
 ## 获取文件 <Badge text="未实现" type="danger" />
 
-该接口用于获取文件。
+该接口用于获取语音，哦当然，这个接口目前使用的是base64返回，主要为了照顾使用反向websocket的用户，如果是正向用户或者getpost用户，直接用/res/去拿数据更方便
+
+### API 端点
+
+`/get_file`
+
+### 参数
+
+| 字段       | 类型   | 必须 | 说明     |
+| ---------- | ------ | ---- | -------- |
+| file       | string | 是   | 文件 MD5 |
+| file_type | string | 是   | 输出格式 |
+
+### 响应
+
+| 字段 | 类型   | 说明     |
+| ---- | ------ | -------- |
+| file | string | 文件路径,和get_record一样 |
+| base64String  | string | 文件 URL |
+| md5 | string | 文件md5 |
 
 ## 获取视频 <Badge text="未实现" type="danger" />
 
