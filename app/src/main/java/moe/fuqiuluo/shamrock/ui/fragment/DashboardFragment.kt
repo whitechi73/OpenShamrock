@@ -118,9 +118,7 @@ private fun APIInfoCard(
                 text = rpcAddress,
                 hint = "请输入回调地址",
                 error = "输入的地址不合法",
-                checker = {
-                    it.isEmpty() || it.contains(":")
-                },
+                checker = { true },
                 confirm = {
                     ShamrockConfig[ctx, RPCAddress] = rpcAddress.value
                     AppRuntime.log("设置回调RPC地址为[${rpcAddress.value}]。")

@@ -11,11 +11,26 @@ import com.tencent.qqnt.kernel.nativeinterface.TempChatGameSession
 import com.tencent.qqnt.kernel.nativeinterface.TempChatInfo
 import com.tencent.qqnt.kernel.nativeinterface.TempChatPrepareInfo
 import com.tencent.qqnt.msg.api.IMsgService
+import io.ktor.client.call.body
+import io.ktor.client.request.get
+import io.ktor.client.request.header
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.decodeFromStream
+import kotlinx.serialization.json.jsonObject
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.tools.EMPTY_BYTE_ARRAY
+import moe.fuqiuluo.shamrock.tools.EmptyJsonArray
+import moe.fuqiuluo.shamrock.tools.GlobalClient
+import moe.fuqiuluo.shamrock.tools.asInt
+import moe.fuqiuluo.shamrock.tools.asJsonArrayOrNull
+import moe.fuqiuluo.shamrock.tools.asJsonObject
+import moe.fuqiuluo.shamrock.tools.asLong
+import moe.fuqiuluo.shamrock.tools.asString
+import moe.fuqiuluo.shamrock.tools.asStringOrNull
 import moe.fuqiuluo.shamrock.tools.slice
 import moe.fuqiuluo.shamrock.tools.toHexString
 import moe.fuqiuluo.shamrock.utils.DeflateTools
@@ -28,14 +43,104 @@ import protobuf.message.longmsg.LongMsgRsp
 import protobuf.message.longmsg.LongMsgSettings
 import protobuf.message.longmsg.LongMsgUid
 import protobuf.message.longmsg.RecvLongMsgInfo
+import protobuf.oidb.cmd0x9082.Oidb0x9082
 import qq.service.QQInterfaces
 import qq.service.contact.ContactHelper
 import qq.service.internals.msgService
+import qq.service.ticket.TicketHelper
+import tencent.im.oidb.cmd0xeac.oidb_0xeac
+import tencent.im.oidb.oidb_sso
 import kotlin.coroutines.resume
 
 typealias MessageId = Long
 
 internal object MessageHelper: QQInterfaces() {
+    suspend fun getEssenceMessageList(groupId: Long, page: Int = 0, pageSize: Int = 20): Result<List<EssenceMessage>>{
+        val cookie = TicketHelper.getCookie("qun.qq.com")
+        val bkn = TicketHelper.getBkn(TicketHelper.getRealSkey(TicketHelper.getUin()))
+        val url = "https://qun.qq.com/cgi-bin/group_digest/digest_list?bkn=${bkn}&group_code=${groupId}&page_start=${page}&page_limit=${pageSize}"
+        val response = GlobalClient.get(url) {
+            header("Cookie", cookie)
+        }
+        val body = Json.decodeFromStream<JsonElement>(response.body())
+        if (body.jsonObject["retcode"].asInt == 0) {
+            val data = body.jsonObject["data"].asJsonObject
+            val list = data["msg_list"].asJsonArrayOrNull
+                ?: // is_end
+                return Result.success(ArrayList())
+            return Result.success(list.map {
+                val obj = it.jsonObject
+                val msgSeq = obj["msg_seq"].asLong
+                EssenceMessage(
+                    senderId = obj["sender_uin"].asString.toLong(),
+                    senderNick = obj["sender_nick"].asString,
+                    senderTime = obj["sender_time"].asLong,
+                    operatorId = obj["add_digest_uin"].asString.toLong(),
+                    operatorNick = obj["add_digest_nick"].asString,
+                    operatorTime = obj["add_digest_time"].asLong,
+                    messageSeq = msgSeq,
+                    messageContent = obj["msg_content"] ?: EmptyJsonArray
+                )
+            })
+        } else {
+            return Result.failure(Exception(body.jsonObject["retmsg"].asStringOrNull))
+        }
+    }
+
+    fun setGroupMessageCommentFace(peer: Long, msgSeq: ULong, faceIndex: String, isSet: Boolean) {
+        val serviceId = if (isSet) 1 else 2
+        sendOidb("OidbSvcTrpcTcp.0x9082_$serviceId", 36994, serviceId, Oidb0x9082(
+            peer = peer.toULong(),
+            msgSeq = msgSeq,
+            faceIndex = faceIndex,
+            flag = 1u,
+            u1 = 0u,
+            u2 = 0u
+        ).toByteArray())
+    }
+
+    suspend fun setEssenceMessage(groupId: Long, seq: Long, rand: Long): String? {
+        val fromServiceMsg = sendOidbAW("OidbSvc.0xeac_1", 3756, 1, oidb_0xeac.ReqBody().apply {
+            group_code.set(groupId)
+            msg_seq.set(seq.toInt())
+            msg_random.set(rand.toInt())
+        }.toByteArray())
+        if (fromServiceMsg?.wupBuffer == null) {
+            return "no response"
+        }
+        val body = oidb_sso.OIDBSSOPkg()
+        body.mergeFrom(fromServiceMsg.wupBuffer.slice(4))
+        val result = oidb_0xeac.RspBody().mergeFrom(body.bytes_bodybuffer.get().toByteArray())
+        return if (result.wording.has()) {
+            LogCenter.log("设置群精华失败: ${result.wording.get()}", Level.WARN)
+            "设置群精华失败: ${result.wording.get()}"
+        } else {
+            LogCenter.log("设置群精华 -> $groupId: $seq")
+            null
+        }
+    }
+
+    suspend fun deleteEssenceMessage(groupId: Long, seq: Long, rand: Long): String? {
+        val fromServiceMsg = sendOidbAW("OidbSvc.0xeac_2", 3756, 2, oidb_0xeac.ReqBody().apply {
+            group_code.set(groupId)
+            msg_seq.set(seq.toInt())
+            msg_random.set(rand.toInt())
+        }.toByteArray())
+        if (fromServiceMsg?.wupBuffer == null) {
+            return "no response"
+        }
+        val body = oidb_sso.OIDBSSOPkg()
+        body.mergeFrom(fromServiceMsg.wupBuffer.slice(4))
+        val result = oidb_0xeac.RspBody().mergeFrom(body.bytes_bodybuffer.get().toByteArray())
+        return if (result.wording.has()) {
+            LogCenter.log("移除群精华失败: ${result.wording.get()}", Level.WARN)
+            "移除群精华失败: ${result.wording.get()}"
+        } else {
+            LogCenter.log("移除群精华 -> $groupId: $seq")
+            null
+        }
+    }
+
     private suspend fun prepareTempChatFromGroup(
         groupId: String,
         peerId: String

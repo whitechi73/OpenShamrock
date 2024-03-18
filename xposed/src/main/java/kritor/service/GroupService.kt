@@ -61,7 +61,6 @@ import io.kritor.group.prohibitedUserInfo
 import io.kritor.group.setGroupAdminResponse
 import io.kritor.group.setGroupUniqueTitleResponse
 import io.kritor.group.setGroupWholeBanResponse
-import moe.fuqiuluo.shamrock.helper.TroopHonorHelper
 import moe.fuqiuluo.shamrock.helper.TroopHonorHelper.decodeHonor
 import moe.fuqiuluo.shamrock.tools.ifNullOrEmpty
 import qq.service.contact.ContactHelper
@@ -89,7 +88,7 @@ internal object GroupService: GroupServiceGrpcKt.GroupServiceCoroutineImplBase()
         }
     }
 
-    @Grpc("GroupService", "PokeMember")
+    @Grpc("GroupService", "PokeMember", )
     override suspend fun pokeMember(request: PokeMemberRequest): PokeMemberResponse {
         GroupHelper.pokeMember(request.groupId, when(request.targetCase!!) {
             PokeMemberRequest.TargetCase.TARGET_UIN -> request.targetUin

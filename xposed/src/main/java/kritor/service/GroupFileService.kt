@@ -118,6 +118,7 @@ internal object GroupFileService: GroupFileServiceGrpcKt.GroupFileServiceCorouti
         return renameFolderResponse {  }
     }
 
+    @Grpc("GroupFileService", "GetFileSystemInfo")
     override suspend fun getFileSystemInfo(request: GetFileSystemInfoRequest): GetFileSystemInfoResponse {
         return getGroupFileSystemInfo(request.groupId)
     }

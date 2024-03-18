@@ -48,19 +48,15 @@ internal object TicketHelper: QQInterfaces() {
         )
     }
 
-    fun getUin(): String {
+    inline fun getUin(): String {
         return app.currentUin.ifBlank { "0" }
-    }
-
-    fun getLongUin(): Long {
-        return app.longAccountUin
     }
 
     fun getUid(): String {
         return app.currentUid.ifBlank { "u_" }
     }
 
-    fun getNickname(): String {
+    inline fun getNickname(): String {
         return app.currentNickname
     }
 
@@ -123,7 +119,7 @@ internal object TicketHelper: QQInterfaces() {
 
     fun getSKey(uin: String): String {
         require(app is QQAppInterface)
-        return (app.getManager(QQAppInterface.TICKET_MANAGER) as TicketManager).getSkey(uin)
+        return (app.getManager(QQAppInterface.TICKET_MANAGER) as TicketManager).getRealSkey(uin)
     }
 
     fun getRealSkey(uin: String): String {

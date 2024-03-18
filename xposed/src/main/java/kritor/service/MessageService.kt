@@ -9,6 +9,10 @@ import io.grpc.Status
 import io.grpc.StatusRuntimeException
 import io.kritor.message.ClearMessagesRequest
 import io.kritor.message.ClearMessagesResponse
+import io.kritor.message.DeleteEssenceMsgRequest
+import io.kritor.message.DeleteEssenceMsgResponse
+import io.kritor.message.GetEssenceMessagesRequest
+import io.kritor.message.GetEssenceMessagesResponse
 import io.kritor.message.GetForwardMessagesRequest
 import io.kritor.message.GetForwardMessagesResponse
 import io.kritor.message.GetHistoryMessageRequest
@@ -25,8 +29,15 @@ import io.kritor.message.SendMessageByResIdRequest
 import io.kritor.message.SendMessageByResIdResponse
 import io.kritor.message.SendMessageRequest
 import io.kritor.message.SendMessageResponse
+import io.kritor.message.SetEssenceMessageRequest
+import io.kritor.message.SetEssenceMessageResponse
+import io.kritor.message.SetMessageCommentEmojiRequest
+import io.kritor.message.SetMessageCommentEmojiResponse
 import io.kritor.message.clearMessagesResponse
 import io.kritor.message.contact
+import io.kritor.message.deleteEssenceMsgResponse
+import io.kritor.message.essenceMessage
+import io.kritor.message.getEssenceMessagesResponse
 import io.kritor.message.getForwardMessagesResponse
 import io.kritor.message.getHistoryMessageResponse
 import io.kritor.message.getMessageBySeqResponse
@@ -36,6 +47,8 @@ import io.kritor.message.recallMessageResponse
 import io.kritor.message.sendMessageByResIdResponse
 import io.kritor.message.sendMessageResponse
 import io.kritor.message.sender
+import io.kritor.message.setEssenceMessageResponse
+import io.kritor.message.setMessageCommentEmojiResponse
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
 import moe.fuqiuluo.shamrock.helper.Level
@@ -63,6 +76,7 @@ import kotlin.random.Random
 import kotlin.random.nextUInt
 
 internal object MessageService: MessageServiceGrpcKt.MessageServiceCoroutineImplBase() {
+    @Grpc("MessageService", "SendMessage")
     override suspend fun sendMessage(request: SendMessageRequest): SendMessageResponse {
         val contact = request.contact.let {
             MessageHelper.generateContact(when(it.scene!!) {
@@ -84,6 +98,7 @@ internal object MessageService: MessageServiceGrpcKt.MessageServiceCoroutineImpl
         }
     }
 
+    @Grpc("MessageService", "SendMessageByResId")
     override suspend fun sendMessageByResId(request: SendMessageByResIdRequest): SendMessageByResIdResponse {
         val contact = request.contact
         val req = PbSendMsgReq(
@@ -113,6 +128,7 @@ internal object MessageService: MessageServiceGrpcKt.MessageServiceCoroutineImpl
         return sendMessageByResIdResponse {  }
     }
 
+    @Grpc("MessageService", "ClearMessages")
     override suspend fun clearMessages(request: ClearMessagesRequest): ClearMessagesResponse {
         val contact = request.contact
         val kernelService = NTServiceFetcher.kernelService
@@ -131,6 +147,7 @@ internal object MessageService: MessageServiceGrpcKt.MessageServiceCoroutineImpl
         return clearMessagesResponse {  }
     }
 
+    @Grpc("MessageService", "RecallMessage")
     override suspend fun recallMessage(request: RecallMessageRequest): RecallMessageResponse {
         val contact = request.contact.let {
             MessageHelper.generateContact(when(it.scene!!) {
@@ -155,6 +172,7 @@ internal object MessageService: MessageServiceGrpcKt.MessageServiceCoroutineImpl
         return recallMessageResponse {}
     }
 
+    @Grpc("MessageService", "GetForwardMessages")
     override suspend fun getForwardMessages(request: GetForwardMessagesRequest): GetForwardMessagesResponse {
         return getForwardMessagesResponse {
             MessageHelper.getForwardMsg(request.resId).onFailure {
@@ -195,6 +213,7 @@ internal object MessageService: MessageServiceGrpcKt.MessageServiceCoroutineImpl
         }
     }
 
+    @Grpc("MessageService", "GetMessage")
     override suspend fun getMessage(request: GetMessageRequest): GetMessageResponse {
         val contact = request.contact.let {
             MessageHelper.generateContact(when(it.scene!!) {
@@ -239,6 +258,7 @@ internal object MessageService: MessageServiceGrpcKt.MessageServiceCoroutineImpl
         }
     }
 
+    @Grpc("MessageService", "GetMessageBySeq")
     override suspend fun getMessageBySeq(request: GetMessageBySeqRequest): GetMessageBySeqResponse {
         val contact = request.contact.let {
             MessageHelper.generateContact(when(it.scene!!) {
@@ -283,6 +303,7 @@ internal object MessageService: MessageServiceGrpcKt.MessageServiceCoroutineImpl
         }
     }
 
+    @Grpc("MessageService", "GetHistoryMessage")
     override suspend fun getHistoryMessage(request: GetHistoryMessageRequest): GetHistoryMessageResponse {
         val contact = request.contact.let {
             MessageHelper.generateContact(when(it.scene!!) {
@@ -327,5 +348,122 @@ internal object MessageService: MessageServiceGrpcKt.MessageServiceCoroutineImpl
                 })
             }
         }
+    }
+
+    @Grpc("MessageService", "DeleteEssenceMsg")
+    override suspend fun deleteEssenceMsg(request: DeleteEssenceMsgRequest): DeleteEssenceMsgResponse {
+        val contact = MessageHelper.generateContact(MsgConstant.KCHATTYPEGROUP, request.groupId.toString())
+        val msg: MsgRecord = withTimeoutOrNull(5000) {
+            val service = QRoute.api(IMsgService::class.java)
+            suspendCancellableCoroutine { continuation ->
+                service.getMsgsByMsgId(contact, arrayListOf(request.messageId)) { code, _, msgRecords ->
+                    if (code == 0 && msgRecords.isNotEmpty()) {
+                        continuation.resume(msgRecords.first())
+                    } else {
+                        continuation.resume(null)
+                    }
+                }
+                continuation.invokeOnCancellation {
+                    continuation.resume(null)
+                }
+            }
+        } ?: throw StatusRuntimeException(Status.NOT_FOUND.withDescription("Message not found"))
+        if(MessageHelper.deleteEssenceMessage(request.groupId, msg.msgSeq, msg.msgRandom) == null)
+            throw StatusRuntimeException(Status.NOT_FOUND.withDescription("delete essence message failed"))
+        return deleteEssenceMsgResponse {  }
+    }
+
+    @Grpc("MessageService", "GetEssenceMessages")
+    override suspend fun getEssenceMessages(request: GetEssenceMessagesRequest): GetEssenceMessagesResponse {
+        val contact = MessageHelper.generateContact(MsgConstant.KCHATTYPEGROUP, request.groupId.toString())
+        return getEssenceMessagesResponse {
+            MessageHelper.getEssenceMessageList(request.groupId, request.page, request.pageSize).onFailure {
+                throw StatusRuntimeException(Status.INTERNAL.withCause(it))
+            }.getOrThrow().forEach {
+                essenceMessage.add(essenceMessage {
+                    withTimeoutOrNull(5000) {
+                        val service = QRoute.api(IMsgService::class.java)
+                        suspendCancellableCoroutine { continuation ->
+                            service.getMsgsBySeqAndCount(contact, it.messageSeq, 1, true) { code, _, msgRecords ->
+                                if (code == 0 && msgRecords.isNotEmpty()) {
+                                    continuation.resume(msgRecords.first())
+                                } else {
+                                    continuation.resume(null)
+                                }
+                            }
+                            continuation.invokeOnCancellation {
+                                continuation.resume(null)
+                            }
+                        }
+                    }?.let {
+                        this.messageId = it.msgId
+                    }
+                    this.messageSeq = it.messageSeq
+                    this.msgTime = it.senderTime.toInt()
+                    this.senderNick = it.senderNick
+                    this.senderUin = it.senderId
+                    this.operationTime = it.operatorTime.toInt()
+                    this.operatorNick = it.operatorNick
+                    this.operatorUin = it.operatorId
+                    this.jsonElements = it.messageContent.toString()
+                })
+            }
+        }
+    }
+
+    @Grpc("MessageService", "SetEssenceMessage")
+    override suspend fun setEssenceMessage(request: SetEssenceMessageRequest): SetEssenceMessageResponse {
+        val contact = MessageHelper.generateContact(MsgConstant.KCHATTYPEGROUP, request.groupId.toString())
+        val msg: MsgRecord = withTimeoutOrNull(5000) {
+            val service = QRoute.api(IMsgService::class.java)
+            suspendCancellableCoroutine { continuation ->
+                service.getMsgsByMsgId(contact, arrayListOf(request.messageId)) { code, _, msgRecords ->
+                    if (code == 0 && msgRecords.isNotEmpty()) {
+                        continuation.resume(msgRecords.first())
+                    } else {
+                        continuation.resume(null)
+                    }
+                }
+                continuation.invokeOnCancellation {
+                    continuation.resume(null)
+                }
+            }
+        } ?: throw StatusRuntimeException(Status.NOT_FOUND.withDescription("Message not found"))
+        if (MessageHelper.setEssenceMessage(request.groupId, msg.msgSeq, msg.msgRandom) == null) {
+            throw StatusRuntimeException(Status.NOT_FOUND.withDescription("set essence message failed"))
+        }
+        return setEssenceMessageResponse {  }
+    }
+
+    @Grpc("MessageService", "SetMessageCommentEmoji")
+    override suspend fun setMessageCommentEmoji(request: SetMessageCommentEmojiRequest): SetMessageCommentEmojiResponse {
+        val contact = request.contact.let {
+            MessageHelper.generateContact(when(it.scene!!) {
+                Scene.GROUP -> MsgConstant.KCHATTYPEGROUP
+                Scene.FRIEND -> MsgConstant.KCHATTYPEC2C
+                Scene.GUILD -> MsgConstant.KCHATTYPEGUILD
+                Scene.STRANGER_FROM_GROUP -> MsgConstant.KCHATTYPETEMPC2CFROMGROUP
+                Scene.NEARBY -> MsgConstant.KCHATTYPETEMPC2CFROMUNKNOWN
+                Scene.STRANGER -> MsgConstant.KCHATTYPETEMPC2CFROMUNKNOWN
+                Scene.UNRECOGNIZED -> throw StatusRuntimeException(Status.INVALID_ARGUMENT.withDescription("Unrecognized scene"))
+            }, it.peer, it.subPeer)
+        }
+        val msg: MsgRecord = withTimeoutOrNull(5000) {
+            val service = QRoute.api(IMsgService::class.java)
+            suspendCancellableCoroutine { continuation ->
+                service.getMsgsByMsgId(contact, arrayListOf(request.messageId)) { code, _, msgRecords ->
+                    if (code == 0 && msgRecords.isNotEmpty()) {
+                        continuation.resume(msgRecords.first())
+                    } else {
+                        continuation.resume(null)
+                    }
+                }
+                continuation.invokeOnCancellation {
+                    continuation.resume(null)
+                }
+            }
+        } ?: throw StatusRuntimeException(Status.NOT_FOUND.withDescription("Message not found"))
+        MessageHelper.setGroupMessageCommentFace(request.contact.longPeer(), msg.msgSeq.toULong(), request.faceId.toString(), request.isComment)
+        return setMessageCommentEmojiResponse {  }
     }
 }

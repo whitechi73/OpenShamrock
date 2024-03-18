@@ -65,7 +65,7 @@ import kotlin.time.Duration.Companion.seconds
 internal object NtV2RichMediaSvc: QQInterfaces() {
     private val requestIdSeq = atomic(1L)
 
-    private fun fetchGroupResUploadTo(): String {
+    fun fetchGroupResUploadTo(): String {
         return ShamrockConfig[ResourceGroup].ifNullOrEmpty { "100000000" }!!
     }
 

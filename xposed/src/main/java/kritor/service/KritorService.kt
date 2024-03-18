@@ -10,6 +10,8 @@ import io.kritor.core.DownloadFileRequest
 import io.kritor.core.DownloadFileResponse
 import io.kritor.core.GetCurrentAccountRequest
 import io.kritor.core.GetCurrentAccountResponse
+import io.kritor.core.GetDeviceBatteryRequest
+import io.kritor.core.GetDeviceBatteryResponse
 import io.kritor.core.GetVersionRequest
 import io.kritor.core.GetVersionResponse
 import io.kritor.core.KritorServiceGrpcKt
@@ -18,6 +20,7 @@ import io.kritor.core.SwitchAccountResponse
 import io.kritor.core.clearCacheResponse
 import io.kritor.core.downloadFileResponse
 import io.kritor.core.getCurrentAccountResponse
+import io.kritor.core.getDeviceBatteryResponse
 import io.kritor.core.getVersionResponse
 import io.kritor.core.switchAccountResponse
 import moe.fuqiuluo.shamrock.tools.ShamrockVersion
@@ -25,6 +28,7 @@ import moe.fuqiuluo.shamrock.utils.DownloadUtils
 import moe.fuqiuluo.shamrock.utils.FileUtils
 import moe.fuqiuluo.shamrock.utils.MD5
 import moe.fuqiuluo.shamrock.utils.MMKVFetcher
+import moe.fuqiuluo.shamrock.utils.PlatformUtils
 import mqq.app.MobileQQ
 import qq.service.QQInterfaces
 import qq.service.QQInterfaces.Companion.app
@@ -117,5 +121,16 @@ object KritorService: KritorServiceGrpcKt.KritorServiceCoroutineImplBase() {
             throw StatusRuntimeException(Status.INTERNAL.withCause(it).withDescription("failed to switch account"))
         }
         return switchAccountResponse {  }
+    }
+
+    @Grpc("KritorService", "GetDeviceBattery")
+    override suspend fun getDeviceBattery(request: GetDeviceBatteryRequest): GetDeviceBatteryResponse {
+        return getDeviceBatteryResponse {
+            PlatformUtils.getDeviceBattery().let {
+                this.battery = it.battery
+                this.scale = it.scale
+                this.status = it.status
+            }
+        }
     }
 }

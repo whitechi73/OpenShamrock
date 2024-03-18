@@ -30,6 +30,7 @@ import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.helper.LogicException
 import moe.fuqiuluo.shamrock.tools.asJsonObject
 import moe.fuqiuluo.shamrock.tools.ifNullOrEmpty
+import moe.fuqiuluo.shamrock.tools.json
 import moe.fuqiuluo.shamrock.utils.AudioUtils
 import moe.fuqiuluo.shamrock.utils.DownloadUtils
 import moe.fuqiuluo.shamrock.utils.FileUtils
@@ -94,6 +95,7 @@ object NtMsgConvertor {
         SHARE to ::shareConvertor,
         CONTACT to ::contactConvertor,
         JSON to ::jsonConvertor,
+        FORWARD to ::forwardConvertor,
         MARKDOWN to ::markdownConvertor,
         BUTTON to ::buttonConvertor,
     )
@@ -833,6 +835,60 @@ object NtMsgConvertor {
             rows.add(InlineKeyboardRow(buttons))
         }
         elem.inlineKeyboardElement = InlineKeyboardElement(rows, 0)
+        return Result.success(elem)
+    }
+
+    private suspend fun forwardConvertor(contact: Contact, msgId: Long, sourceForward: Element): Result<MsgElement> {
+        val resId = sourceForward.forward.id
+        val filename = sourceForward.forward.uniseq
+        var summary = sourceForward.forward.summary
+        val descriptions = sourceForward.forward.description
+        var news = descriptions?.split("\n")?.map { "text" to it }
+
+        if (news == null || summary == null) {
+            val forwardMsg = MessageHelper.getForwardMsg(resId).getOrElse { return Result.failure(it) }
+            if (news == null) {
+                news = forwardMsg.map {
+                    "text" to it.sender.nickName + ": " + descriptions
+                }
+            }
+            if (summary == null) {
+                summary = "查看${forwardMsg.size}条转发消息"
+            }
+        }
+
+        val json = mapOf(
+            "app" to "com.tencent.multimsg",
+            "config" to mapOf(
+                "autosize" to 1,
+                "forward" to 1,
+                "round" to 1,
+                "type" to "normal",
+                "width" to 300
+            ),
+            "desc" to "[聊天记录]",
+            "extra" to mapOf(
+                "filename" to filename,
+                "tsum" to 2
+            ).json.toString(),
+            "meta" to mapOf(
+                "detail" to mapOf(
+                    "news" to news,
+                    "resid" to resId,
+                    "source" to "群聊的聊天记录",
+                    "summary" to summary,
+                    "uniseq" to filename
+                )
+            ),
+            "prompt" to "[聊天记录]",
+            "ver" to "0.0.0.5",
+            "view" to "contact"
+        )
+
+        val elem = MsgElement()
+        elem.elementType = MsgConstant.KELEMTYPEARKSTRUCT
+        val ark = ArkElement(json.json.toString(), null, null)
+        elem.arkElement = ark
         return Result.success(elem)
     }
 }

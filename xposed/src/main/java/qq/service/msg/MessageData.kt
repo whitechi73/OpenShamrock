@@ -64,8 +64,6 @@ internal data class EssenceMessage(
     @SerialName("operator_id") val operatorId: Long,
     @SerialName("operator_nick") val operatorNick: String,
     @SerialName("operator_time") val operatorTime: Long,
-    @SerialName("message_id") var messageId: Int,
-    @SerialName("message_seq") val messageSeq: Int,
-    @SerialName("real_id") val realId: Int,
+    @SerialName("message_seq") val messageSeq: Long,
     @SerialName("message_content") val messageContent: JsonElement,
 )
