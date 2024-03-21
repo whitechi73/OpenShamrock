@@ -256,7 +256,7 @@ suspend fun List<Element>.toRichText(contact: Contact): Result<Pair<String, Rich
                     runCatching {
                         fileInfo.uuid.toUInt()
                     }.onFailure {
-                        NtV2RichMediaSvc.requestUploadNtPic(file, fileInfo.md5, fileInfo.sha, fileInfo.fileName, picWidth.toUInt(), picHeight.toUInt(), 5) {
+                        NtV2RichMediaSvc.requestUploadNtPic(file, fileInfo.md5, fileInfo.sha, fileInfo.fileName, picWidth.toUInt(), picHeight.toUInt(), 5, contact.chatType) {
                             when(contact.chatType) {
                                 MsgConstant.KCHATTYPEGROUP -> {
                                     sceneType = 2u

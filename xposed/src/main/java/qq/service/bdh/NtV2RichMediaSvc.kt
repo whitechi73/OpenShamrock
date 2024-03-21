@@ -370,13 +370,14 @@ internal object NtV2RichMediaSvc: QQInterfaces() {
         width: UInt,
         height: UInt,
         retryCnt: Int,
+        chatType: Int,
         sceneBuilder: suspend SceneInfo.() -> Unit
     ): Result<UploadRsp> {
         return runCatching {
-            requestUploadNtPic(file, md5, sha, name, width, height, sceneBuilder).getOrThrow()
+            requestUploadNtPic(file, md5, sha, name, width, height, chatType, sceneBuilder).getOrThrow()
         }.onFailure {
             if (retryCnt > 0) {
-                return requestUploadNtPic(file, md5, sha, name, width, height, retryCnt - 1, sceneBuilder)
+                return requestUploadNtPic(file, md5, sha, name, width, height, retryCnt - 1, chatType, sceneBuilder)
             }
         }
     }
@@ -388,6 +389,7 @@ internal object NtV2RichMediaSvc: QQInterfaces() {
         name: String,
         width: UInt,
         height: UInt,
+        chatType: Int,
         sceneBuilder: suspend SceneInfo.() -> Unit
     ): Result<UploadRsp> {
         val req = NtV2RichMediaReq(
@@ -427,12 +429,20 @@ internal object NtV2RichMediaSvc: QQInterfaces() {
                 tryFastUploadCompleted = true,
                 srvSendMsg = false,
                 clientRandomId = Random.nextULong(),
-                compatQMsgSceneType = 1u,
+                compatQMsgSceneType = 2u,
                 clientSeq = Random.nextUInt(),
-                noNeedCompatMsg = false
+                noNeedCompatMsg = true
             )
         ).toByteArray()
-        val fromServiceMsg = sendOidbAW("OidbSvcTrpcTcp.0x11c5_100", 4549, 100, req, true, timeout = 3.seconds)
+        val fromServiceMsg = when (chatType) {
+            MsgConstant.KCHATTYPEGROUP -> {
+                sendOidbAW("OidbSvcTrpcTcp.0x11c4_100", 4548, 100, req, true, timeout = 3.seconds)
+            }
+            MsgConstant.KCHATTYPEC2C -> {
+                sendOidbAW("OidbSvcTrpcTcp.0x11c5_100", 4549, 100, req, true, timeout = 3.seconds)
+            }
+            else -> return Result.failure(Exception("unknown chat type: $chatType"))
+        }
         if (fromServiceMsg == null || fromServiceMsg.wupBuffer == null) {
             return Result.failure(Exception("unable to request upload nt pic"))
         }
