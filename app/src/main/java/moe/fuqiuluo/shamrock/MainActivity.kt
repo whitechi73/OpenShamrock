@@ -4,6 +4,7 @@ package moe.fuqiuluo.shamrock
 
 import android.annotation.SuppressLint
 import android.os.Bundle
+import android.os.Handler
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -64,7 +65,9 @@ import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import moe.fuqiuluo.shamrock.tools.GlobalUi
 import moe.fuqiuluo.shamrock.ui.app.AppRuntime
 import moe.fuqiuluo.shamrock.ui.app.Logger
 import moe.fuqiuluo.shamrock.ui.app.RuntimeState
@@ -85,8 +88,16 @@ import moe.fuqiuluo.shamrock.ui.tools.getShamrockVersion
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         setContent {
+            LaunchedEffect(Unit) {
+                while (true) {
+                    delay(5_000) // Delay in milliseconds
+                    broadcastToModule {
+                        putExtra("__cmd", "switch_status")
+                    }
+                }
+            }
+
             CompositionLocalProvider(
                 LocalIndication provides NoIndication
             ) {
@@ -96,8 +107,9 @@ class MainActivity : ComponentActivity() {
                 isAppearanceLightStatusBars = true
             }
             WindowCompat.setDecorFitsSystemWindows(window, true)
-            broadcastToModule { putExtra("__cmd", "fetchPort") }
         }
+
+        GlobalUi = Handler(mainLooper)
     }
 }
 
@@ -153,7 +165,7 @@ private fun AppMainView() {
     }
 
     val ctx = LocalContext.current
-    LaunchedEffect(isFined.value) {
+    LaunchedEffect(isFined) {
         if (isFined.value) {
             AppRuntime.log(LocalString.logCentralLoadSuccessfully)
             Toast.makeText(ctx, LocalString.frameworkYes, Toast.LENGTH_SHORT).show()
@@ -284,57 +296,10 @@ private fun AnimatedTab(
     val lastSelectedState = remember {
         mutableIntStateOf(0)
     }
-    val enter = remember {
-        scaleIn(animationSpec = TweenSpec(150, easing = FastOutLinearInEasing))
-    }
-    val exit = remember {
-        scaleOut(animationSpec = TweenSpec(150, easing = FastOutSlowInEasing))
-    }
 
     val defaultConst = SELECTED_TABLE[index * 2]
     val selectedConst = SELECTED_TABLE[(index * 2) + 1]
     val isFirst: Boolean = (lastSelectedState.value and defaultConst) != defaultConst
-
-    var icon: @Composable (() -> Unit)? = null
-    var text: @Composable (() -> Unit)? = null
-
-    if (curSelected) {
-        text = {
-            AnimatedVisibility(visibleState = MutableTransitionState(false).also {
-                it.targetState =
-                    isFirst || lastSelectedState.value and selectedConst == selectedConst
-            }, enter = enter, exit = exit, modifier = Modifier) {
-                Text(
-                    text = titleWithIcon.first,
-                    color = GlobalColor.TabItem,
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier
-                        .padding(bottom = 5.dp)
-                        .indication(
-                            remember { MutableInteractionSource() },
-                            rememberRipple(color = Color.Transparent)
-                        )
-                )
-            }
-        }
-    } else {
-        icon = {
-            Icon(
-                painter = painterResource(id = titleWithIcon.second),
-                contentDescription = titleWithIcon.first,
-                tint = Color.Unspecified,
-                modifier = Modifier
-                    .height(24.dp)
-                    .width(24.dp)
-                    .padding(bottom = 5.dp)
-                    .indication(
-                        remember { MutableInteractionSource() },
-                        rememberRipple(color = Color.Transparent)
-                    )
-            )
-        }
-    }
 
     ShamrockTab(
         selected = curSelected,
@@ -343,11 +308,13 @@ private fun AnimatedTab(
                 state.scrollToPage(index, 0f)
             }
         },
-        text = text,
-        icon = icon,
         selectedContentColor = Color.Transparent,
         unselectedContentColor = Color.Transparent,
-        indication = null
+        indication = null,
+        titleWithIcon = titleWithIcon,
+        visibleState =  MutableTransitionState(false).also {
+            it.targetState = isFirst || lastSelectedState.value and selectedConst == selectedConst
+        }
     )
     lastSelectedState.value.let {
         var tmp = it

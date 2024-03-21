@@ -5,7 +5,6 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.os.Build
-import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -25,6 +24,7 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,10 +45,12 @@ import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import coil.size.Size
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import moe.fuqiuluo.shamrock.R
 import moe.fuqiuluo.shamrock.ui.app.AppRuntime
 import moe.fuqiuluo.shamrock.ui.app.Level
-import moe.fuqiuluo.shamrock.ui.app.ShamrockConfig
+import moe.fuqiuluo.shamrock.app.config.ShamrockConfig
+import moe.fuqiuluo.shamrock.config.*
 import moe.fuqiuluo.shamrock.ui.theme.GlobalColor
 import moe.fuqiuluo.shamrock.ui.theme.LocalString
 import moe.fuqiuluo.shamrock.ui.theme.ThemeColor
@@ -72,110 +74,6 @@ fun DashboardFragment(
         InformationCard(ctx)
         APIInfoCard(ctx)
         FunctionCard(scope, ctx, LocalString.functionSetting)
-        SSLCard(ctx)
-    }
-}
-
-@Composable
-private fun SSLCard(ctx: Context) {
-    ActionBox(
-        modifier = Modifier.padding(top = 12.dp),
-        painter = painterResource(id = R.drawable.baseline_security_24),
-        title = LocalString.sslSetting
-    ) {
-        Column {
-            Divider(
-                modifier = Modifier,
-                color = GlobalColor.Divider,
-                thickness = 0.2.dp
-            )
-
-            val sslPort = remember { mutableStateOf(ShamrockConfig.getSSLPort(ctx).toString()) }
-            TextItem(
-                title = "SSL端口",
-                desc = "端口范围在0~65565，并确保可用。",
-                text = sslPort,
-                hint = "请输入端口号",
-                error = "端口范围应在0~65565",
-                checker = {
-                    it.isNotBlank() && kotlin.runCatching { it.toInt() in 0..65565 }.getOrDefault(false)
-                },
-                confirm = {
-                    val newPort = sslPort.value.toInt()
-                    ShamrockConfig.setSSLPort(ctx, newPort)
-                    AppRuntime.log("设置SSL(HTTP)端口为$newPort，立即生效尝试中。")
-                }
-            )
-
-            val keyStore = remember { mutableStateOf(ShamrockConfig.getSSLKeyPath(ctx)) }
-            TextItem(
-                title = "SSL证书",
-                desc = "BKS签名的证书。",
-                text = keyStore,
-                hint = "输入证书路径",
-                error = "证书路径不合法或不存在",
-                checker = {
-                    it.isNotBlank()
-                },
-                confirm = {
-                    val new = keyStore.value
-                    ShamrockConfig.setSSLKeyPath(ctx, new)
-                    AppRuntime.log("设置SSL证书为[$new]。")
-                }
-            )
-
-            val alias = remember { mutableStateOf(ShamrockConfig.getSSLAlias(ctx)) }
-            TextItem(
-                title = "SSL别名",
-                desc = "BKS签名的别名，确保大小写区分正确。",
-                text = alias,
-                hint = "输入签名别名",
-                error = "别名不合法",
-                checker = {
-                    it.isNotBlank()
-                },
-                confirm = {
-                    val new = alias.value
-                    ShamrockConfig.setSSLAlias(ctx, new)
-                    AppRuntime.log("设置SSL别名为[$new]。")
-                }
-            )
-
-            val sslPwd = remember { mutableStateOf(ShamrockConfig.getSSLPwd(ctx)) }
-            TextItem(
-                title = "SSL密码",
-                desc = "BKS签名的密码。",
-                text = sslPwd,
-                hint = "输入签名密码",
-                error = "密码不合法",
-                checker = {
-                    it.isNotBlank()
-                },
-                confirm = {
-                    val new = sslPwd.value
-                    ShamrockConfig.setSSLPwd(ctx, new)
-                    AppRuntime.log("设置SSL密码为[$new]。")
-                }
-            )
-
-            val sslPrivatePwd = remember { mutableStateOf(ShamrockConfig.getSSLPrivatePwd(ctx)) }
-            TextItem(
-                title = "SSL Private密码",
-                desc = "BKS签名的Private密码。",
-                text = sslPrivatePwd,
-                hint = "输入Private密码",
-                error = "密码不合法",
-                checker = {
-                    it.isNotBlank()
-                },
-                confirm = {
-                    val new = sslPrivatePwd.value
-                    ShamrockConfig.setSSLPrivatePwd(ctx, new)
-                    AppRuntime.log("设置SSL Private密码为[$new]。")
-                }
-            )
-
-        }
     }
 }
 
@@ -195,93 +93,35 @@ private fun APIInfoCard(
                 thickness = 0.2.dp
             )
 
-            val wsPort = remember { mutableStateOf(ShamrockConfig.getWsPort(ctx).toString()) }
-            val port = remember { mutableStateOf(ShamrockConfig.getHttpPort(ctx).toString()) }
+            val rpcPort = remember { mutableStateOf(ShamrockConfig[ctx, RPCPort].toString()) }
             TextItem(
-                title = "主动HTTP端口",
+                title = "RPC服务端口",
                 desc = "端口范围在0~65565，并确保可用。",
-                text = port,
+                text = rpcPort,
                 hint = "请输入端口号",
                 error = "端口范围应在0~65565",
                 checker = {
-                    it.isNotBlank() && kotlin.runCatching { it.toInt() in 0..65565 }.getOrDefault(false) && wsPort.value != it
+                    it.isNotBlank() && kotlin.runCatching { it.toInt() in 0..65565 }
+                        .getOrDefault(false) && rpcPort.value != it
                 },
                 confirm = {
-                    val newPort = port.value.toInt()
-                    ShamrockConfig.setHttpPort(ctx, newPort)
+                    val newPort = rpcPort.value.toInt()
+                    ShamrockConfig[ctx, RPCPort] = newPort
                     AppRuntime.log("设置主动HTTP监听端口为$newPort，立即生效尝试中。")
                 }
             )
 
+            val rpcAddress = remember { mutableStateOf(ShamrockConfig[ctx, RPCAddress]) }
             TextItem(
-                title = "主动WebSocket端口",
-                desc = "端口范围在0~65565，并确保可用。",
-                text = wsPort,
-                hint = "请输入端口号",
-                error = "端口范围应在0~65565",
-                checker = {
-                    it.isNotBlank() && kotlin.runCatching { it.toInt() in 0..65565 }.getOrDefault(false) && it != port.value
-                },
-                confirm = {
-                    val newPort = wsPort.value.toInt()
-                    ShamrockConfig.setWsPort(ctx, newPort)
-                    AppRuntime.log("设置主动WebSocket监听端口为$newPort。")
-                }
-            )
-
-            val webHookAddress = remember { mutableStateOf(ShamrockConfig.getHttpAddr(ctx)) }
-            TextItem(
-                title = "回调HTTP地址",
-                desc = "例如：http://shamrock.moe:80。",
-                text = webHookAddress,
+                title = "回调RPC地址",
+                desc = "例如：kritor.support:8081",
+                text = rpcAddress,
                 hint = "请输入回调地址",
                 error = "输入的地址不合法",
-                checker = {
-                    it.isNotBlank()
-                },
-                confirm = {
-                    if (it.startsWith("http://") || it.startsWith("https://")) {
-                        ShamrockConfig.setHttpAddr(ctx, webHookAddress.value)
-                        AppRuntime.log("设置回调HTTP地址为[${webHookAddress.value}]。")
-                    } else {
-                        Toast.makeText(ctx, "回调地址不合法", Toast.LENGTH_SHORT).show()
-                        webHookAddress.value = ""
-                    }
-                }
-            )
-
-            val wsAddress = remember { mutableStateOf(ShamrockConfig.getWsAddr(ctx)) }
-            TextItem(
-                title = "被动WebSocket地址",
-                desc = "例如：ws://shamrock.moe:81，多个使用逗号分隔。",
-                text = wsAddress,
-                hint = "请输入被动地址",
-                error = "输入的地址不合法",
-                checker = {
-                          true
-                },
-                confirm = {
-                    if (it.startsWith("ws://") || it.startsWith("wss://") || it.isBlank()) {
-                        ShamrockConfig.setWsAddr(ctx, wsAddress.value)
-                        AppRuntime.log("设置被动WebSocket地址为[${wsAddress.value}]。")
-                    } else {
-                        Toast.makeText(ctx, "被动WebSocket地址不合法", Toast.LENGTH_SHORT).show()
-                        wsAddress.value = ""
-                    }
-                }
-            )
-
-            val authToken = remember { mutableStateOf(ShamrockConfig.getToken(ctx)) }
-            TextItem(
-                title = "鉴权Token",
-                desc = "用于鉴权的Token。",
-                text = authToken,
-                hint = "请填写鉴权token",
-                error = "输入的参数不合法",
                 checker = { true },
                 confirm = {
-                    ShamrockConfig.setToken(ctx, authToken.value)
-                    AppRuntime.log("设置鉴权Token为[${authToken.value}]。")
+                    ShamrockConfig[ctx, RPCAddress] = rpcAddress.value
+                    AppRuntime.log("设置回调RPC地址为[${rpcAddress.value}]。")
                 }
             )
 
@@ -314,50 +154,32 @@ private fun FunctionCard(
             Function(
                 title = "强制平板模式",
                 desc = "强制QQ使用平板模式，实现共存登录。",
-                isSwitch = ShamrockConfig.isTablet(ctx)
+                isSwitch = ShamrockConfig[ctx, ForceTablet]
             ) {
-                ShamrockConfig.setTablet(ctx, it)
+                ShamrockConfig[ctx, ForceTablet] = it
                 return@Function true
             }
 
             Function(
-                title = "HTTP回调",
-                desc = "OneBot标准的HTTPAPI回调，Shamrock作为Client。",
-                isSwitch = ShamrockConfig.isWebhook(ctx)
+                title = "主动RPC",
+                desc = "Kritor协议实现RPC",
+                isSwitch = ShamrockConfig[ctx, ActiveRPC]
             ) {
-                ShamrockConfig.setWebhook(ctx, it)
+                ShamrockConfig[ctx, ActiveRPC] = it
                 return@Function true
             }
 
             Function(
-                title = "消息格式为CQ码",
-                desc = "HTTPAPI回调的消息格式，关闭则为消息段。",
-                isSwitch = ShamrockConfig.isUseCQCode(ctx)
+                title = "被动RPC",
+                desc = "Kritor协议实现RPC",
+                isSwitch = ShamrockConfig[ctx, PassiveRPC]
             ) {
-                ShamrockConfig.setUseCQCode(ctx, it)
-                return@Function true
-            }
-
-            Function(
-                title = "主动WebSocket",
-                desc = "OneBot标准WebSocket，Shamrock作为Server。",
-                isSwitch = ShamrockConfig.isWs(ctx)
-            ) {
-                ShamrockConfig.setWs(ctx, it)
-                return@Function true
-            }
-
-            Function(
-                title = "被动WebSocket",
-                desc = "OneBot标准WebSocket，Shamrock作为Client。",
-                isSwitch = ShamrockConfig.isWsClient(ctx)
-            ) {
-                ShamrockConfig.setWsClient(ctx, it)
+                ShamrockConfig[ctx, PassiveRPC] = it
                 return@Function true
             }
 
             run {
-                val uploadResourceGroup = remember { mutableStateOf(ShamrockConfig.getUploadResourceGroup(ctx)) }
+                val uploadResourceGroup = remember { mutableStateOf(ShamrockConfig[ctx, ResourceGroup]) }
                 Column(
                     modifier = Modifier
                         .absolutePadding(left = 8.dp, right = 8.dp, top = 12.dp, bottom = 0.dp)
@@ -380,23 +202,11 @@ private fun FunctionCard(
                     },
                     confirm = {
                         val groupId = uploadResourceGroup.value
-                        ShamrockConfig.setUploadResourceGroup(ctx, groupId)
+                        ShamrockConfig[ctx, ResourceGroup] = groupId
                         AppRuntime.log("设置接受资源群聊为[$groupId]。")
                     }
                 )
             }
-
-            /*
-            Function(
-                title = "专业级接口",
-                desc = "如果你不知道你在做什么，请不要开启本功能。",
-                descColor = Color.Red,
-                isSwitch = ShamrockConfig.isPro(ctx)
-            ) {
-                ShamrockConfig.setPro(ctx, it)
-                AppRuntime.log("专业级API = $it", Level.WARN)
-                return@Function true
-            }*/
         }
     }
 }

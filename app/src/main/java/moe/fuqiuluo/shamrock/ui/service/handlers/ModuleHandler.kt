@@ -29,6 +29,7 @@ abstract class ModuleHandler {
                     }
                 }
             }
+            putExtra("__cmd", cmd)
             putExtra("__hash", callbackId)
         }
     }

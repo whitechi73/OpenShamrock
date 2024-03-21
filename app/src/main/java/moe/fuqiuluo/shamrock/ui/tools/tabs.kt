@@ -1,23 +1,35 @@
 package moe.fuqiuluo.shamrock.ui.tools
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColor
+import androidx.compose.animation.core.FastOutLinearInEasing
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.TweenSpec
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.updateTransition
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.Indication
 import androidx.compose.foundation.background
+import androidx.compose.foundation.indication
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.material.ripple.rememberRipple
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
+import androidx.compose.material3.Text
 import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -31,8 +43,10 @@ import androidx.compose.ui.layout.LastBaseline
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.Placeable
 import androidx.compose.ui.layout.layoutId
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
@@ -135,20 +149,18 @@ private fun TabBaselineLayout(
     text: @Composable (() -> Unit)?,
     icon: @Composable (() -> Unit)?
 ) {
-    Layout(
-        {
-            if (text != null) {
-                Box(
-                    Modifier
-                        .layoutId("text")
-                        .padding(horizontal = HorizontalTextPadding)
-                ) { text() }
-            }
-            if (icon != null) {
-                Box(Modifier.layoutId("icon")) { icon() }
-            }
+    Layout({
+        if (text != null) {
+            Box(
+                Modifier
+                    .layoutId("text")
+                    .padding(horizontal = HorizontalTextPadding)
+            ) { text() }
         }
-    ) { measurables, constraints ->
+        if (icon != null) {
+            Box(Modifier.layoutId("icon")) { icon() }
+        }
+    }) { measurables, constraints ->
         val textPlaceable = text?.let {
             measurables.first { it.layoutId == "text" }.measure(
                 // Measure with loose constraints for height as we don't want the text to take up more
@@ -247,21 +259,66 @@ fun ShamrockTab(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    text: @Composable (() -> Unit)? = null,
-    icon: @Composable (() -> Unit)? = null,
     selectedContentColor: Color = GlobalColor.TabSelected,
     unselectedContentColor: Color = selectedContentColor,
     indication: Indication? = rememberRipple(bounded = true, color = selectedContentColor),
-    interactionSource: MutableInteractionSource = remember { MutableInteractionSource() }
+    interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
+    titleWithIcon: Pair<String, Int>,
+    visibleState:  MutableTransitionState<Boolean>
 ) {
-    val styledText: @Composable (() -> Unit)? = text?.let {
-        @Composable {
-            val style =
-                MaterialTheme.typography.fromToken(PrimaryNavigationTabTokens.LabelTextFont)
-                    .copy(textAlign = TextAlign.Center)
-            ProvideTextStyle(style, content = text)
+    var text: @Composable (() -> Unit)? = null
+    var icon: @Composable (() -> Unit)? = null
+
+    if (!selected) {
+        icon = {
+            Icon(
+                painter = painterResource(id = titleWithIcon.second),
+                contentDescription = titleWithIcon.first,
+                tint = Color.Unspecified,
+                modifier = Modifier
+                    .height(24.dp)
+                    .width(24.dp)
+                    .padding(bottom = 5.dp)
+                    .indication(
+                        remember { MutableInteractionSource() },
+                        rememberRipple(color = Color.Transparent)
+                    )
+            )
+        }
+    } else {
+        text = {
+            val style = MaterialTheme.typography
+                .fromToken(PrimaryNavigationTabTokens.LabelTextFont)
+                .copy(textAlign = TextAlign.Center)
+
+            ProvideTextStyle(style) {
+                AnimatedVisibility(
+                    visibleState = visibleState,
+                    enter = remember {
+                        scaleIn(animationSpec = TweenSpec(150, easing = FastOutLinearInEasing))
+                    },
+                    exit = remember {
+                        scaleOut(animationSpec = TweenSpec(150, easing = FastOutSlowInEasing))
+                    },
+                    modifier = Modifier
+                ) {
+                    Text(
+                        text = titleWithIcon.first,
+                        color = GlobalColor.TabItem,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .padding(bottom = 5.dp)
+                            .indication(
+                                remember { MutableInteractionSource() },
+                                rememberRipple(color = Color.Transparent)
+                            )
+                    )
+                }
+            }
         }
     }
+
     ShamrockTab(
         selected,
         onClick,
@@ -272,7 +329,10 @@ fun ShamrockTab(
         interactionSource,
         indication
     ) {
-        TabBaselineLayout(icon = icon, text = styledText)
+        TabBaselineLayout(
+            icon = icon,
+            text = text
+        )
     }
 }
 

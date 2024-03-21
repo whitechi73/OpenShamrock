@@ -7,10 +7,6 @@ val DEPENDENCY_ANDROIDX = arrayOf(
     "androidx.activity:activity-compose:1.7.2",
 )
 
-const val DEPENDENCY_JSON5K = "io.github.xn32:json5k:0.3.0"
-const val DEPENDENCY_PROTOBUF = "com.google.protobuf:protobuf-java:3.24.0"
-const val DEPENDENCY_JAVA_WEBSOCKET = "org.java-websocket:Java-WebSocket:1.5.4"
-
 fun room(name: String) = "androidx.room:room-$name:${Versions.roomVersion}"
 
 fun kotlinx(name: String, version: String) = "org.jetbrains.kotlinx:kotlinx-$name:$version"

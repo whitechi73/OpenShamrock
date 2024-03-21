@@ -5,9 +5,9 @@ import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.database.Cursor
-import android.net.Uri
 import moe.fuqiuluo.shamrock.ui.service.ModuleTalker
 import moe.fuqiuluo.shamrock.ui.service.handlers.*
+import android.net.Uri
 
 class MultifunctionalProvider: ContentProvider() {
     override fun insert(uri: Uri, content: ContentValues?): Uri {
@@ -28,8 +28,8 @@ class MultifunctionalProvider: ContentProvider() {
 
     override fun onCreate(): Boolean {
         ModuleTalker.register(InitHandler)
-        ModuleTalker.register(FetchPortHandler)
         ModuleTalker.register(LogHandler)
+        ModuleTalker.register(SwitchStatus)
         return true
     }
 
@@ -58,7 +58,7 @@ class MultifunctionalProvider: ContentProvider() {
 
 inline fun Context.broadcastToModule(intentBuilder: Intent.() -> Unit) {
     val intent = Intent()
-    intent.action = "moe.fuqiuluo.xqbot.dynamic"
+    intent.action = "moe.fuqiuluo.kritor.dynamic"
     intent.intentBuilder()
     sendBroadcast(intent)
 }
