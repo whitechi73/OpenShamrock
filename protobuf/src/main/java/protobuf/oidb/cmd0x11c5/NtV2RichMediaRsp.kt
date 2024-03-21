@@ -1,7 +1,7 @@
 @file:OptIn(ExperimentalSerializationApi::class)
 package protobuf.oidb.cmd0x11c5
 
-import com.google.protobuf.Internal.EMPTY_BYTE_ARRAY
+import moe.fuqiuluo.symbols.EMPTY_BYTE_ARRAY
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.protobuf.ProtoNumber
@@ -9,7 +9,7 @@ import moe.fuqiuluo.symbols.Protobuf
 
 @Serializable
 data class NtV2RichMediaRsp(
-    @ProtoNumber(1) val head: RspHead,
+    @ProtoNumber(1) val head: RspHead?,
     @ProtoNumber(2) val upload: UploadRsp?,
     @ProtoNumber(3) val download: DownloadRsp?,
     @ProtoNumber(4) val downloadRkeyRsp: DownloadRkeyRsp?,

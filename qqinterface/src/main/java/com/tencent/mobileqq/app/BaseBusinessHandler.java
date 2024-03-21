@@ -13,6 +13,10 @@ public abstract class BaseBusinessHandler extends OidbWrapper {
         return null;
     }
 
+    public void addBusinessObserver(ToServiceMsg toServiceMsg, BusinessObserver businessObserver, boolean z) {
+
+    }
+
     public final <T> T decodePacket(byte[] data, String name, T obj) {
         UniPacket uniPacket = new UniPacket(true);
         try {
@@ -22,6 +26,10 @@ public abstract class BaseBusinessHandler extends OidbWrapper {
         } catch (Exception unused) {
             return null;
         }
+    }
+
+    public boolean msgCmdFilter(String str) {
+        return false;
     }
 
     protected abstract Set<String> getCommandList();

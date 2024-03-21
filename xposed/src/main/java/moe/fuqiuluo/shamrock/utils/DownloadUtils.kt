@@ -33,7 +33,7 @@ object DownloadUtils {
         threadCount: Int = MAX_THREAD,
         headers: Map<String, String> = mapOf()
     ): Boolean {
-        var threadCnt = if(threadCount == 0) MAX_THREAD else threadCount
+        var threadCnt = if(threadCount == 0 || threadCount < 0) MAX_THREAD else threadCount
         val url = URL(urlAdr)
         val connection = withContext(Dispatchers.IO) { url.openConnection() } as HttpURLConnection
         headers.forEach { (k, v) ->

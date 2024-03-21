@@ -66,6 +66,13 @@ public abstract class AppRuntime {
         }
     }
 
+    public MobileQQ getApplication() {
+        return null;
+    }
+
+    public void startServlet(NewIntent newIntent) {
+    }
+
     public <T extends IRuntimeService> T getRuntimeService(Class<T> cls, String namespace) {
         throw new UnsupportedOperationException();
     }

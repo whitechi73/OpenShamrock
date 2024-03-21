@@ -37,7 +37,7 @@ android {
 }
 
 dependencies {
-    implementation(DEPENDENCY_PROTOBUF)
+    //implementation(DEPENDENCY_PROTOBUF)
     implementation(kotlinx("serialization-protobuf", "1.6.2"))
     implementation(kotlinx("serialization-json", "1.6.2"))
 
@@ -47,5 +47,5 @@ dependencies {
 }
 
 tasks.withType<KotlinCompile>().configureEach {
-    kotlinOptions.freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
+    kotlinOptions.freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
 }

@@ -6,9 +6,13 @@ import com.tencent.mobileqq.app.BusinessObserver;
 import com.tencent.mobileqq.app.MessageHandler;
 import com.tencent.qphone.base.remote.ToServiceMsg;
 
+import java.util.concurrent.ConcurrentHashMap;
+
 import mqq.app.AppRuntime;
 
 public abstract class AppInterface extends AppRuntime {
+    private final ConcurrentHashMap<String, BusinessHandler> allHandler = new ConcurrentHashMap<>();
+
     public String getCurrentNickname() {
         return "";
     }

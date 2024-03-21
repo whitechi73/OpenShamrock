@@ -39,3 +39,6 @@ include(
 include(":protobuf")
 include(":processor")
 include(":annotations")
+include(":kritor")
+
+project(":kritor").projectDir = file("kritor/protos")

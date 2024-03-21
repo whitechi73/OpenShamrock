@@ -1,6 +1,5 @@
 package moe.fuqiuluo.shamrock.tools
 
-import io.github.xn32.json5k.Json5
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
@@ -25,15 +24,6 @@ val GlobalJson = Json {
     encodeDefaults = false // 不编码默认值
     prettyPrint = false // 格式化输出
     coerceInputValues = true // 强制输入值
-}
-
-
-val GlobalJson5 = Json5 {
-    prettyPrint = true
-    indentationWidth = 2
-    //useSingleQuotes = true
-    //quoteMemberNames = true
-    //encodeDefaults = true
 }
 
 val String.asJson: JsonElement

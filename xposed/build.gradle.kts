@@ -5,6 +5,7 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("kotlin-kapt")
     id("com.google.devtools.ksp") version "1.9.22-1.0.17"
+    id("com.google.protobuf") version "0.9.4"
     kotlin("plugin.serialization") version "1.9.22"
 }
 
@@ -63,6 +64,8 @@ dependencies {
     compileOnly ("de.robv.android.xposed:api:82")
     compileOnly (project(":qqinterface"))
 
+    protobuf(project(":kritor"))
+
     implementation(project(":protobuf"))
     implementation(project(":annotations"))
     ksp(project(":processor"))
@@ -72,9 +75,7 @@ dependencies {
     DEPENDENCY_ANDROIDX.forEach {
         implementation(it)
     }
-    implementation(DEPENDENCY_JAVA_WEBSOCKET)
-    implementation(DEPENDENCY_PROTOBUF)
-    implementation(DEPENDENCY_JSON5K)
+    //implementation(DEPENDENCY_PROTOBUF)
 
     implementation(room("runtime"))
     kapt(room("compiler"))
@@ -83,16 +84,15 @@ dependencies {
     implementation(kotlinx("io-jvm", "0.1.16"))
     implementation(kotlinx("serialization-protobuf", "1.6.2"))
 
-    implementation(ktor("server", "core"))
-    implementation(ktor("server", "host-common"))
-    implementation(ktor("server", "status-pages"))
-    implementation(ktor("server", "netty"))
-    implementation(ktor("server", "content-negotiation"))
     implementation(ktor("client", "core"))
-    implementation(ktor("client", "content-negotiation"))
-    implementation(ktor("client", "cio"))
+    implementation(ktor("client", "okhttp"))
     implementation(ktor("serialization", "kotlinx-json"))
-    implementation(ktor("network", "tls-certificates"))
+
+    implementation("io.grpc:grpc-stub:1.62.2")
+    implementation("io.grpc:grpc-protobuf-lite:1.62.2")
+    implementation("com.google.protobuf:protobuf-kotlin-lite:3.25.3")
+    implementation("io.grpc:grpc-kotlin-stub:1.4.1")
+    implementation("io.grpc:grpc-okhttp:1.62.2")
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
@@ -101,6 +101,45 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
 }
 
-tasks.withType<KotlinCompile>().configureEach {
-    kotlinOptions.freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
+tasks.withType<KotlinCompile>().all {
+    kotlinOptions {
+        freeCompilerArgs = listOf("-opt-in=kotlin.RequiresOptIn")
+    }
+}
+
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:3.25.3"
+    }
+    plugins {
+        create("java") {
+            artifact = "io.grpc:protoc-gen-grpc-java:1.62.2"
+        }
+        create("grpc") {
+            artifact = "io.grpc:protoc-gen-grpc-java:1.62.2"
+        }
+        create("grpckt") {
+            artifact = "io.grpc:protoc-gen-grpc-kotlin:1.4.1:jdk8@jar"
+        }
+    }
+    generateProtoTasks {
+        all().forEach {
+            it.plugins {
+                create("java") {
+                    option("lite")
+                }
+                create("grpc") {
+                    option("lite")
+                }
+                create("grpckt") {
+                    option("lite")
+                }
+            }
+            it.builtins {
+                create("kotlin") {
+                    option("lite")
+                }
+            }
+        }
+    }
 }

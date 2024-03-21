@@ -18,6 +18,11 @@ public class MsgService {
     public void addMsgListener(IKernelMsgListener listener) {
     }
 
+    public void removeMsgListener(@NotNull IKernelMsgListener iKernelMsgListener) {
+
+    }
+
+
     public String getRichMediaFilePathForGuild(@NotNull RichMediaFilePathInfo richMediaFilePathInfo) {
         return null;
     }

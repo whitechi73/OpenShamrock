@@ -8,7 +8,7 @@ import com.arthenica.ffmpegkit.FFmpegKit
 import com.arthenica.ffmpegkit.FFprobeKit
 import com.arthenica.ffmpegkit.ReturnCode
 import com.tencent.qqnt.kernel.nativeinterface.QQNTWrapperUtil
-import moe.fuqiuluo.shamrock.helper.LocalCacheHelper
+import qq.service.internals.LocalCacheHelper
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import java.io.File
