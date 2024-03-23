@@ -37,7 +37,7 @@ internal object ForwardMessageService : ForwardMessageServiceGrpcKt.ForwardMessa
         }.getOrThrow()
 
         return UploadForwardMessageResponse.newBuilder().apply {
-            this.resId = forwardMessage.id
+            this.resId = forwardMessage.resId
         }.build()
     }
 

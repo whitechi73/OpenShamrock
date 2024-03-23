@@ -227,7 +227,7 @@ internal object ForwardMessageHelper : QQInterfaces() {
         val resId = rsp.sendResult?.resId ?: return Result.failure(Exception("unable to upload multi message"))
 
         return Result.success(ForwardElement.newBuilder().apply {
-            this.id = resId
+            this.resId = resId
             this.summary = summary
             this.uniseq = UUID.randomUUID().toString()
             this.description = desc.slice(0..if (i < 3) i else 3).joinToString("\n")

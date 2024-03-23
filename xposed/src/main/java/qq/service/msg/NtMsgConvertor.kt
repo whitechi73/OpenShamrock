@@ -839,7 +839,7 @@ object NtMsgConvertor {
     }
 
     private suspend fun forwardConvertor(contact: Contact, msgId: Long, sourceForward: Element): Result<MsgElement> {
-        val resId = sourceForward.forward.id
+        val resId = sourceForward.forward.resId
         val filename = sourceForward.forward.uniseq
         var summary = sourceForward.forward.summary
         val descriptions = sourceForward.forward.description

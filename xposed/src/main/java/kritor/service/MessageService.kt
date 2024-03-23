@@ -14,12 +14,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import protobuf.auto.toByteArray
-import protobuf.message.ContentHead
-import protobuf.message.Elem
-import protobuf.message.MsgBody
-import protobuf.message.PbSendMsgReq
-import protobuf.message.RichText
-import protobuf.message.RoutingHead
+import protobuf.message.*
 import protobuf.message.element.GeneralFlags
 import protobuf.message.routing.C2C
 import protobuf.message.routing.Grp
@@ -28,9 +23,7 @@ import qq.service.contact.longPeer
 import qq.service.internals.NTServiceFetcher
 import qq.service.msg.MessageHelper
 import qq.service.msg.NtMsgConvertor
-import qq.service.msg.toKritorEventMessages
 import qq.service.msg.toKritorReqMessages
-import qq.service.msg.toKritorResponseMessages
 import kotlin.coroutines.resume
 import kotlin.random.Random
 import kotlin.random.nextUInt
