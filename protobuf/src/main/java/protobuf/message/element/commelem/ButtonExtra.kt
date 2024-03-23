@@ -13,7 +13,7 @@ data class ButtonExtra(
 @Serializable
 data class Object1(
     @ProtoNumber(1) val rows: List<Row>? = null,
-    @ProtoNumber(2) val appid: Int? = null,
+    @ProtoNumber(2) val appid: ULong? = null,
 )
 
 @Serializable

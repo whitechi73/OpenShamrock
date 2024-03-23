@@ -8,8 +8,6 @@ import io.kritor.AuthRsp
 import io.kritor.AuthenticationGrpcKt
 import io.kritor.GetAuthStateReq
 import io.kritor.GetAuthStateRsp
-import io.kritor.authRsp
-import io.kritor.getAuthStateRsp
 import kritor.auth.AuthInterceptor
 import moe.fuqiuluo.shamrock.config.ActiveTicket
 import moe.fuqiuluo.shamrock.config.ShamrockConfig
@@ -19,10 +17,10 @@ internal object Authentication: AuthenticationGrpcKt.AuthenticationCoroutineImpl
     @Grpc("Authentication", "Auth")
     override suspend fun auth(request: AuthReq): AuthRsp {
         if (QQInterfaces.app.account != request.account) {
-            return authRsp {
+            return AuthRsp.newBuilder().apply {
                 code = AuthCode.NO_ACCOUNT
                 msg = "No such account"
-            }
+            }.build()
         }
 
         val activeTicketName = ActiveTicket.name()
@@ -31,26 +29,26 @@ internal object Authentication: AuthenticationGrpcKt.AuthenticationCoroutineImpl
             val ticket = ShamrockConfig.getProperty(activeTicketName + if (index == 0) "" else ".$index", null)
             if (ticket.isNullOrEmpty()) {
                 if (index == 0) {
-                    return authRsp {
+                    return AuthRsp.newBuilder().apply {
                         code = AuthCode.OK
                         msg = "OK"
-                    }
+                    }.build()
                 } else {
                     break
                 }
             } else if (ticket == request.ticket) {
-                return authRsp {
+                return AuthRsp.newBuilder().apply {
                     code = AuthCode.OK
                     msg = "OK"
-                }
+                }.build()
             }
             index++
         }
 
-        return authRsp {
+        return AuthRsp.newBuilder().apply {
             code = AuthCode.NO_TICKET
             msg = "Invalid ticket"
-        }
+        }.build()
     }
 
     @Grpc("Authentication", "GetAuthState")
@@ -59,8 +57,8 @@ internal object Authentication: AuthenticationGrpcKt.AuthenticationCoroutineImpl
             throw StatusRuntimeException(Status.CANCELLED.withDescription("No such account"))
         }
 
-        return getAuthStateRsp {
+        return GetAuthStateRsp.newBuilder().apply {
             isRequiredAuth = AuthInterceptor.getAllTicket().isNotEmpty()
-        }
+        }.build()
     }
 }

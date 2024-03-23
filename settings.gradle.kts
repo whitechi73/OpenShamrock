@@ -26,7 +26,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath("com.android.tools:r8:8.2.47")
+        classpath("com.android.tools:r8:8.3.37")
     }
 }
 
@@ -34,11 +34,9 @@ rootProject.name = "Shamrock"
 include(
     ":app",
     ":xposed",
-    ":qqinterface"
+    ":qqinterface",
+    ":protobuf",
+    ":processor",
+    ":annotations",
+    ":kritor"
 )
-include(":protobuf")
-include(":processor")
-include(":annotations")
-include(":kritor")
-
-project(":kritor").projectDir = file("kritor/protos")

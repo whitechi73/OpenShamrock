@@ -15,7 +15,6 @@ import qq.service.QQInterfaces
 import qq.service.file.GroupFileHelper
 import qq.service.file.GroupFileHelper.getGroupFileSystemInfo
 import tencent.im.oidb.cmd0x6d6.oidb_0x6d6
-import tencent.im.oidb.cmd0x6d8.oidb_0x6d8
 import tencent.im.oidb.oidb_sso
 
 internal object GroupFileService: GroupFileServiceGrpcKt.GroupFileServiceCoroutineImplBase() {
@@ -42,10 +41,10 @@ internal object GroupFileService: GroupFileServiceGrpcKt.GroupFileServiceCorouti
         if (rsp.createFolder?.retCode != 0) {
             throw StatusRuntimeException(Status.INTERNAL.withDescription("unable to create folder: ${rsp.createFolder?.retCode}"))
         }
-        return createFolderResponse {
+        return CreateFolderResponse.newBuilder().apply {
             this.id = rsp.createFolder?.folderInfo?.folderId ?: ""
             this.usedSpace = 0
-        }
+        }.build()
     }
 
     @Grpc("GroupFileService", "DeleteFolder")
@@ -66,7 +65,7 @@ internal object GroupFileService: GroupFileServiceGrpcKt.GroupFileServiceCorouti
         if (rsp.deleteFolder?.retCode != 0) {
             throw StatusRuntimeException(Status.INTERNAL.withDescription("unable to delete folder: ${rsp.deleteFolder?.retCode}"))
         }
-        return deleteFolderResponse {  }
+        return DeleteFolderResponse.newBuilder().build()
     }
 
     @Grpc("GroupFileService", "DeleteFile")
@@ -93,7 +92,7 @@ internal object GroupFileService: GroupFileServiceGrpcKt.GroupFileServiceCorouti
         if (rsp.delete_file_rsp.int32_ret_code.get() != 0) {
             throw StatusRuntimeException(Status.INTERNAL.withDescription("unable to delete file: ${rsp.delete_file_rsp.int32_ret_code.get()}"))
         }
-        return deleteFileResponse {  }
+        return DeleteFileResponse.newBuilder().build()
     }
 
     @Grpc("GroupFileService", "RenameFolder")
@@ -115,7 +114,7 @@ internal object GroupFileService: GroupFileServiceGrpcKt.GroupFileServiceCorouti
         if (rsp.renameFolder?.retCode != 0) {
             throw StatusRuntimeException(Status.INTERNAL.withDescription("unable to rename folder: ${rsp.renameFolder?.retCode}"))
         }
-        return renameFolderResponse {  }
+        return RenameFolderResponse.newBuilder().build()
     }
 
     @Grpc("GroupFileService", "GetFileSystemInfo")
@@ -125,11 +124,11 @@ internal object GroupFileService: GroupFileServiceGrpcKt.GroupFileServiceCorouti
 
     @Grpc("GroupFileService", "GetRootFiles")
     override suspend fun getRootFiles(request: GetRootFilesRequest): GetRootFilesResponse {
-        return getRootFilesResponse {
+        return GetRootFilesResponse.newBuilder().apply {
             val response = GroupFileHelper.getGroupFiles(request.groupId)
-            this.files.addAll(response.filesList)
-            this.folders.addAll(response.foldersList)
-        }
+            this.addAllFiles(response.filesList)
+            this.addAllFolders(response.foldersList)
+        }.build()
     }
 
     @Grpc("GroupFileService", "GetFiles")

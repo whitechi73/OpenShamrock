@@ -37,7 +37,6 @@ android {
 }
 
 dependencies {
-    //implementation(DEPENDENCY_PROTOBUF)
     implementation(kotlinx("serialization-protobuf", "1.6.2"))
     implementation(kotlinx("serialization-json", "1.6.2"))
 

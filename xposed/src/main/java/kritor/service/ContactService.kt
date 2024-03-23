@@ -23,31 +23,31 @@ import io.kritor.contact.StrangerInfo
 import io.kritor.contact.StrangerInfoRequest
 import io.kritor.contact.VoteUserRequest
 import io.kritor.contact.VoteUserResponse
-import io.kritor.contact.profileCard
-import io.kritor.contact.strangerInfo
-import io.kritor.contact.voteUserResponse
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
 import qq.service.QQInterfaces
 import qq.service.contact.ContactHelper
 import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
-internal object ContactService: ContactServiceGrpcKt.ContactServiceCoroutineImplBase() {
+internal object ContactService : ContactServiceGrpcKt.ContactServiceCoroutineImplBase() {
     @Grpc("ContactService", "VoteUser")
     override suspend fun voteUser(request: VoteUserRequest): VoteUserResponse {
-        ContactHelper.voteUser(when(request.accountCase!!) {
-            VoteUserRequest.AccountCase.ACCOUNT_UIN -> request.accountUin
-            VoteUserRequest.AccountCase.ACCOUNT_UID -> ContactHelper.getUinByUidAsync(request.accountUid).toLong()
-            VoteUserRequest.AccountCase.ACCOUNT_NOT_SET -> throw StatusRuntimeException(Status.INVALID_ARGUMENT
-                .withDescription("account not set")
-            )
-        }, request.voteCount).onFailure {
-            throw StatusRuntimeException(Status.INTERNAL
-                .withDescription(it.stackTraceToString())
+        ContactHelper.voteUser(
+            when (request.accountCase!!) {
+                VoteUserRequest.AccountCase.ACCOUNT_UIN -> request.accountUin
+                VoteUserRequest.AccountCase.ACCOUNT_UID -> ContactHelper.getUinByUidAsync(request.accountUid).toLong()
+                VoteUserRequest.AccountCase.ACCOUNT_NOT_SET -> throw StatusRuntimeException(
+                    Status.INVALID_ARGUMENT
+                        .withDescription("account not set")
+                )
+            }, request.voteCount
+        ).onFailure {
+            throw StatusRuntimeException(
+                Status.INTERNAL
+                    .withDescription(it.stackTraceToString())
             )
         }
-        return voteUserResponse {  }
+        return VoteUserResponse.newBuilder().build()
     }
 
     @Grpc("ContactService", "GetProfileCard")
@@ -55,21 +55,23 @@ internal object ContactService: ContactServiceGrpcKt.ContactServiceCoroutineImpl
         val uin = when (request.accountCase!!) {
             ProfileCardRequest.AccountCase.ACCOUNT_UIN -> request.accountUin
             ProfileCardRequest.AccountCase.ACCOUNT_UID -> ContactHelper.getUinByUidAsync(request.accountUid).toLong()
-            ProfileCardRequest.AccountCase.ACCOUNT_NOT_SET -> throw StatusRuntimeException(Status.INVALID_ARGUMENT
-                .withDescription("account not set")
+            ProfileCardRequest.AccountCase.ACCOUNT_NOT_SET -> throw StatusRuntimeException(
+                Status.INVALID_ARGUMENT
+                    .withDescription("account not set")
             )
         }
 
         val contact = ContactHelper.getProfileCard(uin)
 
         contact.onFailure {
-            throw StatusRuntimeException(Status.INTERNAL
-                .withDescription(it.stackTraceToString())
+            throw StatusRuntimeException(
+                Status.INTERNAL
+                    .withDescription(it.stackTraceToString())
             )
         }
 
         contact.onSuccess {
-            return profileCard {
+            return ProfileCard.newBuilder().apply {
                 this.uin = it.uin.toLong()
                 this.uid = if (request.hasAccountUid()) request.accountUid
                 else ContactHelper.getUidByUinAsync(it.uin.toLong())
@@ -81,11 +83,12 @@ internal object ContactService: ContactServiceGrpcKt.ContactServiceCoroutineImpl
                 this.voteCnt = it.lVoteCount.toInt()
                 this.qid = it.qid ?: ""
                 this.isSchoolVerified = it.schoolVerifiedFlag
-            }
+            }.build()
         }
 
-        throw StatusRuntimeException(Status.INTERNAL
-            .withDescription("logic failed")
+        throw StatusRuntimeException(
+            Status.INTERNAL
+                .withDescription("logic failed")
         )
     }
 
@@ -93,13 +96,14 @@ internal object ContactService: ContactServiceGrpcKt.ContactServiceCoroutineImpl
     override suspend fun getStrangerInfo(request: StrangerInfoRequest): StrangerInfo {
         val userId = request.uin
         val info = ContactHelper.refreshAndGetProfileCard(userId).onFailure {
-            throw StatusRuntimeException(Status.INTERNAL
-                .withCause(it)
-                .withDescription("Unable to fetch stranger info")
+            throw StatusRuntimeException(
+                Status.INTERNAL
+                    .withCause(it)
+                    .withDescription("Unable to fetch stranger info")
             )
         }.getOrThrow()
 
-        return strangerInfo {
+        return StrangerInfo.newBuilder().apply {
             this.uid = ContactHelper.getUidByUinAsync(userId)
             this.uin = (info.uin ?: "0").toLong()
             this.name = info.strNick ?: ""
@@ -108,14 +112,14 @@ internal object ContactService: ContactServiceGrpcKt.ContactServiceCoroutineImpl
             this.voteCnt = info.lVoteCount.toInt()
             this.qid = info.qid ?: ""
             this.isSchoolVerified = info.schoolVerifiedFlag
-            this.ext = StrangerExt.newBuilder()
-                .setBigVip(info.bBigClubVipOpen == 1.toByte())
-                .setHollywoodVip(info.bHollywoodVipOpen == 1.toByte())
-                .setQqVip(info.bQQVipOpen == 1.toByte())
-                .setSuperVip(info.bSuperQQOpen == 1.toByte())
-                .setVoted(info.bVoted == 1.toByte())
-                .build().toByteString()
-        }
+            this.ext = StrangerExt.newBuilder().apply {
+                this.bigVip = info.bBigClubVipOpen == 1.toByte()
+                this.hollywoodVip = info.bHollywoodVipOpen == 1.toByte()
+                this.qqVip = info.bQQVipOpen == 1.toByte()
+                this.superVip = info.bSuperQQOpen == 1.toByte()
+                this.voted = info.bVoted == 1.toByte()
+            }.build().toByteString()
+        }.build()
     }
 
     @Grpc("ContactService", "GetUid")

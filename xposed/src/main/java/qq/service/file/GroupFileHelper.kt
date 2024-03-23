@@ -10,10 +10,6 @@ import io.kritor.file.Folder
 import io.kritor.file.GetFileSystemInfoResponse
 import io.kritor.file.GetFilesRequest
 import io.kritor.file.GetFilesResponse
-import io.kritor.file.folder
-import io.kritor.file.getFileSystemInfoResponse
-import io.kritor.file.getFilesRequest
-import io.kritor.file.getFilesResponse
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.tools.EMPTY_BYTE_ARRAY
@@ -73,12 +69,12 @@ internal object GroupFileHelper: QQInterfaces() {
             throw StatusRuntimeException(Status.INTERNAL.withDescription("unable to fetch oidb response x2"))
         }
 
-        return getFileSystemInfoResponse {
+        return GetFileSystemInfoResponse.newBuilder().apply {
             this.fileCount = fileCnt
             this.totalCount = limitCnt
             this.totalSpace = totalSpace.toInt()
             this.usedSpace = usedSpace.toInt()
-        }
+        }.build()
     }
 
     suspend fun getGroupFiles(groupId: Long, folderId: String = "/"): GetFilesResponse {
@@ -108,7 +104,7 @@ internal object GroupFileHelper: QQInterfaces() {
             throw StatusRuntimeException(Status.INTERNAL.withDescription("oidb request failed"))
         }
         val files = arrayListOf<File>()
-        val dirs = arrayListOf<Folder>()
+        val folders = arrayListOf<Folder>()
         if (fromServiceMsg.wupBuffer != null) {
             val oidb = oidb_sso.OIDBSSOPkg().mergeFrom(fromServiceMsg.wupBuffer.slice(4).let {
                 if (it[0] == 0x78.toByte()) DeflateTools.uncompress(it) else it
@@ -119,7 +115,7 @@ internal object GroupFileHelper: QQInterfaces() {
                     rpt_item_list.get().forEach { file ->
                         if (file.uint32_type.get() == oidb_0x6d8.GetFileListRspBody.TYPE_FILE) {
                             val fileInfo = file.file_info
-                            files.add(io.kritor.file.file {
+                            files.add(File.newBuilder().apply {
                                 this.fileId = fileInfo.str_file_id.get()
                                 this.fileName = fileInfo.str_file_name.get()
                                 this.fileSize = fileInfo.uint64_file_size.get()
@@ -133,18 +129,18 @@ internal object GroupFileHelper: QQInterfaces() {
                                 this.sha = fileInfo.bytes_sha.get().toByteArray().toHexString()
                                 this.sha3 = fileInfo.bytes_sha3.get().toByteArray().toHexString()
                                 this.md5 = fileInfo.bytes_md5.get().toByteArray().toHexString()
-                            })
+                            }.build())
                         }
                         else if (file.uint32_type.get() == oidb_0x6d8.GetFileListRspBody.TYPE_FOLDER) {
                             val folderInfo = file.folder_info
-                            dirs.add(folder {
+                            folders.add(Folder.newBuilder().apply {
                                 this.folderId = folderInfo.str_folder_id.get()
                                 this.folderName = folderInfo.str_folder_name.get()
                                 this.totalFileCount = folderInfo.uint32_total_file_count.get()
                                 this.createTime = folderInfo.uint32_create_time.get()
                                 this.creator = folderInfo.uint64_create_uin.get()
                                 this.creatorName = folderInfo.str_creator_name.get()
-                            })
+                            }.build())
                         } else {
                             LogCenter.log("未知文件类型: ${file.uint32_type.get()}", Level.WARN)
                         }
@@ -154,9 +150,9 @@ internal object GroupFileHelper: QQInterfaces() {
             throw StatusRuntimeException(Status.INTERNAL.withDescription("unable to fetch oidb response"))
         }
 
-        return getFilesResponse {
-            this.files.addAll(files)
-            this.folders.addAll(folders)
-        }
+        return GetFilesResponse.newBuilder().apply {
+            this.addAllFiles(files)
+            this.addAllFolders(folders)
+        }.build()
     }
 }

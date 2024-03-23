@@ -1,8 +1,9 @@
 package qq.service.msg
 
 import com.tencent.mobileqq.qroute.QRoute
-import com.tencent.qqnt.kernel.nativeinterface.*
 import com.tencent.qqnt.kernel.nativeinterface.Contact
+import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
+import com.tencent.qqnt.kernel.nativeinterface.MsgElement
 import com.tencent.qqnt.msg.api.IMsgService
 import io.kritor.message.*
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -54,12 +55,12 @@ private object ReqMsgConvertor {
         val text = element.textElement
         val elem = Element.newBuilder()
         if (text.atType != MsgConstant.ATTYPEUNKNOWN) {
-            elem.setAt(atElement {
+            elem.setAt(AtElement.newBuilder().apply {
                 this.uid = text.atNtUid
                 this.uin = ContactHelper.getUinByUidAsync(text.atNtUid).toLong()
             })
         } else {
-            elem.setText(textElement {
+            elem.setText(TextElement.newBuilder().apply {
                 this.text = text.content
             })
         }
@@ -70,28 +71,32 @@ private object ReqMsgConvertor {
         val face = element.faceElement
         val elem = Element.newBuilder()
         if (face.faceType == 5) {
-            elem.setPoke(pokeElement {
+            elem.setPoke(PokeElement.newBuilder().apply {
                 this.id = face.vaspokeId
                 this.type = face.pokeType
                 this.strength = face.pokeStrength
             })
         } else {
-            when(face.faceIndex) {
-                114 -> elem.setBasketball(basketballElement {
+            when (face.faceIndex) {
+                114 -> elem.setBasketball(BasketballElement.newBuilder().apply {
                     this.id = face.resultId.ifNullOrEmpty { "0" }?.toInt() ?: 0
                 })
-                358 -> elem.setDice(diceElement {
+
+                358 -> elem.setDice(DiceElement.newBuilder().apply {
                     this.id = face.resultId.ifNullOrEmpty { "0" }?.toInt() ?: 0
                 })
-                359 -> elem.setRps(rpsElement {
+
+                359 -> elem.setRps(RpsElement.newBuilder().apply {
                     this.id = face.resultId.ifNullOrEmpty { "0" }?.toInt() ?: 0
                 })
-                394 -> elem.setFace(faceElement {
+
+                394 -> elem.setFace(FaceElement.newBuilder().apply {
                     this.id = face.faceIndex
                     this.isBig = face.faceType == 3
                     this.result = face.resultId.ifNullOrEmpty { "1" }?.toInt() ?: 1
                 })
-                else -> elem.setFace(faceElement {
+
+                else -> elem.setFace(FaceElement.newBuilder().apply {
                     this.id = face.faceIndex
                     this.isBig = face.faceType == 3
                 })
@@ -129,7 +134,7 @@ private object ReqMsgConvertor {
         LogCenter.log({ "receive image: $image" }, Level.DEBUG)
 
         val elem = Element.newBuilder()
-        elem.setImage(imageElement {
+        elem.setImage(ImageElement.newBuilder().apply {
             this.file = md5
             this.url = when (contact.chatType) {
                 MsgConstant.KCHATTYPEDISC, MsgConstant.KCHATTYPEGROUP -> RichProtoSvc.getGroupPicDownUrl(
@@ -164,12 +169,13 @@ private object ReqMsgConvertor {
                     sha = "",
                     fileSize = image.fileSize.toULong(),
                     peer = contact.longPeer().toString(),
-                    subPeer ="0"
+                    subPeer = "0"
                 )
 
                 else -> throw UnsupportedOperationException("Not supported chat type: ${contact.chatType}")
             }
-            this.type = if (image.isFlashPic == true) ImageType.FLASH else if (image.original) ImageType.ORIGIN else ImageType.COMMON
+            this.type =
+                if (image.isFlashPic == true) ImageType.FLASH else if (image.original) ImageType.ORIGIN else ImageType.COMMON
             this.subType = image.picSubType
         })
 
@@ -184,10 +190,14 @@ private object ReqMsgConvertor {
             ptt.fileName.substring(5)
         else ptt.md5HexStr
 
-        elem.setVoice(voiceElement {
+        elem.setVoice(VoiceElement.newBuilder().apply {
             this.url = when (contact.chatType) {
                 MsgConstant.KCHATTYPEC2C -> RichProtoSvc.getC2CPttDownUrl("0", ptt.fileUuid)
-                MsgConstant.KCHATTYPEGROUP, MsgConstant.KCHATTYPEGUILD -> RichProtoSvc.getGroupPttDownUrl("0", md5.hex2ByteArray(), ptt.fileUuid)
+                MsgConstant.KCHATTYPEGROUP, MsgConstant.KCHATTYPEGUILD -> RichProtoSvc.getGroupPttDownUrl(
+                    "0",
+                    md5.hex2ByteArray(),
+                    ptt.fileUuid
+                )
 
                 else -> throw UnsupportedOperationException("Not supported chat type: ${contact.chatType}")
             }
@@ -208,7 +218,7 @@ private object ReqMsgConvertor {
                 it[it.size - 2].hex2ByteArray()
             }
         } else video.fileName.split(".")[0].hex2ByteArray()
-        elem.setVideo(videoElement {
+        elem.setVideo(VideoElement.newBuilder().apply {
             this.file = md5.toHexString()
             this.url = when (contact.chatType) {
                 MsgConstant.KCHATTYPEGROUP -> RichProtoSvc.getGroupVideoDownUrl("0", md5, video.fileUuid)
@@ -232,8 +242,8 @@ private object ReqMsgConvertor {
         when (data["app"].asString) {
             "com.tencent.multimsg" -> {
                 val info = data["meta"].asJsonObject["detail"].asJsonObject
-                elem.setForward(forwardElement {
-                    this.id = info["resid"].asString
+                elem.setForward(ForwardElement.newBuilder().apply {
+                    this.resId = info["resid"].asString
                     this.uniseq = info["uniseq"].asString
                     this.summary = info["summary"].asString
                     this.description = info["news"].asJsonArray.joinToString("\n") {
@@ -244,7 +254,7 @@ private object ReqMsgConvertor {
 
             "com.tencent.troopsharecard" -> {
                 val info = data["meta"].asJsonObject["contact"].asJsonObject
-                elem.setContact(contactElement {
+                elem.setContact(ContactElement.newBuilder().apply {
                     this.scene = Scene.GROUP
                     this.peer = info["jumpUrl"].asString.split("group_code=")[1]
                 })
@@ -252,7 +262,7 @@ private object ReqMsgConvertor {
 
             "com.tencent.contact.lua" -> {
                 val info = data["meta"].asJsonObject["contact"].asJsonObject
-                elem.setContact(contactElement {
+                elem.setContact(ContactElement.newBuilder().apply {
                     this.scene = Scene.FRIEND
                     this.peer = info["jumpUrl"].asString.split("uin=")[1]
                 })
@@ -260,7 +270,7 @@ private object ReqMsgConvertor {
 
             "com.tencent.map" -> {
                 val info = data["meta"].asJsonObject["Location.Search"].asJsonObject
-                elem.setLocation(locationElement {
+                elem.setLocation(LocationElement.newBuilder().apply {
                     this.lat = info["lat"].asString.toFloat()
                     this.lon = info["lng"].asString.toFloat()
                     this.address = info["address"].asString
@@ -268,7 +278,7 @@ private object ReqMsgConvertor {
                 })
             }
 
-            else -> elem.setJson(jsonElement {
+            else -> elem.setJson(JsonElement.newBuilder().apply {
                 this.json = data.toString()
             })
         }
@@ -278,13 +288,14 @@ private object ReqMsgConvertor {
     suspend fun convertReply(contact: Contact, element: MsgElement): Result<Element> {
         val reply = element.replyElement
         val elem = Element.newBuilder()
-        elem.setReply(replyElement {
+        elem.setReply(ReplyElement.newBuilder().apply {
             val msgSeq = reply.replayMsgSeq
             val sourceRecords = withTimeoutOrNull(3000) {
                 suspendCancellableCoroutine {
-                    QRoute.api(IMsgService::class.java).getMsgsBySeqAndCount(contact, msgSeq, 1, true) { _, _, records ->
-                        it.resume(records)
-                    }
+                    QRoute.api(IMsgService::class.java)
+                        .getMsgsBySeqAndCount(contact, msgSeq, 1, true) { _, _, records ->
+                            it.resume(records)
+                        }
                 }
             }
             if (sourceRecords.isNullOrEmpty()) {
@@ -307,11 +318,17 @@ private object ReqMsgConvertor {
         val fileSubId = fileMsg.fileSubId ?: ""
         val url = when (contact.chatType) {
             MsgConstant.KCHATTYPEC2C -> RichProtoSvc.getC2CFileDownUrl(fileId, fileSubId)
-            MsgConstant.KCHATTYPEGUILD -> RichProtoSvc.getGuildFileDownUrl(contact.guildId, contact.longPeer().toString(), fileId, bizId)
+            MsgConstant.KCHATTYPEGUILD -> RichProtoSvc.getGuildFileDownUrl(
+                contact.guildId,
+                contact.longPeer().toString(),
+                fileId,
+                bizId
+            )
+
             else -> RichProtoSvc.getGroupFileDownUrl(contact.longPeer(), fileId, bizId)
         }
         val elem = Element.newBuilder()
-        elem.setFile(fileElement {
+        elem.setFile(FileElement.newBuilder().apply {
             this.name = fileName
             this.size = fileSize
             this.url = url
@@ -326,7 +343,7 @@ private object ReqMsgConvertor {
     suspend fun convertMarkdown(contact: Contact, element: MsgElement): Result<Element> {
         val markdown = element.markdownElement
         val elem = Element.newBuilder()
-        elem.setMarkdown(markdownElement {
+        elem.setMarkdown(MarkdownElement.newBuilder().apply {
             this.markdown = markdown.content
         })
         return Result.success(elem.build())
@@ -335,7 +352,7 @@ private object ReqMsgConvertor {
     suspend fun convertBubbleFace(contact: Contact, element: MsgElement): Result<Element> {
         val bubbleFace = element.faceBubbleElement
         val elem = Element.newBuilder()
-        elem.setBubbleFace(bubbleFaceElement {
+        elem.setBubbleFace(BubbleFaceElement.newBuilder().apply {
             this.id = bubbleFace.yellowFaceInfo.index
             this.count = bubbleFace.faceCount ?: 1
         })
@@ -345,38 +362,38 @@ private object ReqMsgConvertor {
     suspend fun convertInlineKeyboard(contact: Contact, element: MsgElement): Result<Element> {
         val inlineKeyboard = element.inlineKeyboardElement
         val elem = Element.newBuilder()
-        elem.setButton(buttonElement {
-            inlineKeyboard.rows.forEach { row ->
-                this.rows.add(row {
-                    row.buttons.forEach buttonsLoop@ { button ->
-                        if (button == null) return@buttonsLoop
-                        this.buttons.add(button {
+        elem.setButton(ButtonElement.newBuilder().apply {
+            this.addAllRows(inlineKeyboard.rows.map { row ->
+                ButtonRow.newBuilder().apply {
+                    this.addAllButtons(row.buttons.map { button ->
+                        Button.newBuilder().apply {
                             this.id = button.id
-                            this.action = buttonAction {
+                            this.renderData = ButtonRender.newBuilder().apply {
+                                this.label = button.label ?: ""
+                                this.visitedLabel = button.visitedLabel ?: ""
+                                this.style = button.style
+                            }.build()
+                            this.action = ButtonAction.newBuilder().apply {
                                 this.type = button.type
-                                this.permission = buttonActionPermission {
+                                this.permission = ButtonActionPermission.newBuilder().apply {
                                     this.type = button.permissionType
                                     button.specifyRoleIds?.let {
-                                        this.roleIds.addAll(it)
+                                        this.addAllRoleIds(it)
                                     }
                                     button.specifyTinyids?.let {
-                                        this.userIds.addAll(it)
+                                        this.addAllUserIds(it)
                                     }
-                                }
+                                }.build()
                                 this.unsupportedTips = button.unsupportTips ?: ""
                                 this.data = button.data ?: ""
                                 this.reply = button.isReply
                                 this.enter = button.enter
-                            }
-                            this.renderData = buttonRender {
-                                this.label = button.label ?: ""
-                                this.visitedLabel = button.visitedLabel ?: ""
-                                this.style = button.style
-                            }
-                        })
-                    }
-                })
-            }
+                            }.build()
+                        }.build()
+                    })
+                }.build()
+            })
+            this.applicationId = inlineKeyboard.botAppid
         })
         return Result.success(elem.build())
     }

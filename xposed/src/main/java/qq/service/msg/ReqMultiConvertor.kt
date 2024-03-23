@@ -443,7 +443,7 @@ suspend fun List<Element>.toRichText(contact: Contact): Result<Pair<String, Rich
                 ElementType.GIFT -> throw UnsupportedOperationException("Unsupported ElementType.GIFT")
                 ElementType.MARKET_FACE -> throw UnsupportedOperationException("Unsupported ElementType.MARKET_FACE")
                 ElementType.FORWARD -> {
-                    val resId = it.forward.id
+                    val resId = it.forward.resId
                     val filename = UUID.randomUUID().toString().uppercase()
                     var content = it.forward.summary
                     val descriptions = it.forward.description
@@ -552,7 +552,7 @@ suspend fun List<Element>.toRichText(contact: Contact): Result<Pair<String, Rich
                                             )
                                         })
                                     },
-                                    appid = 0
+                                    appid = it.button.applicationId.toULong()
                                 )
                             ).toByteArray(),
                             businessType = 1

@@ -5,10 +5,7 @@ import com.google.protobuf.ByteString
 import io.grpc.ManagedChannel
 import io.grpc.ManagedChannelBuilder
 import io.kritor.ReverseServiceGrpcKt
-import io.kritor.event.EventServiceGrpcKt
-import io.kritor.event.EventType
-import io.kritor.event.eventStructure
-import io.kritor.event.messageEvent
+import io.kritor.event.*
 import io.kritor.reverse.ReqCode
 import io.kritor.reverse.Request
 import io.kritor.reverse.Response
@@ -83,23 +80,23 @@ internal class KritorClient(
                 EventServiceGrpcKt.EventServiceCoroutineStub(channel).registerPassiveListener(channelFlow {
                     when(eventType) {
                         EventType.EVENT_TYPE_MESSAGE -> GlobalEventTransmitter.onMessageEvent {
-                            send(eventStructure {
+                            send(EventStructure.newBuilder().apply {
                                 this.type = EventType.EVENT_TYPE_MESSAGE
                                 this.message = it.second
-                            })
+                            }.build())
                         }
                         EventType.EVENT_TYPE_CORE_EVENT -> {}
                         EventType.EVENT_TYPE_NOTICE -> GlobalEventTransmitter.onNoticeEvent {
-                            send(eventStructure {
+                            send(EventStructure.newBuilder().apply {
                                 this.type = EventType.EVENT_TYPE_NOTICE
                                 this.notice = it
-                            })
+                            }.build())
                         }
                         EventType.EVENT_TYPE_REQUEST -> GlobalEventTransmitter.onRequestEvent {
-                            send(eventStructure {
+                            send(EventStructure.newBuilder().apply {
                                 this.type = EventType.EVENT_TYPE_REQUEST
                                 this.request = it
-                            })
+                            }.build())
                         }
                         EventType.UNRECOGNIZED -> {}
                     }

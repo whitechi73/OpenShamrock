@@ -5,27 +5,7 @@ import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
 import com.tencent.qqnt.kernel.nativeinterface.MsgElement
 import com.tencent.qqnt.kernel.nativeinterface.MsgRecord
 import com.tencent.qqnt.msg.api.IMsgService
-import io.kritor.event.Element
-import io.kritor.event.ImageType
-import io.kritor.event.Scene
-import io.kritor.event.atElement
-import io.kritor.event.basketballElement
-import io.kritor.event.buttonAction
-import io.kritor.event.buttonActionPermission
-import io.kritor.event.buttonRender
-import io.kritor.event.contactElement
-import io.kritor.event.diceElement
-import io.kritor.event.faceElement
-import io.kritor.event.forwardElement
-import io.kritor.event.imageElement
-import io.kritor.event.jsonElement
-import io.kritor.event.locationElement
-import io.kritor.event.pokeElement
-import io.kritor.event.replyElement
-import io.kritor.event.rpsElement
-import io.kritor.event.textElement
-import io.kritor.event.videoElement
-import io.kritor.event.voiceElement
+import io.kritor.message.*
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
 import moe.fuqiuluo.shamrock.helper.ActionMsgException
@@ -75,12 +55,12 @@ private object MsgConvertor {
         val text = element.textElement
         val elem = Element.newBuilder()
         if (text.atType != MsgConstant.ATTYPEUNKNOWN) {
-            elem.setAt(atElement {
+            elem.setAt(AtElement.newBuilder().apply {
                 this.uid = text.atNtUid
                 this.uin = ContactHelper.getUinByUidAsync(text.atNtUid).toLong()
             })
         } else {
-            elem.setText(textElement {
+            elem.setText(TextElement.newBuilder().apply {
                 this.text = text.content
             })
         }
@@ -91,28 +71,32 @@ private object MsgConvertor {
         val face = element.faceElement
         val elem = Element.newBuilder()
         if (face.faceType == 5) {
-            elem.setPoke(pokeElement {
+            elem.setPoke(PokeElement.newBuilder().apply {
                 this.id = face.vaspokeId
                 this.type = face.pokeType
                 this.strength = face.pokeStrength
             })
         } else {
-            when(face.faceIndex) {
-                114 -> elem.setBasketball(basketballElement {
+            when (face.faceIndex) {
+                114 -> elem.setBasketball(BasketballElement.newBuilder().apply {
                     this.id = face.resultId.ifNullOrEmpty { "0" }?.toInt() ?: 0
                 })
-                358 -> elem.setDice(diceElement {
+
+                358 -> elem.setDice(DiceElement.newBuilder().apply {
                     this.id = face.resultId.ifNullOrEmpty { "0" }?.toInt() ?: 0
                 })
-                359 -> elem.setRps(rpsElement {
+
+                359 -> elem.setRps(RpsElement.newBuilder().apply {
                     this.id = face.resultId.ifNullOrEmpty { "0" }?.toInt() ?: 0
                 })
-                394 -> elem.setFace(faceElement {
+
+                394 -> elem.setFace(FaceElement.newBuilder().apply {
                     this.id = face.faceIndex
                     this.isBig = face.faceType == 3
                     this.result = face.resultId.ifNullOrEmpty { "1" }?.toInt() ?: 1
                 })
-                else -> elem.setFace(faceElement {
+
+                else -> elem.setFace(FaceElement.newBuilder().apply {
                     this.id = face.faceIndex
                     this.isBig = face.faceType == 3
                 })
@@ -150,7 +134,7 @@ private object MsgConvertor {
         LogCenter.log({ "receive image: $image" }, Level.DEBUG)
 
         val elem = Element.newBuilder()
-        elem.setImage(imageElement {
+        elem.setImage(ImageElement.newBuilder().apply {
             this.file = md5
             this.url = when (record.chatType) {
                 MsgConstant.KCHATTYPEDISC, MsgConstant.KCHATTYPEGROUP -> RichProtoSvc.getGroupPicDownUrl(
@@ -190,7 +174,8 @@ private object MsgConvertor {
 
                 else -> throw UnsupportedOperationException("Not supported chat type: ${record.chatType}")
             }
-            this.type = if (image.isFlashPic == true) ImageType.FLASH else if (image.original) ImageType.ORIGIN else ImageType.COMMON
+            this.type =
+                if (image.isFlashPic == true) ImageType.FLASH else if (image.original) ImageType.ORIGIN else ImageType.COMMON
             this.subType = image.picSubType
         })
 
@@ -205,10 +190,14 @@ private object MsgConvertor {
             ptt.fileName.substring(5)
         else ptt.md5HexStr
 
-        elem.setVoice(voiceElement {
+        elem.setVoice(VoiceElement.newBuilder().apply {
             this.url = when (record.chatType) {
                 MsgConstant.KCHATTYPEC2C -> RichProtoSvc.getC2CPttDownUrl("0", ptt.fileUuid)
-                MsgConstant.KCHATTYPEGROUP, MsgConstant.KCHATTYPEGUILD -> RichProtoSvc.getGroupPttDownUrl("0", md5.hex2ByteArray(), ptt.fileUuid)
+                MsgConstant.KCHATTYPEGROUP, MsgConstant.KCHATTYPEGUILD -> RichProtoSvc.getGroupPttDownUrl(
+                    "0",
+                    md5.hex2ByteArray(),
+                    ptt.fileUuid
+                )
 
                 else -> throw UnsupportedOperationException("Not supported chat type: ${record.chatType}")
             }
@@ -229,7 +218,7 @@ private object MsgConvertor {
                 it[it.size - 2].hex2ByteArray()
             }
         } else video.fileName.split(".")[0].hex2ByteArray()
-        elem.setVideo(videoElement {
+        elem.setVideo(VideoElement.newBuilder().apply {
             this.file = md5.toHexString()
             this.url = when (record.chatType) {
                 MsgConstant.KCHATTYPEGROUP -> RichProtoSvc.getGroupVideoDownUrl("0", md5, video.fileUuid)
@@ -244,7 +233,7 @@ private object MsgConvertor {
     suspend fun convertMarketFace(record: MsgRecord, element: MsgElement): Result<Element> {
         val marketFace = element.marketFaceElement
         val elem = Element.newBuilder()
-        elem.setMarketFace(io.kritor.event.marketFaceElement {
+        elem.setMarketFace(MarketFaceElement.newBuilder().apply {
             this.id = marketFace.emojiId.lowercase()
         })
         return Result.success(elem.build())
@@ -256,8 +245,8 @@ private object MsgConvertor {
         when (data["app"].asString) {
             "com.tencent.multimsg" -> {
                 val info = data["meta"].asJsonObject["detail"].asJsonObject
-                elem.setForward(forwardElement {
-                    this.id = info["resid"].asString
+                elem.setForward(ForwardElement.newBuilder().apply {
+                    this.resId = info["resid"].asString
                     this.uniseq = info["uniseq"].asString
                     this.summary = info["summary"].asString
                     this.description = info["news"].asJsonArray.joinToString("\n") {
@@ -268,7 +257,7 @@ private object MsgConvertor {
 
             "com.tencent.troopsharecard" -> {
                 val info = data["meta"].asJsonObject["contact"].asJsonObject
-                elem.setContact(contactElement {
+                elem.setContact(ContactElement.newBuilder().apply {
                     this.scene = Scene.GROUP
                     this.peer = info["jumpUrl"].asString.split("group_code=")[1]
                 })
@@ -276,7 +265,7 @@ private object MsgConvertor {
 
             "com.tencent.contact.lua" -> {
                 val info = data["meta"].asJsonObject["contact"].asJsonObject
-                elem.setContact(contactElement {
+                elem.setContact(ContactElement.newBuilder().apply {
                     this.scene = Scene.FRIEND
                     this.peer = info["jumpUrl"].asString.split("uin=")[1]
                 })
@@ -284,7 +273,7 @@ private object MsgConvertor {
 
             "com.tencent.map" -> {
                 val info = data["meta"].asJsonObject["Location.Search"].asJsonObject
-                elem.setLocation(locationElement {
+                elem.setLocation(LocationElement.newBuilder().apply {
                     this.lat = info["lat"].asString.toFloat()
                     this.lon = info["lng"].asString.toFloat()
                     this.address = info["address"].asString
@@ -292,7 +281,7 @@ private object MsgConvertor {
                 })
             }
 
-            else -> elem.setJson(jsonElement {
+            else -> elem.setJson(JsonElement.newBuilder().apply {
                 this.json = data.toString()
             })
         }
@@ -302,14 +291,15 @@ private object MsgConvertor {
     suspend fun convertReply(record: MsgRecord, element: MsgElement): Result<Element> {
         val reply = element.replyElement
         val elem = Element.newBuilder()
-        elem.setReply(replyElement {
+        elem.setReply(ReplyElement.newBuilder().apply {
             val msgSeq = reply.replayMsgSeq
             val contact = MessageHelper.generateContact(record)
             val sourceRecords = withTimeoutOrNull(3000) {
                 suspendCancellableCoroutine {
-                    QRoute.api(IMsgService::class.java).getMsgsBySeqAndCount(contact, msgSeq, 1, true) { _, _, records ->
-                        it.resume(records)
-                    }
+                    QRoute.api(IMsgService::class.java)
+                        .getMsgsBySeqAndCount(contact, msgSeq, 1, true) { _, _, records ->
+                            it.resume(records)
+                        }
                 }
             }
             if (sourceRecords.isNullOrEmpty()) {
@@ -332,11 +322,17 @@ private object MsgConvertor {
         val fileSubId = fileMsg.fileSubId ?: ""
         val url = when (record.chatType) {
             MsgConstant.KCHATTYPEC2C -> RichProtoSvc.getC2CFileDownUrl(fileId, fileSubId)
-            MsgConstant.KCHATTYPEGUILD -> RichProtoSvc.getGuildFileDownUrl(record.guildId, record.channelId, fileId, bizId)
+            MsgConstant.KCHATTYPEGUILD -> RichProtoSvc.getGuildFileDownUrl(
+                record.guildId,
+                record.channelId,
+                fileId,
+                bizId
+            )
+
             else -> RichProtoSvc.getGroupFileDownUrl(record.peerUin, fileId, bizId)
         }
         val elem = Element.newBuilder()
-        elem.setFile(io.kritor.event.fileElement {
+        elem.setFile(FileElement.newBuilder().apply {
             this.name = fileName
             this.size = fileSize
             this.url = url
@@ -351,7 +347,7 @@ private object MsgConvertor {
     suspend fun convertMarkdown(record: MsgRecord, element: MsgElement): Result<Element> {
         val markdown = element.markdownElement
         val elem = Element.newBuilder()
-        elem.setMarkdown(io.kritor.event.markdownElement {
+        elem.setMarkdown(MarkdownElement.newBuilder().apply {
             this.markdown = markdown.content
         })
         return Result.success(elem.build())
@@ -360,7 +356,7 @@ private object MsgConvertor {
     suspend fun convertBubbleFace(record: MsgRecord, element: MsgElement): Result<Element> {
         val bubbleFace = element.faceBubbleElement
         val elem = Element.newBuilder()
-        elem.setBubbleFace(io.kritor.event.bubbleFaceElement {
+        elem.setBubbleFace(BubbleFaceElement.newBuilder().apply {
             this.id = bubbleFace.yellowFaceInfo.index
             this.count = bubbleFace.faceCount ?: 1
         })
@@ -370,34 +366,34 @@ private object MsgConvertor {
     suspend fun convertInlineKeyboard(record: MsgRecord, element: MsgElement): Result<Element> {
         val inlineKeyboard = element.inlineKeyboardElement
         val elem = Element.newBuilder()
-        elem.setButton(io.kritor.event.buttonElement {
+        elem.setButton(ButtonElement.newBuilder().apply {
             inlineKeyboard.rows.forEach { row ->
-                this.rows.add(io.kritor.event.row {
-                    row.buttons.forEach buttonsLoop@ { button ->
+                this.addRows(ButtonRow.newBuilder().apply {
+                    row.buttons.forEach buttonsLoop@{ button ->
                         if (button == null) return@buttonsLoop
-                        this.buttons.add(io.kritor.event.button {
+                        this.addButtons(Button.newBuilder().apply {
                             this.id = button.id
-                            this.action = buttonAction {
+                            this.action = ButtonAction.newBuilder().apply {
                                 this.type = button.type
-                                this.permission = buttonActionPermission {
+                                this.permission = ButtonActionPermission.newBuilder().apply {
                                     this.type = button.permissionType
                                     button.specifyRoleIds?.let {
-                                        this.roleIds.addAll(it)
+                                        this.addAllRoleIds(it)
                                     }
                                     button.specifyTinyids?.let {
-                                        this.userIds.addAll(it)
+                                        this.addAllUserIds(it)
                                     }
-                                }
+                                }.build()
                                 this.unsupportedTips = button.unsupportTips ?: ""
                                 this.data = button.data ?: ""
                                 this.reply = button.isReply
                                 this.enter = button.enter
-                            }
-                            this.renderData = buttonRender {
+                            }.build()
+                            this.renderData = ButtonRender.newBuilder().apply {
                                 this.label = button.label ?: ""
                                 this.visitedLabel = button.visitedLabel ?: ""
                                 this.style = button.style
-                            }
+                            }.build()
                         })
                     }
                 })

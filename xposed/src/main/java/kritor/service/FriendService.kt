@@ -2,12 +2,7 @@ package kritor.service
 
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
-import io.kritor.friend.FriendServiceGrpcKt
-import io.kritor.friend.GetFriendListRequest
-import io.kritor.friend.GetFriendListResponse
-import io.kritor.friend.friendData
-import io.kritor.friend.friendExt
-import io.kritor.friend.getFriendListResponse
+import io.kritor.friend.*
 import qq.service.contact.ContactHelper
 import qq.service.friend.FriendHelper
 
@@ -20,9 +15,9 @@ internal object FriendService: FriendServiceGrpcKt.FriendServiceCoroutineImplBas
             )
         }.getOrThrow()
 
-        return getFriendListResponse {
+        return GetFriendListResponse.newBuilder().apply {
             friendList.forEach {
-                this.friendList.add(friendData {
+                this.addFriendList(FriendData.newBuilder().apply {
                     uin = it.uin.toLong()
                     uid = ContactHelper.getUidByUinAsync(uin)
                     qid = ""
@@ -32,10 +27,10 @@ internal object FriendService: FriendServiceGrpcKt.FriendServiceCoroutineImplBas
                     level = 0
                     gender = it.gender.toInt()
                     groupId = it.groupid
-                    ext = friendExt {}.toByteString()
+                    ext = FriendExt.newBuilder().build().toByteString()
                 })
             }
-        }
+        }.build()
     }
 
 }
