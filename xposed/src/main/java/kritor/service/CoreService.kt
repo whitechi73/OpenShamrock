@@ -16,8 +16,8 @@ import qq.service.QQInterfaces.Companion.app
 import qq.service.contact.ContactHelper
 import java.io.File
 
-internal object KritorService : KritorServiceGrpcKt.KritorServiceCoroutineImplBase() {
-    @Grpc("KritorService", "GetVersion")
+internal object CoreService : CoreServiceGrpcKt.CoreServiceCoroutineImplBase() {
+    @Grpc("CoreService", "GetVersion")
     override suspend fun getVersion(request: GetVersionRequest): GetVersionResponse {
         return GetVersionResponse.newBuilder().apply {
             this.version = ShamrockVersion
@@ -25,7 +25,7 @@ internal object KritorService : KritorServiceGrpcKt.KritorServiceCoroutineImplBa
         }.build()
     }
 
-    @Grpc("KritorService", "ClearCache")
+    @Grpc("CoreService", "ClearCache")
     override suspend fun clearCache(request: ClearCacheRequest): ClearCacheResponse {
         FileUtils.clearCache()
         MMKVFetcher.mmkvWithId("audio2silk")
@@ -33,7 +33,7 @@ internal object KritorService : KritorServiceGrpcKt.KritorServiceCoroutineImplBa
         return ClearCacheResponse.newBuilder().build()
     }
 
-    @Grpc("KritorService", "GetCurrentAccount")
+    @Grpc("CoreService", "GetCurrentAccount")
     override suspend fun getCurrentAccount(request: GetCurrentAccountRequest): GetCurrentAccountResponse {
         return GetCurrentAccountResponse.newBuilder().apply {
             this.accountName = if (app is QQAppInterface) app.currentNickname else "unknown"
@@ -42,7 +42,7 @@ internal object KritorService : KritorServiceGrpcKt.KritorServiceCoroutineImplBa
         }.build()
     }
 
-    @Grpc("KritorService", "DownloadFile")
+    @Grpc("CoreService", "DownloadFile")
     override suspend fun downloadFile(request: DownloadFileRequest): DownloadFileResponse {
         val headerMap = mutableMapOf(
             "User-Agent" to "Shamrock"
@@ -88,7 +88,7 @@ internal object KritorService : KritorServiceGrpcKt.KritorServiceCoroutineImplBa
         }.build()
     }
 
-    @Grpc("KritorService", "SwitchAccount")
+    @Grpc("CoreService", "SwitchAccount")
     override suspend fun switchAccount(request: SwitchAccountRequest): SwitchAccountResponse {
         val uin = when (request.accountCase!!) {
             SwitchAccountRequest.AccountCase.ACCOUNT_UID -> ContactHelper.getUinByUidAsync(request.accountUid)
@@ -109,7 +109,7 @@ internal object KritorService : KritorServiceGrpcKt.KritorServiceCoroutineImplBa
         return SwitchAccountResponse.newBuilder().build()
     }
 
-    @Grpc("KritorService", "GetDeviceBattery")
+    @Grpc("CoreService", "GetDeviceBattery")
     override suspend fun getDeviceBattery(request: GetDeviceBatteryRequest): GetDeviceBatteryResponse {
         return GetDeviceBatteryResponse.newBuilder().apply {
             PlatformUtils.getDeviceBattery().let {

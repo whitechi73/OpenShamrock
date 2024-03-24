@@ -20,15 +20,15 @@ class KritorServer(
         .intercept(AuthInterceptor)
         .addService(Authentication)
         .addService(ContactService)
-        .addService(KritorService)
+        .addService(CoreService)
         .addService(FriendService)
         .addService(GroupService)
         .addService(GroupFileService)
         .addService(MessageService)
         .addService(EventService)
-        .addService(ForwardMessageService)
         .addService(WebService)
         .addService(DeveloperService)
+        .addService(QsignService)
         .build()!!
 
     fun start(block: Boolean = false) {

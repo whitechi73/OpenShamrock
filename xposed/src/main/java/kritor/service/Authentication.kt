@@ -5,7 +5,7 @@ import io.grpc.StatusRuntimeException
 import io.kritor.AuthCode
 import io.kritor.AuthReq
 import io.kritor.AuthRsp
-import io.kritor.AuthenticationGrpcKt
+import io.kritor.AuthenticationServiceGrpcKt
 import io.kritor.GetAuthStateReq
 import io.kritor.GetAuthStateRsp
 import kritor.auth.AuthInterceptor
@@ -13,7 +13,7 @@ import moe.fuqiuluo.shamrock.config.ActiveTicket
 import moe.fuqiuluo.shamrock.config.ShamrockConfig
 import qq.service.QQInterfaces
 
-internal object Authentication: AuthenticationGrpcKt.AuthenticationCoroutineImplBase() {
+internal object Authentication: AuthenticationServiceGrpcKt.AuthenticationServiceCoroutineImplBase() {
     @Grpc("Authentication", "Auth")
     override suspend fun auth(request: AuthReq): AuthRsp {
         if (QQInterfaces.app.account != request.account) {

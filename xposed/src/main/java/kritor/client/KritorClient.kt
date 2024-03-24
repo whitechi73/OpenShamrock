@@ -6,9 +6,9 @@ import io.grpc.ManagedChannel
 import io.grpc.ManagedChannelBuilder
 import io.kritor.ReverseServiceGrpcKt
 import io.kritor.event.*
-import io.kritor.reverse.ReqCode
-import io.kritor.reverse.Request
-import io.kritor.reverse.Response
+import io.kritor.ReqCode
+import io.kritor.Request
+import io.kritor.Response
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
