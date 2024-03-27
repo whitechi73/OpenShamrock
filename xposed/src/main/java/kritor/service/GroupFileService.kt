@@ -17,7 +17,7 @@ import qq.service.file.GroupFileHelper.getGroupFileSystemInfo
 import tencent.im.oidb.cmd0x6d6.oidb_0x6d6
 import tencent.im.oidb.oidb_sso
 
-internal object GroupFileService: GroupFileServiceGrpcKt.GroupFileServiceCoroutineImplBase() {
+internal object GroupFileService : GroupFileServiceGrpcKt.GroupFileServiceCoroutineImplBase() {
     @Grpc("GroupFileService", "CreateFolder")
     override suspend fun createFolder(request: CreateFolderRequest): CreateFolderResponse {
         val data = Oidb0x6d7ReqBody(
@@ -49,13 +49,15 @@ internal object GroupFileService: GroupFileServiceGrpcKt.GroupFileServiceCorouti
 
     @Grpc("GroupFileService", "DeleteFolder")
     override suspend fun deleteFolder(request: DeleteFolderRequest): DeleteFolderResponse {
-        val fromServiceMsg = QQInterfaces.sendOidbAW("OidbSvc.0x6d7_1", 1751, 1, Oidb0x6d7ReqBody(
-            deleteFolder = DeleteFolderReq(
-                groupCode = request.groupId.toULong(),
-                appId = 3u,
-                folderId = request.folderId
-            )
-        ).toByteArray()) ?: throw StatusRuntimeException(Status.INTERNAL.withDescription("unable to send oidb request"))
+        val fromServiceMsg = QQInterfaces.sendOidbAW(
+            "OidbSvc.0x6d7_1", 1751, 1, Oidb0x6d7ReqBody(
+                deleteFolder = DeleteFolderReq(
+                    groupCode = request.groupId.toULong(),
+                    appId = 3u,
+                    folderId = request.folderId
+                )
+            ).toByteArray()
+        ) ?: throw StatusRuntimeException(Status.INTERNAL.withDescription("unable to send oidb request"))
         if (fromServiceMsg.wupBuffer == null) {
             throw StatusRuntimeException(Status.INTERNAL.withDescription("oidb request failed"))
         }
@@ -97,14 +99,16 @@ internal object GroupFileService: GroupFileServiceGrpcKt.GroupFileServiceCorouti
 
     @Grpc("GroupFileService", "RenameFolder")
     override suspend fun renameFolder(request: RenameFolderRequest): RenameFolderResponse {
-        val fromServiceMsg = QQInterfaces.sendOidbAW("OidbSvc.0x6d7_3", 1751, 3, Oidb0x6d7ReqBody(
-            renameFolder = RenameFolderReq(
-                groupCode = request.groupId.toULong(),
-                appId = 3u,
-                folderId = request.folderId,
-                folderName = request.name
-            )
-        ).toByteArray()) ?: throw StatusRuntimeException(Status.INTERNAL.withDescription("unable to send oidb request"))
+        val fromServiceMsg = QQInterfaces.sendOidbAW(
+            "OidbSvc.0x6d7_3", 1751, 3, Oidb0x6d7ReqBody(
+                renameFolder = RenameFolderReq(
+                    groupCode = request.groupId.toULong(),
+                    appId = 3u,
+                    folderId = request.folderId,
+                    folderName = request.name
+                )
+            ).toByteArray()
+        ) ?: throw StatusRuntimeException(Status.INTERNAL.withDescription("unable to send oidb request"))
         if (fromServiceMsg.wupBuffer == null) {
             throw StatusRuntimeException(Status.INTERNAL.withDescription("oidb request failed"))
         }
@@ -122,17 +126,11 @@ internal object GroupFileService: GroupFileServiceGrpcKt.GroupFileServiceCorouti
         return getGroupFileSystemInfo(request.groupId)
     }
 
-    @Grpc("GroupFileService", "GetRootFiles")
-    override suspend fun getRootFiles(request: GetRootFilesRequest): GetRootFilesResponse {
-        return GetRootFilesResponse.newBuilder().apply {
-            val response = GroupFileHelper.getGroupFiles(request.groupId)
-            this.addAllFiles(response.filesList)
-            this.addAllFolders(response.foldersList)
-        }.build()
-    }
-
-    @Grpc("GroupFileService", "GetFiles")
-    override suspend fun getFiles(request: GetFilesRequest): GetFilesResponse {
-        return GroupFileHelper.getGroupFiles(request.groupId, request.folderId)
+    @Grpc("GroupFileService", "GetFileList")
+    override suspend fun getFileList(request: GetFileListRequest): GetFileListResponse {
+        return if (request.hasFolderId())
+            GroupFileHelper.getGroupFiles(request.groupId, request.folderId)
+        else
+            GroupFileHelper.getGroupFiles(request.groupId)
     }
 }

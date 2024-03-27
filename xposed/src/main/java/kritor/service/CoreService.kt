@@ -9,8 +9,6 @@ import moe.fuqiuluo.shamrock.tools.ShamrockVersion
 import moe.fuqiuluo.shamrock.utils.DownloadUtils
 import moe.fuqiuluo.shamrock.utils.FileUtils
 import moe.fuqiuluo.shamrock.utils.MD5
-import moe.fuqiuluo.shamrock.utils.MMKVFetcher
-import moe.fuqiuluo.shamrock.utils.PlatformUtils
 import mqq.app.MobileQQ
 import qq.service.QQInterfaces.Companion.app
 import qq.service.contact.ContactHelper
@@ -23,14 +21,6 @@ internal object CoreService : CoreServiceGrpcKt.CoreServiceCoroutineImplBase() {
             this.version = ShamrockVersion
             this.appName = "Shamrock"
         }.build()
-    }
-
-    @Grpc("CoreService", "ClearCache")
-    override suspend fun clearCache(request: ClearCacheRequest): ClearCacheResponse {
-        FileUtils.clearCache()
-        MMKVFetcher.mmkvWithId("audio2silk")
-            .clear()
-        return ClearCacheResponse.newBuilder().build()
     }
 
     @Grpc("CoreService", "GetCurrentAccount")
@@ -107,16 +97,5 @@ internal object CoreService : CoreServiceGrpcKt.CoreServiceCoroutineImplBase() {
             throw StatusRuntimeException(Status.INTERNAL.withCause(it).withDescription("failed to switch account"))
         }
         return SwitchAccountResponse.newBuilder().build()
-    }
-
-    @Grpc("CoreService", "GetDeviceBattery")
-    override suspend fun getDeviceBattery(request: GetDeviceBatteryRequest): GetDeviceBatteryResponse {
-        return GetDeviceBatteryResponse.newBuilder().apply {
-            PlatformUtils.getDeviceBattery().let {
-                this.battery = it.battery
-                this.scale = it.scale
-                this.status = it.status
-            }
-        }.build()
     }
 }

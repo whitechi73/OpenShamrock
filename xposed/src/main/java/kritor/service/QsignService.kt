@@ -11,9 +11,9 @@ internal object QsignService: QsignServiceGrpcKt.QsignServiceCoroutineImplBase()
     override suspend fun sign(request: SignRequest): SignResponse {
         return SignResponse.newBuilder().apply {
             val result = FEKit.getInstance().getSign(request.command, request.buffer.toByteArray(), request.seq, request.uin)
-            this.sign = ByteString.copyFrom(result.sign)
-            this.token = ByteString.copyFrom(result.token)
-            this.extra = ByteString.copyFrom(result.extra)
+            this.secSig = ByteString.copyFrom(result.sign)
+            this.secDeviceToken = ByteString.copyFrom(result.token)
+            this.secExtra = ByteString.copyFrom(result.extra)
         }.build()
     }
 

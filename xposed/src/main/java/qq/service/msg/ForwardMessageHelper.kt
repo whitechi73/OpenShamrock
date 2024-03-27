@@ -1,14 +1,15 @@
 package qq.service.msg
 
 import com.tencent.mobileqq.qroute.QRoute
+import com.tencent.qqnt.kernel.nativeinterface.Contact
 import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
 import com.tencent.qqnt.kernel.nativeinterface.MsgRecord
 import com.tencent.qqnt.msg.api.IMsgService
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
-import io.kritor.message.ForwardElement
-import io.kritor.message.ForwardMessageBody
-import io.kritor.message.Scene
+import io.kritor.common.ForwardElement
+import io.kritor.common.ForwardMessageBody
+import io.kritor.common.Scene
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
 import moe.fuqiuluo.shamrock.helper.Level
@@ -30,9 +31,7 @@ import kotlin.time.Duration.Companion.seconds
 
 internal object ForwardMessageHelper : QQInterfaces() {
     suspend fun uploadMultiMsg(
-        chatType: Int,
-        peerId: String,
-        fromId: String = peerId,
+        contact: Contact,
         messages: List<ForwardMessageBody>,
     ): Result<ForwardElement> {
         var i = -1
@@ -41,127 +40,121 @@ internal object ForwardMessageHelper : QQInterfaces() {
 
         val msgs = messages.mapNotNull { msg ->
             kotlin.runCatching {
-                val contact = msg.contact.let {
-                    MessageHelper.generateContact(
-                        when (it.scene!!) {
-                            Scene.GROUP -> MsgConstant.KCHATTYPEGROUP
-                            Scene.FRIEND -> MsgConstant.KCHATTYPEC2C
-                            Scene.GUILD -> MsgConstant.KCHATTYPEGUILD
-                            Scene.STRANGER_FROM_GROUP -> MsgConstant.KCHATTYPETEMPC2CFROMGROUP
-                            Scene.NEARBY -> MsgConstant.KCHATTYPETEMPC2CFROMUNKNOWN
-                            Scene.STRANGER -> MsgConstant.KCHATTYPETEMPC2CFROMUNKNOWN
-                            Scene.UNRECOGNIZED -> throw StatusRuntimeException(Status.INVALID_ARGUMENT.withDescription("Unrecognized scene"))
-                        }, it.peer, it.subPeer
-                    )
-                }
-                if (msg.hasMessageId()) {
-                    val record: MsgRecord = withTimeoutOrNull(5000) {
-                        val service = QRoute.api(IMsgService::class.java)
-                        suspendCancellableCoroutine { continuation ->
-                            service.getMsgsByMsgId(
-                                contact,
-                                arrayListOf(msg.messageId.toLong())
-                            ) { code, _, msgRecords ->
-                                if (code == 0 && msgRecords.isNotEmpty()) {
-                                    continuation.resume(msgRecords.first())
-                                } else {
+                when (msg.forwardMessageCase) {
+                    ForwardMessageBody.ForwardMessageCase.MESSAGE_ID -> {
+                        val record: MsgRecord = withTimeoutOrNull(5000) {
+                            val service = QRoute.api(IMsgService::class.java)
+                            suspendCancellableCoroutine { continuation ->
+                                service.getMsgsByMsgId(
+                                    contact,
+                                    arrayListOf(msg.messageId.toLong())
+                                ) { code, _, msgRecords ->
+                                    if (code == 0 && msgRecords.isNotEmpty()) {
+                                        continuation.resume(msgRecords.first())
+                                    } else {
+                                        continuation.resume(null)
+                                    }
+                                }
+                                continuation.invokeOnCancellation {
                                     continuation.resume(null)
                                 }
                             }
-                            continuation.invokeOnCancellation {
-                                continuation.resume(null)
-                            }
-                        }
-                    } ?: error("合并转发消息节点消息(id = ${msg.messageId})获取失败")
-                    PushMsgBody(
-                        msgHead = ResponseHead(
-                            peerUid = record.senderUid,
-                            receiverUid = record.peerUid,
-                            forward = ResponseForward(
-                                friendName = record.sendNickName
+                        } ?: error("合并转发消息节点消息(id = ${msg.messageId})获取失败")
+                        PushMsgBody(
+                            msgHead = ResponseHead(
+                                peerUid = record.senderUid,
+                                receiverUid = record.peerUid,
+                                forward = ResponseForward(
+                                    friendName = record.sendNickName
+                                ),
+                                responseGrp = if (record.chatType == MsgConstant.KCHATTYPEGROUP) ResponseGrp(
+                                    groupCode = record.peerUin.toULong(),
+                                    memberCard = record.sendMemberName,
+                                    u1 = 2
+                                ) else null
                             ),
-                            responseGrp = if (record.chatType == MsgConstant.KCHATTYPEGROUP) ResponseGrp(
-                                groupCode = record.peerUin.toULong(),
-                                memberCard = record.sendMemberName,
-                                u1 = 2
-                            ) else null
-                        ),
-                        contentHead = ContentHead(
-                            msgType = when (record.chatType) {
-                                MsgConstant.KCHATTYPEC2C -> 9
-                                MsgConstant.KCHATTYPEGROUP -> 82
-                                else -> throw UnsupportedOperationException("Unsupported chatType: $chatType")
-                            },
-                            msgSubType = if (record.chatType == MsgConstant.KCHATTYPEC2C) 175 else null,
-                            divSeq = if (record.chatType == MsgConstant.KCHATTYPEC2C) 175 else null,
-                            msgViaRandom = record.msgId,
-                            sequence = record.msgSeq, // idk what this is(i++)
-                            msgTime = record.msgTime,
-                            u2 = 1,
-                            u6 = 0,
-                            u7 = 0,
-                            msgSeq = if (record.chatType == MsgConstant.KCHATTYPEC2C) record.msgSeq else null, // seq for dm
-                            forwardHead = ForwardHead(
-                                u1 = 0,
-                                u2 = 0,
-                                u3 = 0,
-                                ub641 = "",
-                                avatar = ""
+                            contentHead = ContentHead(
+                                msgType = when (record.chatType) {
+                                    MsgConstant.KCHATTYPEC2C -> 9
+                                    MsgConstant.KCHATTYPEGROUP -> 82
+                                    else -> throw UnsupportedOperationException("Unsupported chatType: ${contact.chatType}")
+                                },
+                                msgSubType = if (record.chatType == MsgConstant.KCHATTYPEC2C) 175 else null,
+                                divSeq = if (record.chatType == MsgConstant.KCHATTYPEC2C) 175 else null,
+                                msgViaRandom = record.msgId,
+                                sequence = record.msgSeq, // idk what this is(i++)
+                                msgTime = record.msgTime,
+                                u2 = 1,
+                                u6 = 0,
+                                u7 = 0,
+                                msgSeq = if (record.chatType == MsgConstant.KCHATTYPEC2C) record.msgSeq else null, // seq for dm
+                                forwardHead = ForwardHead(
+                                    u1 = 0,
+                                    u2 = 0,
+                                    u3 = 0,
+                                    ub641 = "",
+                                    avatar = ""
+                                )
+                            ),
+                            body = MsgBody(
+                                richText = record.elements.toKritorReqMessages(contact).toRichText(contact).onFailure {
+                                    error("消息合成失败: ${it.stackTraceToString()}")
+                                }.onSuccess {
+                                    desc[++i] = record.sendMemberName.ifEmpty { record.sendNickName } + ": " + it.first
+                                }.getOrThrow().second
                             )
-                        ),
-                        body = MsgBody(
-                            richText = record.elements.toKritorReqMessages(contact).toRichText(contact).onFailure {
-                                error("消息合成失败: ${it.stackTraceToString()}")
-                            }.onSuccess {
-                                desc[++i] = record.sendMemberName.ifEmpty { record.sendNickName } + ": " + it.first
-                            }.getOrThrow().second
                         )
-                    )
-                } else {
-                    PushMsgBody(
-                        msgHead = if (msg.hasSender()) ResponseHead(
-                            peer = if (msg.sender.hasUin()) msg.sender.uin else TicketHelper.getUin().toLong(),
-                            peerUid = msg.sender.uid,
-                            receiverUid = TicketHelper.getUid(),
-                            forward = ResponseForward(
-                                friendName = if (msg.sender.hasNick()) msg.sender.nick else TicketHelper.getNickname()
+                    }
+
+                    ForwardMessageBody.ForwardMessageCase.MESSAGE -> {
+                        val _msg = msg.message
+                        PushMsgBody(
+                            msgHead = if (_msg.hasSender()) ResponseHead(
+                                peer = if (_msg.sender.hasUin()) _msg.sender.uin else TicketHelper.getUin().toLong(),
+                                peerUid = _msg.sender.uid,
+                                receiverUid = TicketHelper.getUid(),
+                                forward = ResponseForward(
+                                    friendName = if (_msg.sender.hasNick()) _msg.sender.nick else TicketHelper.getNickname()
+                                )
+                            ) else ResponseHead(
+                                peer = TicketHelper.getUin().toLong(),
+                                peerUid = TicketHelper.getUid(),
+                                receiverUid = TicketHelper.getUid(),
+                                forward = ResponseForward(
+                                    friendName = TicketHelper.getNickname()
+                                )
+                            ),
+                            contentHead = ContentHead(
+                                msgType = 9,
+                                msgSubType = 175,
+                                divSeq = 175,
+                                msgViaRandom = Random.nextLong(),
+                                sequence = _msg.messageSeq,
+                                msgTime = _msg.time.toLong(),
+                                u2 = 1,
+                                u6 = 0,
+                                u7 = 0,
+                                msgSeq = _msg.messageSeq,
+                                forwardHead = ForwardHead(
+                                    u1 = 0,
+                                    u2 = 0,
+                                    u3 = 2,
+                                    ub641 = "",
+                                    avatar = ""
+                                )
+                            ),
+                            body = MsgBody(
+                                richText = _msg.elementsList.toRichText(contact).onSuccess {
+                                    desc[++i] =
+                                        (if (_msg.hasSender() && _msg.sender.hasNick()) _msg.sender.nick else TicketHelper.getNickname()) + ": " + it.first
+                                }.onFailure {
+                                    error("消息合成失败: ${it.stackTraceToString()}")
+                                }.getOrThrow().second
                             )
-                        ) else ResponseHead(
-                            peer = TicketHelper.getUin().toLong(),
-                            peerUid = TicketHelper.getUid(),
-                            receiverUid = TicketHelper.getUid(),
-                            forward = ResponseForward(
-                                friendName = TicketHelper.getNickname()
-                            )
-                        ),
-                        contentHead = ContentHead(
-                            msgType = 9,
-                            msgSubType = 175,
-                            divSeq = 175,
-                            msgViaRandom = Random.nextLong(),
-                            sequence = msg.messageSeq.toLong(),
-                            msgTime = msg.messageTime.toLong(),
-                            u2 = 1,
-                            u6 = 0,
-                            u7 = 0,
-                            msgSeq = msg.messageSeq.toLong(),
-                            forwardHead = ForwardHead(
-                                u1 = 0,
-                                u2 = 0,
-                                u3 = 2,
-                                ub641 = "",
-                                avatar = ""
-                            )
-                        ),
-                        body = MsgBody(
-                            richText = msg.elementsList.toRichText(contact).onSuccess {
-                                desc[++i] =
-                                    (if (msg.hasSender() && msg.sender.hasNick()) msg.sender.nick else TicketHelper.getNickname()) + ": " + it.first
-                            }.onFailure {
-                                error("消息合成失败: ${it.stackTraceToString()}")
-                            }.getOrThrow().second
                         )
-                    )
+                    }
+
+                    else -> null
                 }
             }.onFailure {
                 LogCenter.log("消息节点解析失败：${it.stackTraceToString()}", Level.WARN)
@@ -192,21 +185,21 @@ internal object ForwardMessageHelper : QQInterfaces() {
         )
 
         val req = LongMsgReq(
-            sendInfo = when (chatType) {
+            sendInfo = when (contact.chatType) {
                 MsgConstant.KCHATTYPEC2C -> SendLongMsgInfo(
                     type = 1,
-                    uid = LongMsgUid(if (peerId.startsWith("u_")) peerId else ContactHelper.getUidByUinAsync(peerId.toLong())),
+                    uid = LongMsgUid(contact.peerUid),
                     payload = DeflateTools.gzip(payload.toByteArray())
                 )
 
                 MsgConstant.KCHATTYPEGROUP -> SendLongMsgInfo(
                     type = 3,
-                    uid = LongMsgUid(fromId),
-                    groupUin = fromId.toULong(),
+                    uid = LongMsgUid(contact.peerUid),
+                    groupUin = contact.peerUid.toULong(),
                     payload = DeflateTools.gzip(payload.toByteArray())
                 )
 
-                else -> throw UnsupportedOperationException("Unsupported chatType: $chatType")
+                else -> throw UnsupportedOperationException("Unsupported chatType: ${contact.chatType}")
             },
             setting = LongMsgSettings(
                 field1 = 4,

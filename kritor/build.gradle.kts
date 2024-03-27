@@ -37,17 +37,18 @@ android {
 dependencies {
     protobuf(files("kritor/protos"))
 
+    implementation("com.google.protobuf:protobuf-java:4.26.0")
+
     implementation(kotlinx("coroutines-core", "1.8.0"))
-    implementation("com.google.protobuf:protobuf-java:3.25.3")
 
     implementation(grpc("stub", "1.62.2"))
-    implementation(grpc("kotlin-stub", "1.4.1"))
     implementation(grpc("protobuf", "1.62.2"))
+    implementation(grpc("kotlin-stub", "1.4.1"))
 }
 
 protobuf {
     protoc {
-        artifact = "com.google.protobuf:protoc:3.25.3"
+        artifact = "com.google.protobuf:protoc:4.26.0"
     }
     plugins {
         create("grpc") {

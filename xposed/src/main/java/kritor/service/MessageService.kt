@@ -7,9 +7,8 @@ import com.tencent.qqnt.kernel.nativeinterface.MsgRecord
 import com.tencent.qqnt.msg.api.IMsgService
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
-import io.kritor.event.MessageEvent
+import io.kritor.common.*
 import io.kritor.message.*
-import io.kritor.message.EssenceMessage
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
 import moe.fuqiuluo.shamrock.helper.Level
@@ -55,7 +54,7 @@ internal object MessageService : MessageServiceGrpcKt.MessageServiceCoroutineImp
                 uniseq
             ).onFailure {
                 throw StatusRuntimeException(Status.INTERNAL.withCause(it))
-            }.getOrThrow()
+            }.getOrThrow().toString()
         }.build()
     }
 
@@ -89,8 +88,8 @@ internal object MessageService : MessageServiceGrpcKt.MessageServiceCoroutineImp
         return SendMessageByResIdResponse.newBuilder().build()
     }
 
-    @Grpc("MessageService", "ClearMessages")
-    override suspend fun clearMessages(request: ClearMessagesRequest): ClearMessagesResponse {
+    @Grpc("MessageService", "SetMessageReaded")
+    override suspend fun setMessageReaded(request: SetMessageReadRequest): SetMessageReadResponse {
         val contact = request.contact
         val kernelService = NTServiceFetcher.kernelService
         val sessionService = kernelService.wrapperSession
@@ -105,7 +104,7 @@ internal object MessageService : MessageServiceGrpcKt.MessageServiceCoroutineImp
             Scene.UNRECOGNIZED -> throw StatusRuntimeException(Status.INVALID_ARGUMENT.withDescription("Unrecognized scene"))
         }
         service.clearMsgRecords(Contact(chatType, contact.peer, contact.subPeer), null)
-        return ClearMessagesResponse.newBuilder().build()
+        return SetMessageReadResponse.newBuilder().build()
     }
 
     @Grpc("MessageService", "RecallMessage")
@@ -126,7 +125,7 @@ internal object MessageService : MessageServiceGrpcKt.MessageServiceCoroutineImp
         val kernelService = NTServiceFetcher.kernelService
         val sessionService = kernelService.wrapperSession
         val service = sessionService.msgService
-        service.recallMsg(contact, arrayListOf(request.messageId)) { code, msg ->
+        service.recallMsg(contact, arrayListOf(request.messageId.toLong())) { code, msg ->
             if (code != 0) {
                 LogCenter.log("消息撤回失败: $code:$msg", Level.WARN)
             }
@@ -153,7 +152,7 @@ internal object MessageService : MessageServiceGrpcKt.MessageServiceCoroutineImp
         val msg: MsgRecord = withTimeoutOrNull(5000) {
             val service = QRoute.api(IMsgService::class.java)
             suspendCancellableCoroutine { continuation ->
-                service.getMsgsByMsgId(contact, arrayListOf(request.messageId)) { code, _, msgRecords ->
+                service.getMsgsByMsgId(contact, arrayListOf(request.messageId.toLong())) { code, _, msgRecords ->
                     if (code == 0 && msgRecords.isNotEmpty()) {
                         continuation.resume(msgRecords.first())
                     } else {
@@ -167,13 +166,13 @@ internal object MessageService : MessageServiceGrpcKt.MessageServiceCoroutineImp
         } ?: throw StatusRuntimeException(Status.NOT_FOUND.withDescription("Message not found"))
 
         return GetMessageResponse.newBuilder().apply {
-            this.message = MessageEvent.newBuilder().apply {
-                this.messageId = msg.msgId
+            this.message = PushMessageBody.newBuilder().apply {
+                this.messageId = msg.msgId.toString()
                 this.contact = request.contact
                 this.sender = Sender.newBuilder().apply {
+                    this.uid = msg.senderUid ?: ""
                     this.uin = msg.senderUin
                     this.nick = msg.sendNickName ?: ""
-                    this.uid = msg.senderUid ?: ""
                 }.build()
                 this.messageSeq = msg.msgSeq
                 this.addAllElements(msg.elements.toKritorReqMessages(contact))
@@ -213,8 +212,8 @@ internal object MessageService : MessageServiceGrpcKt.MessageServiceCoroutineImp
         } ?: throw StatusRuntimeException(Status.NOT_FOUND.withDescription("Message not found"))
 
         return GetMessageBySeqResponse.newBuilder().apply {
-            this.message = MessageEvent.newBuilder().apply {
-                this.messageId = msg.msgId
+            this.message = PushMessageBody.newBuilder().apply {
+                this.messageId = msg.msgId.toString()
                 this.contact = request.contact
                 this.sender = Sender.newBuilder().apply {
                     this.uin = msg.senderUin
@@ -245,7 +244,7 @@ internal object MessageService : MessageServiceGrpcKt.MessageServiceCoroutineImp
         val msgs: List<MsgRecord> = withTimeoutOrNull(5000) {
             val service = QRoute.api(IMsgService::class.java)
             suspendCancellableCoroutine { continuation ->
-                service.getMsgs(contact, request.startMessageId, request.count, true) { code, _, msgRecords ->
+                service.getMsgs(contact, request.startMessageId.toLong(), request.count, true) { code, _, msgRecords ->
                     if (code == 0 && msgRecords.isNotEmpty()) {
                         continuation.resume(msgRecords)
                     } else {
@@ -260,8 +259,8 @@ internal object MessageService : MessageServiceGrpcKt.MessageServiceCoroutineImp
 
         return GetHistoryMessageResponse.newBuilder().apply {
             msgs.forEach {
-                addMessages(MessageEvent.newBuilder().apply {
-                    this.messageId = it.msgId
+                addMessages(PushMessageBody.newBuilder().apply {
+                    this.messageId = it.msgId.toString()
                     this.contact = request.contact
                     this.sender = Sender.newBuilder().apply {
                         this.uin = it.senderUin
@@ -292,9 +291,7 @@ internal object MessageService : MessageServiceGrpcKt.MessageServiceCoroutineImp
         }
 
         val forwardMessage = ForwardMessageHelper.uploadMultiMsg(
-            contact.chatType,
-            contact.longPeer().toString(),
-            contact.guildId,
+            contact,
             request.messagesList
         ).onFailure {
             throw StatusRuntimeException(Status.INTERNAL.withCause(it))
@@ -312,11 +309,11 @@ internal object MessageService : MessageServiceGrpcKt.MessageServiceCoroutineImp
                 MessageHelper.getForwardMsg(request.resId).onFailure {
                     throw StatusRuntimeException(Status.INTERNAL.withCause(it))
                 }.getOrThrow().map { detail ->
-                    MessageEvent.newBuilder().apply {
+                    PushMessageBody.newBuilder().apply {
                         this.time = detail.time
-                        this.messageId = detail.qqMsgId
+                        this.messageId = detail.qqMsgId.toString()
                         this.messageSeq = detail.msgSeq
-                        this.contact = io.kritor.message.Contact.newBuilder().apply {
+                        this.contact = io.kritor.common.Contact.newBuilder().apply {
                             this.scene = when (detail.msgType) {
                                 MsgConstant.KCHATTYPEC2C -> Scene.FRIEND
                                 MsgConstant.KCHATTYPEGROUP -> Scene.GROUP
@@ -347,13 +344,13 @@ internal object MessageService : MessageServiceGrpcKt.MessageServiceCoroutineImp
         }.build()
     }
 
-    @Grpc("MessageService", "DeleteEssenceMsg")
-    override suspend fun deleteEssenceMsg(request: DeleteEssenceMsgRequest): DeleteEssenceMsgResponse {
+    @Grpc("MessageService", "DeleteEssenceMessage")
+    override suspend fun deleteEssenceMessage(request: DeleteEssenceMessageRequest): DeleteEssenceMessageResponse {
         val contact = MessageHelper.generateContact(MsgConstant.KCHATTYPEGROUP, request.groupId.toString())
         val msg: MsgRecord = withTimeoutOrNull(5000) {
             val service = QRoute.api(IMsgService::class.java)
             suspendCancellableCoroutine { continuation ->
-                service.getMsgsByMsgId(contact, arrayListOf(request.messageId)) { code, _, msgRecords ->
+                service.getMsgsByMsgId(contact, arrayListOf(request.messageId.toLong())) { code, _, msgRecords ->
                     if (code == 0 && msgRecords.isNotEmpty()) {
                         continuation.resume(msgRecords.first())
                     } else {
@@ -367,17 +364,17 @@ internal object MessageService : MessageServiceGrpcKt.MessageServiceCoroutineImp
         } ?: throw StatusRuntimeException(Status.NOT_FOUND.withDescription("Message not found"))
         if (MessageHelper.deleteEssenceMessage(request.groupId, msg.msgSeq, msg.msgRandom) == null)
             throw StatusRuntimeException(Status.NOT_FOUND.withDescription("delete essence message failed"))
-        return DeleteEssenceMsgResponse.newBuilder().build()
+        return DeleteEssenceMessageResponse.newBuilder().build()
     }
 
-    @Grpc("MessageService", "GetEssenceMessages")
-    override suspend fun getEssenceMessages(request: GetEssenceMessagesRequest): GetEssenceMessagesResponse {
+    @Grpc("MessageService", "GetEssenceMessageList")
+    override suspend fun getEssenceMessageList(request: GetEssenceMessageListRequest): GetEssenceMessageListResponse {
         val contact = MessageHelper.generateContact(MsgConstant.KCHATTYPEGROUP, request.groupId.toString())
-        return GetEssenceMessagesResponse.newBuilder().apply {
+        return GetEssenceMessageListResponse.newBuilder().apply {
             MessageHelper.getEssenceMessageList(request.groupId, request.page, request.pageSize).onFailure {
                 throw StatusRuntimeException(Status.INTERNAL.withCause(it))
             }.getOrThrow().forEach {
-                addEssenceMessage(EssenceMessage.newBuilder().apply {
+                addMessages(EssenceMessageBody.newBuilder().apply {
                     withTimeoutOrNull(5000) {
                         val service = QRoute.api(IMsgService::class.java)
                         suspendCancellableCoroutine { continuation ->
@@ -393,10 +390,10 @@ internal object MessageService : MessageServiceGrpcKt.MessageServiceCoroutineImp
                             }
                         }
                     }?.let {
-                        this.messageId = it.msgId
+                        this.messageId = it.msgId.toString()
                     }
                     this.messageSeq = it.messageSeq
-                    this.msgTime = it.senderTime.toInt()
+                    this.messageTime = it.senderTime.toInt()
                     this.senderNick = it.senderNick
                     this.senderUin = it.senderId
                     this.operationTime = it.operatorTime.toInt()
@@ -414,7 +411,7 @@ internal object MessageService : MessageServiceGrpcKt.MessageServiceCoroutineImp
         val msg: MsgRecord = withTimeoutOrNull(5000) {
             val service = QRoute.api(IMsgService::class.java)
             suspendCancellableCoroutine { continuation ->
-                service.getMsgsByMsgId(contact, arrayListOf(request.messageId)) { code, _, msgRecords ->
+                service.getMsgsByMsgId(contact, arrayListOf(request.messageId.toLong())) { code, _, msgRecords ->
                     if (code == 0 && msgRecords.isNotEmpty()) {
                         continuation.resume(msgRecords.first())
                     } else {
@@ -432,8 +429,8 @@ internal object MessageService : MessageServiceGrpcKt.MessageServiceCoroutineImp
         return SetEssenceMessageResponse.newBuilder().build()
     }
 
-    @Grpc("MessageService", "SetMessageCommentEmoji")
-    override suspend fun setMessageCommentEmoji(request: SetMessageCommentEmojiRequest): SetMessageCommentEmojiResponse {
+    @Grpc("MessageService", "ReactMessageWithEmoji")
+    override suspend fun reactMessageWithEmoji(request: ReactMessageWithEmojiRequest): ReactMessageWithEmojiResponse {
         val contact = request.contact.let {
             MessageHelper.generateContact(
                 when (it.scene!!) {
@@ -450,7 +447,7 @@ internal object MessageService : MessageServiceGrpcKt.MessageServiceCoroutineImp
         val msg: MsgRecord = withTimeoutOrNull(5000) {
             val service = QRoute.api(IMsgService::class.java)
             suspendCancellableCoroutine { continuation ->
-                service.getMsgsByMsgId(contact, arrayListOf(request.messageId)) { code, _, msgRecords ->
+                service.getMsgsByMsgId(contact, arrayListOf(request.messageId.toLong())) { code, _, msgRecords ->
                     if (code == 0 && msgRecords.isNotEmpty()) {
                         continuation.resume(msgRecords.first())
                     } else {
@@ -468,6 +465,6 @@ internal object MessageService : MessageServiceGrpcKt.MessageServiceCoroutineImp
             request.faceId.toString(),
             request.isComment
         )
-        return SetMessageCommentEmojiResponse.newBuilder().build()
+        return ReactMessageWithEmojiResponse.newBuilder().build()
     }
 }

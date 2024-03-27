@@ -4,7 +4,9 @@ package qq.service.msg
 
 import com.tencent.qqnt.kernel.nativeinterface.Contact
 import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
-import io.kritor.message.*
+import io.kritor.common.*
+import io.kritor.common.Element.ElementType
+import io.kritor.common.ImageElement.ImageType
 import kotlinx.io.core.ByteReadPacket
 import kotlinx.io.core.discardExact
 import kotlinx.io.core.readUInt
@@ -62,9 +64,9 @@ suspend fun List<Elem>.toKritorResponseMessages(contact: Contact): ArrayList<Ele
             kritorMessages.add(Element.newBuilder().apply {
                 this.type = ElementType.IMAGE
                 this.image = ImageElement.newBuilder().apply {
-                    this.fileName = md5
+                    this.fileMd5 = md5
                     this.type = if (customFace.origin == true) ImageType.ORIGIN else ImageType.COMMON
-                    this.url = when (contact.chatType) {
+                    this.fileUrl = when (contact.chatType) {
                         MsgConstant.KCHATTYPEDISC, MsgConstant.KCHATTYPEGROUP -> RichProtoSvc.getGroupPicDownUrl(
                             origUrl,
                             md5
@@ -82,9 +84,9 @@ suspend fun List<Elem>.toKritorResponseMessages(contact: Contact): ArrayList<Ele
             kritorMessages.add(Element.newBuilder().apply {
                 this.type = ElementType.IMAGE
                 this.image = ImageElement.newBuilder().apply {
-                    this.fileName = md5
+                    this.fileMd5 = md5
                     this.type = if (element.notOnlineImage?.original == true) ImageType.ORIGIN else ImageType.COMMON
-                    this.url = when (contact.chatType) {
+                    this.fileUrl = when (contact.chatType) {
                         MsgConstant.KCHATTYPEDISC, MsgConstant.KCHATTYPEGROUP -> RichProtoSvc.getGroupPicDownUrl(
                             origUrl,
                             md5
@@ -112,7 +114,7 @@ suspend fun List<Elem>.toKritorResponseMessages(contact: Contact): ArrayList<Ele
             kritorMessages.add(Element.newBuilder().apply {
                 this.type = ElementType.REPLY
                 this.reply = ReplyElement.newBuilder().apply {
-                    this.messageId = msgId
+                    this.messageId = msgId.toString()
                 }.build()
             }.build())
         } else if (element.lightApp != null) {
@@ -256,7 +258,7 @@ suspend fun List<Elem>.toKritorResponseMessages(contact: Contact): ArrayList<Ele
                                     })
                                 }.build()
                             })
-                            this.applicationId = buttonExtra.field1?.appid?.toLong() ?: 0L
+                            this.botAppid = buttonExtra.field1?.appid?.toLong() ?: 0L
                         }.build()).build()
                     )
                 }

@@ -5,7 +5,7 @@ import com.tencent.qqnt.kernel.nativeinterface.Contact
 import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
 import com.tencent.qqnt.kernel.nativeinterface.MsgElement
 import com.tencent.qqnt.msg.api.IMsgService
-import io.kritor.message.*
+import io.kritor.common.*
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
 import moe.fuqiuluo.shamrock.helper.ActionMsgException
@@ -135,8 +135,8 @@ private object ReqMsgConvertor {
 
         val elem = Element.newBuilder()
         elem.setImage(ImageElement.newBuilder().apply {
-            this.file = md5
-            this.url = when (contact.chatType) {
+            this.fileMd5 = md5
+            this.fileUrl = when (contact.chatType) {
                 MsgConstant.KCHATTYPEDISC, MsgConstant.KCHATTYPEGROUP -> RichProtoSvc.getGroupPicDownUrl(
                     originalUrl = originalUrl,
                     md5 = md5,
@@ -175,7 +175,7 @@ private object ReqMsgConvertor {
                 else -> throw UnsupportedOperationException("Not supported chat type: ${contact.chatType}")
             }
             this.type =
-                if (image.isFlashPic == true) ImageType.FLASH else if (image.original) ImageType.ORIGIN else ImageType.COMMON
+                if (image.isFlashPic == true) ImageElement.ImageType.FLASH else if (image.original) ImageElement.ImageType.ORIGIN else ImageElement.ImageType.COMMON
             this.subType = image.picSubType
         })
 
@@ -191,7 +191,7 @@ private object ReqMsgConvertor {
         else ptt.md5HexStr
 
         elem.setVoice(VoiceElement.newBuilder().apply {
-            this.url = when (contact.chatType) {
+            this.fileUrl = when (contact.chatType) {
                 MsgConstant.KCHATTYPEC2C -> RichProtoSvc.getC2CPttDownUrl("0", ptt.fileUuid)
                 MsgConstant.KCHATTYPEGROUP, MsgConstant.KCHATTYPEGUILD -> RichProtoSvc.getGroupPttDownUrl(
                     "0",
@@ -201,7 +201,7 @@ private object ReqMsgConvertor {
 
                 else -> throw UnsupportedOperationException("Not supported chat type: ${contact.chatType}")
             }
-            this.file = md5
+            this.fileMd5 = md5
             this.magic = ptt.voiceChangeType != MsgConstant.KPTTVOICECHANGETYPENONE
         })
 
@@ -219,8 +219,8 @@ private object ReqMsgConvertor {
             }
         } else video.fileName.split(".")[0].hex2ByteArray()
         elem.setVideo(VideoElement.newBuilder().apply {
-            this.file = md5.toHexString()
-            this.url = when (contact.chatType) {
+            this.fileMd5 = md5.toHexString()
+            this.fileUrl = when (contact.chatType) {
                 MsgConstant.KCHATTYPEGROUP -> RichProtoSvc.getGroupVideoDownUrl("0", md5, video.fileUuid)
                 MsgConstant.KCHATTYPEC2C -> RichProtoSvc.getC2CVideoDownUrl("0", md5, video.fileUuid)
                 MsgConstant.KCHATTYPEGUILD -> RichProtoSvc.getGroupVideoDownUrl("0", md5, video.fileUuid)
@@ -233,7 +233,11 @@ private object ReqMsgConvertor {
     suspend fun convertMarketFace(contact: Contact, element: MsgElement): Result<Element> {
         val marketFace = element.marketFaceElement
         val elem = Element.newBuilder()
-        return Result.failure(ActionMsgException)
+        elem.setMarketFace(MarketFaceElement.newBuilder().apply {
+            this.id = marketFace.emojiId
+        })
+        // TODO
+        return Result.success(elem.build())
     }
 
     suspend fun convertStructJson(contact: Contact, element: MsgElement): Result<Element> {
@@ -300,9 +304,9 @@ private object ReqMsgConvertor {
             }
             if (sourceRecords.isNullOrEmpty()) {
                 LogCenter.log("无法查询到回复的消息ID: seq = $msgSeq", Level.WARN)
-                this.messageId = reply.replayMsgId
+                this.messageId = reply.replayMsgId.toString()
             } else {
-                this.messageId = sourceRecords.first().msgId
+                this.messageId = sourceRecords.first().msgId.toString()
             }
         })
         return Result.success(elem.build())
@@ -393,7 +397,7 @@ private object ReqMsgConvertor {
                     })
                 }.build()
             })
-            this.applicationId = inlineKeyboard.botAppid
+            this.botAppid = inlineKeyboard.botAppid
         })
         return Result.success(elem.build())
     }

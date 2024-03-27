@@ -2,23 +2,19 @@ package kritor.service
 
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
-import io.kritor.AuthCode
-import io.kritor.AuthReq
-import io.kritor.AuthRsp
-import io.kritor.AuthenticationServiceGrpcKt
-import io.kritor.GetAuthStateReq
-import io.kritor.GetAuthStateRsp
+import io.kritor.authentication.*
+import io.kritor.authentication.AuthenticateResponse.AuthenticateResponseCode
 import kritor.auth.AuthInterceptor
 import moe.fuqiuluo.shamrock.config.ActiveTicket
 import moe.fuqiuluo.shamrock.config.ShamrockConfig
 import qq.service.QQInterfaces
 
-internal object Authentication: AuthenticationServiceGrpcKt.AuthenticationServiceCoroutineImplBase() {
-    @Grpc("Authentication", "Auth")
-    override suspend fun auth(request: AuthReq): AuthRsp {
+internal object AuthenticationService: AuthenticationServiceGrpcKt.AuthenticationServiceCoroutineImplBase() {
+    @Grpc("AuthenticationService", "Authenticate")
+    override suspend fun authenticate(request: AuthenticateRequest): AuthenticateResponse {
         if (QQInterfaces.app.account != request.account) {
-            return AuthRsp.newBuilder().apply {
-                code = AuthCode.NO_ACCOUNT
+            return AuthenticateResponse.newBuilder().apply {
+                code = AuthenticateResponseCode.NO_ACCOUNT
                 msg = "No such account"
             }.build()
         }
@@ -29,36 +25,36 @@ internal object Authentication: AuthenticationServiceGrpcKt.AuthenticationServic
             val ticket = ShamrockConfig.getProperty(activeTicketName + if (index == 0) "" else ".$index", null)
             if (ticket.isNullOrEmpty()) {
                 if (index == 0) {
-                    return AuthRsp.newBuilder().apply {
-                        code = AuthCode.OK
+                    return AuthenticateResponse.newBuilder().apply {
+                        code = AuthenticateResponseCode.OK
                         msg = "OK"
                     }.build()
                 } else {
                     break
                 }
             } else if (ticket == request.ticket) {
-                return AuthRsp.newBuilder().apply {
-                    code = AuthCode.OK
+                return AuthenticateResponse.newBuilder().apply {
+                    code = AuthenticateResponseCode.OK
                     msg = "OK"
                 }.build()
             }
             index++
         }
 
-        return AuthRsp.newBuilder().apply {
-            code = AuthCode.NO_TICKET
+        return AuthenticateResponse.newBuilder().apply {
+            code = AuthenticateResponseCode.NO_TICKET
             msg = "Invalid ticket"
         }.build()
     }
 
-    @Grpc("Authentication", "GetAuthState")
-    override suspend fun getAuthState(request: GetAuthStateReq): GetAuthStateRsp {
+    @Grpc("AuthenticationService", "GetAuthenticationState")
+    override suspend fun getAuthenticationState(request: GetAuthenticationStateRequest): GetAuthenticationStateResponse {
         if (request.account != QQInterfaces.app.account) {
             throw StatusRuntimeException(Status.CANCELLED.withDescription("No such account"))
         }
 
-        return GetAuthStateRsp.newBuilder().apply {
-            isRequiredAuth = AuthInterceptor.getAllTicket().isNotEmpty()
+        return GetAuthenticationStateResponse.newBuilder().apply {
+            isRequired = AuthInterceptor.getAllTicket().isNotEmpty()
         }.build()
     }
 }

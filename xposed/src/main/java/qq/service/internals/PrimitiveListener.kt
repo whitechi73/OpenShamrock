@@ -5,9 +5,8 @@ import com.tencent.mobileqq.qroute.QRoute
 import com.tencent.qphone.base.remote.FromServiceMsg
 import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
 import com.tencent.qqnt.msg.api.IMsgService
-import io.kritor.event.GroupApplyType
-import io.kritor.event.GroupMemberDecreasedType
-import io.kritor.event.GroupMemberIncreasedType
+import io.kritor.event.GroupMemberDecreasedNotice.GroupMemberDecreasedType
+import io.kritor.event.GroupMemberIncreasedNotice.GroupMemberIncreasedType
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -595,7 +594,7 @@ internal object PrimitiveListener {
                 }
                 LogCenter.log("入群申请($groupCode) $applier: \"$reason\", seq: $msgSeq")
                 if (!GlobalEventTransmitter.RequestTransmitter
-                        .transGroupApply(time, applier, applierUid, reason, groupCode, flag, GroupApplyType.GROUP_APPLY_ADD)
+                        .transGroupApply(time, applier, applierUid, reason, groupCode, flag)
                 ) {
                     LogCenter.log("入群申请推送失败！", Level.WARN)
                 }
@@ -630,7 +629,7 @@ internal object PrimitiveListener {
                 }
                 LogCenter.log("邀请入群申请($groupCode): $applier")
                 if (!GlobalEventTransmitter.RequestTransmitter
-                        .transGroupApply(time, applier, applierUid, "", groupCode, flag, GroupApplyType.GROUP_APPLY_ADD)
+                        .transGroupApply(time, applier, applierUid, "", groupCode, flag)
                 ) {
                     LogCenter.log("邀请入群申请推送失败！", Level.WARN)
                 }
@@ -658,7 +657,7 @@ internal object PrimitiveListener {
             "$time;$groupCode;$uin"
         }
         if (!GlobalEventTransmitter.RequestTransmitter
-                .transGroupApply(time, invitor, invitorUid, "", groupCode, flag, GroupApplyType.GROUP_APPLY_INVITE)
+                .transGroupApply(time, invitor, invitorUid, "", groupCode, flag)
         ) {
             LogCenter.log("邀请入群推送失败！", Level.WARN)
         }

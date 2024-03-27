@@ -2,7 +2,7 @@ package qq.service.contact
 
 import com.tencent.qqnt.kernel.nativeinterface.Contact
 import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
-import io.kritor.message.Scene
+import io.kritor.common.Scene
 
 suspend fun Contact.longPeer(): Long {
     return when(this.chatType) {
@@ -12,7 +12,7 @@ suspend fun Contact.longPeer(): Long {
     }
 }
 
-suspend fun io.kritor.message.Contact.longPeer(): Long {
+suspend fun io.kritor.common.Contact.longPeer(): Long {
     return when(this.scene) {
         Scene.GROUP -> peer.toLong()
         Scene.FRIEND, Scene.STRANGER, Scene.STRANGER_FROM_GROUP -> if (peer.startsWith("u_")) ContactHelper.getUinByUidAsync(peer).toLong() else peer.toLong()

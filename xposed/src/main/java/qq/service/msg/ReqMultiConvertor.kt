@@ -7,11 +7,8 @@ import com.tencent.mobileqq.qroute.QRoute
 import com.tencent.qqnt.kernel.nativeinterface.Contact
 import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
 import com.tencent.qqnt.msg.api.IMsgService
-import io.kritor.message.AtElement
-import io.kritor.message.Element
-import io.kritor.message.ElementType
-import io.kritor.message.ImageElement
-import io.kritor.message.ImageType
+import io.kritor.common.Element
+import io.kritor.common.ImageElement
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
 import moe.fuqiuluo.shamrock.helper.Level
@@ -68,7 +65,7 @@ suspend fun List<Element>.toRichText(contact: Contact): Result<Pair<String, Rich
     forEach {
         try {
             when(it.type!!) {
-                ElementType.TEXT -> {
+                Element.ElementType.TEXT -> {
                     val text = it.text.text
                     val elem = Elem(
                         text = TextMsg(text)
@@ -76,13 +73,11 @@ suspend fun List<Element>.toRichText(contact: Contact): Result<Pair<String, Rich
                     elems.add(elem)
                     summary.append(text)
                 }
-                ElementType.AT -> {
+                Element.ElementType.AT -> {
                     when (contact.chatType) {
                         MsgConstant.KCHATTYPEGROUP -> {
-                            val qq = when (it.at.accountCase) {
-                                AtElement.AccountCase.UIN -> it.at.uin.toString()
-                                else -> ContactHelper.getUinByUidAsync(it.at.uid)
-                            }
+                            val qq = ContactHelper.getUinByUidAsync(it.at.uid)
+
                             val type: Int
                             val nick = if (it.at.uid == "all" || it.at.uin == 0L) {
                                 type = 1
@@ -112,10 +107,7 @@ suspend fun List<Element>.toRichText(contact: Contact): Result<Pair<String, Rich
                         }
 
                         MsgConstant.KCHATTYPEC2C -> {
-                            val qq = when (it.at.accountCase) {
-                                AtElement.AccountCase.UIN -> it.at.uin.toString()
-                                else -> ContactHelper.getUinByUidAsync(it.at.uid)
-                            }
+                            val qq = ContactHelper.getUinByUidAsync(it.at.uid)
                             val display = "@" + (ContactHelper.getProfileCard(qq.toLong()).onSuccess {
                                 it.strNick.ifNullOrEmpty { qq }
                             }.onFailure {
@@ -130,7 +122,7 @@ suspend fun List<Element>.toRichText(contact: Contact): Result<Pair<String, Rich
                         else -> throw UnsupportedOperationException("Unsupported chatType($contact) for AtMsg")
                     }
                 }
-                ElementType.FACE -> {
+                Element.ElementType.FACE -> {
                     val faceId = it.face.id
                     val elem = if (it.face.isBig) {
                         Elem(
@@ -159,12 +151,12 @@ suspend fun List<Element>.toRichText(contact: Contact): Result<Pair<String, Rich
                     elems.add(elem)
                     summary.append("[表情]")
                 }
-                ElementType.BUBBLE_FACE -> throw UnsupportedOperationException("Unsupported ElementType.BUBBLE_FACE")
-                ElementType.REPLY -> {
+                Element.ElementType.BUBBLE_FACE -> throw UnsupportedOperationException("Unsupported Element.ElementType.BUBBLE_FACE")
+                Element.ElementType.REPLY -> {
                     val msgId = it.reply.messageId
                     withTimeoutOrNull(3000) {
                         suspendCancellableCoroutine {
-                            QRoute.api(IMsgService::class.java).getMsgsByMsgId(contact, arrayListOf(msgId)) { _, _, records ->
+                            QRoute.api(IMsgService::class.java).getMsgsByMsgId(contact, arrayListOf(msgId.toLong())) { _, _, records ->
                                 it.resume(records)
                             }
                         }
@@ -191,9 +183,9 @@ suspend fun List<Element>.toRichText(contact: Contact): Result<Pair<String, Rich
                     }
                     summary.append("[回复消息]")
                 }
-                ElementType.IMAGE -> {
+                Element.ElementType.IMAGE -> {
                     val type = it.image.type
-                    val isOriginal = type == ImageType.ORIGIN
+                    val isOriginal = type == ImageElement.ImageType.ORIGIN
                     val file = when(it.image.dataCase!!) {
                         ImageElement.DataCase.FILE_NAME -> {
                             val fileMd5 = it.image.fileName.replace(regex = "[{}\\-]".toRegex(), replacement = "").split(".")[0].lowercase()
@@ -205,16 +197,16 @@ suspend fun List<Element>.toRichText(contact: Contact): Result<Pair<String, Rich
                                 FileUtils.saveFileToCache(it)
                             }
                         }
-                        ImageElement.DataCase.FILE_BASE64 -> {
+                        ImageElement.DataCase.FILE -> {
                             FileUtils.saveFileToCache(
                                 ByteArrayInputStream(
-                                    Base64.decode(it.image.fileBase64, Base64.DEFAULT)
+                                    it.image.file.toByteArray()
                                 )
                             )
                         }
-                        ImageElement.DataCase.URL -> {
+                        ImageElement.DataCase.FILE_URL -> {
                             val tmp = FileUtils.getTmpFile()
-                            if(DownloadUtils.download(it.image.url, tmp)) {
+                            if(DownloadUtils.download(it.image.fileUrl, tmp)) {
                                 tmp.inputStream().use {
                                     FileUtils.saveFileToCache(it)
                                 }.also {
@@ -222,7 +214,7 @@ suspend fun List<Element>.toRichText(contact: Contact): Result<Pair<String, Rich
                                 }
                             } else {
                                 tmp.delete()
-                                throw LogicException("图片资源下载失败: ${it.image.url}")
+                                throw LogicException("图片资源下载失败: ${it.image.fileUrl}")
                             }
                         }
                         ImageElement.DataCase.DATA_NOT_SET -> throw IllegalArgumentException("ImageElement data is not set")
@@ -352,10 +344,10 @@ suspend fun List<Element>.toRichText(contact: Contact): Result<Pair<String, Rich
 
                     summary.append("[图片]")
                 }
-                ElementType.VOICE -> throw UnsupportedOperationException("Unsupported ElementType.VOICE")
-                ElementType.VIDEO -> throw UnsupportedOperationException("Unsupported ElementType.VIDEO")
-                ElementType.BASKETBALL -> throw UnsupportedOperationException("Unsupported ElementType.BASKETBALL")
-                ElementType.DICE -> {
+                Element.ElementType.VOICE -> throw UnsupportedOperationException("Unsupported Element.ElementType.VOICE")
+                Element.ElementType.VIDEO -> throw UnsupportedOperationException("Unsupported Element.ElementType.VIDEO")
+                Element.ElementType.BASKETBALL -> throw UnsupportedOperationException("Unsupported Element.ElementType.BASKETBALL")
+                Element.ElementType.DICE -> {
                     val elem = Elem(
                         commonElem = CommonElem(
                             serviceType = 37,
@@ -375,7 +367,7 @@ suspend fun List<Element>.toRichText(contact: Contact): Result<Pair<String, Rich
                     elems.add(elem)
                     summary .append( "[骰子]" )
                 }
-                ElementType.RPS -> {
+                Element.ElementType.RPS -> {
                     val elem = Elem(
                         commonElem = CommonElem(
                             serviceType = 37,
@@ -395,7 +387,7 @@ suspend fun List<Element>.toRichText(contact: Contact): Result<Pair<String, Rich
                     elems.add(elem)
                     summary .append( "[包剪锤]" )
                 }
-                ElementType.POKE -> {
+                Element.ElementType.POKE -> {
                     val elem = Elem(
                         commonElem = CommonElem(
                             serviceType = 2,
@@ -410,8 +402,8 @@ suspend fun List<Element>.toRichText(contact: Contact): Result<Pair<String, Rich
                     elems.add(elem)
                     summary .append( "[戳一戳]" )
                 }
-                ElementType.MUSIC -> throw UnsupportedOperationException("Unsupported ElementType.MUSIC")
-                ElementType.WEATHER -> {
+                Element.ElementType.MUSIC -> throw UnsupportedOperationException("Unsupported Element.ElementType.MUSIC")
+                Element.ElementType.WEATHER -> {
                     var code = it.weather.code.toIntOrNull()
                     if (code == null) {
                         val city = it.weather.city
@@ -438,11 +430,11 @@ suspend fun List<Element>.toRichText(contact: Contact): Result<Pair<String, Rich
                         throw LogicException("无法获取城市天气")
                     }
                 }
-                ElementType.LOCATION -> throw UnsupportedOperationException("Unsupported ElementType.LOCATION")
-                ElementType.SHARE -> throw UnsupportedOperationException("Unsupported ElementType.SHARE")
-                ElementType.GIFT -> throw UnsupportedOperationException("Unsupported ElementType.GIFT")
-                ElementType.MARKET_FACE -> throw UnsupportedOperationException("Unsupported ElementType.MARKET_FACE")
-                ElementType.FORWARD -> {
+                Element.ElementType.LOCATION -> throw UnsupportedOperationException("Unsupported Element.ElementType.LOCATION")
+                Element.ElementType.SHARE -> throw UnsupportedOperationException("Unsupported Element.ElementType.SHARE")
+                Element.ElementType.GIFT -> throw UnsupportedOperationException("Unsupported Element.ElementType.GIFT")
+                Element.ElementType.MARKET_FACE -> throw UnsupportedOperationException("Unsupported Element.ElementType.MARKET_FACE")
+                Element.ElementType.FORWARD -> {
                     val resId = it.forward.resId
                     val filename = UUID.randomUUID().toString().uppercase()
                     var content = it.forward.summary
@@ -496,8 +488,8 @@ suspend fun List<Element>.toRichText(contact: Contact): Result<Pair<String, Rich
                     elems.add(elem)
                     summary.append( "[聊天记录]" )
                 }
-                ElementType.CONTACT -> throw UnsupportedOperationException("Unsupported ElementType.CONTACT")
-                ElementType.JSON -> {
+                Element.ElementType.CONTACT -> throw UnsupportedOperationException("Unsupported Element.ElementType.CONTACT")
+                Element.ElementType.JSON -> {
                     val elem = Elem(
                         lightApp = LightAppElem(
                             data = byteArrayOf(1) + DeflateTools.compress(it.json.json.toByteArray())
@@ -506,9 +498,9 @@ suspend fun List<Element>.toRichText(contact: Contact): Result<Pair<String, Rich
                     elems.add(elem)
                     summary .append( "[Json消息]" )
                 }
-                ElementType.XML -> throw UnsupportedOperationException("Unsupported ElementType.XML")
-                ElementType.FILE -> throw UnsupportedOperationException("Unsupported ElementType.FILE")
-                ElementType.MARKDOWN -> {
+                Element.ElementType.XML -> throw UnsupportedOperationException("Unsupported Element.ElementType.XML")
+                Element.ElementType.FILE -> throw UnsupportedOperationException("Unsupported Element.ElementType.FILE")
+                Element.ElementType.MARKDOWN -> {
                     val elem = Elem(
                         commonElem = CommonElem(
                             serviceType = 45,
@@ -519,7 +511,7 @@ suspend fun List<Element>.toRichText(contact: Contact): Result<Pair<String, Rich
                     elems.add(elem)
                     summary.append("[Markdown消息]")
                 }
-                ElementType.BUTTON -> {
+                Element.ElementType.BUTTON -> {
                     val elem = Elem(
                         commonElem = CommonElem(
                             serviceType = 46,
@@ -552,7 +544,7 @@ suspend fun List<Element>.toRichText(contact: Contact): Result<Pair<String, Rich
                                             )
                                         })
                                     },
-                                    appid = it.button.applicationId.toULong()
+                                    appid = it.button.botAppid.toULong()
                                 )
                             ).toByteArray(),
                             businessType = 1
@@ -561,8 +553,7 @@ suspend fun List<Element>.toRichText(contact: Contact): Result<Pair<String, Rich
                     elems.add(elem)
                     summary.append("[Button消息]")
                 }
-                ElementType.NODE -> throw UnsupportedOperationException("Unsupported ElementType.NODE")
-                ElementType.UNRECOGNIZED -> throw UnsupportedOperationException("Unsupported ElementType.UNRECOGNIZED")
+                Element.ElementType.UNRECOGNIZED -> throw UnsupportedOperationException("Unsupported Element.ElementType.UNRECOGNIZED")
             }
         } catch (e: Throwable) {
             LogCenter.log("转换消息失败(Multi): ${e.stackTraceToString()}", Level.ERROR)

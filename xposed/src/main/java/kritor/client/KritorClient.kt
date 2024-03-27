@@ -4,11 +4,12 @@ package kritor.client
 import com.google.protobuf.ByteString
 import io.grpc.ManagedChannel
 import io.grpc.ManagedChannelBuilder
-import io.kritor.ReverseServiceGrpcKt
-import io.kritor.event.*
-import io.kritor.ReqCode
-import io.kritor.Request
-import io.kritor.Response
+import io.kritor.common.Request
+import io.kritor.common.Response
+import io.kritor.event.EventServiceGrpcKt
+import io.kritor.event.EventStructure
+import io.kritor.event.EventType
+import io.kritor.reverse.ReverseServiceGrpcKt
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -113,7 +114,7 @@ internal class KritorClient(
             val rsp = handleGrpc(request.cmd, request.buf.toByteArray())
             senderChannel.emit(Response.newBuilder()
                 .setCmd(request.cmd)
-                .setCode(ReqCode.SUCCESS)
+                .setCode(Response.ResponseCode.SUCCESS)
                 .setMsg("success")
                 .setSeq(request.seq)
                 .setBuf(ByteString.copyFrom(rsp))
@@ -121,7 +122,7 @@ internal class KritorClient(
         }.onFailure {
             senderChannel.emit(Response.newBuilder()
                 .setCmd(request.cmd)
-                .setCode(ReqCode.INTERNAL)
+                .setCode(Response.ResponseCode.INTERNAL)
                 .setMsg(it.stackTraceToString())
                 .setSeq(request.seq)
                 .setBuf(ByteString.EMPTY)

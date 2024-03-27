@@ -5,11 +5,7 @@ package qq.service.file
 import com.tencent.mobileqq.pb.ByteStringMicro
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
-import io.kritor.file.File
-import io.kritor.file.Folder
-import io.kritor.file.GetFileSystemInfoResponse
-import io.kritor.file.GetFilesRequest
-import io.kritor.file.GetFilesResponse
+import io.kritor.file.*
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.tools.EMPTY_BYTE_ARRAY
@@ -77,7 +73,7 @@ internal object GroupFileHelper: QQInterfaces() {
         }.build()
     }
 
-    suspend fun getGroupFiles(groupId: Long, folderId: String = "/"): GetFilesResponse {
+    suspend fun getGroupFiles(groupId: Long, folderId: String = "/"): GetFileListResponse {
         val fileSystemInfo = getGroupFileSystemInfo(groupId)
         val fromServiceMsg = sendOidbAW("OidbSvc.0x6d8_1", 1752, 1, oidb_0x6d8.ReqBody().also {
             it.file_list_info_req.set(oidb_0x6d8.GetFileListReqBody().apply {
@@ -150,7 +146,7 @@ internal object GroupFileHelper: QQInterfaces() {
             throw StatusRuntimeException(Status.INTERNAL.withDescription("unable to fetch oidb response"))
         }
 
-        return GetFilesResponse.newBuilder().apply {
+        return GetFileListResponse.newBuilder().apply {
             this.addAllFiles(files)
             this.addAllFolders(folders)
         }.build()

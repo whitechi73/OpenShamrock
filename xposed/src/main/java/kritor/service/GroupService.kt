@@ -212,7 +212,7 @@ internal object GroupService : GroupServiceGrpcKt.GroupServiceCoroutineImplBase(
         }.getOrThrow()
         return GetGroupListResponse.newBuilder().apply {
             groupList.forEach { groupInfo ->
-                this.addGroupInfo(GroupInfo.newBuilder().apply {
+                this.addGroupsInfo(GroupInfo.newBuilder().apply {
                     groupId = groupInfo.troopcode.toLong()
                     groupName = groupInfo.troopname.ifNullOrEmpty { groupInfo.troopRemark }
                         .ifNullOrEmpty { groupInfo.newTroopName } ?: ""
@@ -231,8 +231,8 @@ internal object GroupService : GroupServiceGrpcKt.GroupServiceCoroutineImplBase(
     override suspend fun getGroupMemberInfo(request: GetGroupMemberInfoRequest): GetGroupMemberInfoResponse {
         val memberInfo = GroupHelper.getTroopMemberInfoByUin(
             request.groupId.toString(), when (request.targetCase!!) {
-                GetGroupMemberInfoRequest.TargetCase.UIN -> request.uin
-                GetGroupMemberInfoRequest.TargetCase.UID -> ContactHelper.getUinByUidAsync(request.uid).toLong()
+                GetGroupMemberInfoRequest.TargetCase.TARGET_UID -> request.targetUin
+                GetGroupMemberInfoRequest.TargetCase.TARGET_UIN -> ContactHelper.getUinByUidAsync(request.targetUid).toLong()
                 else -> throw StatusRuntimeException(
                     Status.INVALID_ARGUMENT
                         .withDescription("target not set")
@@ -246,8 +246,8 @@ internal object GroupService : GroupServiceGrpcKt.GroupServiceCoroutineImplBase(
         return GetGroupMemberInfoResponse.newBuilder().apply {
             groupMemberInfo = GroupMemberInfo.newBuilder().apply {
                 uid =
-                    if (request.targetCase == GetGroupMemberInfoRequest.TargetCase.UID) request.uid else ContactHelper.getUidByUinAsync(
-                        request.uin
+                    if (request.targetCase == GetGroupMemberInfoRequest.TargetCase.TARGET_UID) request.targetUid else ContactHelper.getUidByUinAsync(
+                        request.targetUin
                     )
                 uin = memberInfo.memberuin?.toLong() ?: 0
                 nick = memberInfo.troopnick
@@ -264,7 +264,7 @@ internal object GroupService : GroupServiceGrpcKt.GroupServiceCoroutineImplBase(
                 shutUpTimestamp = memberInfo.gagTimeStamp
 
                 distance = memberInfo.distance
-                addAllHonor((memberInfo.honorList ?: "")
+                addAllHonors((memberInfo.honorList ?: "")
                     .split("|")
                     .filter { it.isNotBlank() }
                     .map { it.toInt() })
@@ -286,7 +286,7 @@ internal object GroupService : GroupServiceGrpcKt.GroupServiceCoroutineImplBase(
         }.getOrThrow()
         return GetGroupMemberListResponse.newBuilder().apply {
             memberList.forEach { memberInfo ->
-                this.addGroupMemberInfo(GroupMemberInfo.newBuilder().apply {
+                this.addGroupMembersInfo(GroupMemberInfo.newBuilder().apply {
                     uid = ContactHelper.getUidByUinAsync(memberInfo.memberuin?.toLong() ?: 0)
                     uin = memberInfo.memberuin?.toLong() ?: 0
                     nick = memberInfo.troopnick
@@ -303,7 +303,7 @@ internal object GroupService : GroupServiceGrpcKt.GroupServiceCoroutineImplBase(
                     shutUpTimestamp = memberInfo.gagTimeStamp
 
                     distance = memberInfo.distance
-                    addAllHonor((memberInfo.honorList ?: "")
+                    addAllHonors((memberInfo.honorList ?: "")
                         .split("|")
                         .filter { it.isNotBlank() }
                         .map { it.toInt() })
@@ -323,7 +323,7 @@ internal object GroupService : GroupServiceGrpcKt.GroupServiceCoroutineImplBase(
         }.getOrThrow()
         return GetProhibitedUserListResponse.newBuilder().apply {
             prohibitedList.forEach {
-                this.addProhibitedUserInfo(ProhibitedUserInfo.newBuilder().apply {
+                this.addProhibitedUsersInfo(ProhibitedUserInfo.newBuilder().apply {
                     uid = ContactHelper.getUidByUinAsync(it.memberUin)
                     uin = it.memberUin
                     prohibitedTime = it.shutuptimestap
@@ -380,7 +380,7 @@ internal object GroupService : GroupServiceGrpcKt.GroupServiceCoroutineImplBase(
                         .map { it.toInt() }.forEach {
                             val honor = decodeHonor(member.memberuin.toLong(), it, member.mHonorRichFlag)
                             if (honor != null) {
-                                addGroupHonorInfo(GroupHonorInfo.newBuilder().apply {
+                                addGroupHonorsInfo(GroupHonorInfo.newBuilder().apply {
                                     uid = ContactHelper.getUidByUinAsync(member.memberuin.toLong())
                                     uin = member.memberuin.toLong()
                                     nick = member.troopnick

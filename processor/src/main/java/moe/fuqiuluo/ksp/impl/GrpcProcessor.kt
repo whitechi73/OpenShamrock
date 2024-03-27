@@ -5,22 +5,9 @@ package moe.fuqiuluo.ksp.impl
 
 import com.google.devtools.ksp.KspExperimental
 import com.google.devtools.ksp.getAnnotationsByType
-import com.google.devtools.ksp.getClassDeclarationByName
-import com.google.devtools.ksp.getJavaClassByName
-import com.google.devtools.ksp.getKotlinClassByName
-import com.google.devtools.ksp.processing.CodeGenerator
-import com.google.devtools.ksp.processing.Dependencies
-import com.google.devtools.ksp.processing.KSPLogger
-import com.google.devtools.ksp.processing.Resolver
-import com.google.devtools.ksp.processing.SymbolProcessor
+import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.KSAnnotated
-import com.google.devtools.ksp.symbol.KSClassDeclaration
-import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
-import com.google.devtools.ksp.symbol.KSType
-import com.google.devtools.ksp.symbol.KSTypeParameter
-import com.google.devtools.ksp.symbol.Modifier
-import com.google.devtools.ksp.validate
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
@@ -67,15 +54,16 @@ class GrpcProcessor(
         }
         funcBuilder.addStatement("return EMPTY_BYTE_ARRAY")
         fileSpec
-            .addStatement("import io.kritor.*")
+            .addStatement("import io.kritor.authentication.*")
             .addStatement("import io.kritor.core.*")
-            .addStatement("import io.kritor.contact.*")
-            .addStatement("import io.kritor.group.*")
-            .addStatement("import io.kritor.friend.*")
+            .addStatement("import io.kritor.customization.*")
+            .addStatement("import io.kritor.developer.*")
             .addStatement("import io.kritor.file.*")
+            .addStatement("import io.kritor.friend.*")
+            .addStatement("import io.kritor.group.*")
+            .addStatement("import io.kritor.guild.*")
             .addStatement("import io.kritor.message.*")
             .addStatement("import io.kritor.web.*")
-            .addStatement("import io.kritor.developer.*")
             .addFunction(funcBuilder.build())
             .addImport("moe.fuqiuluo.symbols", "EMPTY_BYTE_ARRAY")
         runCatching {

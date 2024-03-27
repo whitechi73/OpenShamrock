@@ -14,7 +14,7 @@ import qq.service.bdh.RichProtoSvc
 import qq.service.kernel.SimpleKernelMsgListener
 import qq.service.msg.MessageHelper
 
-object AioListener: SimpleKernelMsgListener() {
+object AioListener : SimpleKernelMsgListener() {
     override fun onRecvMsg(records: ArrayList<MsgRecord>) {
         records.forEach {
             GlobalScope.launch {
@@ -60,7 +60,12 @@ object AioListener: SimpleKernelMsgListener() {
 
                 LogCenter.log("私聊临时消息(private = ${record.senderUin}, groupId=$groupCode)")
 
-                if (!GlobalEventTransmitter.MessageTransmitter.transTempMessage(record, record.elements, groupCode, fromNick)
+                if (!GlobalEventTransmitter.MessageTransmitter.transTempMessage(
+                        record,
+                        record.elements,
+                        groupCode,
+                        fromNick
+                    )
                 ) {
                     LogCenter.log("私聊临时消息推送失败 -> MessageTransmitter", Level.WARN)
                 }
@@ -136,5 +141,11 @@ object AioListener: SimpleKernelMsgListener() {
         ) {
             LogCenter.log("群聊文件消息推送失败 -> FileNoticeTransmitter", Level.WARN)
         }
+    }
+
+    @OptIn(ExperimentalStdlibApi::class)
+    override fun onRecvSysMsg(arrayList: ArrayList<Byte>?) {
+        LogCenter.log("onRecvSysMsg")
+        LogCenter.log(arrayList?.toByteArray()?.toHexString() ?: "")
     }
 }

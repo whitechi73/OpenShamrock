@@ -1,7 +1,6 @@
 package qq.service.msg
 
 import android.graphics.BitmapFactory
-import android.util.Base64
 import androidx.exifinterface.media.ExifInterface
 import com.tencent.mobileqq.emoticon.QQSysFaceUtil
 import com.tencent.mobileqq.pb.ByteStringMicro
@@ -9,17 +8,18 @@ import com.tencent.mobileqq.qroute.QRoute
 import com.tencent.qphone.base.remote.ToServiceMsg
 import com.tencent.qqnt.aio.adapter.api.IAIOPttApi
 import com.tencent.qqnt.kernel.nativeinterface.*
+import com.tencent.qqnt.kernel.nativeinterface.Contact
+import com.tencent.qqnt.kernel.nativeinterface.FaceElement
+import com.tencent.qqnt.kernel.nativeinterface.MarkdownElement
+import com.tencent.qqnt.kernel.nativeinterface.MarketFaceElement
+import com.tencent.qqnt.kernel.nativeinterface.ReplyElement
+import com.tencent.qqnt.kernel.nativeinterface.TextElement
 import com.tencent.qqnt.msg.api.IMsgService
-import io.kritor.message.AtElement
-import io.kritor.message.Button
-import io.kritor.message.Element
-import io.kritor.message.ElementType
-import io.kritor.message.ElementType.*
-import io.kritor.message.ImageElement
-import io.kritor.message.ImageType
-import io.kritor.message.MusicPlatform
-import io.kritor.message.Scene
-import io.kritor.message.VoiceElement
+import io.kritor.common.*
+import io.kritor.common.Element.ElementType
+import io.kritor.common.ImageElement.ImageType
+import io.kritor.common.MusicElement.MusicPlatform
+import io.kritor.common.VideoElement
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
 import moe.fuqiuluo.shamrock.config.EnableOldBDH
@@ -77,27 +77,27 @@ private typealias NtConvertor = suspend (Contact, Long, Element) -> Result<MsgEl
 
 object NtMsgConvertor {
     private val ntConvertors = mapOf<ElementType, NtConvertor>(
-        TEXT to ::textConvertor,
-        AT to ::atConvertor,
-        FACE to ::faceConvertor,
-        BUBBLE_FACE to ::bubbleFaceConvertor,
-        REPLY to ::replyConvertor,
-        IMAGE to ::imageConvertor,
-        VOICE to ::voiceConvertor,
-        VIDEO to ::videoConvertor,
-        BASKETBALL to ::basketballConvertor,
-        DICE to ::diceConvertor,
-        RPS to ::rpsConvertor,
-        POKE to ::pokeConvertor,
-        MUSIC to ::musicConvertor,
-        WEATHER to ::weatherConvertor,
-        LOCATION to ::locationConvertor,
-        SHARE to ::shareConvertor,
-        CONTACT to ::contactConvertor,
-        JSON to ::jsonConvertor,
-        FORWARD to ::forwardConvertor,
-        MARKDOWN to ::markdownConvertor,
-        BUTTON to ::buttonConvertor,
+        ElementType.TEXT to ::textConvertor,
+        ElementType.AT to ::atConvertor,
+        ElementType.FACE to ::faceConvertor,
+        ElementType.BUBBLE_FACE to ::bubbleFaceConvertor,
+        ElementType.REPLY to ::replyConvertor,
+        ElementType.IMAGE to ::imageConvertor,
+        ElementType.VOICE to ::voiceConvertor,
+        ElementType.VIDEO to ::videoConvertor,
+        ElementType.BASKETBALL to ::basketballConvertor,
+        ElementType.DICE to ::diceConvertor,
+        ElementType.RPS to ::rpsConvertor,
+        ElementType.POKE to ::pokeConvertor,
+        ElementType.MUSIC to ::musicConvertor,
+        ElementType.WEATHER to ::weatherConvertor,
+        ElementType.LOCATION to ::locationConvertor,
+        ElementType.SHARE to ::shareConvertor,
+        ElementType.CONTACT to ::contactConvertor,
+        ElementType.JSON to ::jsonConvertor,
+        ElementType.FORWARD to ::forwardConvertor,
+        ElementType.MARKDOWN to ::markdownConvertor,
+        ElementType.BUTTON to ::buttonConvertor,
     )
 
     suspend fun convertToNtMsgs(contact: Contact, msgId: Long, msgs: Messages): ArrayList<MsgElement> {
@@ -135,41 +135,22 @@ object NtMsgConvertor {
 
         val elem = MsgElement()
         val at = TextElement()
-        if (sourceAt.at.accountCase == AtElement.AccountCase.UIN) {
-            val uin = sourceAt.at.uin
-            if (uin == 0L) {
-                at.content = "@全体成员"
-                at.atType = MsgConstant.ATTYPEALL
-                at.atNtUid = "0"
-            } else {
-                val info = GroupHelper.getTroopMemberInfoByUinV2(contact.peerUid, uin.toString(), true).onFailure {
-                    LogCenter.log("无法获取群成员信息: contact=$contact, id=${uin}", Level.WARN)
-                }.getOrNull()
-                at.content = "@${
-                    info?.troopnick.ifNullOrEmpty { info?.friendnick }
-                        ?: uin.toString()
-                }"
-                at.atType = MsgConstant.ATTYPEONE
-                at.atNtUid = ContactHelper.getUidByUinAsync(uin)
-            }
+        val uid = sourceAt.at.uid
+        if (uid == "all" || uid == "0") {
+            at.content = "@全体成员"
+            at.atType = MsgConstant.ATTYPEALL
+            at.atNtUid = "0"
         } else {
-            val uid = sourceAt.at.uid
-            if (uid == "all" || uid == "0") {
-                at.content = "@全体成员"
-                at.atType = MsgConstant.ATTYPEALL
-                at.atNtUid = "0"
-            } else {
-                val uin = ContactHelper.getUinByUidAsync(uid)
-                val info = GroupHelper.getTroopMemberInfoByUinV2(contact.peerUid, uin, true).onFailure {
-                    LogCenter.log("无法获取群成员信息: contact=$contact, id=${uin}", Level.WARN)
-                }.getOrNull()
-                at.content = "@${
-                    info?.troopnick.ifNullOrEmpty { info?.friendnick }
-                        ?: uin
-                }"
-                at.atType = MsgConstant.ATTYPEONE
-                at.atNtUid = uid
-            }
+            val uin = ContactHelper.getUinByUidAsync(uid)
+            val info = GroupHelper.getTroopMemberInfoByUinV2(contact.peerUid, uin, true).onFailure {
+                LogCenter.log("无法获取群成员信息: contact=$contact, id=${uin}", Level.WARN)
+            }.getOrNull()
+            at.content = "@${
+                info?.troopnick.ifNullOrEmpty { info?.friendnick }
+                    ?: uin
+            }"
+            at.atType = MsgConstant.ATTYPEONE
+            at.atNtUid = uid
         }
         elem.textElement = at
         elem.elementType = MsgConstant.KELEMTYPETEXT
@@ -215,7 +196,11 @@ object NtMsgConvertor {
         return Result.success(elem)
     }
 
-    private suspend fun bubbleFaceConvertor(contact: Contact, msgId: Long, sourceBubbleFace: Element): Result<MsgElement> {
+    private suspend fun bubbleFaceConvertor(
+        contact: Contact,
+        msgId: Long,
+        sourceBubbleFace: Element
+    ): Result<MsgElement> {
         val faceId = sourceBubbleFace.bubbleFace.id
         val local = QQSysFaceUtil.convertToLocal(faceId)
         val name = QQSysFaceUtil.getFaceDescription(local)
@@ -242,7 +227,7 @@ object NtMsgConvertor {
         element.elementType = MsgConstant.KELEMTYPEREPLY
         val reply = ReplyElement()
 
-        reply.replayMsgId = sourceReply.reply.messageId
+        reply.replayMsgId = sourceReply.reply.messageId.toLong()
         reply.sourceMsgIdInRecords = reply.replayMsgId
 
         if (reply.replayMsgId == 0L) {
@@ -251,9 +236,10 @@ object NtMsgConvertor {
 
         withTimeoutOrNull(3000) {
             suspendCancellableCoroutine {
-                QRoute.api(IMsgService::class.java).getMsgsByMsgId(contact, arrayListOf(reply.replayMsgId)) { _, _, records ->
-                    it.resume(records)
-                }
+                QRoute.api(IMsgService::class.java)
+                    .getMsgsByMsgId(contact, arrayListOf(reply.replayMsgId)) { _, _, records ->
+                        it.resume(records)
+                    }
             }
         }?.firstOrNull()?.let {
             reply.replayMsgSeq = it.msgSeq
@@ -270,25 +256,31 @@ object NtMsgConvertor {
     private suspend fun imageConvertor(contact: Contact, msgId: Long, sourceImage: Element): Result<MsgElement> {
         val isOriginal = sourceImage.image.type == ImageType.ORIGIN
         val isFlash = sourceImage.image.type == ImageType.FLASH
-        val file = when(sourceImage.image.dataCase!!) {
+        val file = when (sourceImage.image.dataCase!!) {
             ImageElement.DataCase.FILE_NAME -> {
-                val fileMd5 = sourceImage.image.fileName.replace(regex = "[{}\\-]".toRegex(), replacement = "").split(".")[0].lowercase()
+                val fileMd5 = sourceImage.image.fileName.replace(regex = "[{}\\-]".toRegex(), replacement = "")
+                    .split(".")[0].lowercase()
                 FileUtils.getFileByMd5(fileMd5)
             }
+
             ImageElement.DataCase.FILE_PATH -> {
                 val filePath = sourceImage.image.filePath
                 File(filePath).inputStream().use {
                     FileUtils.saveFileToCache(it)
                 }
             }
-            ImageElement.DataCase.FILE_BASE64 -> {
-                FileUtils.saveFileToCache(ByteArrayInputStream(
-                    Base64.decode(sourceImage.image.fileBase64, Base64.DEFAULT)
-                ))
+
+            ImageElement.DataCase.FILE -> {
+                FileUtils.saveFileToCache(
+                    ByteArrayInputStream(
+                        sourceImage.image.file.toByteArray()
+                    )
+                )
             }
-            ImageElement.DataCase.URL -> {
+
+            ImageElement.DataCase.FILE_URL -> {
                 val tmp = FileUtils.getTmpFile()
-                if(DownloadUtils.download(sourceImage.image.url, tmp)) {
+                if (DownloadUtils.download(sourceImage.image.fileUrl, tmp)) {
                     tmp.inputStream().use {
                         FileUtils.saveFileToCache(it)
                     }.also {
@@ -296,16 +288,20 @@ object NtMsgConvertor {
                     }
                 } else {
                     tmp.delete()
-                    return Result.failure(LogicException("图片资源下载失败: ${sourceImage.image.url}"))
+                    return Result.failure(LogicException("图片资源下载失败: ${sourceImage.image.fileUrl}"))
                 }
             }
+
             ImageElement.DataCase.DATA_NOT_SET -> return Result.failure(IllegalArgumentException("ImageElement data is not set"))
         }
 
         if (EnableOldBDH.get()) {
             Transfer with when (contact.chatType) {
                 MsgConstant.KCHATTYPEGROUP -> Troop(contact.peerUid)
-                MsgConstant.KCHATTYPETEMPC2CFROMGROUP, MsgConstant.KCHATTYPEC2C -> Private(contact.longPeer().toString())
+                MsgConstant.KCHATTYPETEMPC2CFROMGROUP, MsgConstant.KCHATTYPEC2C -> Private(
+                    contact.longPeer().toString()
+                )
+
                 MsgConstant.KCHATTYPEGUILD -> Troop(contact.peerUid)
                 else -> return Result.failure(Exception("Not supported chatType(${contact.chatType}) for PictureMsg"))
             } trans PictureResource(file)
@@ -360,25 +356,29 @@ object NtMsgConvertor {
     }
 
     private suspend fun voiceConvertor(contact: Contact, msgId: Long, sourceVoice: Element): Result<MsgElement> {
-        var file = when(sourceVoice.voice.dataCase!!) {
+        var file = when (sourceVoice.voice.dataCase!!) {
             VoiceElement.DataCase.FILE_NAME -> {
-                val fileMd5 = sourceVoice.voice.fileName.replace(regex = "[{}\\-]".toRegex(), replacement = "").split(".")[0].lowercase()
+                val fileMd5 = sourceVoice.voice.fileName.replace(regex = "[{}\\-]".toRegex(), replacement = "")
+                    .split(".")[0].lowercase()
                 FileUtils.getFileByMd5(fileMd5)
             }
+
             VoiceElement.DataCase.FILE_PATH -> {
                 val filePath = sourceVoice.voice.filePath
                 File(filePath).inputStream().use {
                     FileUtils.saveFileToCache(it)
                 }
             }
-            VoiceElement.DataCase.FILE_BASE64 -> {
-                FileUtils.saveFileToCache(ByteArrayInputStream(
-                    Base64.decode(sourceVoice.voice.fileBase64, Base64.DEFAULT)
-                ))
+
+            VoiceElement.DataCase.FILE -> {
+                FileUtils.saveFileToCache(
+                    sourceVoice.voice.file.toByteArray().inputStream()
+                )
             }
-            VoiceElement.DataCase.URL -> {
+
+            VoiceElement.DataCase.FILE_URL -> {
                 val tmp = FileUtils.getTmpFile()
-                if(DownloadUtils.download(sourceVoice.voice.url, tmp)) {
+                if (DownloadUtils.download(sourceVoice.voice.fileUrl, tmp)) {
                     tmp.inputStream().use {
                         FileUtils.saveFileToCache(it)
                     }.also {
@@ -386,9 +386,10 @@ object NtMsgConvertor {
                     }
                 } else {
                     tmp.delete()
-                    return Result.failure(LogicException("音频资源下载失败: ${sourceVoice.voice.url}"))
+                    return Result.failure(LogicException("音频资源下载失败: ${sourceVoice.voice.fileUrl}"))
                 }
             }
+
             VoiceElement.DataCase.DATA_NOT_SET -> return Result.failure(IllegalArgumentException("VoiceElement data is not set"))
         }
 
@@ -439,7 +440,10 @@ object NtMsgConvertor {
         if (EnableOldBDH.get()) {
             if (!(Transfer with when (contact.chatType) {
                     MsgConstant.KCHATTYPEGROUP -> Troop(contact.peerUid)
-                    MsgConstant.KCHATTYPETEMPC2CFROMGROUP, MsgConstant.KCHATTYPEC2C -> Private(contact.longPeer().toString())
+                    MsgConstant.KCHATTYPETEMPC2CFROMGROUP, MsgConstant.KCHATTYPEC2C -> Private(
+                        contact.longPeer().toString()
+                    )
+
                     MsgConstant.KCHATTYPEGUILD -> Troop(contact.peerUid)
                     else -> return Result.failure(Exception("Not supported chatType(${contact.chatType}) for VoiceMsg"))
                 } trans VoiceResource(file))
@@ -485,27 +489,31 @@ object NtMsgConvertor {
 
     private suspend fun videoConvertor(contact: Contact, msgId: Long, sourceVideo: Element): Result<MsgElement> {
         val elem = MsgElement()
-        val video = VideoElement()
+        val video = com.tencent.qqnt.kernel.nativeinterface.VideoElement()
 
-        val file = when(sourceVideo.video.dataCase!!) {
-            io.kritor.message.VideoElement.DataCase.FILE_NAME -> {
-                val fileMd5 = sourceVideo.video.fileName.replace(regex = "[{}\\-]".toRegex(), replacement = "").split(".")[0].lowercase()
+        val file = when (sourceVideo.video.dataCase!!) {
+            VideoElement.DataCase.FILE -> {
+                FileUtils.saveFileToCache(
+                    sourceVideo.video.file.toByteArray().inputStream()
+                )
+            }
+
+            VideoElement.DataCase.FILE_NAME -> {
+                val fileMd5 = sourceVideo.video.fileName.replace(regex = "[{}\\-]".toRegex(), replacement = "")
+                    .split(".")[0].lowercase()
                 FileUtils.getFileByMd5(fileMd5)
             }
-            io.kritor.message.VideoElement.DataCase.FILE_PATH -> {
+
+            VideoElement.DataCase.FILE_PATH -> {
                 val filePath = sourceVideo.video.filePath
                 File(filePath).inputStream().use {
                     FileUtils.saveFileToCache(it)
                 }
             }
-            io.kritor.message.VideoElement.DataCase.FILE_BASE64 -> {
-                FileUtils.saveFileToCache(ByteArrayInputStream(
-                    Base64.decode(sourceVideo.video.fileBase64, Base64.DEFAULT)
-                ))
-            }
-            io.kritor.message.VideoElement.DataCase.URL -> {
+
+            VideoElement.DataCase.FILE_URL -> {
                 val tmp = FileUtils.getTmpFile()
-                if(DownloadUtils.download(sourceVideo.video.url, tmp)) {
+                if (DownloadUtils.download(sourceVideo.video.fileUrl, tmp)) {
                     tmp.inputStream().use {
                         FileUtils.saveFileToCache(it)
                     }.also {
@@ -513,10 +521,11 @@ object NtMsgConvertor {
                     }
                 } else {
                     tmp.delete()
-                    return Result.failure(LogicException("视频资源下载失败: ${sourceVideo.video.url}"))
+                    return Result.failure(LogicException("视频资源下载失败: ${sourceVideo.video.fileUrl}"))
                 }
             }
-            io.kritor.message.VideoElement.DataCase.DATA_NOT_SET -> return Result.failure(IllegalArgumentException("VideoElement data is not set"))
+
+            VideoElement.DataCase.DATA_NOT_SET -> return Result.failure(IllegalArgumentException("VideoElement data is not set"))
         }
 
         video.videoMd5 = QQNTWrapperUtil.CppProxy.genFileMd5Hex(file.absolutePath)
@@ -543,7 +552,10 @@ object NtMsgConvertor {
         if (EnableOldBDH.get()) {
             Transfer with when (contact.chatType) {
                 MsgConstant.KCHATTYPEGROUP -> Troop(contact.peerUid)
-                MsgConstant.KCHATTYPETEMPC2CFROMGROUP, MsgConstant.KCHATTYPEC2C -> Private(contact.longPeer().toString())
+                MsgConstant.KCHATTYPETEMPC2CFROMGROUP, MsgConstant.KCHATTYPEC2C -> Private(
+                    contact.longPeer().toString()
+                )
+
                 MsgConstant.KCHATTYPEGUILD -> Troop(contact.peerUid)
                 else -> return Result.failure(Exception("Not supported chatType(${contact.chatType}) for VideoMsg"))
             } trans VideoResource(file, File(thumbPath.toString()))
@@ -567,7 +579,11 @@ object NtMsgConvertor {
         return Result.success(elem)
     }
 
-    private suspend fun basketballConvertor(contact: Contact, msgId: Long, sourceBasketball: Element): Result<MsgElement> {
+    private suspend fun basketballConvertor(
+        contact: Contact,
+        msgId: Long,
+        sourceBasketball: Element
+    ): Result<MsgElement> {
         val elem = MsgElement()
         elem.elementType = MsgConstant.KELEMTYPEFACE
         val face = FaceElement()
@@ -697,7 +713,11 @@ object NtMsgConvertor {
     }
 
     private suspend fun locationConvertor(contact: Contact, msgId: Long, sourceLocation: Element): Result<MsgElement> {
-        LbsHelper.tryShareLocation(contact, sourceLocation.location.lat.toDouble(), sourceLocation.location.lon.toDouble()).onFailure {
+        LbsHelper.tryShareLocation(
+            contact,
+            sourceLocation.location.lat.toDouble(),
+            sourceLocation.location.lon.toDouble()
+        ).onFailure {
             LogCenter.log("无法发送位置分享", Level.ERROR)
         }
         return Result.failure(ActionMsgException)
@@ -801,7 +821,8 @@ object NtMsgConvertor {
             val action = button.action
             val permission = action.permission
             return runCatching {
-                InlineKeyboardButton(button.id, renderData.label, renderData.visitedLabel, renderData.style,
+                InlineKeyboardButton(
+                    button.id, renderData.label, renderData.visitedLabel, renderData.style,
                     action.type, 0,
                     action.unsupportedTips,
                     action.data, false,
@@ -811,7 +832,8 @@ object NtMsgConvertor {
                     false, 0, false, arrayListOf()
                 )
             }.getOrElse {
-                InlineKeyboardButton(button.id, renderData.label, renderData.visitedLabel, renderData.style,
+                InlineKeyboardButton(
+                    button.id, renderData.label, renderData.visitedLabel, renderData.style,
                     action.type, 0,
                     action.unsupportedTips,
                     action.data, false,
