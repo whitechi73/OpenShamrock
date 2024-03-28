@@ -14,7 +14,10 @@ import moe.fuqiuluo.shamrock.tools.toast
 import moe.fuqiuluo.shamrock.xposed.helper.AppTalker
 import mqq.app.MobileQQ
 import java.io.File
+import java.util.Calendar
 import java.util.Date
+import java.util.Timer
+import java.util.TimerTask
 
 internal enum class Level(
     val id: Byte
@@ -31,7 +34,29 @@ internal object LogCenter {
         // 格式化时间 
         SimpleDateFormat("yyyy-MM-dd").format(Date())
     }_"
-    private val LogFile = MobileQQ.getContext().getExternalFilesDir(null)!!
+    private var LogFile = generateLogFile()
+
+    private val format = SimpleDateFormat("[HH:mm:ss] ")
+    private val timer = Timer()
+
+    init {
+        val now = Calendar.getInstance()
+        val tomorrowMidnight = Calendar.getInstance().apply {
+            add(Calendar.DAY_OF_YEAR, 1)
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        val delay = tomorrowMidnight.timeInMillis - now.timeInMillis
+        timer.scheduleAtFixedRate(object : TimerTask() {
+            override fun run() {
+                LogFile = generateLogFile()
+            }
+        }, delay, 24 * 60 * 60 * 1000)
+    }
+
+    private fun generateLogFile() = MobileQQ.getContext().getExternalFilesDir(null)!!
         .parentFile!!.resolve("Tencent/Shamrock/log").also {
             if (it.exists()) it.delete()
             it.mkdirs()
@@ -48,8 +73,6 @@ internal object LogCenter {
             }
             return@let result
         }
-
-    private val format = SimpleDateFormat("[HH:mm:ss] ")
 
     fun log(string: String, level: Level = Level.INFO, toast: Boolean = false) {
         if (!ShamrockConfig[DebugMode] && level == Level.DEBUG) {
