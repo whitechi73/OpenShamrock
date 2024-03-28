@@ -39,7 +39,7 @@ class AntiDetection: IAction {
         if (ShamrockConfig[AntiJvmTrace])
             antiTrace()
         antiMemoryWalking()
-        antiO3Report()
+        //antiO3Report()
     }
 
     private fun antiO3Report() {

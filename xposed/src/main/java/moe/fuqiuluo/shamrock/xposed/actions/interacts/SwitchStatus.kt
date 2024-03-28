@@ -9,11 +9,13 @@ import qq.service.QQInterfaces
 
 object SwitchStatus: IInteract, QQInterfaces() {
     override fun invoke(intent: Intent) {
-        AppTalker.talk("switch_status") {
-            put("account", app.currentAccountUin)
-            put("nickname", if (app is QQAppInterface) app.currentNickname else "unknown")
-            put("voice", NativeLoader.isVoiceLoaded)
-            put("core_version", ShamrockVersion)
+        if (app.isLogin) {
+            AppTalker.talk("switch_status") {
+                put("account", app.currentAccountUin)
+                put("nickname", if (app is QQAppInterface) (app.currentNickname ?: "unknown") else "unknown")
+                put("voice", NativeLoader.isVoiceLoaded)
+                put("core_version", ShamrockVersion)
+            }
         }
     }
 }
