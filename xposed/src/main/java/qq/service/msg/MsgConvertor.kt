@@ -5,7 +5,7 @@ import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
 import com.tencent.qqnt.kernel.nativeinterface.MsgElement
 import com.tencent.qqnt.kernel.nativeinterface.MsgRecord
 import com.tencent.qqnt.msg.api.IMsgService
-import io.kritor.common.*
+import io.kritor.message.*
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
 import moe.fuqiuluo.shamrock.helper.ActionMsgException
@@ -55,11 +55,13 @@ private object MsgConvertor {
         val text = element.textElement
         val elem = Element.newBuilder()
         if (text.atType != MsgConstant.ATTYPEUNKNOWN) {
+            elem.type = ElementType.AT
             elem.setAt(AtElement.newBuilder().apply {
                 this.uid = text.atNtUid
                 this.uin = ContactHelper.getUinByUidAsync(text.atNtUid).toLong()
             })
         } else {
+            elem.type = ElementType.TEXT
             elem.setText(TextElement.newBuilder().apply {
                 this.text = text.content
             })
@@ -71,6 +73,7 @@ private object MsgConvertor {
         val face = element.faceElement
         val elem = Element.newBuilder()
         if (face.faceType == 5) {
+            elem.type = ElementType.POKE
             elem.setPoke(PokeElement.newBuilder().apply {
                 this.id = face.vaspokeId
                 this.type = face.pokeType
@@ -78,28 +81,43 @@ private object MsgConvertor {
             })
         } else {
             when (face.faceIndex) {
-                114 -> elem.setBasketball(BasketballElement.newBuilder().apply {
-                    this.id = face.resultId.ifNullOrEmpty { "0" }?.toInt() ?: 0
-                })
+                114 -> {
+                    elem.type = ElementType.BASKETBALL
+                    elem.setBasketball(BasketballElement.newBuilder().apply {
+                        this.id = face.resultId.ifNullOrEmpty { "0" }?.toInt() ?: 0
+                    })
+                }
 
-                358 -> elem.setDice(DiceElement.newBuilder().apply {
-                    this.id = face.resultId.ifNullOrEmpty { "0" }?.toInt() ?: 0
-                })
+                358 -> {
+                    elem.type = ElementType.DICE
+                    elem.setDice(DiceElement.newBuilder().apply {
+                        this.id = face.resultId.ifNullOrEmpty { "0" }?.toInt() ?: 0
+                    })
+                }
 
-                359 -> elem.setRps(RpsElement.newBuilder().apply {
-                    this.id = face.resultId.ifNullOrEmpty { "0" }?.toInt() ?: 0
-                })
+                359 -> {
+                    elem.type = ElementType.RPS
+                    elem.setRps(RpsElement.newBuilder().apply {
+                        this.id = face.resultId.ifNullOrEmpty { "0" }?.toInt() ?: 0
+                    })
+                }
 
-                394 -> elem.setFace(FaceElement.newBuilder().apply {
-                    this.id = face.faceIndex
-                    this.isBig = face.faceType == 3
-                    this.result = face.resultId.ifNullOrEmpty { "1" }?.toInt() ?: 1
-                })
+                394 -> {
+                    elem.type = ElementType.FACE
+                    elem.setFace(FaceElement.newBuilder().apply {
+                        this.id = face.faceIndex
+                        this.isBig = face.faceType == 3
+                        this.result = face.resultId.ifNullOrEmpty { "1" }?.toInt() ?: 1
+                    })
+                }
 
-                else -> elem.setFace(FaceElement.newBuilder().apply {
-                    this.id = face.faceIndex
-                    this.isBig = face.faceType == 3
-                })
+                else -> {
+                    elem.type = ElementType.FACE
+                    elem.setFace(FaceElement.newBuilder().apply {
+                        this.id = face.faceIndex
+                        this.isBig = face.faceType == 3
+                    })
+                }
             }
         }
         return Result.success(elem.build())
@@ -134,9 +152,10 @@ private object MsgConvertor {
         LogCenter.log({ "receive image: $image" }, Level.DEBUG)
 
         val elem = Element.newBuilder()
+        elem.type = ElementType.IMAGE
         elem.setImage(ImageElement.newBuilder().apply {
-            this.fileMd5 = md5
-            this.fileUrl = when (record.chatType) {
+            this.file = md5
+            this.url = when (record.chatType) {
                 MsgConstant.KCHATTYPEDISC, MsgConstant.KCHATTYPEGROUP -> RichProtoSvc.getGroupPicDownUrl(
                     originalUrl = originalUrl,
                     md5 = md5,
@@ -175,7 +194,7 @@ private object MsgConvertor {
                 else -> throw UnsupportedOperationException("Not supported chat type: ${record.chatType}")
             }
             this.type =
-                if (image.isFlashPic == true) ImageElement.ImageType.FLASH else if (image.original) ImageElement.ImageType.ORIGIN else ImageElement.ImageType.COMMON
+                if (image.isFlashPic == true) ImageType.FLASH else if (image.original) ImageType.ORIGIN else ImageType.COMMON
             this.subType = image.picSubType
         })
 
@@ -190,8 +209,9 @@ private object MsgConvertor {
             ptt.fileName.substring(5)
         else ptt.md5HexStr
 
+        elem.type = ElementType.VOICE
         elem.setVoice(VoiceElement.newBuilder().apply {
-            this.fileUrl = when (record.chatType) {
+            this.url = when (record.chatType) {
                 MsgConstant.KCHATTYPEC2C -> RichProtoSvc.getC2CPttDownUrl("0", ptt.fileUuid)
                 MsgConstant.KCHATTYPEGROUP, MsgConstant.KCHATTYPEGUILD -> RichProtoSvc.getGroupPttDownUrl(
                     "0",
@@ -201,7 +221,7 @@ private object MsgConvertor {
 
                 else -> throw UnsupportedOperationException("Not supported chat type: ${record.chatType}")
             }
-            this.fileMd5 = md5
+            this.file = md5
             this.magic = ptt.voiceChangeType != MsgConstant.KPTTVOICECHANGETYPENONE
         })
 
@@ -218,9 +238,10 @@ private object MsgConvertor {
                 it[it.size - 2].hex2ByteArray()
             }
         } else video.fileName.split(".")[0].hex2ByteArray()
+        elem.type = ElementType.VIDEO
         elem.setVideo(VideoElement.newBuilder().apply {
-            this.fileMd5 = md5.toHexString()
-            this.fileUrl = when (record.chatType) {
+            this.file = md5.toHexString()
+            this.url = when (record.chatType) {
                 MsgConstant.KCHATTYPEGROUP -> RichProtoSvc.getGroupVideoDownUrl("0", md5, video.fileUuid)
                 MsgConstant.KCHATTYPEC2C -> RichProtoSvc.getC2CVideoDownUrl("0", md5, video.fileUuid)
                 MsgConstant.KCHATTYPEGUILD -> RichProtoSvc.getGroupVideoDownUrl("0", md5, video.fileUuid)
@@ -233,6 +254,7 @@ private object MsgConvertor {
     suspend fun convertMarketFace(record: MsgRecord, element: MsgElement): Result<Element> {
         val marketFace = element.marketFaceElement
         val elem = Element.newBuilder()
+        elem.type = ElementType.MARKET_FACE
         elem.setMarketFace(MarketFaceElement.newBuilder().apply {
             this.id = marketFace.emojiId.lowercase()
         })
@@ -245,6 +267,7 @@ private object MsgConvertor {
         when (data["app"].asString) {
             "com.tencent.multimsg" -> {
                 val info = data["meta"].asJsonObject["detail"].asJsonObject
+                elem.type = ElementType.FORWARD
                 elem.setForward(ForwardElement.newBuilder().apply {
                     this.resId = info["resid"].asString
                     this.uniseq = info["uniseq"].asString
@@ -257,6 +280,7 @@ private object MsgConvertor {
 
             "com.tencent.troopsharecard" -> {
                 val info = data["meta"].asJsonObject["contact"].asJsonObject
+                elem.type = ElementType.CONTACT
                 elem.setContact(ContactElement.newBuilder().apply {
                     this.scene = Scene.GROUP
                     this.peer = info["jumpUrl"].asString.split("group_code=")[1]
@@ -265,6 +289,7 @@ private object MsgConvertor {
 
             "com.tencent.contact.lua" -> {
                 val info = data["meta"].asJsonObject["contact"].asJsonObject
+                elem.type = ElementType.CONTACT
                 elem.setContact(ContactElement.newBuilder().apply {
                     this.scene = Scene.FRIEND
                     this.peer = info["jumpUrl"].asString.split("uin=")[1]
@@ -273,6 +298,7 @@ private object MsgConvertor {
 
             "com.tencent.map" -> {
                 val info = data["meta"].asJsonObject["Location.Search"].asJsonObject
+                elem.type = ElementType.LOCATION
                 elem.setLocation(LocationElement.newBuilder().apply {
                     this.lat = info["lat"].asString.toFloat()
                     this.lon = info["lng"].asString.toFloat()
@@ -281,9 +307,12 @@ private object MsgConvertor {
                 })
             }
 
-            else -> elem.setJson(JsonElement.newBuilder().apply {
-                this.json = data.toString()
-            })
+            else -> {
+                elem.type = ElementType.JSON
+                elem.setJson(JsonElement.newBuilder().apply {
+                    this.json = data.toString()
+                })
+            }
         }
         return Result.success(elem.build())
     }
@@ -291,6 +320,7 @@ private object MsgConvertor {
     suspend fun convertReply(record: MsgRecord, element: MsgElement): Result<Element> {
         val reply = element.replyElement
         val elem = Element.newBuilder()
+        elem.type = ElementType.REPLY
         elem.setReply(ReplyElement.newBuilder().apply {
             val msgSeq = reply.replayMsgSeq
             val contact = MessageHelper.generateContact(record)
@@ -304,9 +334,9 @@ private object MsgConvertor {
             }
             if (sourceRecords.isNullOrEmpty()) {
                 LogCenter.log("无法查询到回复的消息ID: seq = $msgSeq", Level.WARN)
-                this.messageId = reply.replayMsgId.toString()
+                this.messageId = reply.replayMsgId
             } else {
-                this.messageId = sourceRecords.first().msgId.toString()
+                this.messageId = sourceRecords.first().msgId
             }
         })
         return Result.success(elem.build())
@@ -332,6 +362,7 @@ private object MsgConvertor {
             else -> RichProtoSvc.getGroupFileDownUrl(record.peerUin, fileId, bizId)
         }
         val elem = Element.newBuilder()
+        elem.type = ElementType.FILE
         elem.setFile(FileElement.newBuilder().apply {
             this.name = fileName
             this.size = fileSize
@@ -347,6 +378,7 @@ private object MsgConvertor {
     suspend fun convertMarkdown(record: MsgRecord, element: MsgElement): Result<Element> {
         val markdown = element.markdownElement
         val elem = Element.newBuilder()
+        elem.type = ElementType.MARKDOWN
         elem.setMarkdown(MarkdownElement.newBuilder().apply {
             this.markdown = markdown.content
         })
@@ -356,6 +388,7 @@ private object MsgConvertor {
     suspend fun convertBubbleFace(record: MsgRecord, element: MsgElement): Result<Element> {
         val bubbleFace = element.faceBubbleElement
         val elem = Element.newBuilder()
+        elem.type = ElementType.BUBBLE_FACE
         elem.setBubbleFace(BubbleFaceElement.newBuilder().apply {
             this.id = bubbleFace.yellowFaceInfo.index
             this.count = bubbleFace.faceCount ?: 1
@@ -366,6 +399,7 @@ private object MsgConvertor {
     suspend fun convertInlineKeyboard(record: MsgRecord, element: MsgElement): Result<Element> {
         val inlineKeyboard = element.inlineKeyboardElement
         val elem = Element.newBuilder()
+        elem.type = ElementType.BUTTON
         elem.setButton(ButtonElement.newBuilder().apply {
             inlineKeyboard.rows.forEach { row ->
                 this.addRows(ButtonRow.newBuilder().apply {
