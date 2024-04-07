@@ -2,8 +2,15 @@
 package kritor.client
 
 import com.google.protobuf.ByteString
+import io.grpc.CallOptions
+import io.grpc.Channel
+import io.grpc.ClientCall
+import io.grpc.ClientInterceptor
+import io.grpc.ForwardingClientCall
+import io.grpc.Metadata
 import io.grpc.ManagedChannel
 import io.grpc.ManagedChannelBuilder
+import io.grpc.MethodDescriptor
 import io.kritor.common.Request
 import io.kritor.common.Response
 import io.kritor.event.EventServiceGrpcKt
@@ -23,6 +30,8 @@ import kritor.handlers.handleGrpc
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.internals.GlobalEventTransmitter
+import moe.fuqiuluo.shamrock.tools.ShamrockVersion
+import qq.service.ticket.TicketHelper
 import kotlin.time.Duration.Companion.seconds
 
 internal class KritorClient(
@@ -39,11 +48,26 @@ internal class KritorClient(
             if (::channel.isInitialized && isActive()){
                 channel.shutdown()
             }
+            val interceptor = object : ClientInterceptor {
+                override fun <ReqT, RespT> interceptCall(method: MethodDescriptor<ReqT, RespT>, callOptions: CallOptions, next: Channel): ClientCall<ReqT, RespT> {
+                    return object : ForwardingClientCall.SimpleForwardingClientCall<ReqT, RespT>(next.newCall(method, callOptions)) {
+                        override fun start(responseListener: Listener<RespT>, headers: Metadata) {
+                            headers.merge(Metadata().apply {
+                                put(Metadata.Key.of("kritor-self-uin", Metadata.ASCII_STRING_MARSHALLER), TicketHelper.getUin())
+                                put(Metadata.Key.of("kritor-self-uid", Metadata.ASCII_STRING_MARSHALLER), TicketHelper.getUid())
+                                put(Metadata.Key.of("kritor-self-version", Metadata.ASCII_STRING_MARSHALLER), "OpenShamrock-$ShamrockVersion")
+                            })
+                            super.start(responseListener, headers)
+                        }
+                    }
+                }
+            }
             channel = ManagedChannelBuilder
                 .forAddress(host, port)
                 .usePlaintext()
                 .enableRetry() // 允许尝试
                 .executor(Dispatchers.IO.asExecutor()) // 使用协程的调度器
+                .intercept(interceptor)
                 .build()
         }.onFailure {
             LogCenter.log("KritorClient start failed: ${it.stackTraceToString()}", Level.ERROR)
