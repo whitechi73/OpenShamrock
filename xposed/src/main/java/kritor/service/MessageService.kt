@@ -463,7 +463,7 @@ internal object MessageService : MessageServiceGrpcKt.MessageServiceCoroutineImp
             request.contact.longPeer(),
             msg.msgSeq.toULong(),
             request.faceId.toString(),
-            request.isComment
+            request.isSet
         )
         return ReactMessageWithEmojiResponse.newBuilder().build()
     }
