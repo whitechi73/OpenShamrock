@@ -97,7 +97,7 @@ object NtMsgConvertor {
         ElementType.JSON to ::jsonConvertor,
         ElementType.FORWARD to ::forwardConvertor,
         ElementType.MARKDOWN to ::markdownConvertor,
-        ElementType.BUTTON to ::buttonConvertor,
+        ElementType.KEYBOARD to ::buttonConvertor,
     )
 
     suspend fun convertToNtMsgs(contact: Contact, msgId: Long, msgs: Messages): ArrayList<MsgElement> {
@@ -848,7 +848,7 @@ object NtMsgConvertor {
         elem.elementType = MsgConstant.KELEMTYPEINLINEKEYBOARD
         val rows = arrayListOf<InlineKeyboardRow>()
 
-        val keyboard = sourceButton.button
+        val keyboard = sourceButton.keyboard
         keyboard.rowsList.forEach { row ->
             val buttons = arrayListOf<InlineKeyboardButton>()
             row.buttonsList.forEach { button ->

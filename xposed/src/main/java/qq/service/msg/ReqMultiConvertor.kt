@@ -511,13 +511,13 @@ suspend fun List<Element>.toRichText(contact: Contact): Result<Pair<String, Rich
                     elems.add(elem)
                     summary.append("[Markdown消息]")
                 }
-                Element.ElementType.BUTTON -> {
+                Element.ElementType.KEYBOARD -> {
                     val elem = Elem(
                         commonElem = CommonElem(
                             serviceType = 46,
                             elem = ButtonExtra(
                                 field1 = Object1(
-                                    rows = it.button.rowsList.map { row ->
+                                    rows = it.keyboard.rowsList.map { row ->
                                         Row(buttons = row.buttonsList.map { button ->
                                             val renderData = button.renderData
                                             val action = button.action
@@ -544,7 +544,7 @@ suspend fun List<Element>.toRichText(contact: Contact): Result<Pair<String, Rich
                                             )
                                         })
                                     },
-                                    appid = it.button.botAppid.toULong()
+                                    appid = it.keyboard.botAppid.toULong()
                                 )
                             ).toByteArray(),
                             businessType = 1

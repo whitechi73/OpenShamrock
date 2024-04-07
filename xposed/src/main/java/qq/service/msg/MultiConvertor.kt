@@ -227,9 +227,9 @@ suspend fun List<Elem>.toKritorResponseMessages(contact: Contact): ArrayList<Ele
                 46 -> {
                     val buttonExtra = commonElem.elem!!.decodeProtobuf<ButtonExtra>()
                     kritorMessages.add(
-                        Element.newBuilder().setButton(ButtonElement.newBuilder().apply {
+                        Element.newBuilder().setKeyboard(KeyboardElement.newBuilder().apply {
                             this.addAllRows(buttonExtra.field1!!.rows!!.map { row ->
-                                ButtonRow.newBuilder().apply {
+                                KeyboardRow.newBuilder().apply {
                                     this.addAllButtons(row.buttons!!.map { button ->
                                         Button.newBuilder().apply {
                                             this.id = button.id

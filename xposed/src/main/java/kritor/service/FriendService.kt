@@ -225,8 +225,8 @@ internal object FriendService : FriendServiceGrpcKt.FriendServiceCoroutineImplBa
     }
 
     @Grpc("FriendService", "GetUidByUin")
-    override suspend fun getUidByUin(request: GetUidRequest): GetUidResponse {
-        return GetUidResponse.newBuilder().apply {
+    override suspend fun getUidByUin(request: GetUidByUinRequest): GetUidByUinResponse {
+        return GetUidByUinResponse.newBuilder().apply {
             request.targetUinsList.forEach {
                 putUidMap(it, ContactHelper.getUidByUinAsync(it))
             }

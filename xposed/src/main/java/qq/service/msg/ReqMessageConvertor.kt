@@ -366,9 +366,9 @@ private object ReqMsgConvertor {
     suspend fun convertInlineKeyboard(contact: Contact, element: MsgElement): Result<Element> {
         val inlineKeyboard = element.inlineKeyboardElement
         val elem = Element.newBuilder()
-        elem.setButton(ButtonElement.newBuilder().apply {
+        elem.setKeyboard(KeyboardElement.newBuilder().apply {
             this.addAllRows(inlineKeyboard.rows.map { row ->
-                ButtonRow.newBuilder().apply {
+                KeyboardRow.newBuilder().apply {
                     this.addAllButtons(row.buttons.map { button ->
                         Button.newBuilder().apply {
                             this.id = button.id

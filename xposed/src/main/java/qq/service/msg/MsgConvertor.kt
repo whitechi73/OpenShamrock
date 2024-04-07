@@ -401,10 +401,10 @@ private object MsgConvertor {
     suspend fun convertInlineKeyboard(record: MsgRecord, element: MsgElement): Result<Element> {
         val inlineKeyboard = element.inlineKeyboardElement
         val elem = Element.newBuilder()
-        elem.type = ElementType.BUTTON
-        elem.setButton(ButtonElement.newBuilder().apply {
+        elem.type = ElementType.KEYBOARD
+        elem.setKeyboard(KeyboardElement.newBuilder().apply {
             inlineKeyboard.rows.forEach { row ->
-                this.addRows(ButtonRow.newBuilder().apply {
+                    this.addRows(KeyboardRow.newBuilder().apply {
                     row.buttons.forEach buttonsLoop@{ button ->
                         if (button == null) return@buttonsLoop
                         this.addButtons(Button.newBuilder().apply {
