@@ -24,12 +24,12 @@ internal object GlobalEventTransmitter : QQInterfaces() {
         MutableSharedFlow<NoticeEvent>()
     }
     private val requestEventFlow by lazy {
-        MutableSharedFlow<RequestsEvent>()
+        MutableSharedFlow<RequestEvent>()
     }
 
     private suspend fun pushNotice(noticeEvent: NoticeEvent) = noticeEventFlow.emit(noticeEvent)
 
-    private suspend fun pushRequest(requestEvent: RequestsEvent) = requestEventFlow.emit(requestEvent)
+    private suspend fun pushRequest(requestEvent: RequestEvent) = requestEventFlow.emit(requestEvent)
 
     private suspend fun transMessageEvent(record: MsgRecord, message: PushMessageBody) =
         MessageEventFlow.emit(record to message)
@@ -484,13 +484,13 @@ internal object GlobalEventTransmitter : QQInterfaces() {
      */
     object RequestTransmitter {
         suspend fun transFriendApp(time: Long, operator: Long, tipText: String, flag: String): Boolean {
-            pushRequest(RequestsEvent.newBuilder().apply {
-                this.type = RequestsEvent.RequestType.FRIEND_APPLY
+            pushRequest(RequestEvent.newBuilder().apply {
+                this.type = RequestEvent.RequestType.FRIEND_APPLY
                 this.time = time.toInt()
+                this.requestId = flag
                 this.friendApply = FriendApplyRequest.newBuilder().apply {
                     this.applierUin = operator
                     this.message = tipText
-                    this.flag = flag
                 }.build()
             }.build())
             return true
@@ -504,15 +504,15 @@ internal object GlobalEventTransmitter : QQInterfaces() {
             groupCode: Long,
             flag: String
         ): Boolean {
-            pushRequest(RequestsEvent.newBuilder().apply {
-                this.type = RequestsEvent.RequestType.GROUP_APPLY
+            pushRequest(RequestEvent.newBuilder().apply {
+                this.type = RequestEvent.RequestType.GROUP_APPLY
                 this.time = time.toInt()
+                this.requestId = flag
                 this.groupApply = GroupApplyRequest.newBuilder().apply {
                     this.applierUid = applierUid
                     this.applierUin = applierUin
                     this.groupId = groupCode
                     this.reason = reason
-                    this.flag = flag
                 }.build()
             }.build())
             return true
@@ -535,7 +535,7 @@ internal object GlobalEventTransmitter : QQInterfaces() {
         }
     }
 
-    suspend inline fun onRequestEvent(collector: FlowCollector<RequestsEvent>) {
+    suspend inline fun onRequestEvent(collector: FlowCollector<RequestEvent>) {
         requestEventFlow.collect {
             GlobalScope.launch {
                 collector.emit(it)

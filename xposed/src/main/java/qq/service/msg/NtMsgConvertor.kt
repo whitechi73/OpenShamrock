@@ -663,14 +663,14 @@ object NtMsgConvertor {
                 }
             }
 
-            MusicPlatform.NetEase -> {
+            MusicPlatform.NETEASE -> {
                 val id = sourceMusic.music.id
                 if (!MusicHelper.tryShare163MusicById(contact, msgId, id)) {
                     LogCenter.log("无法发送网易云音乐分享", Level.ERROR)
                 }
             }
 
-            MusicPlatform.Custom -> {
+            MusicPlatform.CUSTOM -> {
                 val data = sourceMusic.music.custom
                 ArkMsgHelper.tryShareMusic(
                     contact,
