@@ -117,7 +117,7 @@ internal object GroupFileHelper: QQInterfaces() {
                                 this.fileSize = fileInfo.uint64_file_size.get()
                                 this.busId = fileInfo.uint32_bus_id.get()
                                 this.uploadTime = fileInfo.uint32_upload_time.get()
-                                this.deadTime = fileInfo.uint32_dead_time.get()
+                                this.expireTime = fileInfo.uint32_dead_time.get()
                                 this.modifyTime = fileInfo.uint32_modify_time.get()
                                 this.downloadTimes = fileInfo.uint32_download_times.get()
                                 this.uploader = fileInfo.uint64_uploader_uin.get()

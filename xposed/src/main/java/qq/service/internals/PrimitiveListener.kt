@@ -126,7 +126,7 @@ internal object PrimitiveListener {
         LogCenter.log("私聊戳一戳: $operation $action $target $suffix")
 
         if (!GlobalEventTransmitter.PrivateNoticeTransmitter
-                .transPrivatePoke(msgTime, operation.toLong(), target.toLong(), action, suffix, actionImg)
+                .transPrivatePoke(msgTime, operation.toLong(), action, suffix, actionImg)
         ) {
             LogCenter.log("私聊戳一戳推送失败！", Level.WARN)
         }
@@ -161,7 +161,7 @@ internal object PrimitiveListener {
         }
         LogCenter.log("来自$applier 的好友申请：$msg ($source)")
         if (!GlobalEventTransmitter.RequestTransmitter
-                .transFriendApp(msgTime, applier, msg, flag)
+                .transFriendApp(msgTime, applierUid, applier, msg, flag)
         ) {
             LogCenter.log("好友申请推送失败！", Level.WARN)
         }
@@ -320,8 +320,8 @@ internal object PrimitiveListener {
             it.key to it.value
         }
 
-        val target = params["uin_str2"] ?: params["mqq_uin"] ?: return
-        val operation = params["uin_str1"] ?: return
+        val target = params["uin_str2"] ?: params["mqq_uin"] ?: ""
+        val operator = params["uin_str1"] ?: ""
         val suffix = params["suffix_str"] ?: ""
         val actionImg = params["action_img_url"] ?: ""
         val action = params["alt_str1"]
@@ -332,9 +332,9 @@ internal object PrimitiveListener {
 
         when (detail.type) {
             1061u -> {
-                LogCenter.log("群戳一戳($groupId): $operation $action $target $suffix")
+                LogCenter.log("群戳一戳($groupId): $operator $action $target $suffix")
                 if (!GlobalEventTransmitter.GroupNoticeTransmitter
-                        .transGroupPoke(time, operation.toLong(), target.toLong(), action, suffix, actionImg, groupId)
+                        .transGroupPoke(time, operator.toLong(), target.toLong(), action, suffix, actionImg, groupId)
                 ) {
                     LogCenter.log("群戳一戳推送失败！", Level.WARN)
                 }
@@ -506,7 +506,7 @@ internal object PrimitiveListener {
         if (wholeBan) {
             LogCenter.log("群全员禁言($groupCode): $operator -> ${if (rawDuration != 0) "开启" else "关闭"}")
             if (!GlobalEventTransmitter.GroupNoticeTransmitter
-                    .transGroupWholeBan(msgTime, groupCode, operator, rawDuration != 0)
+                    .transGroupWholeBan(msgTime, groupCode, operatorUid, operator, rawDuration != 0)
             ) {
                 LogCenter.log("群禁言推送失败！", Level.WARN)
             }
@@ -657,7 +657,7 @@ internal object PrimitiveListener {
             "$time;$groupCode;$uin"
         }
         if (!GlobalEventTransmitter.RequestTransmitter
-                .transGroupApply(time, invitor, invitorUid, "", groupCode, flag)
+                .transGroupInvite(time, invitorUid, invitor, groupCode, flag)
         ) {
             LogCenter.log("邀请入群推送失败！", Level.WARN)
         }

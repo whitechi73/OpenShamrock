@@ -97,7 +97,6 @@ object AioListener : SimpleKernelMsgListener() {
     }
 
     private suspend fun onC2CFileMsg(record: MsgRecord) {
-        val userId = record.senderUin
         val fileMsg = record.elements.firstOrNull {
             it.elementType == MsgConstant.KELEMTYPEFILE
         }?.fileElement ?: kotlin.run {
@@ -113,7 +112,7 @@ object AioListener : SimpleKernelMsgListener() {
         val url = RichProtoSvc.getC2CFileDownUrl(fileId, fileSubId)
 
         if (!GlobalEventTransmitter.FileNoticeTransmitter
-                .transPrivateFileEvent(record.msgTime, userId, fileId, fileSubId, fileName, fileSize, expireTime, url)
+                .transPrivateFileEvent(record.msgTime, record.senderUid, record.senderUin, fileId, fileSubId, fileName, fileSize, expireTime, url)
         ) {
             LogCenter.log("私聊文件消息推送失败 -> FileNoticeTransmitter", Level.WARN)
         }
@@ -121,7 +120,6 @@ object AioListener : SimpleKernelMsgListener() {
 
     private suspend fun onGroupFileMsg(record: MsgRecord) {
         val groupId = record.peerUin
-        val userId = record.senderUin
         val fileMsg = record.elements.firstOrNull {
             it.elementType == MsgConstant.KELEMTYPEFILE
         }?.fileElement ?: kotlin.run {
@@ -137,7 +135,7 @@ object AioListener : SimpleKernelMsgListener() {
         val url = RichProtoSvc.getGroupFileDownUrl(record.peerUin, uuid, bizId)
 
         if (!GlobalEventTransmitter.FileNoticeTransmitter
-                .transGroupFileEvent(record.msgTime, userId, groupId, uuid, fileName, fileSize, bizId, url)
+                .transGroupFileEvent(record.msgTime, record.senderUid, record.senderUin, groupId, uuid, fileName, fileSize, bizId, url)
         ) {
             LogCenter.log("群聊文件消息推送失败 -> FileNoticeTransmitter", Level.WARN)
         }

@@ -23,4 +23,11 @@ internal object QsignService: QsignServiceGrpcKt.QsignServiceCoroutineImplBase()
             this.result = ByteString.copyFrom(Dandelion.getInstance().fly(request.data, request.salt.toByteArray()))
         }.build()
     }
+
+    @Grpc("QsignService", "GetCmdWhitelist")
+    override suspend fun getCmdWhitelist(request: GetCmdWhitelistRequest): GetCmdWhitelistResponse {
+        return GetCmdWhitelistResponse.newBuilder().apply {
+            addAllCommands(FEKit.getInstance().cmdWhiteList)
+        }.build()
+    }
 }
