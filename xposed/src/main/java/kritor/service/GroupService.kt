@@ -3,6 +3,7 @@ package kritor.service
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
 import io.kritor.group.*
+import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.helper.TroopHonorHelper.decodeHonor
 import moe.fuqiuluo.shamrock.tools.ifNullOrEmpty
 import qq.service.contact.ContactHelper
@@ -213,9 +214,10 @@ internal object GroupService : GroupServiceGrpcKt.GroupServiceCoroutineImplBase(
         return GetGroupListResponse.newBuilder().apply {
             groupList.forEach { groupInfo ->
                 this.addGroupsInfo(GroupInfo.newBuilder().apply {
-                    groupId = groupInfo.troopcode.toLong()
+                    groupId = groupInfo.troopcode.ifNullOrEmpty { groupInfo.uin }.ifNullOrEmpty { groupInfo.troopuin }?.toLong() ?: 0
                     groupName = groupInfo.troopname.ifNullOrEmpty { groupInfo.troopRemark }
-                        .ifNullOrEmpty { groupInfo.newTroopName } ?: ""
+                        .ifNullOrEmpty { groupInfo.newTroopName }
+                        ?: ""
                     groupRemark = groupInfo.troopRemark ?: ""
                     owner = groupInfo.troopowneruin?.toLong() ?: 0
                     addAllAdmins(GroupHelper.getAdminList(groupId))

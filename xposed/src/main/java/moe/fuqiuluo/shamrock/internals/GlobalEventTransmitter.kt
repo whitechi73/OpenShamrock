@@ -7,6 +7,7 @@ import com.tencent.qqnt.kernel.nativeinterface.MsgRecord
 import io.kritor.event.*
 import io.kritor.common.PushMessageBody
 import io.kritor.common.Contact
+import io.kritor.common.Scene
 import io.kritor.common.Sender
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
@@ -44,7 +45,7 @@ internal object GlobalEventTransmitter : QQInterfaces() {
                 this.messageId = record.msgId.toString()
                 this.messageSeq = record.msgSeq
                 this.contact = Contact.newBuilder().apply {
-                    this.scene = scene
+                    this.scene = Scene.GROUP
                     this.peer = record.peerUin.toString()
                     this.subPeer = record.peerUid
                 }.build()
@@ -67,7 +68,7 @@ internal object GlobalEventTransmitter : QQInterfaces() {
                 this.messageId = record.msgId.toString()
                 this.messageSeq = record.msgSeq
                 this.contact = Contact.newBuilder().apply {
-                    this.scene = scene
+                    this.scene = Scene.FRIEND
                     this.peer = record.senderUin.toString()
                     this.subPeer = record.senderUid
                 }.build()
@@ -92,7 +93,7 @@ internal object GlobalEventTransmitter : QQInterfaces() {
                 this.messageId = record.msgId.toString()
                 this.messageSeq = record.msgSeq
                 this.contact = Contact.newBuilder().apply  {
-                    this.scene = scene
+                    this.scene = if (groupCode > 0) Scene.STRANGER_FROM_GROUP else Scene.STRANGER
                     this.peer = record.senderUin.toString()
                     this.subPeer = groupCode.toString()
                 }.build()
@@ -115,7 +116,7 @@ internal object GlobalEventTransmitter : QQInterfaces() {
                 this.messageId = record.msgId.toString()
                 this.messageSeq = record.msgSeq
                 this.contact = Contact.newBuilder().apply {
-                    this.scene = scene
+                    this.scene = Scene.GUILD
                     this.peer = record.guildId ?: ""
                     this.subPeer = record.channelId ?: ""
                 }.build()
