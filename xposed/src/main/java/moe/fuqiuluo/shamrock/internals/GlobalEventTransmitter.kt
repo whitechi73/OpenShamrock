@@ -191,8 +191,8 @@ internal object GlobalEventTransmitter : QQInterfaces() {
                     this.fileId = uuid
                     this.fileName = fileName
                     this.fileSize = fileSize
-                    this.biz = bizId
-                    this.url = url
+                    this.busId = bizId
+                    this.fileUrl = url
                 }.build()
             }.build())
             return true
