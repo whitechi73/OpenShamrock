@@ -372,8 +372,18 @@ internal object PrimitiveListener {
         }
 
         val operatorUid = event.operatorUid
-        val operator = ContactHelper.getUinByUidAsync(operatorUid).toLong()
-        val target = ContactHelper.getUinByUidAsync(targetUid).toLong()
+        var operator = ContactHelper.getUinByUidAsync(operatorUid).toLong()
+        var target = ContactHelper.getUinByUidAsync(targetUid).toLong()
+        if (target== 0.toLong()){
+            GroupSvc.getTroopMemberInfoByUid(groupCode,targetUid).onSuccess {
+                target=it.uin
+            }
+        }
+        if (operator== 0.toLong()){
+            GroupSvc.getTroopMemberInfoByUid(groupCode,operatorUid).onSuccess {
+                operator=it.uin
+            }
+        }
         LogCenter.log("群成员增加($groupCode): $target, type = $type")
 
         if (!GlobalEventTransmitter.GroupNoticeTransmitter
