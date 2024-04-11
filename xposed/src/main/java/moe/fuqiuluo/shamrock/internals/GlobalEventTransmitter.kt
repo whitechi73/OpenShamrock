@@ -47,7 +47,7 @@ internal object GlobalEventTransmitter : QQInterfaces() {
                 this.messageSeq = record.msgSeq
                 this.contact = Contact.newBuilder().apply {
                     this.scene = Scene.GROUP
-                    this.peer = record.senderUid
+                    this.peer = record.peerUin.toString()
                     this.subPeer = record.peerUid
                 }.build()
                 this.sender = Sender.newBuilder().apply {
@@ -284,7 +284,7 @@ internal object GlobalEventTransmitter : QQInterfaces() {
             type: GroupMemberDecreasedNotice.GroupMemberDecreasedType
         ): Boolean {
             pushNotice(NoticeEvent.newBuilder().apply {
-                this.type = NoticeEvent.NoticeType.GROUP_MEMBER_INCREASE
+                this.type = NoticeEvent.NoticeType.GROUP_MEMBER_DECREASE
                 this.time = time.toInt()
                 this.groupMemberDecrease = GroupMemberDecreasedNotice.newBuilder().apply {
                     this.groupId = groupCode
