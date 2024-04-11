@@ -3,7 +3,7 @@ name: Build Shamrock APK
 on:
   workflow_dispatch:
   push:
-    branches: [ master ]
+    branches: [ v1.0.9 ]
     paths-ignore:
       - '**.md'
       - '**.txt'
