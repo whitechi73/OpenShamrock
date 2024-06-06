@@ -21,19 +21,19 @@ private fun formatFileName(file: String): String = file
 
 fun Routing.fetchRes() {
     getOrPost("/get_record") {
-        val file = formatFileName( fetchGetOrThrow("file") )
+        val file = formatFileName( fetchOrThrow("file") )
         val format = fetchOrThrow("out_format")
         call.respondText(GetRecord(file, format), ContentType.Application.Json)
     }
 
     getOrPost("/get_file") {
-        val file = formatFileName( fetchGetOrThrow("file") )
+        val file = formatFileName( fetchOrThrow("file") )
         val fileType = fetchOrThrow("file_type")
         call.respondText(GetFile(file, fileType), ContentType.Application.Json)
     }
 
     getOrPost("/get_image") {
-        val file = formatFileName( fetchGetOrThrow("file") )
+        val file = formatFileName( fetchOrThrow("file") )
         call.respondText(GetImage(file), ContentType.Application.Json)
     }
 
