@@ -1,5 +1,7 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
+import com.tencent.qqnt.kernelpublic.nativeinterface.Contact;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;

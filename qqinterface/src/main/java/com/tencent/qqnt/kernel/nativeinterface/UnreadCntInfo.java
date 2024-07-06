@@ -1,6 +1,7 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
 
+import com.tencent.qqnt.kernelpublic.nativeinterface.Contact;
 
 public final class UnreadCntInfo {
     UnreadCnt allUnreadCnt;

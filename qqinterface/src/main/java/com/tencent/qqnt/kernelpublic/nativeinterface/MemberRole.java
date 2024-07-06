@@ -1,4 +1,4 @@
-package com.tencent.qqnt.kernel.nativeinterface;
+package com.tencent.qqnt.kernelpublic.nativeinterface;
 
 public enum MemberRole {
     UNSPECIFIED,

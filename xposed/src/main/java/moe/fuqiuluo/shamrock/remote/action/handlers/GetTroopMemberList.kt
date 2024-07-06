@@ -1,6 +1,5 @@
 package moe.fuqiuluo.shamrock.remote.action.handlers
 
-import com.tencent.mobileqq.data.Card
 import kotlinx.serialization.json.JsonElement
 import moe.fuqiuluo.qqinterface.servlet.GroupSvc
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
@@ -8,8 +7,8 @@ import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.shamrock.remote.service.data.SimpleTroopMemberInfo
 import moe.fuqiuluo.shamrock.remote.service.data.push.MemberRole
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
-import moe.fuqiuluo.shamrock.tools.ifNullOrEmpty
 import moe.fuqiuluo.symbols.OneBotHandler
+import tencent.im.troop.honor.troop_honor
 
 @OneBotHandler("get_group_member_list")
 internal object GetTroopMemberList : IActionHandler() {
@@ -27,49 +26,48 @@ internal object GetTroopMemberList : IActionHandler() {
         val memberList = GroupSvc.getGroupMemberList(groupId, refresh).onFailure {
             return error(it.message ?: "unknown error", echo, arrayResult = true)
         }.getOrThrow()
-        val prohibitedMemberList = GroupSvc.getProhibitedMemberList(groupId)
-            .getOrDefault(arrayListOf())
-            .associate { it.memberUin to it.shutuptimestap.toLong() }
+//        val prohibitedMemberList = GroupSvc.getProhibitedMemberList(groupId)
+//            .getOrDefault(arrayListOf())
+//            .associate { it.memberUin to it.shutuptimestap.toLong() }
         return ok(arrayListOf<SimpleTroopMemberInfo>().apply {
-            memberList.forEach { info ->
-                if (info.memberuin != "0") {
-                    add(
-                        SimpleTroopMemberInfo(
-                            uin = info.memberuin.toLong(),
-                            name = info.friendnick.ifNullOrEmpty(info.autoremark) ?: "",
-                            showName = info.troopnick.ifNullOrEmpty(info.troopColorNick),
-                            cardName = info.troopnick.ifNullOrEmpty(info.troopColorNick),
-                            distance = info.distance,
-                            honor = GroupSvc.parseHonor(info.honorList),
-                            joinTime = info.join_time,
-                            lastActiveTime = info.last_active_time,
-                            uniqueName = info.mUniqueTitle,
-                            groupId = groupId,
-                            nick = info.friendnick.ifNullOrEmpty(info.autoremark) ?: "",
-                            sex = when (info.sex.toShort()) {
-                                Card.FEMALE -> "female"
-                                Card.MALE -> "male"
-                                else -> "unknown"
-                            },
-                            area = info.alias ?: "",
-                            lastSentTime = info.last_active_time,
-                            level = info.level,
-                            role = GroupSvc.getMemberRole(groupId, info.memberuin.toLong())
-                            /*when {
-                                GroupSvc.getOwner(groupId)
-                                    .toString() == info.memberuin -> MemberRole.Owner
-                                info.memberuin.toLong() in GroupSvc.getAdminList(groupId) -> MemberRole.Admin
+            memberList.values.forEach { info ->
+                add(
+                    SimpleTroopMemberInfo(
+                        uin = info.uin,
+                        name = info.nick ?: "",
+                        showName = info.cardName,
+                        cardName = info.cardName,
+                        distance = 0,
+                        honor = info.groupHonor.let { bytes ->
+                            val honor = troop_honor.GroupUserCardHonor()
+                            honor.mergeFrom(bytes)
+                            honor.id.get()
+                        },
+                        joinTime = info.joinTime.toLong(),
+                        lastActiveTime = info.lastSpeakTime.toLong(),
+                        uniqueName = info.memberSpecialTitle,
+                        groupId = groupId,
+                        nick = info.nick ?: "",
+                        sex = "unknown",
+                        area = "",
+                        lastSentTime = info.lastSpeakTime.toLong(),
+                        level = info.memberLevel,
+                        role = info.role.let { role ->
+                            when (role) {
+                                com.tencent.qqnt.kernelpublic.nativeinterface.MemberRole.OWNER -> MemberRole.Owner
+                                com.tencent.qqnt.kernelpublic.nativeinterface.MemberRole.ADMIN -> MemberRole.Admin
                                 else -> MemberRole.Member
-                            }*/,
-                            unfriendly = false,
-                            title = info.mUniqueTitle ?: "",
-                            titleExpireTime = info.mUniqueTitleExpire,
-                            cardChangeable = GroupSvc.isAdmin(groupId),
-                            age = 0,
-                            shutUpTimestamp = prohibitedMemberList[info.memberuin.toLong()] ?: 0L
-                        )
+                            }
+                        },
+                        unfriendly = false,
+                        title = info.memberSpecialTitle ?: "",
+                        titleExpireTime = info.specialTitleExpireTime.toInt(),
+                        cardChangeable = info.role == com.tencent.qqnt.kernelpublic.nativeinterface.MemberRole.ADMIN,
+                        age = 0,
+                        shutUpTimestamp = info.shutUpTime.toLong()
                     )
-                }
+                )
+
             }
         }, echo)
     }

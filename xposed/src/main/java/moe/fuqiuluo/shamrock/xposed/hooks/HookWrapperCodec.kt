@@ -73,7 +73,7 @@ internal class HookWrapperCodec: IAction {
     }
 
     private fun hookReceive(thiz: Any, thizClass: Class<*>) {
-        val onResponse = thizClass.getDeclaredMethod("onResponse", Integer.TYPE, Any::class.java, Integer.TYPE)
+        val onResponse = thizClass.getDeclaredMethod("onResponse", Integer.TYPE, Any::class.java, Integer.TYPE, ByteArray::class.java)
         //LogCenter.log("HookWrapperCodec: onResponse = $onResponse", Level.INFO)
         DynamicReceiver.register("fake_packet", IPCRequest {
             val uin = it.getStringExtra("package_uin")!!
@@ -90,7 +90,7 @@ internal class HookWrapperCodec: IAction {
             from.setMsgSuccess()
             from.uin = uin
             from.appSeq = seq
-            onResponse.invoke(thiz, 0, from, 0)
+            onResponse.invoke(thiz, 0, from, 0, ByteArray(0))
         })
         thizClass.hookMethod("onResponse").before {
             val from = it.args[1] as FromServiceMsg

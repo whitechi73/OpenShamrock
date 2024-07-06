@@ -1,7 +1,9 @@
 package com.tencent.qphone.base.util;
 
 public abstract class CodecWarpper {
-    public abstract void onResponse(int i2, Object obj, int i3);
+//    public abstract void onResponse(int i2, Object obj, int i3);
+
+    public abstract void onInvalidData(int i2, int i3, String str);
 
     public abstract void onResponse(int i2, Object obj, int i3, byte[] bArr);
 

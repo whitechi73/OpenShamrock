@@ -5,8 +5,10 @@ package moe.fuqiuluo.qqinterface.servlet
 import android.os.Bundle
 import com.tencent.mobileqq.app.QQAppInterface
 import com.tencent.mobileqq.msf.core.MsfCore
+import com.tencent.mobileqq.msf.service.MsfService
 import com.tencent.mobileqq.pb.ByteStringMicro
 import com.tencent.qphone.base.remote.ToServiceMsg
+import com.tencent.qqnt.kernel.api.IKernelService
 import io.ktor.utils.io.core.BytePacketBuilder
 import io.ktor.utils.io.core.readBytes
 import io.ktor.utils.io.core.writeFully
@@ -46,7 +48,7 @@ internal abstract class BaseSvc {
         }
 
         suspend fun sendOidbAW(cmd: String, cmdId: Int, serviceId: Int, data: ByteArray, trpc: Boolean = false, timeout: Long = 5000L): ByteArray? {
-            val seq = MsfCore.getNextSeq()
+            val seq = MsfService.getCore().nextSeq
             val buffer = withTimeoutOrNull(timeout) {
                 suspendCancellableCoroutine { continuation ->
                     launch(Dispatchers.Default) {
@@ -75,7 +77,7 @@ internal abstract class BaseSvc {
         }
 
         suspend fun sendBufferAW(cmd: String, isPb: Boolean, data: ByteArray, timeout: Long = 5000L): ByteArray? {
-            val seq = MsfCore.getNextSeq()
+            val seq = MsfService.getCore().nextSeq
             val buffer = withTimeoutOrNull<ByteArray?>(timeout) {
                 suspendCancellableCoroutine { continuation ->
                     launch(Dispatchers.Default) {
@@ -139,7 +141,7 @@ internal abstract class BaseSvc {
             app.sendToService(to)
         }
 
-        fun sendBuffer(cmd: String, isPb: Boolean, buffer: ByteArray, seq: Int = MsfCore.getNextSeq()) {
+        fun sendBuffer(cmd: String, isPb: Boolean, buffer: ByteArray, seq: Int = MsfService.getCore().nextSeq) {
             val toServiceMsg = ToServiceMsg("mobileqq.service", app.currentUin, cmd)
             toServiceMsg.putWupBuffer(buffer)
             toServiceMsg.addAttribute("req_pb_protocol_flag", isPb)
@@ -158,7 +160,7 @@ internal abstract class BaseSvc {
     }
 
     protected suspend fun sendAW(toServiceMsg: ToServiceMsg, timeout: Long = 5000L): ByteArray? {
-        val seq = MsfCore.getNextSeq()
+        val seq = MsfService.getCore().nextSeq
         val buffer = withTimeoutOrNull<ByteArray?>(timeout) {
             suspendCancellableCoroutine { continuation ->
                 launch(Dispatchers.Default) {

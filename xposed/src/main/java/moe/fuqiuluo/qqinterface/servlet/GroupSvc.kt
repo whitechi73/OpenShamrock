@@ -41,12 +41,10 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.encodeToByteArray
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.decodeFromStream
 import kotlinx.serialization.json.jsonObject
-
 import moe.fuqiuluo.qqinterface.servlet.TicketSvc.getLongUin
 import moe.fuqiuluo.qqinterface.servlet.TicketSvc.getUin
 import moe.fuqiuluo.qqinterface.servlet.structures.GroupAtAllRemainInfo
@@ -75,10 +73,10 @@ import moe.fuqiuluo.shamrock.utils.FileUtils
 import moe.fuqiuluo.shamrock.utils.PlatformUtils
 import moe.fuqiuluo.shamrock.xposed.helper.AppRuntimeFetcher
 import moe.fuqiuluo.shamrock.xposed.helper.NTServiceFetcher
-import protobuf.oidb.cmd0xf16.Oidb0xf16
-import protobuf.oidb.cmd0xf16.SetGroupRemarkReq
 import mqq.app.MobileQQ
 import protobuf.auto.toByteArray
+import protobuf.oidb.cmd0xf16.Oidb0xf16
+import protobuf.oidb.cmd0xf16.SetGroupRemarkReq
 import tencent.im.group.group_member_info
 import tencent.im.oidb.cmd0x88d.oidb_0x88d
 import tencent.im.oidb.cmd0x899.oidb_0x899
@@ -165,22 +163,62 @@ internal object GroupSvc: BaseSvc() {
         sendOidb("OidbSvc.0xed3", 3795, 1, req.toByteArray())
     }
 
-    suspend fun getGroupMemberList(groupId: Long, refresh: Boolean): Result<List<TroopMemberInfo>> {
-        val service = app.getRuntimeService(ITroopMemberInfoService::class.java, "all")
-        var memberList = service.getAllTroopMembers(groupId.toString())
-        if (refresh || memberList == null) {
-            memberList = requestTroopMemberInfo(service, groupId).onFailure {
-                return Result.failure(Exception("获取群成员列表失败"))
-            }.getOrThrow()
-        }
 
-        getGroupInfo(groupId, true).onSuccess {
-            if(it.wMemberNum > memberList.size) {
-                return getGroupMemberList(groupId, true)
+    suspend fun getGroupMemberList(groupId: Long, refresh: Boolean): Result<HashMap<String, MemberInfo>> {
+        val kernelService = NTServiceFetcher.kernelService
+        val sessionService = kernelService.wrapperSession
+        val service = sessionService.groupService
+        val uids = suspendCancellableCoroutine { continuation ->
+            service.getAllMemberList(groupId, refresh) { _, _, groupMemberListResult ->
+                continuation.resume(groupMemberListResult?.ids?.map {
+                    it.uid
+                })
             }
         }
+        val memberMap = suspendCancellableCoroutine { continuation ->
+            service.getMemberInfoForMqq(groupId, ArrayList(uids ?: emptyList()), refresh) { _, _, groupMemberListResult ->
+                continuation.resume(groupMemberListResult.infos)
+            }
+        }
+//        val extInfo = suspendCancellableCoroutine { continuation ->
+//            service.getMemberExtInfo(GroupMemberExtReq().apply {
+//                this.groupCode = groupId
+//                this.beginUin = 0.toString()
+//                this.groupType = ""
+//                this.memberExtFilter = MemberExtInfoFilter().apply {
+//                    this.memberLevelInfoName = 1
+//                    this.memberLevelInfoUin = 1
+//                    this.nickName = 1
+//                    this.specialTitle = 1
+//                    this.memberLevelInfoActiveDay = 1
+//                }
+//                this.richCardNameVer = "1"
+//                this.sourceType = 1
+//                this.uinList = ArrayList(memberMap.values.toList().map {
+//                    it.uin
+//                })
+//            }) { _, _, groupMemberExtListResult ->
+//                continuation.resume(groupMemberExtListResult)
+//            }
+//        }
 
-        return Result.success(memberList)
+        return Result.success(memberMap)
+
+//        var memberList = service.getAllTroopMembers(groupId.toString())
+//        if (refresh || memberList == null) {
+//            memberList = requestTroopMemberInfo(service, groupId).onFailure {
+//                return Result.failure(Exception("获取群成员列表失败"))
+//            }.getOrThrow()
+//        }
+//
+//        getGroupInfo(groupId, true).onSuccess {
+//            if(it.wMemberNum > memberList.size) {
+//                return getGroupMemberList(groupId, true)
+//            }
+//        }
+
+//        return Result.success(memberList)
+
     }
 
     suspend fun getGroupList(refresh: Boolean): Result<List<TroopInfo>> {
@@ -405,11 +443,11 @@ internal object GroupSvc: BaseSvc() {
             }
         }
         return when(getTroopMemberInfoByUinViaNt(groupId, memberUin, 3000).getOrNull()?.role) {
-            com.tencent.qqnt.kernel.nativeinterface.MemberRole.STRANGER -> MemberRole.Stranger
-            com.tencent.qqnt.kernel.nativeinterface.MemberRole.MEMBER -> MemberRole.Member
-            com.tencent.qqnt.kernel.nativeinterface.MemberRole.ADMIN -> MemberRole.Admin
-            com.tencent.qqnt.kernel.nativeinterface.MemberRole.OWNER -> MemberRole.Owner
-            com.tencent.qqnt.kernel.nativeinterface.MemberRole.UNSPECIFIED, null -> when (memberUin) {
+            com.tencent.qqnt.kernelpublic.nativeinterface.MemberRole.STRANGER -> MemberRole.Stranger
+            com.tencent.qqnt.kernelpublic.nativeinterface.MemberRole.MEMBER -> MemberRole.Member
+            com.tencent.qqnt.kernelpublic.nativeinterface.MemberRole.ADMIN -> MemberRole.Admin
+            com.tencent.qqnt.kernelpublic.nativeinterface.MemberRole.OWNER -> MemberRole.Owner
+            com.tencent.qqnt.kernelpublic.nativeinterface.MemberRole.UNSPECIFIED, null -> when (memberUin) {
                 getOwner(groupId) -> MemberRole.Owner
                 in getAdminList(groupId) -> MemberRole.Admin
                 else -> MemberRole.Member

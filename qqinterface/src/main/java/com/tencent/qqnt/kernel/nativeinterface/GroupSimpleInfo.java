@@ -1,5 +1,7 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
+import com.tencent.qqnt.kernelpublic.nativeinterface.MemberRole;
+
 public final class GroupSimpleInfo implements IKernelModel {
     String avatarUrl;
     int discussToGroupMaxMsgSeq;

@@ -1,5 +1,7 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
+import com.tencent.qqnt.kernelpublic.nativeinterface.MemberRole;
+
 import java.util.ArrayList;
 
 

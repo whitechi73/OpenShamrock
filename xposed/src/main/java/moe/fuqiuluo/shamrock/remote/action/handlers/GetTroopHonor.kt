@@ -14,6 +14,7 @@ import moe.fuqiuluo.shamrock.remote.service.data.HONOR_NEWBIE
 import moe.fuqiuluo.shamrock.remote.service.data.HONOR_TALKATIVE
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
 import moe.fuqiuluo.symbols.OneBotHandler
+import tencent.im.troop.honor.troop_honor
 
 @OneBotHandler("get_group_honor_info", ["get_troop_honor_info"])
 internal object GetTroopHonor: IActionHandler() {
@@ -29,11 +30,15 @@ internal object GetTroopHonor: IActionHandler() {
         GroupSvc.getGroupMemberList(groupId, refresh).onFailure {
             return error(it.message ?: "unknown error", echo)
         }.onSuccess { memberList ->
-            memberList.forEach { member ->
-                GroupSvc.parseHonor(member.honorList).forEach {
-                    val honor = decodeHonor(member.memberuin.toLong(), it, member.mHonorRichFlag)
+            memberList.values.forEach { info ->
+                info.groupHonor.let { bytes ->
+                    val honor = troop_honor.GroupUserCardHonor()
+                    honor.mergeFrom(bytes)
+                    honor.id.get()
+                }.forEach {
+                    val honor = decodeHonor(info.uin, it, 0)
                     if (honor != null) {
-                        honor.nick = member.troopnick.ifEmpty { member.friendnick }
+                        honor.nick = info.nick.ifEmpty { info.cardName }
                         honorInfo.add(honor)
                     }
                 }

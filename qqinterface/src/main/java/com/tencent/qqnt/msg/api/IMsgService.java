@@ -2,6 +2,7 @@ package com.tencent.qqnt.msg.api;
 
 import com.tencent.mobileqq.qroute.QRouteApi;
 import com.tencent.qqnt.kernel.nativeinterface.*;
+import com.tencent.qqnt.kernelpublic.nativeinterface.Contact;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

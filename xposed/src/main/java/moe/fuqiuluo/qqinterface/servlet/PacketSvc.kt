@@ -1,8 +1,8 @@
 package moe.fuqiuluo.qqinterface.servlet
 
-import com.tencent.qqnt.kernel.nativeinterface.Contact
 import com.tencent.qqnt.kernel.nativeinterface.IKernelMsgService
 import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
+import com.tencent.qqnt.kernelpublic.nativeinterface.Contact
 import io.ktor.utils.io.core.BytePacketBuilder
 import io.ktor.utils.io.core.readBytes
 import io.ktor.utils.io.core.writeFully

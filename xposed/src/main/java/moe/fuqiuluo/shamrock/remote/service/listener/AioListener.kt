@@ -4,6 +4,7 @@ package moe.fuqiuluo.shamrock.remote.service.listener
 
 import moe.fuqiuluo.shamrock.helper.MessageHelper
 import com.tencent.qqnt.kernel.nativeinterface.*
+import com.tencent.qqnt.kernelpublic.nativeinterface.Contact
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -548,8 +549,8 @@ internal object AioListener : IKernelMsgListener {
         LogCenter.log("onSendMsgError($j2, $contact, $j2, $str)", Level.DEBUG)
     }
 
-    override fun onSysMsgNotification(i2: Int, j2: Long, j3: Long, arrayList: ArrayList<Byte>?) {
-        LogCenter.log("onSysMsgNotification($i2, $j2, $j3, $arrayList)", Level.DEBUG)
+    override fun onSysMsgNotification(i2: Int, j2: Long, j3: Long, z: Boolean, arrayList: ArrayList<Byte>?) {
+        LogCenter.log("onSysMsgNotification($i2, $j2, $j3, $z, $arrayList)", Level.DEBUG)
     }
 
     override fun onUnreadCntAfterFirstView(hashMap: HashMap<Int, ArrayList<UnreadCntInfo>>?) {
