@@ -355,7 +355,6 @@ internal object NtV2RichMediaSvc: QQInterfaces() {
             if (fromServiceMsg == null || fromServiceMsg.wupBuffer == null) {
                 return Result.failure(Exception("unable to get multimedia pic info: ${fromServiceMsg?.wupBuffer}"))
             }
-            LogCenter.log(fromServiceMsg.wupBuffer.toHexString())
             fromServiceMsg.wupBuffer.decodeProtobuf<TrpcOidb>().buffer.decodeProtobuf<NtV2RichMediaRsp>().download?.rkeyParam?.let {
                 return Result.success(it)
             }
