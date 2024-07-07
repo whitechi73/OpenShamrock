@@ -1,5 +1,7 @@
 package moe.fuqiuluo.shamrock.remote.api
 
+import com.tencent.mobileqq.dt.app.Dtc
+import com.tencent.mobileqq.dt.model.FEBound
 import io.ktor.http.ContentType
 import io.ktor.http.content.PartData
 import io.ktor.http.content.forEachPart
@@ -12,7 +14,14 @@ import io.ktor.server.routing.post
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonArray
+import kotlinx.serialization.json.buildJsonObject
+import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.remote.action.handlers.CleanCache
 import moe.fuqiuluo.shamrock.remote.action.handlers.DownloadFile
 import moe.fuqiuluo.shamrock.remote.action.handlers.GetDeviceBattery
@@ -21,6 +30,8 @@ import moe.fuqiuluo.shamrock.remote.action.handlers.RestartMe
 import moe.fuqiuluo.shamrock.remote.action.handlers.UploadFileToShamrock
 import moe.fuqiuluo.shamrock.remote.structures.Status
 import moe.fuqiuluo.shamrock.remote.service.config.ShamrockConfig
+import moe.fuqiuluo.shamrock.remote.structures.CommonResult
+import moe.fuqiuluo.shamrock.tools.GlobalJson5
 import moe.fuqiuluo.shamrock.tools.asString
 import moe.fuqiuluo.shamrock.tools.fetchOrNull
 import moe.fuqiuluo.shamrock.tools.fetchOrThrow
@@ -32,8 +43,11 @@ import moe.fuqiuluo.shamrock.tools.json
 import moe.fuqiuluo.shamrock.tools.respond
 import moe.fuqiuluo.shamrock.utils.FileUtils
 import moe.fuqiuluo.shamrock.utils.MD5
+import moe.fuqiuluo.shamrock.utils.PlatformUtils
+import mqq.app.MobileQQ
 import java.io.File
 
+@OptIn(ExperimentalSerializationApi::class)
 fun Routing.otherAction() {
 
     if (ShamrockConfig.allowShell()) {
@@ -143,5 +157,25 @@ fun Routing.otherAction() {
         val value = fetchOrThrow("value")
         ShamrockConfig[key] = value
         respond(true, Status.Ok, "success")
+    }
+
+    getOrPost("/dt") {
+        val version = PlatformUtils.getQQVersionCode()
+        val qua = PlatformUtils.getQUA()
+        call.respondText(Json.encodeToString(
+            buildJsonObject {
+                put("qua", JsonPrimitive(qua))
+                put("version", JsonPrimitive(version))
+            }
+        ), ContentType.Application.Json)
+    }
+
+    getOrPost("/mmkv") {
+        val key = fetchOrThrow("key")
+        call.respondText(Json.encodeToString(
+            buildJsonObject {
+                put("value", JsonPrimitive(Dtc.mmKVValue(key)))
+            }
+        ), ContentType.Application.Json)
     }
 }

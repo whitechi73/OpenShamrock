@@ -37,6 +37,11 @@ fun Routing.fetchRes() {
         call.respondText(GetImage(file), ContentType.Application.Json)
     }
 
+    getOrPost("/ocr_image") {
+        val file = fetchOrThrow("image")
+        call.respondText(OcrImage(file), ContentType.Application.Json)
+    }
+
     getOrPost("/upload_group_file") {
         val groupId = fetchOrThrow("group_id").toLong()
         val file = fetchOrThrow("file")
