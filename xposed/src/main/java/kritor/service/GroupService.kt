@@ -8,6 +8,7 @@ import moe.fuqiuluo.shamrock.helper.TroopHonorHelper.decodeHonor
 import moe.fuqiuluo.shamrock.tools.ifNullOrEmpty
 import qq.service.contact.ContactHelper
 import qq.service.group.GroupHelper
+import tencent.im.troop.honor.troop_honor
 
 internal object GroupService : GroupServiceGrpcKt.GroupServiceCoroutineImplBase() {
     @Grpc("GroupService", "BanMember")
@@ -279,7 +280,7 @@ internal object GroupService : GroupServiceGrpcKt.GroupServiceCoroutineImplBase(
     @Grpc("GroupService", "GetGroupMemberList")
     override suspend fun getGroupMemberList(request: GetGroupMemberListRequest): GetGroupMemberListResponse {
         val memberList = GroupHelper.getGroupMemberList(
-            request.groupId.toString(),
+            request.groupId,
             if (request.hasRefresh()) request.refresh else false
         ).onFailure {
             throw StatusRuntimeException(
@@ -287,30 +288,28 @@ internal object GroupService : GroupServiceGrpcKt.GroupServiceCoroutineImplBase(
             )
         }.getOrThrow()
         return GetGroupMemberListResponse.newBuilder().apply {
-            memberList.forEach { memberInfo ->
+            memberList.values.forEach { memberInfo ->
                 this.addGroupMembersInfo(GroupMemberInfo.newBuilder().apply {
-                    uid = ContactHelper.getUidByUinAsync(memberInfo.memberuin?.toLong() ?: 0)
-                    uin = memberInfo.memberuin?.toLong() ?: 0
-                    nick = memberInfo.troopnick
-                        .ifNullOrEmpty { memberInfo.hwName }
-                        .ifNullOrEmpty { memberInfo.troopColorNick }
-                        .ifNullOrEmpty { memberInfo.friendnick } ?: ""
-                    age = memberInfo.age.toInt()
-                    uniqueTitle = memberInfo.mUniqueTitle ?: ""
-                    uniqueTitleExpireTime = memberInfo.mUniqueTitleExpire
-                    card = memberInfo.troopnick.ifNullOrEmpty { memberInfo.friendnick } ?: ""
-                    joinTime = memberInfo.join_time
-                    lastActiveTime = memberInfo.last_active_time
-                    level = memberInfo.level
-                    shutUpTimestamp = memberInfo.gagTimeStamp
+                    uid = memberInfo.uid
+                    uin = memberInfo.uin
+                    nick = memberInfo.nick ?: ""
+                    age = 0
+                    uniqueTitle = memberInfo.memberSpecialTitle ?: ""
+                    uniqueTitleExpireTime = memberInfo.specialTitleExpireTime.toInt()
+                    card = memberInfo.cardName.ifNullOrEmpty { memberInfo.nick } ?: ""
+                    joinTime = memberInfo.joinTime.toLong()
+                    lastActiveTime = memberInfo.lastSpeakTime.toLong()
+                    level = memberInfo.memberLevel
+                    shutUpTimestamp = memberInfo.shutUpTime.toLong()
 
-                    distance = memberInfo.distance
-                    addAllHonors((memberInfo.honorList ?: "")
-                        .split("|")
-                        .filter { it.isNotBlank() }
-                        .map { it.toInt() })
+                    distance = 0
+                    addAllHonors(memberInfo.groupHonor.let { bytes ->
+                        val honor = troop_honor.GroupUserCardHonor()
+                        honor.mergeFrom(bytes)
+                        honor.id.get()
+                    })
                     unfriendly = false
-                    cardChangeable = GroupHelper.isAdmin(request.groupId.toString())
+                    cardChangeable = memberInfo.role == com.tencent.qqnt.kernelpublic.nativeinterface.MemberRole.ADMIN
                 })
             }
         }.build()
@@ -371,24 +370,25 @@ internal object GroupService : GroupServiceGrpcKt.GroupServiceCoroutineImplBase(
     @Grpc("GroupService", "GetGroupHonor")
     override suspend fun getGroupHonor(request: GetGroupHonorRequest): GetGroupHonorResponse {
         return GetGroupHonorResponse.newBuilder().apply {
-            GroupHelper.getGroupMemberList(request.groupId.toString(), true).onFailure {
+            GroupHelper.getGroupMemberList(request.groupId, true).onFailure {
                 throw StatusRuntimeException(
                     Status.INTERNAL.withDescription("unable to get group member list").withCause(it)
                 )
             }.onSuccess { memberList ->
-                memberList.forEach { member ->
-                    (member.honorList ?: "").split("|")
-                        .filter { it.isNotBlank() }
-                        .map { it.toInt() }.forEach {
-                            val honor = decodeHonor(member.memberuin.toLong(), it, member.mHonorRichFlag)
+                memberList.values.forEach { member ->
+                    member.groupHonor.let { bytes ->
+                        val honor = troop_honor.GroupUserCardHonor()
+                        honor.mergeFrom(bytes)
+                        honor.id.get()
+                    }.forEach {
+                            val honor = decodeHonor(member.uin, it, 0)
                             if (honor != null) {
                                 addGroupHonorsInfo(GroupHonorInfo.newBuilder().apply {
-                                    uid = ContactHelper.getUidByUinAsync(member.memberuin.toLong())
-                                    uin = member.memberuin.toLong()
-                                    nick = member.troopnick
-                                        .ifNullOrEmpty { member.hwName }
-                                        .ifNullOrEmpty { member.troopColorNick }
-                                        .ifNullOrEmpty { member.friendnick } ?: ""
+                                    uid = member.uid
+                                    uin = member.uin
+                                    nick = member.nick.ifEmpty {
+                                        member.cardName
+                                    } ?: ""
                                     honorName = honor.honorName
                                     avatar = honor.honorIconUrl
                                     id = honor.honorId

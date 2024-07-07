@@ -218,6 +218,8 @@ internal object PrimitiveListener {
         val groupId = event.groupCode.toLong()
         val detail = event.uniqueTitleChangeDetail!!.first()
 
+        // todo 贴表情也走的 732 16 这里
+
         //detail = if (detail[5] is ProtoList) {
         //    (detail[5] as ProtoList).value[0]
         //} else {
@@ -396,7 +398,7 @@ internal object PrimitiveListener {
         val targetUid = event.memberUid
         val type = event.type
 
-        GroupHelper.getGroupMemberList(groupCode.toString(), true).onFailure {
+        GroupHelper.getGroupMemberList(groupCode, true).onFailure {
             LogCenter.log("新成员加入刷新群成员列表失败: $groupCode", Level.WARN)
         }.onSuccess {
             LogCenter.log("新成员加入刷新群成员列表成功，群成员数量: ${it.size}", Level.INFO)
@@ -433,7 +435,7 @@ internal object PrimitiveListener {
         val type = event.type
         val operatorUid = event.operatorUid
 
-        GroupHelper.getGroupMemberList(groupCode.toString(), true).onFailure {
+        GroupHelper.getGroupMemberList(groupCode, true).onFailure {
             LogCenter.log("新成员加入刷新群成员列表失败: $groupCode", Level.WARN)
         }.onSuccess {
             LogCenter.log("新成员加入刷新群成员列表成功，群成员数量: ${it.size}", Level.INFO)

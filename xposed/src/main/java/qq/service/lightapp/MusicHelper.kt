@@ -1,6 +1,6 @@
 package qq.service.lightapp
 
-import com.tencent.qqnt.kernel.nativeinterface.Contact
+import com.tencent.qqnt.kernelpublic.nativeinterface.Contact
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import kotlinx.serialization.json.Json

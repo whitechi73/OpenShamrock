@@ -1,6 +1,6 @@
 package qq.service.contact
 
-import com.tencent.qqnt.kernel.nativeinterface.Contact
+import com.tencent.qqnt.kernelpublic.nativeinterface.Contact
 import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
 import io.kritor.common.Scene
 

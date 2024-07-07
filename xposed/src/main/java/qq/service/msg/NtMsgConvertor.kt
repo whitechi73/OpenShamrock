@@ -8,7 +8,7 @@ import com.tencent.mobileqq.qroute.QRoute
 import com.tencent.qphone.base.remote.ToServiceMsg
 import com.tencent.qqnt.aio.adapter.api.IAIOPttApi
 import com.tencent.qqnt.kernel.nativeinterface.*
-import com.tencent.qqnt.kernel.nativeinterface.Contact
+import com.tencent.qqnt.kernelpublic.nativeinterface.Contact
 import com.tencent.qqnt.kernel.nativeinterface.FaceElement
 import com.tencent.qqnt.kernel.nativeinterface.MarkdownElement
 import com.tencent.qqnt.kernel.nativeinterface.MarketFaceElement

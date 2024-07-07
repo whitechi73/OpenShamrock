@@ -5,7 +5,7 @@ import androidx.exifinterface.media.ExifInterface
 import com.tencent.mobileqq.qroute.QRoute
 import com.tencent.qqnt.aio.adapter.api.IAIOPttApi
 import com.tencent.qqnt.kernel.nativeinterface.CommonFileInfo
-import com.tencent.qqnt.kernel.nativeinterface.Contact
+import com.tencent.qqnt.kernelpublic.nativeinterface.Contact
 import com.tencent.qqnt.kernel.nativeinterface.FileTransNotifyInfo
 import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
 import com.tencent.qqnt.kernel.nativeinterface.MsgElement
@@ -20,9 +20,11 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
 import moe.fuqiuluo.shamrock.config.ResourceGroup
 import moe.fuqiuluo.shamrock.config.ShamrockConfig
+import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.tools.hex2ByteArray
 import moe.fuqiuluo.shamrock.tools.ifNullOrEmpty
 import moe.fuqiuluo.shamrock.tools.slice
+import moe.fuqiuluo.shamrock.tools.toHexString
 import moe.fuqiuluo.shamrock.utils.AudioUtils
 import moe.fuqiuluo.shamrock.utils.FileUtils
 import moe.fuqiuluo.shamrock.utils.MediaType
@@ -353,7 +355,8 @@ internal object NtV2RichMediaSvc: QQInterfaces() {
             if (fromServiceMsg == null || fromServiceMsg.wupBuffer == null) {
                 return Result.failure(Exception("unable to get multimedia pic info: ${fromServiceMsg?.wupBuffer}"))
             }
-            fromServiceMsg.wupBuffer.slice(4).decodeProtobuf<TrpcOidb>().buffer.decodeProtobuf<NtV2RichMediaRsp>().download?.rkeyParam?.let {
+            LogCenter.log(fromServiceMsg.wupBuffer.toHexString())
+            fromServiceMsg.wupBuffer.decodeProtobuf<TrpcOidb>().buffer.decodeProtobuf<NtV2RichMediaRsp>().download?.rkeyParam?.let {
                 return Result.success(it)
             }
         }.onFailure {
@@ -446,7 +449,7 @@ internal object NtV2RichMediaSvc: QQInterfaces() {
         if (fromServiceMsg == null || fromServiceMsg.wupBuffer == null) {
             return Result.failure(Exception("unable to request upload nt pic"))
         }
-        val rspBuffer = fromServiceMsg.wupBuffer.slice(4).decodeProtobuf<TrpcOidb>().buffer
+        val rspBuffer = fromServiceMsg.wupBuffer.decodeProtobuf<TrpcOidb>().buffer
         val rsp = rspBuffer.decodeProtobuf<NtV2RichMediaRsp>()
         if (rsp.upload == null) {
             return Result.failure(Exception("unable to request upload nt pic: ${rsp.head}"))

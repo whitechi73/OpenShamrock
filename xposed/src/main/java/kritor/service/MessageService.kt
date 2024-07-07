@@ -1,7 +1,7 @@
 package kritor.service
 
 import com.tencent.mobileqq.qroute.QRoute
-import com.tencent.qqnt.kernel.nativeinterface.Contact
+import com.tencent.qqnt.kernelpublic.nativeinterface.Contact
 import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
 import com.tencent.qqnt.kernel.nativeinterface.MsgRecord
 import com.tencent.qqnt.msg.api.IMsgService
@@ -103,7 +103,12 @@ internal object MessageService : MessageServiceGrpcKt.MessageServiceCoroutineImp
             Scene.STRANGER -> MsgConstant.KCHATTYPETEMPC2CFROMUNKNOWN
             Scene.UNRECOGNIZED -> throw StatusRuntimeException(Status.INVALID_ARGUMENT.withDescription("Unrecognized scene"))
         }
-        service.clearMsgRecords(Contact(chatType, contact.peer, contact.subPeer), null)
+        service.clearMsgRecords(
+            Contact(
+                chatType,
+                contact.peer,
+                contact.subPeer
+            ), null)
         return SetMessageReadResponse.newBuilder().build()
     }
 
@@ -330,7 +335,7 @@ internal object MessageService : MessageServiceGrpcKt.MessageServiceCoroutineImp
                             this.uid = detail.sender.uid
                         }.build()
                         detail.message?.elements?.toKritorResponseMessages(
-                            com.tencent.qqnt.kernel.nativeinterface.Contact(
+                            Contact(
                                 detail.msgType,
                                 detail.peerId.toString(),
                                 null

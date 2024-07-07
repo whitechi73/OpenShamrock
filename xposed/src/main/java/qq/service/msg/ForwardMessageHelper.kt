@@ -1,15 +1,12 @@
 package qq.service.msg
 
 import com.tencent.mobileqq.qroute.QRoute
-import com.tencent.qqnt.kernel.nativeinterface.Contact
+import com.tencent.qqnt.kernelpublic.nativeinterface.Contact
 import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
 import com.tencent.qqnt.kernel.nativeinterface.MsgRecord
 import com.tencent.qqnt.msg.api.IMsgService
-import io.grpc.Status
-import io.grpc.StatusRuntimeException
 import io.kritor.common.ForwardElement
 import io.kritor.common.ForwardMessageBody
-import io.kritor.common.Scene
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
 import moe.fuqiuluo.shamrock.helper.Level
@@ -21,7 +18,6 @@ import protobuf.auto.toByteArray
 import protobuf.message.*
 import protobuf.message.longmsg.*
 import qq.service.QQInterfaces
-import qq.service.contact.ContactHelper
 import qq.service.msg.MessageHelper.getMultiMsg
 import qq.service.ticket.TicketHelper
 import java.util.*

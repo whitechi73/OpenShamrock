@@ -398,22 +398,46 @@ internal object GroupHelper: QQInterfaces() {
         sendOidb("OidbSvc.0x89a_0", 2202, 0, reqBody.toByteArray())
     }
 
-    suspend fun getGroupMemberList(groupId: String, refresh: Boolean): Result<List<TroopMemberInfo>> {
-        val service = app.getRuntimeService(ITroopMemberInfoService::class.java, "all")
-        var memberList = service.getAllTroopMembers(groupId)
-        if (refresh || memberList == null) {
-            memberList = requestTroopMemberInfo(service, groupId).onFailure {
-                return Result.failure(Exception("获取群成员列表失败"))
-            }.getOrThrow()
-        }
-
-        getGroupInfo(groupId, true).onSuccess {
-            if(it.wMemberNum > memberList.size) {
-                return getGroupMemberList(groupId, true)
+    suspend fun getGroupMemberList(groupId: Long, refresh: Boolean): Result<HashMap<String, MemberInfo>> {
+        val kernelService = NTServiceFetcher.kernelService
+        val sessionService = kernelService.wrapperSession
+        val service = sessionService.groupService
+        val uids = suspendCancellableCoroutine { continuation ->
+            service.getAllMemberList(groupId, refresh) { _, _, groupMemberListResult ->
+                continuation.resume(groupMemberListResult?.ids?.map {
+                    it.uid
+                })
             }
         }
+        val memberMap = suspendCancellableCoroutine { continuation ->
+            service.getMemberInfoForMqq(groupId, ArrayList(uids ?: emptyList()), refresh) { _, _, groupMemberListResult ->
+                continuation.resume(groupMemberListResult.infos)
+            }
+        }
+//        val extInfo = suspendCancellableCoroutine { continuation ->
+//            service.getMemberExtInfo(GroupMemberExtReq().apply {
+//                this.groupCode = groupId
+//                this.beginUin = 0.toString()
+//                this.groupType = ""
+//                this.memberExtFilter = MemberExtInfoFilter().apply {
+//                    this.memberLevelInfoName = 1
+//                    this.memberLevelInfoUin = 1
+//                    this.nickName = 1
+//                    this.specialTitle = 1
+//                    this.memberLevelInfoActiveDay = 1
+//                }
+//                this.richCardNameVer = "1"
+//                this.sourceType = 1
+//                this.uinList = ArrayList(memberMap.values.toList().map {
+//                    it.uin
+//                })
+//            }) { _, _, groupMemberExtListResult ->
+//                continuation.resume(groupMemberExtListResult)
+//            }
+//        }
 
-        return Result.success(memberList)
+        return Result.success(memberMap)
+
     }
 
     suspend fun getProhibitedMemberList(groupId: Long): Result<List<ProhibitedMemberInfo>> {

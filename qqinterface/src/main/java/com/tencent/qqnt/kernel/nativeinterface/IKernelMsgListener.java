@@ -1,5 +1,7 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
+import com.tencent.qqnt.kernelpublic.nativeinterface.Contact;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -116,7 +118,7 @@ public interface IKernelMsgListener {
 
     void onSendMsgError(long j2, Contact contact, int i2, String str);
 
-    void onSysMsgNotification(int i2, long j2, long j3, ArrayList<Byte> arrayList);
+    void onSysMsgNotification(int i2, long j2, long j3, boolean z, ArrayList<Byte> arrayList);
 
     void onTempChatInfoUpdate(TempChatInfo tempChatInfo);
 

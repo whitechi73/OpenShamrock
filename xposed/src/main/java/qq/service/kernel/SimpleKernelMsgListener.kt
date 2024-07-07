@@ -1,7 +1,7 @@
 package qq.service.kernel
 
 import com.tencent.qqnt.kernel.nativeinterface.BroadcastHelperTransNotifyInfo
-import com.tencent.qqnt.kernel.nativeinterface.Contact
+import com.tencent.qqnt.kernelpublic.nativeinterface.Contact
 import com.tencent.qqnt.kernel.nativeinterface.ContactMsgBoxInfo
 import com.tencent.qqnt.kernel.nativeinterface.CustomWithdrawConfig
 import com.tencent.qqnt.kernel.nativeinterface.DevInfo
@@ -278,7 +278,13 @@ abstract class SimpleKernelMsgListener: IKernelMsgListener {
         
     }
 
-    override fun onSysMsgNotification(i2: Int, j2: Long, j3: Long, arrayList: ArrayList<Byte>?) {
+    override fun onSysMsgNotification(
+        i2: Int,
+        j2: Long,
+        j3: Long,
+        z: Boolean,
+        arrayList: ArrayList<Byte>?
+    ) {
         
     }
 

@@ -1,4 +1,6 @@
-package com.tencent.qqnt.kernel.nativeinterface;
+package com.tencent.qqnt.kernelpublic.nativeinterface;
+
+import com.tencent.qqnt.kernel.nativeinterface.IKernelModel;
 
 import java.io.Serializable;
 

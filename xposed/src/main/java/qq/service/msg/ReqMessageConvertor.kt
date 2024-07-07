@@ -1,7 +1,7 @@
 package qq.service.msg
 
 import com.tencent.mobileqq.qroute.QRoute
-import com.tencent.qqnt.kernel.nativeinterface.Contact
+import com.tencent.qqnt.kernelpublic.nativeinterface.Contact
 import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
 import com.tencent.qqnt.kernel.nativeinterface.MsgElement
 import com.tencent.qqnt.msg.api.IMsgService

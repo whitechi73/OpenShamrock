@@ -2,7 +2,7 @@ package qq.service.lightapp
 
 import com.tencent.biz.map.trpcprotocol.LbsSendInfo
 import com.tencent.proto.lbsshare.LBSShare
-import com.tencent.qqnt.kernel.nativeinterface.Contact
+import com.tencent.qqnt.kernelpublic.nativeinterface.Contact
 import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
 import moe.fuqiuluo.shamrock.helper.IllegalParamsException
 import moe.fuqiuluo.shamrock.tools.slice
