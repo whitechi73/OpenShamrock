@@ -159,23 +159,4 @@ fun Routing.otherAction() {
         respond(true, Status.Ok, "success")
     }
 
-    getOrPost("/dt") {
-        val version = PlatformUtils.getQQVersionCode()
-        val qua = PlatformUtils.getQUA()
-        call.respondText(Json.encodeToString(
-            buildJsonObject {
-                put("qua", JsonPrimitive(qua))
-                put("version", JsonPrimitive(version))
-            }
-        ), ContentType.Application.Json)
-    }
-
-    getOrPost("/mmkv") {
-        val key = fetchOrThrow("key")
-        call.respondText(Json.encodeToString(
-            buildJsonObject {
-                put("value", JsonPrimitive(Dtc.mmKVValue(key)))
-            }
-        ), ContentType.Application.Json)
-    }
 }
