@@ -20,6 +20,7 @@ private val configKeys = setOf(
     ResourceGroup,
     RPCAddress,
     RPCPort,
+    AliveReply,
 )
 
 internal object ShamrockConfig: Properties() {

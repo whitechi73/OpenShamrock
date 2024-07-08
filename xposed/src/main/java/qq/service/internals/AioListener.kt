@@ -3,10 +3,16 @@
 package qq.service.internals
 
 import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
+import com.tencent.qqnt.kernel.nativeinterface.MsgElement
 import com.tencent.qqnt.kernel.nativeinterface.MsgRecord
+import com.tencent.qqnt.kernel.nativeinterface.TextElement
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.JsonNull.content
+import moe.fuqiuluo.shamrock.config.AliveReply
+import moe.fuqiuluo.shamrock.config.ConfigKey
+import moe.fuqiuluo.shamrock.config.get
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.internals.GlobalEventTransmitter
@@ -28,6 +34,23 @@ object AioListener : SimpleKernelMsgListener() {
     }
 
     private suspend fun onMsg(record: MsgRecord) {
+        if (AliveReply.get()) {
+            //LogCenter.log("自回复测试功能打开！")
+            val texts = record.elements.filter { it.elementType == MsgConstant.KELEMTYPETEXT }
+            val text = texts.joinToString { it.textElement.content }
+            if (texts.isNotEmpty() && text == "ping") {
+                val contact = MessageHelper.generateContact(record)
+                MessageHelper.sendMessage(contact, arrayListOf(
+                    MsgElement().apply {
+                        elementType = MsgConstant.KELEMTYPETEXT
+                        textElement = TextElement().apply {
+                            content = "pong"
+                        }
+                    }
+                ), 3, MessageHelper.generateMsgId(record.chatType))
+                return
+            }
+        }
         when (record.chatType) {
             MsgConstant.KCHATTYPEGROUP -> {
                 if (record.senderUin == 0L) return
