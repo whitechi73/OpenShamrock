@@ -216,6 +216,9 @@ internal object PrimitiveListener {
             }.decodeProtobuf<GroupCommonTipsEvent>()
         }
         val groupId = event.groupCode.toLong()
+        if (event.uniqueTitleChangeDetail == null) {
+            return
+        }
         val detail = event.uniqueTitleChangeDetail!!.first()
 
         // todo 贴表情也走的 732 16 这里

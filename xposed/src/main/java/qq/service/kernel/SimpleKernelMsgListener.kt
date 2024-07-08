@@ -12,6 +12,7 @@ import com.tencent.qqnt.kernel.nativeinterface.FileTransNotifyInfo
 import com.tencent.qqnt.kernel.nativeinterface.FirstViewDirectMsgNotifyInfo
 import com.tencent.qqnt.kernel.nativeinterface.FirstViewGroupGuildInfo
 import com.tencent.qqnt.kernel.nativeinterface.FreqLimitInfo
+import com.tencent.qqnt.kernel.nativeinterface.GProGuildTopFeedMsg
 import com.tencent.qqnt.kernel.nativeinterface.GroupFileListResult
 import com.tencent.qqnt.kernel.nativeinterface.GroupGuildNotifyInfo
 import com.tencent.qqnt.kernel.nativeinterface.GroupItem
@@ -27,6 +28,7 @@ import com.tencent.qqnt.kernel.nativeinterface.MsgAbstract
 import com.tencent.qqnt.kernel.nativeinterface.MsgElement
 import com.tencent.qqnt.kernel.nativeinterface.MsgRecord
 import com.tencent.qqnt.kernel.nativeinterface.MsgSetting
+import com.tencent.qqnt.kernel.nativeinterface.QueryUserSecQualityRsp
 import com.tencent.qqnt.kernel.nativeinterface.RecvdOrder
 import com.tencent.qqnt.kernel.nativeinterface.RelatedWordEmojiInfo
 import com.tencent.qqnt.kernel.nativeinterface.SearchGroupFileResult
@@ -135,7 +137,10 @@ abstract class SimpleKernelMsgListener: IKernelMsgListener {
         
     }
 
-    override fun onHitCsRelatedEmojiResult(downloadRelateEmojiResultInfo: DownloadRelateEmojiResultInfo?) {
+     override fun onGuildTopFeedUpdate(gProGuildTopFeedMsg: GProGuildTopFeedMsg?) {
+     }
+
+     override fun onHitCsRelatedEmojiResult(downloadRelateEmojiResultInfo: DownloadRelateEmojiResultInfo?) {
         
     }
 
@@ -207,7 +212,10 @@ abstract class SimpleKernelMsgListener: IKernelMsgListener {
         
     }
 
-    override fun onNtFirstViewMsgSyncEnd() {
+     override fun onMsgWithRichLinkInfoUpdate(arrayList: ArrayList<MsgRecord>?) {
+     }
+
+     override fun onNtFirstViewMsgSyncEnd() {
         
     }
 
@@ -258,7 +266,10 @@ abstract class SimpleKernelMsgListener: IKernelMsgListener {
         
     }
 
-    override fun onRichMediaDownloadComplete(fileTransNotifyInfo: FileTransNotifyInfo?) {
+     override fun onRedTouchChanged() {
+     }
+
+     override fun onRichMediaDownloadComplete(fileTransNotifyInfo: FileTransNotifyInfo?) {
         
     }
 
@@ -308,7 +319,10 @@ abstract class SimpleKernelMsgListener: IKernelMsgListener {
         
     }
 
-    override fun onUserTabStatusChanged(arrayList: ArrayList<TabStatusInfo>?) {
+     override fun onUserSecQualityChanged(queryUserSecQualityRsp: QueryUserSecQualityRsp?) {
+     }
+
+     override fun onUserTabStatusChanged(arrayList: ArrayList<TabStatusInfo>?) {
         
     }
 

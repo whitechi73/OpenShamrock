@@ -18,7 +18,7 @@ public interface IKernelMsgListener {
 
     void onCustomWithdrawConfigUpdate(CustomWithdrawConfig customWithdrawConfig);
 
-    void onDraftUpdate(Contact contact, ArrayList<MsgElement> arrayList, long j2);
+    void onDraftUpdate(Contact contact, ArrayList<MsgElement> arrayList, long j);
 
     void onEmojiDownloadComplete(EmojiNotifyInfo emojiNotifyInfo);
 
@@ -32,7 +32,7 @@ public interface IKernelMsgListener {
 
     void onFirstViewGroupGuildMapping(ArrayList<FirstViewGroupGuildInfo> arrayList);
 
-    void onGrabPasswordRedBag(int i2, String str, int i3, RecvdOrder recvdOrder, MsgRecord msgRecord);
+    void onGrabPasswordRedBag(int i, String str, int i2, RecvdOrder recvdOrder, MsgRecord msgRecord);
 
     void onGroupFileInfoAdd(GroupItem groupItem);
 
@@ -50,6 +50,8 @@ public interface IKernelMsgListener {
 
     void onGuildNotificationAbstractUpdate(GuildNotificationAbstractInfo guildNotificationAbstractInfo);
 
+    void onGuildTopFeedUpdate(GProGuildTopFeedMsg gProGuildTopFeedMsg);
+
     void onHitCsRelatedEmojiResult(DownloadRelateEmojiResultInfo downloadRelateEmojiResultInfo);
 
     void onHitEmojiKeywordResult(HitRelatedEmojiWordsResult hitRelatedEmojiWordsResult);
@@ -64,7 +66,7 @@ public interface IKernelMsgListener {
 
     void onLineDev(ArrayList<DevInfo> arrayList);
 
-    void onLogLevelChanged(long j2);
+    void onLogLevelChanged(long j);
 
     void onMsgAbstractUpdate(ArrayList<MsgAbstract> arrayList);
 
@@ -78,13 +80,15 @@ public interface IKernelMsgListener {
 
     void onMsgInfoListUpdate(ArrayList<MsgRecord> arrayList);
 
-    void onMsgQRCodeStatusChanged(int i2);
+    void onMsgQRCodeStatusChanged(int i);
 
-    void onMsgRecall(int i2, String str, long j2);
+    void onMsgRecall(int i, String str, long j);
 
     void onMsgSecurityNotify(MsgRecord msgRecord);
 
     void onMsgSettingUpdate(MsgSetting msgSetting);
+
+    void onMsgWithRichLinkInfoUpdate(ArrayList<MsgRecord> arrayList);
 
     void onNtFirstViewMsgSyncEnd();
 
@@ -94,11 +98,11 @@ public interface IKernelMsgListener {
 
     void onReadFeedEventUpdate(FirstViewDirectMsgNotifyInfo firstViewDirectMsgNotifyInfo);
 
-    void onRecvGroupGuildFlag(int i2);
+    void onRecvGroupGuildFlag(int i);
 
     void onRecvMsg(ArrayList<MsgRecord> arrayList);
 
-    void onRecvMsgSvrRspTransInfo(long j2, Contact contact, int i2, int i3, String str, byte[] bArr);
+    void onRecvMsgSvrRspTransInfo(long j, Contact contact, int i, int i2, String str, byte[] bArr);
 
     void onRecvOnlineFileMsg(ArrayList<MsgRecord> arrayList);
 
@@ -106,7 +110,9 @@ public interface IKernelMsgListener {
 
     void onRecvSysMsg(ArrayList<Byte> arrayList);
 
-    void onRecvUDCFlag(int i2);
+    void onRecvUDCFlag(int i);
+
+    void onRedTouchChanged();
 
     void onRichMediaDownloadComplete(FileTransNotifyInfo fileTransNotifyInfo);
 
@@ -116,9 +122,9 @@ public interface IKernelMsgListener {
 
     void onSearchGroupFileInfoUpdate(SearchGroupFileResult searchGroupFileResult);
 
-    void onSendMsgError(long j2, Contact contact, int i2, String str);
+    void onSendMsgError(long j, Contact contact, int i, String str);
 
-    void onSysMsgNotification(int i2, long j2, long j3, boolean z, ArrayList<Byte> arrayList);
+    void onSysMsgNotification(int i, long j, long j2, boolean z, ArrayList<Byte> arrayList);
 
     void onTempChatInfoUpdate(TempChatInfo tempChatInfo);
 
@@ -130,9 +136,11 @@ public interface IKernelMsgListener {
 
     void onUserOnlineStatusChanged(boolean z);
 
+    void onUserSecQualityChanged(QueryUserSecQualityRsp queryUserSecQualityRsp);
+
     void onUserTabStatusChanged(ArrayList<TabStatusInfo> arrayList);
 
-    void onlineStatusBigIconDownloadPush(int i2, long j2, String str);
+    void onlineStatusBigIconDownloadPush(int i, long j, String str);
 
-    void onlineStatusSmallIconDownloadPush(int i2, long j2, String str);
+    void onlineStatusSmallIconDownloadPush(int i, long j, String str);
 }
