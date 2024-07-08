@@ -355,7 +355,16 @@ internal object NtV2RichMediaSvc: QQInterfaces() {
             if (fromServiceMsg == null || fromServiceMsg.wupBuffer == null) {
                 return Result.failure(Exception("unable to get multimedia pic info: ${fromServiceMsg?.wupBuffer}"))
             }
-            fromServiceMsg.wupBuffer.decodeProtobuf<TrpcOidb>().buffer.decodeProtobuf<NtV2RichMediaRsp>().download?.rkeyParam?.let {
+            val trpc = kotlin.runCatching {
+                fromServiceMsg.wupBuffer.decodeProtobuf<TrpcOidb>()
+            }.getOrElse {
+                fromServiceMsg.wupBuffer.slice(4).decodeProtobuf<TrpcOidb>()
+            }
+            if (trpc.buffer == null) {
+                return Result.failure(Exception("unable to get multimedia pic info: ${trpc.msg}"))
+            }
+
+            trpc.buffer?.decodeProtobuf<NtV2RichMediaRsp>()?.download?.rkeyParam?.let {
                 return Result.success(it)
             }
         }.onFailure {
@@ -448,8 +457,15 @@ internal object NtV2RichMediaSvc: QQInterfaces() {
         if (fromServiceMsg == null || fromServiceMsg.wupBuffer == null) {
             return Result.failure(Exception("unable to request upload nt pic"))
         }
-        val rspBuffer = fromServiceMsg.wupBuffer.decodeProtobuf<TrpcOidb>().buffer
-        val rsp = rspBuffer.decodeProtobuf<NtV2RichMediaRsp>()
+        val trpc = kotlin.runCatching {
+            fromServiceMsg.wupBuffer.decodeProtobuf<TrpcOidb>()
+        }.getOrElse {
+            fromServiceMsg.wupBuffer.slice(4).decodeProtobuf<TrpcOidb>()
+        }
+        if (trpc.buffer == null) {
+            return Result.failure(Exception("unable to request upload nt pic: ${trpc.msg}"))
+        }
+        val rsp = trpc.buffer!!.decodeProtobuf<NtV2RichMediaRsp>()
         if (rsp.upload == null) {
             return Result.failure(Exception("unable to request upload nt pic: ${rsp.head}"))
         }

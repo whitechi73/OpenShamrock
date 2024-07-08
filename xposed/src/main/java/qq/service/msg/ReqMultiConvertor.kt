@@ -183,7 +183,7 @@ suspend fun List<Element>.toRichText(contact: Contact): Result<Pair<String, Rich
                     summary.append("[回复消息]")
                 }
                 Element.ElementType.IMAGE -> {
-                    val type = it.image.type
+                    val type = it.image.fileType
                     val isOriginal = type == ImageElement.ImageType.ORIGIN
                     val file = when(it.image.dataCase!!) {
                         ImageElement.DataCase.FILE_NAME -> {
@@ -391,7 +391,7 @@ suspend fun List<Element>.toRichText(contact: Contact): Result<Pair<String, Rich
                         commonElem = CommonElem(
                             serviceType = 2,
                             elem = PokeExtra(
-                                type = it.poke.type,
+                                type = it.poke.pokeType,
                                 field7 = 0,
                                 field8 = 0
                             ).toByteArray(),

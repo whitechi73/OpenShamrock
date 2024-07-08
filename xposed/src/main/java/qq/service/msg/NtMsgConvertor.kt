@@ -254,8 +254,8 @@ object NtMsgConvertor {
     }
 
     private suspend fun imageConvertor(contact: Contact, msgId: Long, sourceImage: Element): Result<MsgElement> {
-        val isOriginal = sourceImage.image.type == ImageType.ORIGIN
-        val isFlash = sourceImage.image.type == ImageType.FLASH
+        val isOriginal = sourceImage.image.fileType == ImageType.ORIGIN
+        val isFlash = sourceImage.image.fileType == ImageType.FLASH
         val file = when (sourceImage.image.dataCase!!) {
             ImageElement.DataCase.FILE_NAME -> {
                 val fileMd5 = sourceImage.image.fileName.replace(regex = "[{}\\-]".toRegex(), replacement = "")
@@ -638,7 +638,7 @@ object NtMsgConvertor {
         face.faceText = ""
         face.faceType = 5
         face.packId = null
-        face.pokeType = sourcePoke.poke.type
+        face.pokeType = sourcePoke.poke.pokeType
         face.spokeSummary = ""
         face.doubleHit = 0
         face.vaspokeId = sourcePoke.poke.id

@@ -162,7 +162,7 @@ private fun FunctionCard(
 
             Function(
                 title = "主动RPC",
-                desc = "Kritor协议实现RPC",
+                desc = "Kritor协议实现RPC，由Shamrock放出rpc服务",
                 isSwitch = ShamrockConfig[ctx, ActiveRPC]
             ) {
                 ShamrockConfig[ctx, ActiveRPC] = it
@@ -171,7 +171,7 @@ private fun FunctionCard(
 
             Function(
                 title = "被动RPC",
-                desc = "Kritor协议实现RPC",
+                desc = "Kritor协议实现RPC，由客户端提供反向的rpc服务",
                 isSwitch = ShamrockConfig[ctx, PassiveRPC]
             ) {
                 ShamrockConfig[ctx, PassiveRPC] = it

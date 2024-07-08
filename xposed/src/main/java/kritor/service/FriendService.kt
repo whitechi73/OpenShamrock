@@ -156,8 +156,8 @@ internal object FriendService : FriendServiceGrpcKt.FriendServiceCoroutineImplBa
         val bundle = Bundle()
         val service = QQInterfaces.app
             .getRuntimeService(IProfileProtocolService::class.java, "all")
-        if (request.hasNickName()) {
-            bundle.putString(IProfileProtocolConst.KEY_NICK, request.nickName)
+        if (request.hasNick()) {
+            bundle.putString(IProfileProtocolConst.KEY_NICK, request.nick)
         }
         if (request.hasCompany()) {
             bundle.putString(IProfileProtocolConst.KEY_COMPANY, request.company)

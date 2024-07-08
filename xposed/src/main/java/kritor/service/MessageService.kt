@@ -315,7 +315,7 @@ internal object MessageService : MessageServiceGrpcKt.MessageServiceCoroutineImp
                     throw StatusRuntimeException(Status.INTERNAL.withCause(it))
                 }.getOrThrow().map { detail ->
                     PushMessageBody.newBuilder().apply {
-                        this.time = detail.time
+                        this.time = detail.time.toLong()
                         this.messageId = detail.qqMsgId.toString()
                         this.messageSeq = detail.msgSeq
                         this.contact = io.kritor.common.Contact.newBuilder().apply {
@@ -398,10 +398,10 @@ internal object MessageService : MessageServiceGrpcKt.MessageServiceCoroutineImp
                         this.messageId = it.msgId.toString()
                     }
                     this.messageSeq = it.messageSeq
-                    this.messageTime = it.senderTime.toInt()
+                    this.messageTime = it.senderTime
                     this.senderNick = it.senderNick
                     this.senderUin = it.senderId
-                    this.operationTime = it.operatorTime.toInt()
+                    this.operationTime = it.operatorTime
                     this.operatorNick = it.operatorNick
                     this.operatorUin = it.operatorId
                     this.jsonElements = it.messageContent.toString()

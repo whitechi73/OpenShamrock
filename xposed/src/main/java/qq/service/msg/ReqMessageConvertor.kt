@@ -73,7 +73,7 @@ private object ReqMsgConvertor {
         if (face.faceType == 5) {
             elem.setPoke(PokeElement.newBuilder().apply {
                 this.id = face.vaspokeId
-                this.type = face.pokeType
+                this.pokeType = face.pokeType
                 this.strength = face.pokeStrength
             })
         } else {
@@ -174,7 +174,7 @@ private object ReqMsgConvertor {
 
                 else -> throw UnsupportedOperationException("Not supported chat type: ${contact.chatType}")
             }
-            this.type =
+            this.fileType =
                 if (image.isFlashPic == true) ImageElement.ImageType.FLASH else if (image.original) ImageElement.ImageType.ORIGIN else ImageElement.ImageType.COMMON
             this.subType = image.picSubType
         })

@@ -65,7 +65,7 @@ suspend fun List<Elem>.toKritorResponseMessages(contact: Contact): ArrayList<Ele
                 this.type = ElementType.IMAGE
                 this.image = ImageElement.newBuilder().apply {
                     this.fileMd5 = md5
-                    this.type = if (customFace.origin == true) ImageType.ORIGIN else ImageType.COMMON
+                    this.fileType = if (customFace.origin == true) ImageType.ORIGIN else ImageType.COMMON
                     this.fileUrl = when (contact.chatType) {
                         MsgConstant.KCHATTYPEDISC, MsgConstant.KCHATTYPEGROUP -> RichProtoSvc.getGroupPicDownUrl(
                             origUrl,
@@ -85,7 +85,7 @@ suspend fun List<Elem>.toKritorResponseMessages(contact: Contact): ArrayList<Ele
                 this.type = ElementType.IMAGE
                 this.image = ImageElement.newBuilder().apply {
                     this.fileMd5 = md5
-                    this.type = if (element.notOnlineImage?.original == true) ImageType.ORIGIN else ImageType.COMMON
+                    this.fileType = if (element.notOnlineImage?.original == true) ImageType.ORIGIN else ImageType.COMMON
                     this.fileUrl = when (contact.chatType) {
                         MsgConstant.KCHATTYPEDISC, MsgConstant.KCHATTYPEGROUP -> RichProtoSvc.getGroupPicDownUrl(
                             origUrl,

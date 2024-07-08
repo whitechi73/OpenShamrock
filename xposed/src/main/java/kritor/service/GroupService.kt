@@ -259,12 +259,12 @@ internal object GroupService : GroupServiceGrpcKt.GroupServiceCoroutineImplBase(
                     .ifNullOrEmpty { memberInfo.friendnick } ?: ""
                 age = memberInfo.age.toInt()
                 uniqueTitle = memberInfo.mUniqueTitle ?: ""
-                uniqueTitleExpireTime = memberInfo.mUniqueTitleExpire
+                uniqueTitleExpireTime = memberInfo.mUniqueTitleExpire.toLong()
                 card = memberInfo.troopnick.ifNullOrEmpty { memberInfo.friendnick } ?: ""
                 joinTime = memberInfo.join_time
                 lastActiveTime = memberInfo.last_active_time
                 level = memberInfo.level
-                shutUpTimestamp = memberInfo.gagTimeStamp
+                shutUpTime = memberInfo.gagTimeStamp
 
                 distance = memberInfo.distance
                 addAllHonors((memberInfo.honorList ?: "")
@@ -295,12 +295,12 @@ internal object GroupService : GroupServiceGrpcKt.GroupServiceCoroutineImplBase(
                     nick = memberInfo.nick ?: ""
                     age = 0
                     uniqueTitle = memberInfo.memberSpecialTitle ?: ""
-                    uniqueTitleExpireTime = memberInfo.specialTitleExpireTime.toInt()
+                    uniqueTitleExpireTime = memberInfo.specialTitleExpireTime
                     card = memberInfo.cardName.ifNullOrEmpty { memberInfo.nick } ?: ""
                     joinTime = memberInfo.joinTime.toLong()
                     lastActiveTime = memberInfo.lastSpeakTime.toLong()
                     level = memberInfo.memberLevel
-                    shutUpTimestamp = memberInfo.shutUpTime.toLong()
+                    shutUpTime = memberInfo.shutUpTime.toLong()
 
                     distance = 0
                     addAllHonors(memberInfo.groupHonor.let { bytes ->
@@ -327,7 +327,7 @@ internal object GroupService : GroupServiceGrpcKt.GroupServiceCoroutineImplBase(
                 this.addProhibitedUsersInfo(ProhibitedUserInfo.newBuilder().apply {
                     uid = ContactHelper.getUidByUinAsync(it.memberUin)
                     uin = it.memberUin
-                    prohibitedTime = it.shutuptimestap
+                    prohibitedTime = it.shutuptimestap.toLong()
                 })
             }
         }.build()
@@ -360,7 +360,7 @@ internal object GroupService : GroupServiceGrpcKt.GroupServiceCoroutineImplBase(
                 maxMemberCount = groupInfo.maxMember
                 memberCount = groupInfo.memberCount
                 groupDesc = groupInfo.groupDesc
-                createTime = groupInfo.createTime.toInt()
+                createTime = groupInfo.createTime
                 groupFlag = groupInfo.groupFlag
                 groupFlagExt = groupInfo.groupFlagExt
             }.build()
