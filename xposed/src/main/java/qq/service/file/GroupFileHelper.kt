@@ -33,13 +33,12 @@ internal object GroupFileHelper: QQInterfaces() {
         val limitCnt: Int
         if (fromServiceMsg.wupBuffer != null) {
             val oidb1 = kotlin.runCatching {
-                oidb_sso.OIDBSSOPkg().mergeFrom(fromServiceMsg.wupBuffer.slice(4).let {
+                oidb_sso.OIDBSSOPkg().mergeFrom(fromServiceMsg.wupBuffer.let {
                     if (it[0] == 0x78.toByte()) DeflateTools.uncompress(it) else it
                 })
-            }.onFailure {
-                LogCenter.log("unable to parse oidb response: ${fromServiceMsg.wupBuffer.toHexString()}", Level.ERROR)
             }.getOrElse {
-                oidb_sso.OIDBSSOPkg().mergeFrom(fromServiceMsg.wupBuffer.let {
+                LogCenter.log("unable to parse oidb response(OidbSvc.0x6d8_1): ${fromServiceMsg.wupBuffer.toHexString()}, ${it.stackTraceToString()}", Level.ERROR)
+                oidb_sso.OIDBSSOPkg().mergeFrom(fromServiceMsg.wupBuffer.slice(4).let {
                     if (it[0] == 0x78.toByte()) DeflateTools.uncompress(it) else it
                 })
             }
@@ -62,13 +61,13 @@ internal object GroupFileHelper: QQInterfaces() {
         val usedSpace: Long
         if (fromServiceMsg2.isSuccess && fromServiceMsg2.wupBuffer != null) {
             val oidb2 = kotlin.runCatching {
-                oidb_sso.OIDBSSOPkg().mergeFrom(fromServiceMsg2.wupBuffer.slice(4).let {
+                oidb_sso.OIDBSSOPkg().mergeFrom(fromServiceMsg2.wupBuffer.let {
                     if (it[0] == 0x78.toByte()) DeflateTools.uncompress(it) else it
                 })
             }.onFailure {
-                LogCenter.log("unable to parse oidb response: ${fromServiceMsg2.wupBuffer.toHexString()}", Level.ERROR)
+                LogCenter.log("unable to parse oidb response(OidbSvc.0x6d8_1): ${fromServiceMsg2.wupBuffer.toHexString()}, ${it.stackTraceToString()}", Level.ERROR)
             }.getOrElse {
-                oidb_sso.OIDBSSOPkg().mergeFrom(fromServiceMsg2.wupBuffer.let {
+                oidb_sso.OIDBSSOPkg().mergeFrom(fromServiceMsg2.wupBuffer.slice(4).let {
                     if (it[0] == 0x78.toByte()) DeflateTools.uncompress(it) else it
                 })
             }
