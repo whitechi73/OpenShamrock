@@ -9,14 +9,15 @@ import com.tencent.qqnt.kernel.nativeinterface.TextElement
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.JsonNull.content
 import moe.fuqiuluo.shamrock.config.AliveReply
-import moe.fuqiuluo.shamrock.config.ConfigKey
 import moe.fuqiuluo.shamrock.config.get
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.internals.GlobalEventTransmitter
+import moe.fuqiuluo.shamrock.utils.PlatformUtils
 import qq.service.bdh.RichProtoSvc
+import qq.service.file.GroupFileHelper
+import qq.service.group.GroupHelper
 import qq.service.kernel.SimpleKernelMsgListener
 import qq.service.msg.MessageHelper
 
@@ -35,7 +36,6 @@ object AioListener : SimpleKernelMsgListener() {
 
     private suspend fun onMsg(record: MsgRecord) {
         if (AliveReply.get()) {
-            //LogCenter.log("自回复测试功能打开！")
             val texts = record.elements.filter { it.elementType == MsgConstant.KELEMTYPETEXT }
             val text = texts.joinToString { it.textElement.content }
             if (texts.isNotEmpty() && text == "ping") {
@@ -49,6 +49,33 @@ object AioListener : SimpleKernelMsgListener() {
                     }
                 ), 3, MessageHelper.generateMsgId(record.chatType))
                 return
+            }
+
+            if (record.chatType == MsgConstant.KCHATTYPEGROUP && text == ".shamrock.members") {
+                val contact = MessageHelper.generateContact(record)
+                GroupHelper.getGroupMemberList(record.peerUin, true).onSuccess {
+                    MessageHelper.sendMessage(contact, arrayListOf(
+                        MsgElement().apply {
+                            elementType = MsgConstant.KELEMTYPETEXT
+                            textElement = TextElement().apply {
+                                content = "memberCount: ${it.size}"
+                            }
+                        }
+                    ), 3, MessageHelper.generateMsgId(record.chatType))
+                }.onFailure {
+                    LogCenter.log("获取群成员列表失败: $it", Level.ERROR)
+                }
+            } else if (record.chatType == MsgConstant.KCHATTYPEGROUP && text == ".shamrock.root_files") {
+                val contact = MessageHelper.generateContact(record)
+                val files = GroupFileHelper.getGroupFiles(record.peerUin)
+                MessageHelper.sendMessage(contact, arrayListOf(
+                    MsgElement().apply {
+                        elementType = MsgConstant.KELEMTYPETEXT
+                        textElement = TextElement().apply {
+                            content = "foldersCount: ${files.foldersCount}\nfilesCount: ${files.filesCount}"
+                        }
+                    }
+                ), 3, MessageHelper.generateMsgId(record.chatType))
             }
         }
         when (record.chatType) {

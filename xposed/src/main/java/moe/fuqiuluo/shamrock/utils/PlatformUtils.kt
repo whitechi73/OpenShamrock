@@ -6,14 +6,17 @@ import android.content.Context
 import android.content.Context.BATTERY_SERVICE
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
 import android.os.BatteryManager
 import android.os.Build
 import android.os.Process
 import android.provider.Settings
 import kotlinx.serialization.Serializable
+import moe.fuqiuluo.shamrock.tools.ShamrockVersion
 import mqq.app.MobileQQ
 import kotlin.random.Random
+
 
 internal object PlatformUtils {
     const val QQ_9_0_8_VER = 5540
@@ -67,6 +70,15 @@ internal object PlatformUtils {
 
     fun isTim(): Boolean {
         return MobileQQ.getMobileQQ().qqProcessName == "com.tencent.tim"
+    }
+
+    fun isApkInDebug(context: Context): Boolean {
+        try {
+            val info = context.applicationInfo
+            return (info.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
+        } catch (e: Exception) {
+            return false
+        }
     }
 
     fun killProcess(context: Context, processName: String) {
