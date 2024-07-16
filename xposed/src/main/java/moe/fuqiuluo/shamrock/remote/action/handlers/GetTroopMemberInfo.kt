@@ -8,6 +8,8 @@ import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.shamrock.remote.service.data.SimpleTroopMemberInfo
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
 import moe.fuqiuluo.shamrock.tools.ifNullOrEmpty
+import moe.fuqiuluo.shamrock.utils.PlatformUtils
+import moe.fuqiuluo.shamrock.utils.PlatformUtils.QQ_9_0_65_VER
 import moe.fuqiuluo.symbols.OneBotHandler
 
 @OneBotHandler("get_group_member_info")
@@ -26,7 +28,7 @@ internal object GetTroopMemberInfo : IActionHandler() {
         refresh: Boolean,
         echo: JsonElement = EmptyJsonString
     ): String {
-        val info = GroupSvc.getTroopMemberInfoByUin(groupId, userId, refresh).onFailure {
+        val info = GroupSvc.getTroopMemberInfoByUinV2(groupId, userId, refresh).onFailure {
             return error(it.message ?: "unknown error", echo)
         }.getOrThrow()
 

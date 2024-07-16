@@ -73,7 +73,6 @@ import moe.fuqiuluo.shamrock.tools.decodeToObject
 import moe.fuqiuluo.shamrock.tools.decodeToOidb
 import moe.fuqiuluo.shamrock.tools.ifNullOrEmpty
 import moe.fuqiuluo.shamrock.tools.putBuf32Long
-import moe.fuqiuluo.shamrock.tools.slice
 import moe.fuqiuluo.shamrock.utils.FileUtils
 import moe.fuqiuluo.shamrock.utils.PlatformUtils
 import moe.fuqiuluo.shamrock.utils.PlatformUtils.QQ_9_0_65_VER
@@ -287,14 +286,24 @@ internal object GroupSvc: QQInterfaces() {
     }
 
     suspend fun setGroupUniqueTitle(groupId: Long, userId: Long, title: String) {
-        val localMemberInfo = getTroopMemberInfoByUin(groupId, userId, true).getOrThrow()
+        var nick = getTroopMemberInfoByUinV2(groupId, userId, true).getOrThrow().let {
+            it.troopnick.ifEmpty { it.troopremark.ifNullOrEmpty("") }
+        }
+        if (PlatformUtils.getQQVersionCode() > QQ_9_0_65_VER && nick == null) {
+            nick = getTroopMemberNickByUin(groupId, userId)?.let {
+                it.troopNick
+                    .ifNullOrEmpty(it.friendNick)
+                    .ifNullOrEmpty(it.showName)
+                    .ifNullOrEmpty(it.autoRemark)
+                    .ifNullOrEmpty(it.colorNick)
+            }
+        }
+
         val req = Oidb_0x8fc.ReqBody()
         req.uint64_group_code.set(groupId)
         val memberInfo = Oidb_0x8fc.MemberInfo()
         memberInfo.uint64_uin.set(userId)
-        memberInfo.bytes_uin_name.set(ByteStringMicro.copyFromUtf8(localMemberInfo.troopnick.ifEmpty {
-            localMemberInfo.troopremark.ifNullOrEmpty("")
-        }))
+        memberInfo.bytes_uin_name.set(ByteStringMicro.copyFromUtf8(nick))
         memberInfo.bytes_special_title.set(ByteStringMicro.copyFromUtf8(title))
         memberInfo.uint32_special_title_expire_time.set(-1)
         req.rpt_mem_level_info.add(memberInfo)
@@ -573,60 +582,6 @@ internal object GroupSvc: QQInterfaces() {
         return body.signed_ark.get().toStringUtf8()
     }
 
-    suspend fun getTroopMemberInfoByUin(
-        groupId: Long,
-        uin: Long,
-        refresh: Boolean = false
-    ): Result<TroopMemberInfo> {
-        val service = app.getRuntimeService(ITroopMemberInfoService::class.java, "all")
-        var info = service.getTroopMember(groupId.toString(), uin.toString())
-        if (refresh || !service.isMemberInCache(groupId.toString(), uin.toString()) || info == null || info.troopnick == null) {
-            info = requestTroopMemberInfo(service, groupId, uin).getOrNull()
-        }
-        if (info == null) {
-            info = getTroopMemberInfoByUinViaNt(groupId, uin).getOrNull()?.let {
-                TroopMemberInfo().apply {
-                    troopnick = it.cardName
-                    friendnick = it.nick
-                }
-            }
-        }
-        try {
-            if (info != null && (info.alias == null || info.alias.isBlank())) {
-                val req = group_member_info.ReqBody()
-                req.uint64_group_code.set(groupId)
-                req.uint64_uin.set(uin.toLong())
-                req.bool_new_client.set(true)
-                req.uint32_client_type.set(1)
-                req.uint32_rich_card_name_ver.set(1)
-                val respBuffer = sendBufferAW("group_member_card.get_group_member_card_info", true, req.toByteArray())
-                if (respBuffer != null) {
-                    val rsp = respBuffer.decodeToObject(group_member_info.RspBody())
-                    if (rsp.msg_meminfo.str_location.has()) {
-                        info.alias = rsp.msg_meminfo.str_location.get().toStringUtf8()
-                    }
-                    if (rsp.msg_meminfo.uint32_age.has()) {
-                        info.age = rsp.msg_meminfo.uint32_age.get().toByte()
-                    }
-                    if (rsp.msg_meminfo.bytes_group_honor.has()) {
-                        val honorBytes = rsp.msg_meminfo.bytes_group_honor.get().toByteArray()
-                        val honor = troop_honor.GroupUserCardHonor()
-                        honor.mergeFrom(honorBytes)
-                        info.level = honor.level.get()
-                        // 10315: medal_id not real group level
-                    }
-                }
-            }
-        } catch (err: Throwable) {
-            LogCenter.log(err.stackTraceToString(), Level.WARN)
-        }
-        return if (info != null) {
-            Result.success(info)
-        } else {
-            Result.failure(Exception("获取群成员信息失败"))
-        }
-    }
-
     fun getTroopMemberInfoByUinFromNt(
         groupId: Long,
         uin: Long
@@ -638,7 +593,7 @@ internal object GroupSvc: QQInterfaces() {
         }
     }
 
-    suspend fun getTroopMemberInfoByUinV3(
+    suspend fun getTroopMemberNickByUin(
         groupId: Long,
         uin: Long
     ): TroopMemberNickInfo? {

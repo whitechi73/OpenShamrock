@@ -125,12 +125,12 @@ internal class ElemMaker {
                         qq = qqStr.toLong()
                         type = 0
                         val name = (data["name"].asStringOrNull
-                            ?: GroupSvc.getTroopMemberInfoByUinV3(peerId.toLong(), qq).let {
-                                it?.troopNick
-                                    .ifNullOrEmpty(it?.friendNick)
-                                    .ifNullOrEmpty(it?.showName)
-                                    .ifNullOrEmpty(it?.autoRemark)
-                                    .ifNullOrEmpty(it?.colorNick)
+                            ?: GroupSvc.getTroopMemberNickByUin(peerId.toLong(), qq)?.let {
+                                it.troopNick
+                                    .ifNullOrEmpty(it.friendNick)
+                                    .ifNullOrEmpty(it.showName)
+                                    .ifNullOrEmpty(it.autoRemark)
+                                    .ifNullOrEmpty(it.colorNick)
                             }
                             ?: GroupSvc.getTroopMemberInfoByUinV2(peerId.toLong(), qq, true).let {
                                 val info = it.getOrNull()
