@@ -13,8 +13,11 @@ import moe.fuqiuluo.shamrock.config.AliveReply
 import moe.fuqiuluo.shamrock.config.get
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
+import moe.fuqiuluo.shamrock.helper.db.ImageDB
+import moe.fuqiuluo.shamrock.helper.db.ImageMapping
 import moe.fuqiuluo.shamrock.internals.GlobalEventTransmitter
 import moe.fuqiuluo.shamrock.utils.PlatformUtils
+import moe.fuqiuluo.shamrock.utils.PlatformUtils.QQ_9_0_8_VER
 import qq.service.bdh.RichProtoSvc
 import qq.service.file.GroupFileHelper
 import qq.service.group.GroupHelper
@@ -34,6 +37,65 @@ object AioListener : SimpleKernelMsgListener() {
         }
     }
 
+    private suspend fun debugTest(record: MsgRecord, text: String) {
+        if (record.chatType == MsgConstant.KCHATTYPEGROUP && text == ".shamrock.members") {
+            val contact = MessageHelper.generateContact(record)
+            GroupHelper.getGroupMemberList(record.peerUin, true).onSuccess {
+                MessageHelper.sendMessage(contact, arrayListOf(
+                    MsgElement().apply {
+                        elementType = MsgConstant.KELEMTYPETEXT
+                        textElement = TextElement().apply {
+                            content = "memberCount: ${it.size}"
+                        }
+                    }
+                ), 3, MessageHelper.generateMsgId(record.chatType))
+            }.onFailure {
+                LogCenter.log("获取群成员列表失败: $it", Level.ERROR)
+            }
+        } else if (record.chatType == MsgConstant.KCHATTYPEGROUP && text == ".shamrock.root_files") {
+            val contact = MessageHelper.generateContact(record)
+            val files = GroupFileHelper.getGroupFiles(record.peerUin)
+            MessageHelper.sendMessage(contact, arrayListOf(
+                MsgElement().apply {
+                    elementType = MsgConstant.KELEMTYPETEXT
+                    textElement = TextElement().apply {
+                        content = "foldersCount: ${files.foldersCount}\nfilesCount: ${files.filesCount}"
+                    }
+                }
+            ), 3, MessageHelper.generateMsgId(record.chatType))
+        } else if (record.chatType == MsgConstant.KCHATTYPEGROUP && text == ".shamrock.pic_url") {
+            val contact = MessageHelper.generateContact(record)
+            val pic = record.elements.filter {
+                it.elementType == MsgConstant.KELEMTYPEPIC
+            }.map {
+                val image = it.picElement
+                val md5 = (image.md5HexStr ?: image.fileName
+                    .replace("{", "")
+                    .replace("}", "")
+                    .replace("-", "").split(".")[0])
+                    .uppercase()
+                var storeId = 0
+                if (PlatformUtils.getQQVersionCode() > QQ_9_0_8_VER) {
+                    storeId = image.storeID
+                }
+                val originalUrl = image.originImageUrl ?: ""
+                return@map RichProtoSvc.getTempPicDownloadUrl(record.chatType, originalUrl, md5, image, storeId)
+            }
+
+            MessageHelper.sendMessage(contact, arrayListOf(
+                MsgElement().apply {
+                    elementType = MsgConstant.KELEMTYPETEXT
+                    textElement = TextElement().apply {
+                        content = "picUrl: \n${
+                            pic.joinToString("\n")
+                        }"
+                    }
+                }
+            ), 3, MessageHelper.generateMsgId(record.chatType))
+        }
+
+    }
+
     private suspend fun onMsg(record: MsgRecord) {
         if (AliveReply.get()) {
             val texts = record.elements.filter { it.elementType == MsgConstant.KELEMTYPETEXT }
@@ -50,33 +112,7 @@ object AioListener : SimpleKernelMsgListener() {
                 ), 3, MessageHelper.generateMsgId(record.chatType))
                 return
             }
-
-            if (record.chatType == MsgConstant.KCHATTYPEGROUP && text == ".shamrock.members") {
-                val contact = MessageHelper.generateContact(record)
-                GroupHelper.getGroupMemberList(record.peerUin, true).onSuccess {
-                    MessageHelper.sendMessage(contact, arrayListOf(
-                        MsgElement().apply {
-                            elementType = MsgConstant.KELEMTYPETEXT
-                            textElement = TextElement().apply {
-                                content = "memberCount: ${it.size}"
-                            }
-                        }
-                    ), 3, MessageHelper.generateMsgId(record.chatType))
-                }.onFailure {
-                    LogCenter.log("获取群成员列表失败: $it", Level.ERROR)
-                }
-            } else if (record.chatType == MsgConstant.KCHATTYPEGROUP && text == ".shamrock.root_files") {
-                val contact = MessageHelper.generateContact(record)
-                val files = GroupFileHelper.getGroupFiles(record.peerUin)
-                MessageHelper.sendMessage(contact, arrayListOf(
-                    MsgElement().apply {
-                        elementType = MsgConstant.KELEMTYPETEXT
-                        textElement = TextElement().apply {
-                            content = "foldersCount: ${files.foldersCount}\nfilesCount: ${files.filesCount}"
-                        }
-                    }
-                ), 3, MessageHelper.generateMsgId(record.chatType))
-            }
+            debugTest(record, text)
         }
         when (record.chatType) {
             MsgConstant.KCHATTYPEGROUP -> {

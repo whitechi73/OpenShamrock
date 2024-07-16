@@ -157,44 +157,20 @@ private object MsgConvertor {
         elem.type = ElementType.IMAGE
         elem.setImage(ImageElement.newBuilder().apply {
             this.file = ByteString.copyFromUtf8(md5)
-            this.fileUrl = when (record.chatType) {
-                MsgConstant.KCHATTYPEDISC, MsgConstant.KCHATTYPEGROUP -> RichProtoSvc.getGroupPicDownUrl(
-                    originalUrl = originalUrl,
-                    md5 = md5,
-                    fileId = image.fileUuid,
-                    width = image.picWidth.toUInt(),
-                    height = image.picHeight.toUInt(),
-                    sha = "",
-                    fileSize = image.fileSize.toULong(),
-                    peer = record.peerUin.toString()
-                )
-
-                MsgConstant.KCHATTYPEC2C -> RichProtoSvc.getC2CPicDownUrl(
-                    originalUrl = originalUrl,
-                    md5 = md5,
-                    fileId = image.fileUuid,
-                    width = image.picWidth.toUInt(),
-                    height = image.picHeight.toUInt(),
-                    sha = "",
-                    fileSize = image.fileSize.toULong(),
-                    peer = record.senderUin.toString(),
-                    storeId = storeId
-                )
-
-                MsgConstant.KCHATTYPEGUILD -> RichProtoSvc.getGuildPicDownUrl(
-                    originalUrl = originalUrl,
-                    md5 = md5,
-                    fileId = image.fileUuid,
-                    width = image.picWidth.toUInt(),
-                    height = image.picHeight.toUInt(),
-                    sha = "",
-                    fileSize = image.fileSize.toULong(),
-                    peer = record.channelId.ifNullOrEmpty { record.peerUin.toString() } ?: "0",
-                    subPeer = record.guildId ?: "0"
-                )
-
-                else -> throw UnsupportedOperationException("Not supported chat type: ${record.chatType}")
-            }
+            this.fileUrl = RichProtoSvc.getTempPicDownloadUrl(record.chatType, originalUrl, md5, image, storeId,
+                peer = when(record.chatType) {
+                    MsgConstant.KCHATTYPEDISC, MsgConstant.KCHATTYPEGROUP -> record.peerUin.toString()
+                    MsgConstant.KCHATTYPEC2C -> record.senderUin.toString()
+                    MsgConstant.KCHATTYPEGUILD -> record.channelId.ifNullOrEmpty { record.peerUin.toString() } ?: "0"
+                    else -> null
+                },
+                subPeer = when(record.chatType) {
+                    MsgConstant.KCHATTYPEDISC, MsgConstant.KCHATTYPEGROUP -> null
+                    MsgConstant.KCHATTYPEC2C -> null
+                    MsgConstant.KCHATTYPEGUILD -> record.guildId ?: "0"
+                    else -> null
+                }
+            )
             this.fileType =
                 if (image.isFlashPic == true) ImageElement.ImageType.FLASH else if (image.original) ImageElement.ImageType.ORIGIN else ImageElement.ImageType.COMMON
             this.subType = image.picSubType

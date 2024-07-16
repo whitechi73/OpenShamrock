@@ -136,44 +136,7 @@ private object ReqMsgConvertor {
         val elem = Element.newBuilder()
         elem.setImage(ImageElement.newBuilder().apply {
             this.fileMd5 = md5
-            this.fileUrl = when (contact.chatType) {
-                MsgConstant.KCHATTYPEDISC, MsgConstant.KCHATTYPEGROUP -> RichProtoSvc.getGroupPicDownUrl(
-                    originalUrl = originalUrl,
-                    md5 = md5,
-                    fileId = image.fileUuid,
-                    width = image.picWidth.toUInt(),
-                    height = image.picHeight.toUInt(),
-                    sha = "",
-                    fileSize = image.fileSize.toULong(),
-                    peer = contact.longPeer().toString()
-                )
-
-                MsgConstant.KCHATTYPEC2C -> RichProtoSvc.getC2CPicDownUrl(
-                    originalUrl = originalUrl,
-                    md5 = md5,
-                    fileId = image.fileUuid,
-                    width = image.picWidth.toUInt(),
-                    height = image.picHeight.toUInt(),
-                    sha = "",
-                    fileSize = image.fileSize.toULong(),
-                    peer = contact.longPeer().toString(),
-                    storeId = storeId
-                )
-
-                MsgConstant.KCHATTYPEGUILD -> RichProtoSvc.getGuildPicDownUrl(
-                    originalUrl = originalUrl,
-                    md5 = md5,
-                    fileId = image.fileUuid,
-                    width = image.picWidth.toUInt(),
-                    height = image.picHeight.toUInt(),
-                    sha = "",
-                    fileSize = image.fileSize.toULong(),
-                    peer = contact.longPeer().toString(),
-                    subPeer = "0"
-                )
-
-                else -> throw UnsupportedOperationException("Not supported chat type: ${contact.chatType}")
-            }
+            this.fileUrl = RichProtoSvc.getTempPicDownloadUrl(contact.chatType, originalUrl, md5, image, storeId, contact.peerUid, contact.guildId)
             this.fileType =
                 if (image.isFlashPic == true) ImageElement.ImageType.FLASH else if (image.original) ImageElement.ImageType.ORIGIN else ImageElement.ImageType.COMMON
             this.subType = image.picSubType

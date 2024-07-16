@@ -52,11 +52,11 @@ data class DownloadRkeyRsp(
 
 @Serializable
 data class RKeyInfo(
-    @ProtoNumber(1) val rkey: String?,
+    @ProtoNumber(1) val rkey: String,
     @ProtoNumber(2) val rkeyTtlSec: ULong?,
     @ProtoNumber(3) val storeId: UInt = 0u,
     @ProtoNumber(4) val rkeyCreateTime: UInt?,
-    @ProtoNumber(4) val type: UInt?,
+    @ProtoNumber(4) val type: UInt,
 )
 
 @Serializable

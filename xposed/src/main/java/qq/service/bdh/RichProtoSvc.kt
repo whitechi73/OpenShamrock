@@ -6,12 +6,16 @@ import com.tencent.mobileqq.transfile.FileMsg
 import com.tencent.mobileqq.transfile.api.IProtoReqManager
 import com.tencent.mobileqq.transfile.protohandler.RichProto
 import com.tencent.mobileqq.transfile.protohandler.RichProtoProc
+import com.tencent.qqnt.kernel.nativeinterface.Image
+import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
+import com.tencent.qqnt.kernel.nativeinterface.MsgRecord
+import com.tencent.qqnt.kernel.nativeinterface.PicElement
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.serialization.ExperimentalSerializationApi
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.tools.decodeToOidb
-import moe.fuqiuluo.shamrock.tools.slice
+import moe.fuqiuluo.shamrock.tools.ifNullOrEmpty
 import moe.fuqiuluo.shamrock.tools.toHexString
 import moe.fuqiuluo.shamrock.utils.PlatformUtils
 import moe.fuqiuluo.symbols.decodeProtobuf
@@ -29,7 +33,6 @@ import qq.service.contact.ContactHelper
 import tencent.im.cs.cmd0x346.cmd0x346
 import tencent.im.oidb.cmd0x6d6.oidb_0x6d6
 import tencent.im.oidb.cmd0xe37.cmd0xe37
-import tencent.im.oidb.oidb_sso
 import kotlin.coroutines.resume
 
 private const val GPRO_PIC = "gchat.qpic.cn"
@@ -147,6 +150,75 @@ internal object RichProtoSvc: QQInterfaces() {
             val version = PlatformUtils.getQQVersion(MobileQQ.getContext())
 
             return "$domain$params&isthumb=0&client_proto=qq&client_appid=$appId&client_type=android&client_ver=$version&client_down_type=auto&client_aio_type=unk"
+        }
+    }
+
+    suspend fun getTempPicDownloadUrl(
+        chatType: Int,
+        originalUrl: String,
+        md5: String,
+        image: PicElement,
+        storeId: Int = 0,
+        peer: String? = null,
+        subPeer: String? = null,
+    ): String {
+        val isNtServer = originalUrl.startsWith("/download")
+        if (isNtServer) {
+            val tmpRKey = NtV2RichMediaSvc.getTempNtRKey()
+            if (tmpRKey.isSuccess) {
+                val tmpRKeyRsp = tmpRKey.getOrThrow()
+                val tmpRKeyMap = hashMapOf<UInt, String>()
+                tmpRKeyRsp.rkeys?.forEach { rKeyInfo ->
+                    tmpRKeyMap[rKeyInfo.type] = rKeyInfo.rkey
+                }
+                val rkey = tmpRKeyMap[when(chatType) {
+                    MsgConstant.KCHATTYPEDISC, MsgConstant.KCHATTYPEGROUP -> 10u
+                    MsgConstant.KCHATTYPEC2C -> 20u
+                    MsgConstant.KCHATTYPEGUILD -> 10u
+                    else -> 0u
+                }]
+                if (rkey != null) {
+                    return "https://$MULTIMEDIA_DOMAIN$originalUrl$rkey"
+                }
+            }
+        }
+        return when (chatType) {
+            MsgConstant.KCHATTYPEDISC, MsgConstant.KCHATTYPEGROUP -> getGroupPicDownUrl(
+                originalUrl = originalUrl,
+                md5 = md5,
+                fileId = image.fileUuid,
+                width = image.picWidth.toUInt(),
+                height = image.picHeight.toUInt(),
+                sha = "",
+                fileSize = image.fileSize.toULong(),
+                peer = peer ?: "0"
+            )
+
+            MsgConstant.KCHATTYPEC2C -> getC2CPicDownUrl(
+                originalUrl = originalUrl,
+                md5 = md5,
+                fileId = image.fileUuid,
+                width = image.picWidth.toUInt(),
+                height = image.picHeight.toUInt(),
+                sha = "",
+                fileSize = image.fileSize.toULong(),
+                peer = peer ?: "0",
+                storeId = storeId
+            )
+
+            MsgConstant.KCHATTYPEGUILD -> getGuildPicDownUrl(
+                originalUrl = originalUrl,
+                md5 = md5,
+                fileId = image.fileUuid,
+                width = image.picWidth.toUInt(),
+                height = image.picHeight.toUInt(),
+                sha = "",
+                fileSize = image.fileSize.toULong(),
+                peer = peer ?: "0",
+                subPeer = subPeer ?: "0"
+            )
+
+            else -> throw UnsupportedOperationException("Not supported chat type: $chatType")
         }
     }
 

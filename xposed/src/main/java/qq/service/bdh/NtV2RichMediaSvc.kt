@@ -21,6 +21,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 import moe.fuqiuluo.shamrock.config.ResourceGroup
 import moe.fuqiuluo.shamrock.config.ShamrockConfig
 import moe.fuqiuluo.shamrock.helper.LogCenter
+import moe.fuqiuluo.shamrock.tools.decodeToTrpcOidb
 import moe.fuqiuluo.shamrock.tools.hex2ByteArray
 import moe.fuqiuluo.shamrock.tools.ifNullOrEmpty
 import moe.fuqiuluo.shamrock.tools.slice
@@ -36,6 +37,8 @@ import protobuf.oidb.cmd0x11c5.CodecConfigReq
 import protobuf.oidb.cmd0x11c5.CommonHead
 import protobuf.oidb.cmd0x11c5.DownloadExt
 import protobuf.oidb.cmd0x11c5.DownloadReq
+import protobuf.oidb.cmd0x11c5.DownloadRkeyReq
+import protobuf.oidb.cmd0x11c5.DownloadRkeyRsp
 import protobuf.oidb.cmd0x11c5.FileInfo
 import protobuf.oidb.cmd0x11c5.FileType
 import protobuf.oidb.cmd0x11c5.IndexNode
@@ -285,6 +288,44 @@ internal object NtV2RichMediaSvc: QQInterfaces() {
         return Result.success(result)
     }
 
+    suspend fun getTempNtRKey(): Result<DownloadRkeyRsp> {
+        runCatching {
+            val req = NtV2RichMediaReq(
+                head = MultiMediaReqHead(
+                    commonHead = CommonHead(
+                        requestId = requestIdSeq.incrementAndGet().toULong(),
+                        cmd = 202u
+                    ),
+                    sceneInfo = SceneInfo(
+                        requestType = 2u,
+                        businessType = 1u,
+                        sceneType = 0u,
+                    ),
+                    clientMeta = ClientMeta(2u)
+                ),
+                downloadRkey = DownloadRkeyReq(
+                    types = listOf(10, 20),
+                    downloadType = 2
+                )
+            ).toByteArray()
+            val fromServiceMsg = sendOidbAW("OidbSvcTrpcTcp.0x9067_202", 0x9067, 202, req, true)
+            if (fromServiceMsg == null || fromServiceMsg.wupBuffer == null) {
+                return Result.failure(Exception("failed to fetch NtTempRKey: ${fromServiceMsg?.wupBuffer?.toHexString()}"))
+            }
+            val trpc = fromServiceMsg.decodeToTrpcOidb()
+            if (trpc.buffer == null) {
+                return Result.failure(Exception("failed to fetch NtTempRKey: ${trpc.msg}"))
+            }
+
+            trpc.buffer?.decodeProtobuf<NtV2RichMediaRsp>()?.downloadRkeyRsp?.let {
+                return Result.success(it)
+            }
+        }.onFailure {
+            return Result.failure(it)
+        }
+        return Result.failure(Exception("failed to fetch NtTempRKey"))
+    }
+
     /**
      * 获取NT图片的RKEY
      */
@@ -353,13 +394,9 @@ internal object NtV2RichMediaSvc: QQInterfaces() {
             ).toByteArray()
             val fromServiceMsg = sendOidbAW("OidbSvcTrpcTcp.0x11c5_200", 4549, 200, req, true)
             if (fromServiceMsg == null || fromServiceMsg.wupBuffer == null) {
-                return Result.failure(Exception("unable to get multimedia pic info: ${fromServiceMsg?.wupBuffer}"))
+                return Result.failure(Exception("unable to get multimedia pic info: ${fromServiceMsg?.wupBuffer?.toHexString()}"))
             }
-            val trpc = kotlin.runCatching {
-                fromServiceMsg.wupBuffer.decodeProtobuf<TrpcOidb>()
-            }.getOrElse {
-                fromServiceMsg.wupBuffer.slice(4).decodeProtobuf<TrpcOidb>()
-            }
+            val trpc = fromServiceMsg.decodeToTrpcOidb()
             if (trpc.buffer == null) {
                 return Result.failure(Exception("unable to get multimedia pic info: ${trpc.msg}"))
             }
@@ -457,11 +494,7 @@ internal object NtV2RichMediaSvc: QQInterfaces() {
         if (fromServiceMsg == null || fromServiceMsg.wupBuffer == null) {
             return Result.failure(Exception("unable to request upload nt pic"))
         }
-        val trpc = kotlin.runCatching {
-            fromServiceMsg.wupBuffer.decodeProtobuf<TrpcOidb>()
-        }.getOrElse {
-            fromServiceMsg.wupBuffer.slice(4).decodeProtobuf<TrpcOidb>()
-        }
+        val trpc = fromServiceMsg.decodeToTrpcOidb()
         if (trpc.buffer == null) {
             return Result.failure(Exception("unable to request upload nt pic: ${trpc.msg}"))
         }

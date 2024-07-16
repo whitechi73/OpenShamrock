@@ -94,7 +94,8 @@ data class DeleteReq(
 
 @Serializable
 data class DownloadRkeyReq(
-    @ProtoNumber(1) val types: List<Int>
+    @ProtoNumber(1) val types: List<Int>,
+    @ProtoNumber(2) val downloadType: Int
 )
 
 @Serializable
