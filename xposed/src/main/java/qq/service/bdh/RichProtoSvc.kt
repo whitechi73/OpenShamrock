@@ -10,6 +10,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.serialization.ExperimentalSerializationApi
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
+import moe.fuqiuluo.shamrock.tools.decodeToOidb
 import moe.fuqiuluo.shamrock.tools.slice
 import moe.fuqiuluo.shamrock.tools.toHexString
 import moe.fuqiuluo.shamrock.utils.PlatformUtils
@@ -53,8 +54,7 @@ internal object RichProtoSvc: QQInterfaces() {
         if (fromServiceMsg == null || fromServiceMsg.wupBuffer == null) {
             return ""
         }
-        val body = oidb_sso.OIDBSSOPkg()
-        body.mergeFrom(fromServiceMsg.wupBuffer.slice(4))
+        val body = fromServiceMsg.decodeToOidb()
         body.bytes_bodybuffer
             .get().toByteArray()
             .decodeProtobuf<Oidb0xfc2RspBody>()
@@ -82,8 +82,7 @@ internal object RichProtoSvc: QQInterfaces() {
         if (fromServiceMsg == null || fromServiceMsg.wupBuffer == null) {
             return ""
         }
-        val body = oidb_sso.OIDBSSOPkg()
-        body.mergeFrom(fromServiceMsg.wupBuffer.slice(4))
+        val body = fromServiceMsg.decodeToOidb()
         val result = oidb_0x6d6.RspBody().mergeFrom(body.bytes_bodybuffer.get().toByteArray())
         if (body.uint32_result.get() != 0
             || result.download_file_rsp.int32_ret_code.get() != 0) {
@@ -130,8 +129,7 @@ internal object RichProtoSvc: QQInterfaces() {
             }
             return ""
         } else {
-            val body = oidb_sso.OIDBSSOPkg()
-            body.mergeFrom(fromServiceMsg.wupBuffer.slice(4))
+            val body = fromServiceMsg.decodeToOidb()
             val result = cmd0x346.RspBody().mergeFrom(cmd0xe37.Resp0xe37().mergeFrom(
                 body.bytes_bodybuffer.get().toByteArray()
             ).bytes_cmd_0x346_rsp_body.get().toByteArray())

@@ -3,6 +3,7 @@ package kritor.service
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
 import io.kritor.file.*
+import moe.fuqiuluo.shamrock.tools.decodeToOidb
 import moe.fuqiuluo.shamrock.tools.slice
 import moe.fuqiuluo.symbols.decodeProtobuf
 import protobuf.auto.toByteArray
@@ -33,8 +34,7 @@ internal object GroupFileService : GroupFileServiceGrpcKt.GroupFileServiceCorout
         if (fromServiceMsg.wupBuffer == null) {
             throw StatusRuntimeException(Status.INTERNAL.withDescription("oidb request failed"))
         }
-        val oidbPkg = oidb_sso.OIDBSSOPkg()
-        oidbPkg.mergeFrom(fromServiceMsg.wupBuffer.slice(4))
+        val oidbPkg = fromServiceMsg.decodeToOidb()
         val rsp = oidbPkg.bytes_bodybuffer.get()
             .toByteArray()
             .decodeProtobuf<Oidb0x6d7RespBody>()
@@ -61,8 +61,7 @@ internal object GroupFileService : GroupFileServiceGrpcKt.GroupFileServiceCorout
         if (fromServiceMsg.wupBuffer == null) {
             throw StatusRuntimeException(Status.INTERNAL.withDescription("oidb request failed"))
         }
-        val oidbPkg = oidb_sso.OIDBSSOPkg()
-        oidbPkg.mergeFrom(fromServiceMsg.wupBuffer.slice(4))
+        val oidbPkg = fromServiceMsg.decodeToOidb()
         val rsp = oidbPkg.bytes_bodybuffer.get().toByteArray().decodeProtobuf<Oidb0x6d7RespBody>()
         if (rsp.deleteFolder?.retCode != 0) {
             throw StatusRuntimeException(Status.INTERNAL.withDescription("unable to delete folder: ${rsp.deleteFolder?.retCode}"))
@@ -86,8 +85,7 @@ internal object GroupFileService : GroupFileServiceGrpcKt.GroupFileServiceCorout
         if (fromServiceMsg.wupBuffer == null) {
             throw StatusRuntimeException(Status.INTERNAL.withDescription("oidb request failed"))
         }
-        val oidbPkg = oidb_sso.OIDBSSOPkg()
-        oidbPkg.mergeFrom(fromServiceMsg.wupBuffer.slice(4))
+        val oidbPkg = fromServiceMsg.decodeToOidb()
         val rsp = oidb_0x6d6.RspBody().apply {
             mergeFrom(oidbPkg.bytes_bodybuffer.get().toByteArray())
         }
@@ -112,8 +110,7 @@ internal object GroupFileService : GroupFileServiceGrpcKt.GroupFileServiceCorout
         if (fromServiceMsg.wupBuffer == null) {
             throw StatusRuntimeException(Status.INTERNAL.withDescription("oidb request failed"))
         }
-        val oidbPkg = oidb_sso.OIDBSSOPkg()
-        oidbPkg.mergeFrom(fromServiceMsg.wupBuffer.slice(4))
+        val oidbPkg = fromServiceMsg.decodeToOidb()
         val rsp = oidbPkg.bytes_bodybuffer.get().toByteArray().decodeProtobuf<Oidb0x6d7RespBody>()
         if (rsp.renameFolder?.retCode != 0) {
             throw StatusRuntimeException(Status.INTERNAL.withDescription("unable to rename folder: ${rsp.renameFolder?.retCode}"))

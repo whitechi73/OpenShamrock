@@ -19,10 +19,13 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeoutOrNull
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
+import moe.fuqiuluo.shamrock.tools.decodeToOidb
 import qq.service.internals.NTServiceFetcher
 import moe.fuqiuluo.shamrock.tools.ifNullOrEmpty
 import moe.fuqiuluo.shamrock.tools.putBuf32Long
 import moe.fuqiuluo.shamrock.tools.slice
+import moe.fuqiuluo.shamrock.utils.PlatformUtils
+import moe.fuqiuluo.shamrock.utils.PlatformUtils.QQ_9_0_65_VER
 import protobuf.auto.toByteArray
 import protobuf.oidb.cmd0xf16.Oidb0xf16
 import protobuf.oidb.cmd0xf16.SetGroupRemarkReq
@@ -453,8 +456,7 @@ internal object GroupHelper: QQInterfaces() {
         if (fromServiceMsg.wupBuffer == null) {
             return Result.failure(RuntimeException("[oidb] failed"))
         }
-        val body = oidb_sso.OIDBSSOPkg()
-        body.mergeFrom(fromServiceMsg.wupBuffer.slice(4))
+        val body = fromServiceMsg.decodeToOidb()
         if(body.uint32_result.get() != 0) {
             return Result.failure(RuntimeException(body.str_error_msg.get()))
         }
@@ -475,8 +477,7 @@ internal object GroupHelper: QQInterfaces() {
         if (fromServiceMsg.wupBuffer == null) {
             return Result.failure(RuntimeException("[oidb] failed"))
         }
-        val body = oidb_sso.OIDBSSOPkg()
-        body.mergeFrom(fromServiceMsg.wupBuffer.slice(4))
+        val body = fromServiceMsg.decodeToOidb()
         if(body.uint32_result.get() != 0) {
             return Result.failure(RuntimeException(body.str_error_msg.get()))
         }
@@ -637,6 +638,9 @@ internal object GroupHelper: QQInterfaces() {
     }
 
     private suspend fun requestTroopMemberInfo(service: ITroopMemberInfoService, groupId: String, memberUin: String, timeout: Long = 10_000): Result<TroopMemberInfo> {
+        if(PlatformUtils.getQQVersionCode() >= QQ_9_0_65_VER) {
+            return Result.failure(Exception("当前版本不支持该API"))
+        }
         val info = RefreshTroopMemberInfoLock.withLock {
             service.deleteTroopMember(groupId, memberUin)
 

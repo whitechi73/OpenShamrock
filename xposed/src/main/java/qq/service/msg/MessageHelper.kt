@@ -31,6 +31,7 @@ import moe.fuqiuluo.shamrock.tools.asJsonObject
 import moe.fuqiuluo.shamrock.tools.asLong
 import moe.fuqiuluo.shamrock.tools.asString
 import moe.fuqiuluo.shamrock.tools.asStringOrNull
+import moe.fuqiuluo.shamrock.tools.decodeToOidb
 import moe.fuqiuluo.shamrock.tools.slice
 import moe.fuqiuluo.shamrock.tools.toHexString
 import moe.fuqiuluo.shamrock.utils.DeflateTools
@@ -108,8 +109,7 @@ internal object MessageHelper: QQInterfaces() {
         if (fromServiceMsg?.wupBuffer == null) {
             return "no response"
         }
-        val body = oidb_sso.OIDBSSOPkg()
-        body.mergeFrom(fromServiceMsg.wupBuffer.slice(4))
+        val body = fromServiceMsg.decodeToOidb()
         val result = oidb_0xeac.RspBody().mergeFrom(body.bytes_bodybuffer.get().toByteArray())
         return if (result.wording.has()) {
             LogCenter.log("设置群精华失败: ${result.wording.get()}", Level.WARN)
@@ -129,8 +129,7 @@ internal object MessageHelper: QQInterfaces() {
         if (fromServiceMsg?.wupBuffer == null) {
             return "no response"
         }
-        val body = oidb_sso.OIDBSSOPkg()
-        body.mergeFrom(fromServiceMsg.wupBuffer.slice(4))
+        val body = fromServiceMsg.decodeToOidb()
         val result = oidb_0xeac.RspBody().mergeFrom(body.bytes_bodybuffer.get().toByteArray())
         return if (result.wording.has()) {
             LogCenter.log("移除群精华失败: ${result.wording.get()}", Level.WARN)

@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalStdlibApi::class)
-
 package qq.service.file
 
 import com.tencent.mobileqq.pb.ByteStringMicro
@@ -9,6 +7,7 @@ import io.kritor.file.*
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.tools.EMPTY_BYTE_ARRAY
+import moe.fuqiuluo.shamrock.tools.decodeToOidb
 import moe.fuqiuluo.shamrock.tools.slice
 import moe.fuqiuluo.shamrock.tools.toHexString
 import moe.fuqiuluo.shamrock.utils.DeflateTools
@@ -32,16 +31,7 @@ internal object GroupFileHelper: QQInterfaces() {
         val fileCnt: Int
         val limitCnt: Int
         if (fromServiceMsg.wupBuffer != null) {
-            val oidb1 = kotlin.runCatching {
-                oidb_sso.OIDBSSOPkg().mergeFrom(fromServiceMsg.wupBuffer.let {
-                    if (it[0] == 0x78.toByte()) DeflateTools.uncompress(it) else it
-                })
-            }.getOrElse {
-                LogCenter.log("unable to parse oidb response(OidbSvc.0x6d8_1): ${fromServiceMsg.wupBuffer.toHexString()}, ${it.stackTraceToString()}", Level.ERROR)
-                oidb_sso.OIDBSSOPkg().mergeFrom(fromServiceMsg.wupBuffer.slice(4).let {
-                    if (it[0] == 0x78.toByte()) DeflateTools.uncompress(it) else it
-                })
-            }
+            val oidb1 = fromServiceMsg.decodeToOidb()
 
             oidb_0x6d8.RspBody().mergeFrom(oidb1.bytes_bodybuffer.get().toByteArray()).group_file_cnt_rsp.apply {
                 fileCnt = uint32_all_file_count.get()
@@ -60,17 +50,7 @@ internal object GroupFileHelper: QQInterfaces() {
         val totalSpace: Long
         val usedSpace: Long
         if (fromServiceMsg2.isSuccess && fromServiceMsg2.wupBuffer != null) {
-            val oidb2 = kotlin.runCatching {
-                oidb_sso.OIDBSSOPkg().mergeFrom(fromServiceMsg2.wupBuffer.let {
-                    if (it[0] == 0x78.toByte()) DeflateTools.uncompress(it) else it
-                })
-            }.onFailure {
-                LogCenter.log("unable to parse oidb response(OidbSvc.0x6d8_1): ${fromServiceMsg2.wupBuffer.toHexString()}, ${it.stackTraceToString()}", Level.ERROR)
-            }.getOrElse {
-                oidb_sso.OIDBSSOPkg().mergeFrom(fromServiceMsg2.wupBuffer.slice(4).let {
-                    if (it[0] == 0x78.toByte()) DeflateTools.uncompress(it) else it
-                })
-            }
+            val oidb2 = fromServiceMsg2.decodeToOidb()
 
             oidb_0x6d8.RspBody().mergeFrom(oidb2.bytes_bodybuffer.get().toByteArray()).group_space_rsp.apply {
                 totalSpace = uint64_total_space.get()
@@ -117,17 +97,7 @@ internal object GroupFileHelper: QQInterfaces() {
         val files = arrayListOf<File>()
         val folders = arrayListOf<Folder>()
         if (fromServiceMsg.wupBuffer != null) {
-            val oidb = kotlin.runCatching {
-                oidb_sso.OIDBSSOPkg().mergeFrom(fromServiceMsg.wupBuffer.slice(4).let {
-                    if (it[0] == 0x78.toByte()) DeflateTools.uncompress(it) else it
-                })
-            }.onFailure {
-                LogCenter.log("unable to parse oidb response: ${fromServiceMsg.wupBuffer.toHexString()}", Level.ERROR)
-            }.getOrElse {
-                oidb_sso.OIDBSSOPkg().mergeFrom(fromServiceMsg.wupBuffer.let {
-                    if (it[0] == 0x78.toByte()) DeflateTools.uncompress(it) else it
-                })
-            }
+            val oidb = fromServiceMsg.decodeToOidb()
 
             oidb_0x6d8.RspBody().mergeFrom(oidb.bytes_bodybuffer.get().toByteArray())
                 .file_list_info_rsp.apply {

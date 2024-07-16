@@ -10,6 +10,7 @@ import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import moe.fuqiuluo.shamrock.tools.GlobalClient
+import moe.fuqiuluo.shamrock.tools.decodeToOidb
 import moe.fuqiuluo.shamrock.tools.slice
 import mqq.app.MobileQQ
 import mqq.manager.TicketManager
@@ -140,8 +141,7 @@ internal object TicketHelper: QQInterfaces() {
         val fromServiceMsg = sendOidbAW("OidbSvcTcp.0x102a", 4138, 0, req.toByteArray())
             ?: return Result.failure(Exception("getLessPSKey failed"))
         if (fromServiceMsg.wupBuffer == null) return Result.failure(Exception("getLessPSKey failed: no response"))
-        val body = oidb_sso.OIDBSSOPkg()
-        body.mergeFrom(fromServiceMsg.wupBuffer.slice(4))
+        val body = fromServiceMsg.decodeToOidb()
         val rsp = oidb_cmd0x102a.GetPSkeyResponse().mergeFrom(body.bytes_bodybuffer.get().toByteArray())
         return Result.success(rsp.private_keys.get())
     }

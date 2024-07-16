@@ -11,6 +11,7 @@ import com.tencent.protofile.join_group_link.join_group_link
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import moe.fuqiuluo.shamrock.tools.decodeToOidb
 import moe.fuqiuluo.shamrock.tools.slice
 import qq.service.internals.NTServiceFetcher
 import qq.service.QQInterfaces
@@ -190,8 +191,7 @@ internal object ContactHelper: QQInterfaces() {
         val fromServiceMsg = sendOidbAW("OidbSvcTrpcTcp.0x11ca_0", 4790, 0, reqBody.toByteArray())
             ?: error("unable to fetch contact ark_json_text")
 
-        val body = oidb_sso.OIDBSSOPkg()
-        body.mergeFrom(fromServiceMsg.wupBuffer.slice(4))
+        val body = fromServiceMsg.decodeToOidb()
         val rsp = oidb_0x11b2.BusinessCardV3Rsp()
         rsp.mergeFrom(body.bytes_bodybuffer.get().toByteArray())
         return rsp.signed_ark_msg.get()
