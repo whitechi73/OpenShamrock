@@ -6,9 +6,11 @@ import moe.fuqiuluo.qqinterface.servlet.transfile.RichProtoSvc
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.tools.EMPTY_BYTE_ARRAY
+import moe.fuqiuluo.shamrock.tools.decodeToOidb
 import moe.fuqiuluo.shamrock.tools.slice
 import moe.fuqiuluo.shamrock.tools.toHexString
 import moe.fuqiuluo.shamrock.utils.DeflateTools
+import moe.fuqiuluo.shamrock.xposed.helper.QQInterfaces
 import moe.fuqiuluo.symbols.decodeProtobuf
 import protobuf.oidb.cmd0x6d7.CreateFolderReq
 import protobuf.oidb.cmd0x6d7.DeleteFolderReq
@@ -21,8 +23,10 @@ import tencent.im.oidb.cmd0x6d8.oidb_0x6d8
 import tencent.im.oidb.oidb_sso
 import protobuf.group_file_common.FolderInfo as GroupFileCommonFolderInfo
 import protobuf.auto.toByteArray
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
-internal object FileSvc: BaseSvc() {
+internal object FileSvc: QQInterfaces() {
     suspend fun createFileFolder(groupId: Long, folderName: String, parentFolderId: String = "/"): Result<GroupFileCommonFolderInfo> {
         val data = Oidb0x6d7ReqBody(
             createFolder = CreateFolderReq(
@@ -32,10 +36,9 @@ internal object FileSvc: BaseSvc() {
                 folderName = folderName
             )
         ).toByteArray()
-        val resultBuffer = sendOidbAW("OidbSvc.0x6d7_0", 1751, 0, data)
+        val fromServiceMsg = sendOidbAW("OidbSvc.0x6d7_0", 1751, 0, data)
             ?: return Result.failure(Exception("unable to fetch result"))
-        val oidbPkg = oidb_sso.OIDBSSOPkg()
-        oidbPkg.mergeFrom(resultBuffer.slice(4))
+        val oidbPkg = fromServiceMsg.decodeToOidb()
         val rsp = oidbPkg.bytes_bodybuffer.get()
             .toByteArray()
             .decodeProtobuf<Oidb0x6d7RespBody>()
@@ -46,21 +49,20 @@ internal object FileSvc: BaseSvc() {
     }
 
     suspend fun deleteGroupFolder(groupId: Long, folderUid: String): Boolean {
-        val buffer = sendOidbAW("OidbSvc.0x6d7_1", 1751, 1, Oidb0x6d7ReqBody(
+        val fromServiceMsg = sendOidbAW("OidbSvc.0x6d7_1", 1751, 1, Oidb0x6d7ReqBody(
             deleteFolder = DeleteFolderReq(
                 groupCode = groupId.toULong(),
                 appId = 3u,
                 folderId = folderUid
             )
         ).toByteArray()) ?: return false
-        val oidbPkg = oidb_sso.OIDBSSOPkg()
-        oidbPkg.mergeFrom(buffer.slice(4))
+        val oidbPkg = fromServiceMsg.decodeToOidb()
         val rsp = oidbPkg.bytes_bodybuffer.get().toByteArray().decodeProtobuf<Oidb0x6d7RespBody>()
         return rsp.deleteFolder?.retCode == 0
     }
 
     suspend fun moveGroupFolder(groupId: Long, folderUid: String, newParentFolderUid: String): Boolean {
-        val buffer = sendOidbAW("OidbSvc.0x6d7_2", 1751, 2, Oidb0x6d7ReqBody(
+        val fromServiceMsg = sendOidbAW("OidbSvc.0x6d7_2", 1751, 2, Oidb0x6d7ReqBody(
             moveFolder = MoveFolderReq(
                 groupCode = groupId.toULong(),
                 appId = 3u,
@@ -68,14 +70,13 @@ internal object FileSvc: BaseSvc() {
                 parentFolderId = "/"
             )
         ).toByteArray()) ?: return false
-        val oidbPkg = oidb_sso.OIDBSSOPkg()
-        oidbPkg.mergeFrom(buffer.slice(4))
+        val oidbPkg = fromServiceMsg.decodeToOidb()
         val rsp = oidbPkg.bytes_bodybuffer.get().toByteArray().decodeProtobuf<Oidb0x6d7RespBody>()
         return rsp.moveFolder?.retCode == 0
     }
 
     suspend fun renameFolder(groupId: Long, folderUid: String, name: String): Boolean {
-        val buffer = sendOidbAW("OidbSvc.0x6d7_3", 1751, 3, Oidb0x6d7ReqBody(
+        val fromServiceMsg = sendOidbAW("OidbSvc.0x6d7_3", 1751, 3, Oidb0x6d7ReqBody(
             renameFolder = RenameFolderReq(
                 groupCode = groupId.toULong(),
                 appId = 3u,
@@ -83,8 +84,7 @@ internal object FileSvc: BaseSvc() {
                 folderName = name
             )
         ).toByteArray()) ?: return false
-        val oidbPkg = oidb_sso.OIDBSSOPkg()
-        oidbPkg.mergeFrom(buffer.slice(4))
+        val oidbPkg = fromServiceMsg.decodeToOidb()
         val rsp = oidbPkg.bytes_bodybuffer.get().toByteArray().decodeProtobuf<Oidb0x6d7RespBody>()
         return rsp.renameFolder?.retCode == 0
     }
@@ -101,8 +101,7 @@ internal object FileSvc: BaseSvc() {
         }
         val result = sendOidbAW("OidbSvc.0x6d6_3", 1750, 3, oidb0x6d6ReqBody.toByteArray())
             ?: return false
-        val oidbPkg = oidb_sso.OIDBSSOPkg()
-        oidbPkg.mergeFrom(result.slice(4))
+        val oidbPkg = result.decodeToOidb()
         val rsp = oidb_0x6d6.RspBody().apply {
             mergeFrom(oidbPkg.bytes_bodybuffer.get().toByteArray())
         }
@@ -120,8 +119,8 @@ internal object FileSvc: BaseSvc() {
         val fileCnt: Int
         val limitCnt: Int
         if (rspGetFileCntBuffer != null) {
-            oidb_0x6d8.RspBody().mergeFrom(oidb_sso.OIDBSSOPkg()
-                .mergeFrom(rspGetFileCntBuffer.slice(4))
+            oidb_0x6d8.RspBody().mergeFrom(
+                rspGetFileCntBuffer.decodeToOidb()
                 .bytes_bodybuffer.get()
                 .toByteArray()
             ).group_file_cnt_rsp.apply {
@@ -141,8 +140,8 @@ internal object FileSvc: BaseSvc() {
         val totalSpace: Long
         val usedSpace: Long
         if (rspGetFileSpaceBuffer != null) {
-            oidb_0x6d8.RspBody().mergeFrom(oidb_sso.OIDBSSOPkg()
-                .mergeFrom(rspGetFileSpaceBuffer.slice(4))
+            oidb_0x6d8.RspBody().mergeFrom(
+                rspGetFileSpaceBuffer.decodeToOidb()
                 .bytes_bodybuffer.get()
                 .toByteArray()).group_space_rsp.apply {
                 totalSpace = uint64_total_space.get()
@@ -187,15 +186,13 @@ internal object FileSvc: BaseSvc() {
 
                 uint32_show_onlinedoc_folder.set(0)
             })
-        }.toByteArray(), timeout = 15_000L)
+        }.toByteArray(), timeout = 15.seconds)
 
         return kotlin.runCatching {
             val files = arrayListOf<FileInfo>()
             val dirs = arrayListOf<FolderInfo>()
             if (rspGetFileListBuffer != null) {
-                val oidb = oidb_sso.OIDBSSOPkg().mergeFrom(rspGetFileListBuffer.slice(4).let {
-                    if (it[0] == 0x78.toByte()) DeflateTools.uncompress(it) else it
-                })
+                val oidb = rspGetFileListBuffer.decodeToOidb()
 
                 oidb_0x6d8.RspBody().mergeFrom(oidb.bytes_bodybuffer.get().toByteArray())
                     .file_list_info_rsp.apply {
@@ -242,7 +239,7 @@ internal object FileSvc: BaseSvc() {
 
             GroupFileList(files, dirs)
         }.onFailure {
-            LogCenter.log(it.message + ", buffer: ${rspGetFileListBuffer.toHexString()}", Level.ERROR)
+            LogCenter.log(it.message + ", buffer: ${rspGetFileListBuffer?.wupBuffer?.toHexString()}", Level.ERROR)
         }
     }
 }

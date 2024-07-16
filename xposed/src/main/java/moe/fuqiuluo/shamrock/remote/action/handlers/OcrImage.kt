@@ -9,7 +9,6 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
-import moe.fuqiuluo.qqinterface.servlet.BaseSvc
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
@@ -17,6 +16,7 @@ import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
 import moe.fuqiuluo.shamrock.utils.FileUtils
 import moe.fuqiuluo.shamrock.utils.MD5
+import moe.fuqiuluo.shamrock.xposed.helper.QQInterfaces
 import moe.fuqiuluo.symbols.OneBotHandler
 import java.io.File
 import kotlin.coroutines.resume
@@ -55,7 +55,7 @@ internal object OcrImage: IActionHandler() {
     }
 
     private suspend fun getOcrResult(file: File): Result<OcrResult> {
-        val ocrService = BaseSvc.app.getRuntimeService(IPicOcrService::class.java, "all")
+        val ocrService = QQInterfaces.app.getRuntimeService(IPicOcrService::class.java, "all")
             ?: return Result.failure(Error("获取OCR服务失败"))
         return withTimeoutOrNull(5000) {
             suspendCancellableCoroutine { continuation ->

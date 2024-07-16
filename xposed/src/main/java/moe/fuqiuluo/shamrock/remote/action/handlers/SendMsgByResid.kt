@@ -2,11 +2,10 @@ package moe.fuqiuluo.shamrock.remote.action.handlers
 
 import kotlinx.atomicfu.atomic
 import kotlinx.serialization.json.JsonElement
-
-import moe.fuqiuluo.qqinterface.servlet.BaseSvc
 import moe.fuqiuluo.shamrock.remote.action.ActionSession
 import moe.fuqiuluo.shamrock.remote.action.IActionHandler
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
+import moe.fuqiuluo.shamrock.xposed.helper.QQInterfaces
 import moe.fuqiuluo.symbols.OneBotHandler
 import protobuf.auto.toByteArray
 import protobuf.message.*
@@ -51,7 +50,7 @@ internal object SendMsgByResid : IActionHandler() {
             msgRand = Random.nextUInt(),
             msgVia = 0u
         )
-        BaseSvc.sendBufferAW("MessageSvc.PbSendMsg", true, req.toByteArray())
+        QQInterfaces.sendBufferAW("MessageSvc.PbSendMsg", true, req.toByteArray())
         return ok("ok", echo)
     }
 

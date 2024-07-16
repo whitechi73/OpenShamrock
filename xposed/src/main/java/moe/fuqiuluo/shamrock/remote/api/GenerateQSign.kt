@@ -39,7 +39,6 @@ import moe.fuqiuluo.shamrock.tools.hex2ByteArray
 import moe.fuqiuluo.shamrock.tools.json
 import moe.fuqiuluo.shamrock.tools.respond
 import moe.fuqiuluo.shamrock.tools.toHexString
-import moe.fuqiuluo.shamrock.xposed.ipc.ShamrockIpc
 import moe.fuqiuluo.shamrock.xposed.ipc.bytedata.IByteData
 import moe.fuqiuluo.shamrock.xposed.ipc.qsign.IQSigner
 import mqq.app.MobileQQ
@@ -113,10 +112,7 @@ fun Routing.qsign() {
             return@get
         }
         if (signer == null || signer?.asBinder()?.isBinderAlive == false) {
-            if (!initSigner()) {
-                respond(false, Status.InternalHandlerError)
-                return@get
-            }
+            call.respond(OldApiResult(-2, "不支持的操作", null))
         }
         val list = signer!!.cmdWhiteList
         call.respond(OldApiResult(0, "success", list))
@@ -128,10 +124,7 @@ fun Routing.qsign() {
             return@getOrPost
         }
         if (signer == null || signer?.asBinder()?.isBinderAlive == false) {
-            if (!initSigner()) {
-                respond(false, Status.InternalHandlerError)
-                return@getOrPost
-            }
+            call.respond(OldApiResult(-2, "不支持的操作", null))
         }
 
         val uin = fetchOrThrow("uin")
@@ -213,43 +206,7 @@ fun Routing.qsign() {
     }
 
     get("/get_byte") {
-        if (!isMsfServiceAlive()) {
-            call.respond(OldApiResult(-2, "MSF服务未启动", null))
-            return@get
-        }
-        if (byteData == null || byteData?.asBinder()?.isBinderAlive == false) {
-            val binder = ShamrockIpc.get(ShamrockIpc.IPC_BYTEDATA)
-            if (binder == null) {
-                call.respond(OldApiResult(-2, "获取失败", null))
-                return@get
-            } else {
-                byteData = IByteData.Stub.asInterface(binder)
-                binder.linkToDeath({
-                    byteData = null
-                }, 0)
-            }
-        }
-
-        val data = fetchGetOrThrow("data")
-        if(!(data.startsWith("810_") || data.startsWith("812_"))) {
-            call.respond(OldApiResult(-2, "data参数不合法", null))
-            return@get
-        }
-
-        val uin = fetchOrThrow("uin")
-        val salt = fetchSalt(data, uin)
-        if (salt.isEmpty()) {
-            call.respond(OldApiResult(-2, "无法自动决断mode，请主动提供", null))
-            return@get
-        }
-
-        val sign = byteData!!.sign(uin, data, salt).sign
-
-        if (sign == null) {
-            call.respond(OldApiResult(-2, "获取失败", null))
-        } else {
-            call.respond(OldApiResult(0, "success", sign.toHexString()))
-        }
+        call.respond(OldApiResult(-2, "不支持的操作", null))
     }
 
     get("/friend_sign") {
@@ -258,10 +215,7 @@ fun Routing.qsign() {
             return@get
         }
         if (signer == null || signer?.asBinder()?.isBinderAlive == false) {
-            if (!initSigner()) {
-                respond(false, Status.InternalHandlerError)
-                return@get
-            }
+            call.respond(OldApiResult(-2, "不支持的操作", null))
         }
 
         val addUin = fetchOrThrow("add_uin")
@@ -286,10 +240,7 @@ fun Routing.qsign() {
             return@get
         }
         if (signer == null || signer?.asBinder()?.isBinderAlive == false) {
-            if (!initSigner()) {
-                respond(false, Status.InternalHandlerError)
-                return@get
-            }
+            call.respond(OldApiResult(-2, "不支持的操作", null))
         }
 
         val addUin = fetchOrThrow("group_uin")
@@ -387,23 +338,6 @@ private data class Sign(
     val requestCallback: List<Int>
 )
 
-private suspend fun initSigner(): Boolean {
-    if (!isMsfServiceAlive()) {
-        return false
-    }
-    val binder = ShamrockIpc.get(ShamrockIpc.IPC_QSIGN)
-    if (binder == null) {
-        //respond(false, Status.InternalHandlerError)
-        return false
-    } else {
-        signer = IQSigner.Stub.asInterface(binder)
-        binder.linkToDeath({
-            signer = null
-        }, 0)
-        return true
-    }
-}
-
 private suspend fun PipelineContext<Unit, ApplicationCall>.requestSign(
     cmd: String,
     uin: String,
@@ -415,10 +349,7 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.requestSign(
         return
     }
     if (signer == null || signer?.asBinder()?.isBinderAlive == false) {
-        if (!initSigner()) {
-            respond(false, Status.InternalHandlerError)
-            return
-        }
+        call.respond(OldApiResult(-2, "不支持的操作", null))
     }
 
     val sign = withTimeoutOrNull(5000) {

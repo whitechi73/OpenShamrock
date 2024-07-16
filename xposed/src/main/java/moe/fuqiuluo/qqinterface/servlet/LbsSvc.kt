@@ -6,10 +6,12 @@ import com.tencent.mobileqq.msf.service.MsfService
 import com.tencent.proto.lbsshare.LBSShare
 import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
 import moe.fuqiuluo.shamrock.helper.IllegalParamsException
+import moe.fuqiuluo.shamrock.tools.decodeToObject
 import moe.fuqiuluo.shamrock.tools.slice
+import moe.fuqiuluo.shamrock.xposed.helper.QQInterfaces
 import kotlin.math.roundToInt
 
-internal object LbsSvc: BaseSvc() {
+internal object LbsSvc: QQInterfaces() {
     suspend fun tryShareLocation(chatType: Int, peerId: Long, lat: Double, lon: Double): Result<Unit> {
         val req = LbsSendInfo.SendMessageReq()
         req.uint64_peer_account.set(peerId)
@@ -24,8 +26,8 @@ internal object LbsSvc: BaseSvc() {
         }.getOrNull())
         req.str_lat.set(lat.toString())
         req.str_lng.set(lon.toString())
-        sendPb("trpc.qq_lbs.qq_lbs_ark.LocationArk.SsoSendMessage", req.toByteArray(), MsfService.getCore().nextSeq)
-
+        sendBuffer("trpc.qq_lbs.qq_lbs_ark.LocationArk.SsoSendMessage", true, req.toByteArray())
+        //sendPb("trpc.qq_lbs.qq_lbs_ark.LocationArk.SsoSendMessage", req.toByteArray(), MsfService.getCore().nextSeq)
         return Result.success(Unit)
     }
 
@@ -50,8 +52,7 @@ internal object LbsSvc: BaseSvc() {
         req.imei.set("")
         val buffer = sendBufferAW("LbsShareSvr.location", true, req.toByteArray())
             ?: return Result.failure(Exception("获取位置失败"))
-        val resp = LBSShare.LocationResp()
-        resp.mergeFrom(buffer.slice(4))
+        val resp = buffer.decodeToObject(LBSShare.LocationResp())
         val location = resp.mylbs
         return Result.success(location.addr.get())
     }

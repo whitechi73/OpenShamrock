@@ -1,6 +1,8 @@
 package moe.fuqiuluo.qqinterface.servlet
 
-internal object VisitorSvc: BaseSvc() {
+import moe.fuqiuluo.shamrock.xposed.helper.QQInterfaces
+
+internal object VisitorSvc: QQInterfaces() {
     const val FROM_C2C_AIO = 2
     const val FROM_CONDITION_SEARCH = 9
     const val FROM_CONTACTS_TAB = 5

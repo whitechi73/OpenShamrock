@@ -1,9 +1,12 @@
 package moe.fuqiuluo.shamrock.helper
 
 import com.tencent.mobileqq.qroute.QRoute
+import com.tencent.qqnt.kernel.api.IKernelService
 import com.tencent.qqnt.kernel.nativeinterface.IOperateCallback
 import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
 import com.tencent.qqnt.kernel.nativeinterface.MsgElement
+import com.tencent.qqnt.kernel.nativeinterface.MsgRecord
+import com.tencent.qqnt.kernel.nativeinterface.TempChatInfo
 import com.tencent.qqnt.kernelpublic.nativeinterface.Contact
 import com.tencent.qqnt.msg.api.IMsgService
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -16,12 +19,15 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
 import moe.fuqiuluo.qqinterface.servlet.MsgSvc
+import moe.fuqiuluo.qqinterface.servlet.MsgSvc.prepareTempChatFromGroup
 import moe.fuqiuluo.qqinterface.servlet.msg.maker.ElemMaker
 import moe.fuqiuluo.qqinterface.servlet.msg.maker.NtMsgElementMaker
 import moe.fuqiuluo.shamrock.helper.db.MessageDB
 import moe.fuqiuluo.shamrock.helper.db.MessageMapping
 import moe.fuqiuluo.shamrock.remote.structures.SendMsgResult
 import moe.fuqiuluo.shamrock.tools.*
+import moe.fuqiuluo.shamrock.xposed.helper.QQInterfaces.Companion.app
+import moe.fuqiuluo.shamrock.xposed.helper.msgService
 import protobuf.message.RichText
 import kotlin.coroutines.resume
 import kotlin.math.abs
@@ -46,6 +52,28 @@ internal object MessageHelper {
             it.elementType != -1
         } as ArrayList<MsgElement>
         return sendMessageWithoutMsgId(chatType, peerId, msg, fromId, callback)
+    }
+
+    suspend fun sendMessage(contact: Contact, msgs: ArrayList<MsgElement>, retry: Int, msgId: SendMsgResult): Result<SendMsgResult> {
+        if (contact.chatType == MsgConstant.KCHATTYPETEMPC2CFROMGROUP) {
+            prepareTempChatFromGroup(contact.guildId, contact.peerUid).getOrThrow()
+        }
+        return withTimeoutOrNull(5000) {
+            suspendCancellableCoroutine {
+                QRoute.api(IMsgService::class.java).sendMsg(contact, msgId.qqMsgId, msgs) { code: Int, msg: String ->
+                    if (code == 0) {
+                        it.resume(msgId.qqMsgId)
+                    } else {
+                        LogCenter.log("消息发送失败: $code:$msg", Level.WARN)
+                        it.resume(null)
+                    }
+                }
+            }
+        }?.let { Result.success(SendMsgResult(
+            msgHashId = msgId.msgHashId,
+            qqMsgId = it,
+            msgTime = System.currentTimeMillis()
+        )) } ?: resendMsg(contact, msgId.qqMsgId, retry, msgHashId = msgId.msgHashId)
     }
 
     suspend fun resendMsg(
@@ -244,6 +272,40 @@ internal object MessageHelper {
         } else {
             uniseq.copy(msgHashId = 0, msgTime = 0)
         }
+    }
+
+    suspend fun getTempChatInfo(chatType: Int, uid: String): Result<TempChatInfo> {
+        val msgService = app.getRuntimeService(IKernelService::class.java, "all").msgService
+            ?: return Result.failure(Exception("获取消息服务失败"))
+        val info: TempChatInfo = withTimeoutOrNull(5000) {
+            suspendCancellableCoroutine {
+                msgService.getTempChatInfo(chatType, uid) { code, msg, tempChatInfo ->
+                    if (code == 0) {
+                        it.resume(tempChatInfo)
+                    } else {
+                        LogCenter.log("获取临时会话信息失败: $code:$msg", Level.ERROR)
+                        it.resume(null)
+                    }
+                }
+            }
+        } ?: return Result.failure(Exception("获取临时会话信息失败"))
+        return Result.success(info)
+    }
+
+    suspend fun generateContact(record: MsgRecord): Contact {
+        val peerId = when (record.chatType) {
+            MsgConstant.KCHATTYPEC2C, MsgConstant.KCHATTYPETEMPC2CFROMGROUP -> record.senderUid
+            MsgConstant.KCHATTYPEGUILD -> record.channelId
+            else -> record.peerUin.toString()
+        }
+        return Contact(record.chatType, peerId, if (record.chatType == MsgConstant.KCHATTYPEGUILD) {
+            record.guildId
+        } else if(record.chatType == MsgConstant.KCHATTYPETEMPC2CFROMGROUP) {
+            val tempInfo = getTempChatInfo(record.chatType, peerId).getOrThrow()
+            tempInfo.groupCode
+        } else {
+            null
+        })
     }
 
     suspend fun generateContact(chatType: Int, id: String, subId: String = ""): Contact {

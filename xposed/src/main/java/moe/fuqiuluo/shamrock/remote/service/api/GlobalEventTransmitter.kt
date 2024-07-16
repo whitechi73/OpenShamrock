@@ -9,7 +9,6 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
-import moe.fuqiuluo.qqinterface.servlet.BaseSvc
 import moe.fuqiuluo.qqinterface.servlet.CardSvc
 import moe.fuqiuluo.qqinterface.servlet.GroupSvc
 import moe.fuqiuluo.qqinterface.servlet.msg.toSegments
@@ -35,9 +34,10 @@ import moe.fuqiuluo.shamrock.remote.service.data.push.Sender
 import moe.fuqiuluo.shamrock.remote.service.data.push.SignDetail
 import moe.fuqiuluo.shamrock.tools.ShamrockDsl
 import moe.fuqiuluo.shamrock.tools.json
+import moe.fuqiuluo.shamrock.xposed.helper.QQInterfaces
 import java.util.ArrayList
 
-internal object GlobalEventTransmitter: BaseSvc() {
+internal object GlobalEventTransmitter: QQInterfaces() {
     private val messageEventFlow by lazy {
         MutableSharedFlow<Pair<MsgRecord, MessageEvent>>()
     }

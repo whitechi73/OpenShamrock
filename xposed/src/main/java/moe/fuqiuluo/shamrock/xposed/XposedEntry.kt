@@ -1,18 +1,19 @@
 package moe.fuqiuluo.shamrock.xposed
 
 import android.content.Context
+import android.os.Build
+import android.os.Handler
 import android.os.Process
 import de.robv.android.xposed.IXposedHookLoadPackage
 import de.robv.android.xposed.XposedBridge
 import de.robv.android.xposed.callbacks.XC_LoadPackage
 import de.robv.android.xposed.XposedBridge.log
-import moe.fuqiuluo.shamrock.helper.Level
-import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.remote.service.config.ShamrockConfig
 import moe.fuqiuluo.shamrock.utils.MMKVFetcher
 import moe.fuqiuluo.shamrock.xposed.loader.KeepAlive
 import moe.fuqiuluo.shamrock.xposed.loader.LuoClassloader
 import moe.fuqiuluo.shamrock.tools.FuzzySearchClass
+import moe.fuqiuluo.shamrock.tools.GlobalUi
 import moe.fuqiuluo.shamrock.tools.afterHook
 import moe.fuqiuluo.shamrock.utils.PlatformUtils
 import moe.fuqiuluo.shamrock.xposed.hooks.runFirstActions
@@ -155,6 +156,13 @@ internal class XposedEntry: IXposedHookLoadPackage {
             }
 
             log("Process Name = $processName")
+
+
+            GlobalUi = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                Handler.createAsync(ctx.mainLooper)
+            } else {
+                Handler(ctx.mainLooper)
+            }
 
             runFirstActions(ctx)
         }

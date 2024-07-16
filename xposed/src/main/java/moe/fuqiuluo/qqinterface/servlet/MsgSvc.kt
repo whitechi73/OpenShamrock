@@ -24,6 +24,7 @@ import moe.fuqiuluo.shamrock.remote.structures.SendMsgResult
 import moe.fuqiuluo.shamrock.tools.*
 import moe.fuqiuluo.shamrock.utils.DeflateTools
 import moe.fuqiuluo.shamrock.xposed.helper.NTServiceFetcher
+import moe.fuqiuluo.shamrock.xposed.helper.QQInterfaces
 import moe.fuqiuluo.shamrock.xposed.helper.msgService
 import moe.fuqiuluo.symbols.decodeProtobuf
 import protobuf.auto.toByteArray
@@ -33,9 +34,10 @@ import java.util.*
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import kotlin.random.Random
+import kotlin.time.Duration.Companion.seconds
 
-internal object MsgSvc : BaseSvc() {
-    private suspend fun prepareTempChatFromGroup(
+internal object MsgSvc : QQInterfaces() {
+    suspend fun prepareTempChatFromGroup(
         groupId: String,
         peerId: String
     ): Result<Unit> {
@@ -418,13 +420,9 @@ internal object MsgSvc : BaseSvc() {
             )
         ).toByteArray()
 
-        val buffer = sendBufferAW("trpc.group.long_msg_interface.MsgService.SsoSendLongMsg", true, req, timeout = 30_000)
+        val buffer = sendBufferAW("trpc.group.long_msg_interface.MsgService.SsoSendLongMsg", true, req, timeout = 30.seconds)
             ?: return Result.failure(Exception("unable to upload multi message, response timeout"))
-        val rsp = runCatching {
-            buffer.slice(4).decodeProtobuf<LongMsgRsp>()
-        }.getOrElse {
-            buffer.decodeProtobuf<LongMsgRsp>()
-        }
+        val rsp = buffer.decodeToObject<LongMsgRsp>()
         val resId = rsp.sendResult?.resId ?: return Result.failure(Exception("unable to upload multi message"))
         return Result.success(MessageSegment(
             type = "forward",
@@ -456,7 +454,7 @@ internal object MsgSvc : BaseSvc() {
             true,
             req.toByteArray()
         ) ?: return Result.failure(Exception("unable to get multi message"))
-        val rsp = buffer.slice(4).decodeProtobuf<LongMsgRsp>()
+        val rsp = buffer.decodeToObject<LongMsgRsp>()
         val zippedPayload = DeflateTools.ungzip(
             rsp.recvResult?.payload ?: return Result.failure(Exception("payload is empty"))
         )

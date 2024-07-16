@@ -182,48 +182,14 @@ internal object NtMsgElementConverter {
         /*
         PicElement{picSubType=0,fileName=A655FCDADABC40D0CEAF6F9AF92937CD.jpg,fileSize=142865,picWidth=886,picHeight=1920,original=false,md5HexStr=a655fcdadabc40d0ceaf6f9af92937cd,sourcePath=null,thumbPath=null,transferStatus=2,progress=0,picType=1000,invalidState=0,fileUuid=CgoxMDI5Mzc0MTE1EhTnucgrUbp3MJjjagUM2-VxSQ5V7hiR3Agg_goo9ZCZt-HNhANQgJqeAQ,fileSubId=,thumbFileSize=0,fileBizId=null,downloadIndex=null,summary=,emojiFrom=null,emojiWebUrl=null,emojiAd=EmojiAD{url=,desc=,},emojiMall=EmojiMall{packageId=0,emojiId=0,},emojiZplan=EmojiZPlan{actionId=0,actionName=,actionType=0,playerNumber=0,peerUid=0,bytesReserveInfo=,},originImageMd5=,originImageUrl=null,importRichMediaContext=null,isFlashPic=false,}
          */
+
+        val url = RichProtoSvc.getTempPicDownloadUrl(chatType, originalUrl, md5, image, storeId)
+
         return MessageSegment(
             type = "image",
             data = hashMapOf(
                 "file" to md5,
-                "url" to when (chatType) {
-                    MsgConstant.KCHATTYPEDISC, MsgConstant.KCHATTYPEGROUP -> RichProtoSvc.getGroupPicDownUrl(
-                        originalUrl = originalUrl,
-                        md5 = md5,
-                        fileId = image.fileUuid,
-                        width = image.picWidth.toUInt(),
-                        height = image.picHeight.toUInt(),
-                        sha = "",
-                        fileSize = image.fileSize.toULong(),
-                        peer = peerId
-                    )
-
-                    MsgConstant.KCHATTYPEC2C -> RichProtoSvc.getC2CPicDownUrl(
-                        originalUrl = originalUrl,
-                        md5 = md5,
-                        fileId = image.fileUuid,
-                        width = image.picWidth.toUInt(),
-                        height = image.picHeight.toUInt(),
-                        sha = "",
-                        fileSize = image.fileSize.toULong(),
-                        peer = peerId,
-                        storeId = storeId
-                    )
-
-                    MsgConstant.KCHATTYPEGUILD -> RichProtoSvc.getGuildPicDownUrl(
-                        originalUrl = originalUrl,
-                        md5 = md5,
-                        fileId = image.fileUuid,
-                        width = image.picWidth.toUInt(),
-                        height = image.picHeight.toUInt(),
-                        sha = "",
-                        fileSize = image.fileSize.toULong(),
-                        peer = peerId,
-                        subPeer = subPeer
-                    )
-
-                    else -> throw UnsupportedOperationException("Not supported chat type: $chatType")
-                },
+                "url" to url,
                 "subType" to image.picSubType,
                 "type" to if (image.isFlashPic == true) "flash" else if (image.original) "original" else "show"
             )

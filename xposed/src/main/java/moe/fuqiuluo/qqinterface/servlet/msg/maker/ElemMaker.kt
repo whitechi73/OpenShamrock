@@ -124,18 +124,23 @@ internal class ElemMaker {
                     else -> {
                         qq = qqStr.toLong()
                         type = 0
-                        "@" + (data["name"].asStringOrNull ?: GroupSvc.getTroopMemberInfoByUinV2(
-                            peerId.toLong(),
-                            qq,
-                            true
-                        ).let {
-                            val info = it.getOrNull()
-                            if (info == null)
-                                LogCenter.log("无法获取群成员信息: $qqStr", Level.ERROR)
-                            else info.troopnick
-                                .ifNullOrEmpty(info.friendnick)
-                                .ifNullOrEmpty(qqStr)
-                        })
+                        val name = (data["name"].asStringOrNull
+                            ?: GroupSvc.getTroopMemberInfoByUinV3(peerId.toLong(), qq).let {
+                                it?.troopNick
+                                    .ifNullOrEmpty(it?.friendNick)
+                                    .ifNullOrEmpty(it?.showName)
+                                    .ifNullOrEmpty(it?.autoRemark)
+                                    .ifNullOrEmpty(it?.colorNick)
+                            }
+                            ?: GroupSvc.getTroopMemberInfoByUinV2(peerId.toLong(), qq, true).let {
+                                val info = it.getOrNull()
+                                if (info == null)
+                                    LogCenter.log("无法获取群成员信息: $qqStr", Level.ERROR)
+                                else info.troopnick
+                                    .ifNullOrEmpty(info.friendnick)
+                                    .ifNullOrEmpty(qqStr)
+                            })
+                        "@$name"
                     }
                 }
 

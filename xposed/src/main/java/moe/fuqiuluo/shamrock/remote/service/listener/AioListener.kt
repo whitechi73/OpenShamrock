@@ -8,6 +8,7 @@ import com.tencent.qqnt.kernelpublic.nativeinterface.Contact
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import moe.fuqiuluo.qqinterface.servlet.GroupSvc
 import moe.fuqiuluo.qqinterface.servlet.MsgSvc
 import moe.fuqiuluo.qqinterface.servlet.TicketSvc
 import moe.fuqiuluo.qqinterface.servlet.msg.MessageTempHandler
@@ -21,8 +22,9 @@ import moe.fuqiuluo.shamrock.remote.service.api.GlobalEventTransmitter
 import moe.fuqiuluo.qqinterface.servlet.transfile.RichMediaUploadHandler
 import moe.fuqiuluo.shamrock.remote.service.data.push.MessageTempSource
 import moe.fuqiuluo.shamrock.remote.service.data.push.PostType
+import moe.fuqiuluo.shamrock.utils.PlatformUtils
+import moe.fuqiuluo.shamrock.utils.PlatformUtils.QQ_9_0_8_VER
 import java.util.ArrayList
-import java.util.Collections
 import kotlin.collections.HashMap
 
 internal object AioListener : IKernelMsgListener {
@@ -63,7 +65,9 @@ internal object AioListener : IKernelMsgListener {
 
             if (ShamrockConfig.aliveReply() && rawMsg == "ping") {
                 MessageHelper.sendMessageWithoutMsgId(record.chatType, record.peerUin.toString(), "pong", { _, _ -> })
-            }
+            } /*else if (ShamrockConfig.aliveReply() && rawMsg == ".shamrock.at_me") {
+                MessageHelper.sendMessageWithoutMsgId(record.chatType, record.peerUin.toString(), "[CQ:at,qq=${record.senderUin}]", { _, _ -> })
+            }*/
 
 
             val postType = if (record.senderUin == TicketSvc.getLongUin() && ShamrockConfig.enableSyncMsgAsSentMsg()) {

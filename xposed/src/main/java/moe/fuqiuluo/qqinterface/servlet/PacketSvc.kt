@@ -13,6 +13,7 @@ import moe.fuqiuluo.qqinterface.servlet.msg.MessageTempHandler
 import moe.fuqiuluo.shamrock.remote.action.handlers.GetHistoryMsg
 import moe.fuqiuluo.shamrock.tools.broadcast
 import moe.fuqiuluo.shamrock.utils.DeflateTools
+import moe.fuqiuluo.shamrock.xposed.helper.QQInterfaces
 import mqq.app.MobileQQ
 import protobuf.auto.toByteArray
 import protobuf.message.*
@@ -21,7 +22,7 @@ import protobuf.push.MessagePush
 import kotlin.coroutines.resume
 import kotlin.text.toByteArray
 
-internal object PacketSvc : BaseSvc() {
+internal object PacketSvc : QQInterfaces() {
     /**
      * 伪造收到Json卡片消息
      */

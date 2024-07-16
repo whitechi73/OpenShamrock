@@ -8,7 +8,6 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
-import moe.fuqiuluo.shamrock.remote.service.PacketReceiver
 import moe.fuqiuluo.shamrock.remote.service.listener.AioListener
 import moe.fuqiuluo.shamrock.remote.service.listener.PrimitiveListener
 import moe.fuqiuluo.shamrock.tools.hookMethod
@@ -28,9 +27,6 @@ internal object NTServiceFetcher {
             val curHash = service.hashCode() + msgService.hashCode()
             if (isInitForNt(curHash)) return
 
-            PacketHandler.initPacketHandler()
-            PacketReceiver.init()
-
             LogCenter.log("Fetch kernel service successfully: $curKernelHash,$curHash,${PlatformUtils.isMainProcess()}")
             curKernelHash = curHash
             this.iKernelService = service
@@ -38,7 +34,6 @@ internal object NTServiceFetcher {
 
             initNTKernelListener(msgService)
             antiBackgroundMode(sessionService)
-            //hookGuildListener(sessionService)
         }
     }
 
@@ -70,7 +65,7 @@ internal object NTServiceFetcher {
             //groupService.addKernelGroupListener(GroupEventListener)
             //LogCenter.log("Register Group listener successfully.")
 
-            PrimitiveListener.registerListener()
+            //PrimitiveListener.registerListener()
         } catch (e: Throwable) {
             LogCenter.log(e.stackTraceToString(), Level.WARN)
         }

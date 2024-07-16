@@ -10,13 +10,16 @@ import com.tencent.mobileqq.app.BusinessHandlerFactory
 import com.tencent.mobileqq.app.QQAppInterface
 import com.tencent.mobileqq.data.troop.TroopInfo
 import com.tencent.mobileqq.data.troop.TroopMemberInfo
+import com.tencent.mobileqq.data.troop.TroopMemberNickInfo
 import com.tencent.mobileqq.pb.ByteStringMicro
+import com.tencent.mobileqq.qroute.QRoute
 import com.tencent.mobileqq.troop.api.ITroopInfoService
 import com.tencent.mobileqq.troop.api.ITroopMemberInfoService
 import com.tencent.protofile.join_group_link.join_group_link
 import com.tencent.qphone.base.remote.ToServiceMsg
 import com.tencent.qqnt.kernel.nativeinterface.MemberInfo
 import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
+import com.tencent.qqnt.troopmemberlist.ITroopMemberListRepoApi
 import friendlist.stUinInfo
 import io.ktor.client.call.body
 import io.ktor.client.request.forms.MultiPartFormDataContent
@@ -66,13 +69,18 @@ import moe.fuqiuluo.shamrock.tools.asJsonObject
 import moe.fuqiuluo.shamrock.tools.asLong
 import moe.fuqiuluo.shamrock.tools.asString
 import moe.fuqiuluo.shamrock.tools.asStringOrNull
+import moe.fuqiuluo.shamrock.tools.decodeToObject
+import moe.fuqiuluo.shamrock.tools.decodeToOidb
 import moe.fuqiuluo.shamrock.tools.ifNullOrEmpty
 import moe.fuqiuluo.shamrock.tools.putBuf32Long
 import moe.fuqiuluo.shamrock.tools.slice
 import moe.fuqiuluo.shamrock.utils.FileUtils
 import moe.fuqiuluo.shamrock.utils.PlatformUtils
+import moe.fuqiuluo.shamrock.utils.PlatformUtils.QQ_9_0_65_VER
+import moe.fuqiuluo.shamrock.utils.PlatformUtils.QQ_9_0_8_VER
 import moe.fuqiuluo.shamrock.xposed.helper.AppRuntimeFetcher
 import moe.fuqiuluo.shamrock.xposed.helper.NTServiceFetcher
+import moe.fuqiuluo.shamrock.xposed.helper.QQInterfaces
 import mqq.app.MobileQQ
 import protobuf.auto.toByteArray
 import protobuf.oidb.cmd0xf16.Oidb0xf16
@@ -94,8 +102,9 @@ import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import java.nio.ByteBuffer
 import kotlin.coroutines.resume
+import kotlin.time.Duration.Companion.seconds
 
-internal object GroupSvc: BaseSvc() {
+internal object GroupSvc: QQInterfaces() {
     private const val GET_MEMBER_ROLE_BY_NT = false
 
     private val RefreshTroopMemberInfoLock by lazy {
@@ -112,15 +121,14 @@ internal object GroupSvc: BaseSvc() {
     private lateinit var METHOD_REQ_MODIFY_GROUP_NAME: Method
 
     suspend fun getGroupRemainAtAllRemain (groupId: Long): Result<GroupAtAllRemainInfo> {
-        val buffer = sendOidbAW("OidbSvcTrpcTcp.0x8a7_0", 2215, 0, cmd0x8a7.ReqBody().apply {
+        val fromServiceMsg = sendOidbAW("OidbSvcTrpcTcp.0x8a7_0", 2215, 0, cmd0x8a7.ReqBody().apply {
             uint32_sub_cmd.set(1)
             uint32_limit_interval_type_for_uin.set(2)
             uint32_limit_interval_type_for_group.set(1)
             uint64_uin.set(getLongUin())
             uint64_group_code.set(groupId)
         }.toByteArray(), trpc = true) ?: return Result.failure(RuntimeException("[oidb] timeout"))
-        val body = oidb_sso.OIDBSSOPkg()
-        body.mergeFrom(buffer.slice(4))
+        val body = fromServiceMsg.decodeToOidb()
         if(body.uint32_result.get() != 0) {
             return Result.failure(RuntimeException(body.str_error_msg.get()))
         }
@@ -133,7 +141,7 @@ internal object GroupSvc: BaseSvc() {
         ))
     }
     suspend fun getProhibitedMemberList(groupId: Long): Result<List<ProhibitedMemberInfo>> {
-        val buffer = sendOidbAW("OidbSvc.0x899_0", 2201, 0, oidb_0x899.ReqBody().apply {
+        val fromServiceMsg = sendOidbAW("OidbSvc.0x899_0", 2201, 0, oidb_0x899.ReqBody().apply {
             uint64_group_code.set(groupId)
             uint64_start_uin.set(0)
             uint32_identify_flag.set(6)
@@ -142,8 +150,7 @@ internal object GroupSvc: BaseSvc() {
                 uint32_shutup_timestap.set(0)
             })
         }.toByteArray()) ?: return Result.failure(RuntimeException("[oidb] timeout"))
-        val body = oidb_sso.OIDBSSOPkg()
-        body.mergeFrom(buffer.slice(4))
+        val body = fromServiceMsg.decodeToOidb()
         if(body.uint32_result.get() != 0) {
             return Result.failure(RuntimeException(body.str_error_msg.get()))
         }
@@ -241,10 +248,10 @@ internal object GroupSvc: BaseSvc() {
             toServiceMsg.extraData.putLong("troop_code", groupId)
             toServiceMsg.extraData.putBoolean("is_admin", false)
             toServiceMsg.extraData.putInt("from", 0)
-            val buffer = sendAW(toServiceMsg)
+            val fromServiceMsg = sendToServiceMsgAW(toServiceMsg) ?: return@timeout Result.failure(Exception("获取群信息超时"))
             val uniPacket = UniPacket(true)
             uniPacket.encodeName = "utf-8"
-            uniPacket.decode(buffer)
+            uniPacket.decode(fromServiceMsg.wupBuffer)
             val respBatchProcess = uniPacket.getByClass("RespBatchProcess", RespBatchProcess())
             val batchRespInfo = oidb_0x88d.RspBody().mergeFrom(oidb_sso.OIDBSSOPkg()
                 .mergeFrom(respBatchProcess.batch_response_list.first().buffer)
@@ -308,7 +315,7 @@ internal object GroupSvc: BaseSvc() {
         info.dwFlag = 1
         createToServiceMsg.extraData.putSerializable("vecUinInfo", arrayListOf(info))
         createToServiceMsg.extraData.putLong("dwNewSeq", 0L)
-        send(createToServiceMsg)
+        sendToServiceMsg(createToServiceMsg)
         return true
     }
 
@@ -324,13 +331,12 @@ internal object GroupSvc: BaseSvc() {
     }
 
     suspend fun setEssenceMessage(groupId: Long, seq: Long, rand: Long): Pair<Boolean, String> {
-        val buffer = sendOidbAW("OidbSvc.0xeac_1", 3756, 1, oidb_0xeac.ReqBody().apply {
+        val fromServiceMsg = sendOidbAW("OidbSvc.0xeac_1", 3756, 1, oidb_0xeac.ReqBody().apply {
             group_code.set(groupId)
             msg_seq.set(seq.toInt())
             msg_random.set(rand.toInt())
         }.toByteArray()) ?: return Pair(false, "unknown error")
-        val body = oidb_sso.OIDBSSOPkg()
-        body.mergeFrom(buffer.slice(4))
+        val body = fromServiceMsg.decodeToOidb()
         val result = oidb_0xeac.RspBody().mergeFrom(body.bytes_bodybuffer.get().toByteArray())
         return if (result.wording.has()) {
             LogCenter.log("设置群精华失败: ${result.wording.get()}")
@@ -342,16 +348,12 @@ internal object GroupSvc: BaseSvc() {
     }
 
     suspend fun deleteEssenceMessage(groupId: Long, seq: Long, rand: Long): Pair<Boolean, String> {
-        val buffer = sendOidbAW("OidbSvc.0xeac_2", 3756, 2, oidb_0xeac.ReqBody().apply {
+        val fromServiceMsg = sendOidbAW("OidbSvc.0xeac_2", 3756, 2, oidb_0xeac.ReqBody().apply {
             group_code.set(groupId)
             msg_seq.set(seq.toInt())
             msg_random.set(rand.toInt())
-        }.toByteArray())
-        val body = oidb_sso.OIDBSSOPkg()
-        if (buffer == null) {
-            return Pair(false, "unknown error")
-        }
-        body.mergeFrom(buffer.slice(4))
+        }.toByteArray()) ?: return Pair(false, "unknown error")
+        val body = fromServiceMsg.decodeToOidb()
         val result = oidb_0xeac.RspBody().mergeFrom(body.bytes_bodybuffer.get().toByteArray())
         return if (result.wording.has()) {
             LogCenter.log("移除群精华失败: ${result.wording.get()}")
@@ -565,10 +567,9 @@ internal object GroupSvc: BaseSvc() {
         reqBody.get_ark.set(true)
         reqBody.type.set(1)
         reqBody.group_code.set(groupId)
-        val buffer = sendBufferAW("GroupSvc.JoinGroupLink", true, reqBody.toByteArray())
+        val fromServiceMsg = sendBufferAW("GroupSvc.JoinGroupLink", true, reqBody.toByteArray())
             ?: error("unable to fetch contact ark_json_text")
-        val body = join_group_link.RspBody()
-        body.mergeFrom(buffer.slice(4))
+        val body = fromServiceMsg.decodeToObject(join_group_link.RspBody())
         return body.signed_ark.get().toStringUtf8()
     }
 
@@ -600,8 +601,7 @@ internal object GroupSvc: BaseSvc() {
                 req.uint32_rich_card_name_ver.set(1)
                 val respBuffer = sendBufferAW("group_member_card.get_group_member_card_info", true, req.toByteArray())
                 if (respBuffer != null) {
-                    val rsp = group_member_info.RspBody()
-                    rsp.mergeFrom(respBuffer.slice(4))
+                    val rsp = respBuffer.decodeToObject(group_member_info.RspBody())
                     if (rsp.msg_meminfo.str_location.has()) {
                         info.alias = rsp.msg_meminfo.str_location.get().toStringUtf8()
                     }
@@ -627,15 +627,49 @@ internal object GroupSvc: BaseSvc() {
         }
     }
 
+    fun getTroopMemberInfoByUinFromNt(
+        groupId: Long,
+        uin: Long
+    ): Result<TroopMemberInfo> {
+        return kotlin.runCatching {
+            val api = QRoute.api(ITroopMemberListRepoApi::class.java)
+            api.getTroopMemberInfoSync(groupId.toString(), uin.toString(), null, groupId.toString())
+                ?: throw Exception("获取群成员信息失败: NT兼容接口已废弃")
+        }
+    }
+
+    suspend fun getTroopMemberInfoByUinV3(
+        groupId: Long,
+        uin: Long
+    ): TroopMemberNickInfo? {
+        if (PlatformUtils.getQQVersionCode() > QQ_9_0_65_VER) {
+            val api = QRoute.api(ITroopMemberListRepoApi::class.java)
+            return withTimeoutOrNull(5.seconds) {
+                suspendCancellableCoroutine<TroopMemberNickInfo> { continuation ->
+                    api.fetchTroopMemberName(groupId.toString(), uin.toString(), null, groupId.toString()) {
+                        continuation.resume(it)
+                    }
+                }
+            }
+        } else {
+            return null
+        }
+    }
+
     suspend fun getTroopMemberInfoByUinV2(
         groupId: Long,
         uin: Long,
         refresh: Boolean = false
     ): Result<TroopMemberInfo> {
-        val service = app.getRuntimeService(ITroopMemberInfoService::class.java, "all")
-        var info = service.getTroopMember(groupId.toString(), uin.toString())
-        if (refresh || !service.isMemberInCache(groupId.toString(), uin.toString()) || info == null || info.troopnick == null) {
-            info = requestTroopMemberInfo(service, groupId, uin, timeout = 2000).getOrNull()
+        var info: TroopMemberInfo? = null
+        if (PlatformUtils.getQQVersionCode() <= QQ_9_0_65_VER) {
+            val service = app.getRuntimeService(ITroopMemberInfoService::class.java, "all")
+            info = service.getTroopMember(groupId.toString(), uin.toString())
+            if (refresh || !service.isMemberInCache(groupId.toString(), uin.toString()) || info == null || info.troopnick == null) {
+                info = requestTroopMemberInfo(service, groupId, uin, timeout = 2000).getOrNull()
+            }
+        } else {
+            info = getTroopMemberInfoByUinFromNt(groupId, uin).getOrNull()
         }
         if (info == null) {
             info = getTroopMemberInfoByUinViaNt(groupId, uin, timeout = 2000L).getOrNull()?.let {
@@ -645,35 +679,36 @@ internal object GroupSvc: BaseSvc() {
                 }
             }
         }
-        try {
-            if (info != null && (info.alias == null || info.alias.isBlank())) {
-                val req = group_member_info.ReqBody()
-                req.uint64_group_code.set(groupId)
-                req.uint64_uin.set(uin)
-                req.bool_new_client.set(true)
-                req.uint32_client_type.set(1)
-                req.uint32_rich_card_name_ver.set(1)
-                val respBuffer = sendBufferAW("group_member_card.get_group_member_card_info", true, req.toByteArray(), timeout = 2000)
-                if (respBuffer != null) {
-                    val rsp = group_member_info.RspBody()
-                    rsp.mergeFrom(respBuffer.slice(4))
-                    if (rsp.msg_meminfo.str_location.has()) {
-                        info.alias = rsp.msg_meminfo.str_location.get().toStringUtf8()
-                    }
-                    if (rsp.msg_meminfo.uint32_age.has()) {
-                        info.age = rsp.msg_meminfo.uint32_age.get().toByte()
-                    }
-                    if (rsp.msg_meminfo.bytes_group_honor.has()) {
-                        val honorBytes = rsp.msg_meminfo.bytes_group_honor.get().toByteArray()
-                        val honor = troop_honor.GroupUserCardHonor()
-                        honor.mergeFrom(honorBytes)
-                        info.level = honor.level.get()
-                        // 10315: medal_id not real group level
+        if (PlatformUtils.getQQVersionCode() <= QQ_9_0_8_VER) {
+            try {
+                if (info != null && (info.alias == null || info.alias.isBlank())) {
+                    val req = group_member_info.ReqBody()
+                    req.uint64_group_code.set(groupId)
+                    req.uint64_uin.set(uin)
+                    req.bool_new_client.set(true)
+                    req.uint32_client_type.set(1)
+                    req.uint32_rich_card_name_ver.set(1)
+                    val respBuffer = sendBufferAW("group_member_card.get_group_member_card_info", true, req.toByteArray(), timeout = 2.seconds)
+                    if (respBuffer != null) {
+                        val rsp = respBuffer.decodeToObject(group_member_info.RspBody())
+                        if (rsp.msg_meminfo.str_location.has()) {
+                            info.alias = rsp.msg_meminfo.str_location.get().toStringUtf8()
+                        }
+                        if (rsp.msg_meminfo.uint32_age.has()) {
+                            info.age = rsp.msg_meminfo.uint32_age.get().toByte()
+                        }
+                        if (rsp.msg_meminfo.bytes_group_honor.has()) {
+                            val honorBytes = rsp.msg_meminfo.bytes_group_honor.get().toByteArray()
+                            val honor = troop_honor.GroupUserCardHonor()
+                            honor.mergeFrom(honorBytes)
+                            info.level = honor.level.get()
+                            // 10315: medal_id not real group level
+                        }
                     }
                 }
+            } catch (err: Throwable) {
+                LogCenter.log(err.stackTraceToString(), Level.WARN)
             }
-        } catch (err: Throwable) {
-            LogCenter.log(err.stackTraceToString(), Level.WARN)
         }
         return if (info != null) {
             Result.success(info)
@@ -682,7 +717,7 @@ internal object GroupSvc: BaseSvc() {
         }
     }
 
-    suspend fun getTroopMemberInfoByUinViaNt(
+    private suspend fun getTroopMemberInfoByUinViaNt(
         groupId: Long,
         qq: Long,
         timeout: Long = 5000L
@@ -711,7 +746,7 @@ internal object GroupSvc: BaseSvc() {
             return if (info != null) {
                 Result.success(info)
             } else {
-                Result.failure(Exception("获取群成员信息失败"))
+                Result.failure(Exception("[NT]获取群成员信息失败"))
             }
         }
     }
@@ -933,7 +968,7 @@ internal object GroupSvc: BaseSvc() {
         }
         val respBuffer = sendBufferAW("ProfileService.Pb.ReqSystemMsgAction.Group", true, req.toByteArray())
             ?: return Result.failure(Exception("操作失败"))
-        val rsp = structmsg.RspSystemMsgAction().mergeFrom(respBuffer.slice(4))
+        val rsp = respBuffer.decodeToObject(structmsg.RspSystemMsgAction())
         return if (rsp.head.result.has()) {
             if (rsp.head.result.get() == 0) {
                 Result.success(rsp.msg_detail.get())
@@ -984,8 +1019,7 @@ internal object GroupSvc: BaseSvc() {
             ArrayList()
         } else {
             try {
-                val msg = structmsg.RspSystemMsgNew()
-                msg.mergeFrom(respBuffer.slice(4))
+                val msg = respBuffer.decodeToObject(structmsg.RspSystemMsgNew())
                 return msg.groupmsgs.get().orEmpty()
             } catch (err: Throwable) {
                 requestGroupSystemMsgNew(msgNum, reqMsgType, latestFriendSeq, latestGroupSeq, retryCnt - 1)
@@ -1178,8 +1212,7 @@ internal object GroupSvc: BaseSvc() {
         return if (buffer == null) {
             Result.failure(Exception("操作失败"))
         } else {
-            val body = oidb_sso.OIDBSSOPkg()
-            body.mergeFrom(buffer.slice(4))
+            val body = buffer.decodeToOidb()
             val rsp = oidb_0xeb7.RspBody()
             rsp.mergeFrom(body.bytes_bodybuffer.get().toByteArray())
             val doneInfo = rsp.signInWriteRsp.doneInfo

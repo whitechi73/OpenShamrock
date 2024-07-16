@@ -30,6 +30,7 @@ abstract class ModuleHandler {
                 }
             }
             putExtra("__hash", callbackId)
+            putExtra("__cmd", cmd)
         }
     }
 }

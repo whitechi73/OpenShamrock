@@ -8,13 +8,15 @@ import io.ktor.client.request.get
 import io.ktor.client.request.header
 import moe.fuqiuluo.shamrock.remote.service.data.BigDataTicket
 import moe.fuqiuluo.shamrock.tools.GlobalClientNoRedirect
+import moe.fuqiuluo.shamrock.tools.decodeToOidb
 import moe.fuqiuluo.shamrock.tools.slice
+import moe.fuqiuluo.shamrock.xposed.helper.QQInterfaces
 import mqq.app.MobileQQ
 import mqq.manager.TicketManager
 import oicq.wlogin_sdk.request.Ticket
 import tencent.im.oidb.oidb_sso
 
-internal object TicketSvc: BaseSvc() {
+internal object TicketSvc: QQInterfaces() {
     object SigType {
         const val WLOGIN_A5 = 2
         const val WLOGIN_RESERVED = 16
@@ -109,23 +111,23 @@ internal object TicketSvc: BaseSvc() {
     }
 
     fun getTicket(uin: String, id: Int): Ticket? {
-        return (app.getManager(QQAppInterface.TICKET_MANAGER) as TicketManager).getLocalTicket(uin, id)
+        return ((app as QQAppInterface).getManager(QQAppInterface.TICKET_MANAGER) as TicketManager).getLocalTicket(uin, id)
     }
 
     fun getStWeb(uin: String): String {
-        return (app.getManager(QQAppInterface.TICKET_MANAGER) as TicketManager).getStweb(uin)
+        return ((app as QQAppInterface).getManager(QQAppInterface.TICKET_MANAGER) as TicketManager).getStweb(uin)
     }
 
     fun getSKey(uin: String): String {
-        return (app.getManager(QQAppInterface.TICKET_MANAGER) as TicketManager).getSkey(uin)
+        return ((app as QQAppInterface).getManager(QQAppInterface.TICKET_MANAGER) as TicketManager).getSkey(uin)
     }
 
     fun getRealSkey(uin: String): String {
-        return (app.getManager(QQAppInterface.TICKET_MANAGER) as TicketManager).getRealSkey(uin)
+        return ((app as QQAppInterface).getManager(QQAppInterface.TICKET_MANAGER) as TicketManager).getRealSkey(uin)
     }
 
     fun getPSKey(uin: String): String {
-        val manager = (app.getManager(QQAppInterface.TICKET_MANAGER) as TicketManager)
+        val manager = ((app as QQAppInterface).getManager(QQAppInterface.TICKET_MANAGER) as TicketManager)
         manager.reloadCache(MobileQQ.getContext())
         return manager.getSuperkey(uin) ?: ""
     }
@@ -135,14 +137,13 @@ internal object TicketSvc: BaseSvc() {
         req.domains.set(domain.toList())
         val buffer = sendOidbAW("OidbSvcTcp.0x102a", 4138, 0, req.toByteArray())
             ?: return Result.failure(Exception("getLessPSKey failed"))
-        val body = oidb_sso.OIDBSSOPkg()
-        body.mergeFrom(buffer.slice(4))
+        val body = buffer.decodeToOidb()
         val rsp = oidb_cmd0x102a.GetPSkeyResponse().mergeFrom(body.bytes_bodybuffer.get().toByteArray())
         return Result.success(rsp.private_keys.get())
     }
 
     suspend fun getPSKey(uin: String, domain: String): String? {
-        return (app.getManager(QQAppInterface.TICKET_MANAGER) as TicketManager).getPskey(uin, domain).let {
+        return ((app as QQAppInterface).getManager(QQAppInterface.TICKET_MANAGER) as TicketManager).getPskey(uin, domain).let {
             if (it.isNullOrBlank())
                 getLessPSKey(domain).getOrNull()?.firstOrNull()?.key?.get()
             else it
@@ -150,7 +151,7 @@ internal object TicketSvc: BaseSvc() {
     }
 
     fun getPt4Token(uin: String, domain: String): String? {
-        return (app.getManager(QQAppInterface.TICKET_MANAGER) as TicketManager).getPt4Token(uin, domain)
+        return ((app as QQAppInterface).getManager(QQAppInterface.TICKET_MANAGER) as TicketManager).getPt4Token(uin, domain)
     }
 
     suspend fun GetHttpCookies(appid: String, daid: String, jumpurl: String): String? {

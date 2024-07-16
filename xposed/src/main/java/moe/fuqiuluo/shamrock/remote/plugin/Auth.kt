@@ -6,7 +6,6 @@ import io.ktor.server.application.createApplicationPlugin
 import moe.fuqiuluo.shamrock.remote.service.config.ShamrockConfig
 import moe.fuqiuluo.shamrock.tools.fetchOrNull
 import java.net.URLDecoder
-import java.nio.charset.Charset
 
 private suspend fun ApplicationCall.checkToken() {
     val token = ShamrockConfig.getToken()

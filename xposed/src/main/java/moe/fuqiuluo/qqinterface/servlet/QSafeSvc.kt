@@ -4,12 +4,12 @@ import QQService.SvcDevLoginInfo
 import QQService.SvcReqGetDevLoginInfo
 import QQService.SvcRspGetDevLoginInfo
 import com.qq.jce.wup.UniPacket
-import moe.fuqiuluo.qqinterface.servlet.BaseSvc
+import moe.fuqiuluo.shamrock.xposed.helper.QQInterfaces
 import mqq.app.MobileQQ
 import mqq.app.Packet
 import oicq.wlogin_sdk.tools.util
 
-internal object QSafeSvc: BaseSvc() {
+internal object QSafeSvc: QQInterfaces() {
 
     suspend fun getOnlineClients(): ArrayList<SvcDevLoginInfo>? {
         val req = SvcReqGetDevLoginInfo()
@@ -26,7 +26,7 @@ internal object QSafeSvc: BaseSvc() {
         val resp = sendBufferAW("StatSvc.GetDevLoginInfo", false, uniPacket.encode())
             ?: return null
 
-        return Packet.decodePacket(resp, "SvcRspGetDevLoginInfo",  SvcRspGetDevLoginInfo()).vecCurrentLoginDevInfo
+        return Packet.decodePacket(resp.wupBuffer, "SvcRspGetDevLoginInfo",  SvcRspGetDevLoginInfo()).vecCurrentLoginDevInfo
     }
 
 

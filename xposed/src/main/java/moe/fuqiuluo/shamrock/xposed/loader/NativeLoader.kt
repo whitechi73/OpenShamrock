@@ -47,14 +47,16 @@ internal object NativeLoader {
      */
     fun load(name: String) {
         try {
-            if (name == "shamrock"
-                || (name == "clover" && isEmu)
-                ) {
+            if (name == "shamrock" || (name == "clover" && isEmu)) {
                 onLoadByResource(name)
             } else if (!onLoadByAbsolutePath(name)) {
                 onLoadByExternalFile(name)
             }
         } catch (e: Throwable) {
+            if (name == "shamrock" && onLoadByAbsolutePath(name)) {
+                return
+            }
+            LogCenter.log("LoadLibrary(name = $name) failed: ${e.stackTraceToString()}", Level.ERROR)
             XposedBridge.log(e)
         }
     }
@@ -95,7 +97,7 @@ internal object NativeLoader {
         if (soDir.isFile) soDir.delete()
         if (!soDir.exists()) soDir.mkdirs()
         val soPath = getLibFilePath(name)
-        val soFile = File(soDir, name)
+        val soFile = File(soDir, "lib$name.so")
         fun reloadSo(tmp: File? = null) {
             LogCenter.log("SO文件大小不一致或不存在，正在重新加载", Level.INFO)
             soFile.delete()
@@ -107,7 +109,7 @@ internal object NativeLoader {
             if (!soFile.exists()) {
                 reloadSo()
             } else {
-                val tmpSoFile = File(soDir, "$name.tmp").also {  file ->
+                val tmpSoFile = File(soDir, "lib$name.so.tmp").also {  file ->
                     if (file.exists()) file.delete()
                     file.outputStream().use {
                         moduleLoader.getResourceAsStream(soPath).use { origin ->

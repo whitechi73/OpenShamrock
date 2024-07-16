@@ -19,9 +19,12 @@ import moe.fuqiuluo.qqinterface.servlet.structures.SlowModeInfo
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.tools.EMPTY_BYTE_ARRAY
+import moe.fuqiuluo.shamrock.tools.decodeToObject
+import moe.fuqiuluo.shamrock.tools.decodeToOidb
 import moe.fuqiuluo.shamrock.tools.slice
 import moe.fuqiuluo.shamrock.utils.PlatformUtils
 import moe.fuqiuluo.shamrock.xposed.helper.NTServiceFetcher
+import moe.fuqiuluo.shamrock.xposed.helper.QQInterfaces
 import moe.fuqiuluo.symbols.decodeProtobuf
 import protobuf.auto.toByteArray
 import protobuf.guild.GetGuildFeedsReq
@@ -44,7 +47,7 @@ import protobuf.qweb.QWebRsp
 import tencent.im.oidb.oidb_sso
 import kotlin.coroutines.resume
 
-internal object GProSvc: BaseSvc() {
+internal object GProSvc: QQInterfaces() {
     fun getSelfTinyId(): ULong {
         val service = app.getRuntimeService(IGPSService::class.java, "all")
         return service.selfTinyId.toULong()
@@ -57,12 +60,8 @@ internal object GProSvc: BaseSvc() {
                 u2 = Oidb0xf57U2(1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u)
             ),
             guildInfo = Oidb0xf57GuildInfo(guildId = guildId)
-        ).toByteArray())
-        val body = oidb_sso.OIDBSSOPkg()
-        if (respBuffer == null) {
-            return Result.failure(Exception("unable to send packet"))
-        }
-        body.mergeFrom(respBuffer.slice(4))
+        ).toByteArray()) ?: return Result.failure(Exception("unable to send packet"))
+        val body = respBuffer.decodeToOidb()
         return runCatching {
             body.bytes_bodybuffer.get()
                 .toByteArray()
@@ -71,7 +70,7 @@ internal object GProSvc: BaseSvc() {
     }
 
     suspend fun getGuildFeeds(guildId: ULong, channelId: ULong, startIndex: Int): Result<GetGuildFeedsRsp> {
-        val buffer = sendBufferAW("QChannelSvr.trpc.qchannel.commreader.ComReader.GetGuildFeeds", true, QWebReq(
+        val fromServiceMsg = sendBufferAW("QChannelSvr.trpc.qchannel.commreader.ComReader.GetGuildFeeds", true, QWebReq(
             seq = 10,
             qua = PlatformUtils.getQUA(),
             deviceInfo = DEFAULT_DEVICE_INFO,
@@ -92,7 +91,7 @@ internal object GProSvc: BaseSvc() {
                 QWebExtInfo("tiny_id", getSelfTinyId().toString()),
             )
         ).toByteArray()) ?: return Result.failure(Exception("unable to send packet"))
-        val webRsp = buffer.slice(4).decodeProtobuf<QWebRsp>()
+        val webRsp = fromServiceMsg.decodeToObject<QWebRsp>()
         if(webRsp.buffer == null) return Result.failure(Exception("server error"))
         val wupBuffer = webRsp.buffer!!
         val feeds = wupBuffer.decodeProtobuf<GetGuildFeedsRsp>()
@@ -188,12 +187,8 @@ internal object GProSvc: BaseSvc() {
             memberId = 0uL,
             tinyId = memberTinyId,
             guildId = guildId
-        ).toByteArray())
-        val body = oidb_sso.OIDBSSOPkg()
-        if (respBuffer == null) {
-            return Result.failure(Exception("unable to send packet"))
-        }
-        body.mergeFrom(respBuffer.slice(4))
+        ).toByteArray()) ?: return Result.failure(Exception("unable to send packet"))
+        val body = respBuffer.decodeToOidb()
         return runCatching {
             body.bytes_bodybuffer.get().toByteArray().decodeProtobuf<Oidb0xf88Rsp>().userInfo!!
         }

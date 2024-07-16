@@ -23,6 +23,7 @@ import moe.fuqiuluo.shamrock.tools.toHexString
 import moe.fuqiuluo.shamrock.utils.DeflateTools
 import moe.fuqiuluo.shamrock.utils.MD5
 import moe.fuqiuluo.shamrock.xposed.helper.AppRuntimeFetcher
+import moe.fuqiuluo.shamrock.xposed.helper.QQInterfaces
 import protobuf.fav.WeiyunAddRichMediaReq
 import protobuf.fav.WeiyunAuthor
 import protobuf.fav.WeiyunCollectCommInfo
@@ -49,7 +50,7 @@ import kotlin.coroutines.resume
 /**
  * QQ收藏相关接口
  */
-internal object QFavSvc: BaseSvc() {
+internal object QFavSvc: QQInterfaces() {
     private val SERVER_LIST_COLLECTOR = listOf(ServerAddr().also {
         it.isIpv6 = false
         it.mIp = "collector.weiyun.com"
@@ -275,7 +276,7 @@ internal object QFavSvc: BaseSvc() {
 
                 override fun onUpdateProgeress(netReq: NetReq, curr: Long, final: Long) {}
             }
-            val vi = (app.getManager(QQAppInterface.TICKET_MANAGER) as TicketManager).getA2(app.currentAccountUin)
+            val vi = ((app as QQAppInterface).getManager(QQAppInterface.TICKET_MANAGER) as TicketManager).getA2(app.currentAccountUin)
             //LogCenter.log(pSKey)
             httpNetReq.mHttpMethod = HttpNetReq.HTTP_POST
             httpNetReq.mSendData = BytePacketBuilder().apply {
@@ -381,7 +382,7 @@ internal object QFavSvc: BaseSvc() {
     }
 
     private fun getWeiYunPSKey(): String {
-        val pskey = (app.getManager(QQAppInterface.TICKET_MANAGER) as TicketManager)
+        val pskey = ((app as QQAppInterface).getManager(QQAppInterface.TICKET_MANAGER) as TicketManager)
             .getPskey(app.currentAccountUin, 16L, arrayOf("weiyun.com"), WeiYunPSKeyPromise)
         return if (pskey != null) pskey.getPSkey("weiyun.com") else ""
     }

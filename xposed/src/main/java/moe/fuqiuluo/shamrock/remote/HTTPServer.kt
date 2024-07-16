@@ -1,5 +1,6 @@
 package moe.fuqiuluo.shamrock.remote
 
+import com.tencent.mobileqq.app.QQAppInterface
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.engine.ApplicationEngine
@@ -21,7 +22,9 @@ import moe.fuqiuluo.shamrock.remote.plugin.Auth
 import moe.fuqiuluo.shamrock.remote.service.config.ShamrockConfig
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
-import moe.fuqiuluo.shamrock.xposed.helper.internal.DataRequester
+import moe.fuqiuluo.shamrock.tools.ShamrockVersion
+import moe.fuqiuluo.shamrock.xposed.helper.AppTalker
+import moe.fuqiuluo.shamrock.xposed.helper.QQInterfaces.Companion.app
 import moe.fuqiuluo.shamrock.xposed.loader.NativeLoader
 import org.slf4j.LoggerFactory
 import java.security.KeyStore
@@ -138,10 +141,13 @@ internal object HTTPServer {
         isServiceStarted = true
         currServerPort = port
         LogCenter.log("Start HTTP Server: http://0.0.0.0:$currServerPort/")
-        DataRequester.request("success", values = mapOf(
-            "port" to currServerPort,
-            "voice" to NativeLoader.isVoiceLoaded
-        ))
+        AppTalker.talk("success") {
+            put("account", app.currentAccountUin)
+            put("nickname", if (app is QQAppInterface) (app.currentNickname ?: "unknown") else "unknown")
+            put("voice", NativeLoader.isVoiceLoaded)
+            put("core_version", ShamrockVersion)
+            put("port", currServerPort)
+        }
     }
 
     fun isActive(): Boolean {

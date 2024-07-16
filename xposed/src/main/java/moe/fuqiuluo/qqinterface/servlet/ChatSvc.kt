@@ -1,11 +1,12 @@
 package moe.fuqiuluo.qqinterface.servlet
 
 import kotlinx.serialization.encodeToByteArray
+import moe.fuqiuluo.shamrock.xposed.helper.QQInterfaces
 import protobuf.auto.toByteArray
 
 import protobuf.oidb.cmd0x9082.Oidb0x9082
 
-internal object ChatSvc: BaseSvc() {
+internal object ChatSvc: QQInterfaces() {
     fun setGroupMessageCommentFace(peer: Long, msgSeq: ULong, faceIndex: String, isSet: Boolean) {
         val serviceId = if (isSet) 1 else 2
         sendOidb("OidbSvcTrpcTcp.0x9082_$serviceId", 36994, serviceId, Oidb0x9082(

@@ -16,26 +16,29 @@ import com.tencent.qqnt.kernelpublic.nativeinterface.Contact
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
-import moe.fuqiuluo.qqinterface.servlet.BaseSvc
 import moe.fuqiuluo.qqinterface.servlet.TicketSvc
 import moe.fuqiuluo.qqinterface.servlet.transfile.data.TryUpPicData
 import moe.fuqiuluo.shamrock.helper.MessageHelper
 import moe.fuqiuluo.shamrock.remote.service.config.ShamrockConfig
+import moe.fuqiuluo.shamrock.tools.decodeToObject
+import moe.fuqiuluo.shamrock.tools.decodeToTrpcOidb
 import moe.fuqiuluo.shamrock.tools.hex2ByteArray
-import moe.fuqiuluo.shamrock.tools.slice
+import moe.fuqiuluo.shamrock.tools.toHexString
 import moe.fuqiuluo.shamrock.utils.AudioUtils
 import moe.fuqiuluo.shamrock.utils.FileUtils
 import moe.fuqiuluo.shamrock.utils.MediaType
 import moe.fuqiuluo.shamrock.xposed.helper.NTServiceFetcher
+import moe.fuqiuluo.shamrock.xposed.helper.QQInterfaces
 import moe.fuqiuluo.shamrock.xposed.helper.msgService
 import moe.fuqiuluo.symbols.decodeProtobuf
 import protobuf.auto.toByteArray
-import protobuf.oidb.TrpcOidb
 import protobuf.oidb.cmd0x11c5.ClientMeta
 import protobuf.oidb.cmd0x11c5.CodecConfigReq
 import protobuf.oidb.cmd0x11c5.CommonHead
 import protobuf.oidb.cmd0x11c5.DownloadExt
 import protobuf.oidb.cmd0x11c5.DownloadReq
+import protobuf.oidb.cmd0x11c5.DownloadRkeyReq
+import protobuf.oidb.cmd0x11c5.DownloadRkeyRsp
 import protobuf.oidb.cmd0x11c5.FileInfo
 import protobuf.oidb.cmd0x11c5.FileType
 import protobuf.oidb.cmd0x11c5.IndexNode
@@ -57,8 +60,9 @@ import kotlin.random.Random
 import kotlin.random.nextUInt
 import kotlin.random.nextULong
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
-internal object NtV2RichMediaSvc: BaseSvc() {
+internal object NtV2RichMediaSvc: QQInterfaces() {
     private val requestIdSeq = atomic(2L)
 
     fun fetchGroupResUploadTo(): String {
@@ -320,6 +324,40 @@ internal object NtV2RichMediaSvc: BaseSvc() {
         return Result.success(result)
     }
 
+    suspend fun getTempNtRKey(): Result<DownloadRkeyRsp> {
+        runCatching {
+            val req = NtV2RichMediaReq(
+                head = MultiMediaReqHead(
+                    commonHead = CommonHead(
+                        requestId = requestIdSeq.incrementAndGet().toULong(),
+                        cmd = 202u
+                    ),
+                    sceneInfo = SceneInfo(
+                        requestType = 2u,
+                        businessType = 1u,
+                        sceneType = 0u,
+                    ),
+                    clientMeta = ClientMeta(2u)
+                ),
+                downloadRkey = DownloadRkeyReq(
+                    types = listOf(10, 20),
+                    downloadType = 2
+                )
+            ).toByteArray()
+            val fromServiceMsg = sendOidbAW("OidbSvcTrpcTcp.0x9067_202", 0x9067, 202, req, true)
+            if (fromServiceMsg == null || fromServiceMsg.wupBuffer == null) {
+                return Result.failure(Exception("failed to fetch NtTempRKey: ${fromServiceMsg?.wupBuffer?.toHexString()}"))
+            }
+            val trpc = fromServiceMsg.decodeToTrpcOidb()
+            trpc.buffer.decodeProtobuf<NtV2RichMediaRsp>().downloadRkeyRsp?.let {
+                return Result.success(it)
+            }
+        }.onFailure {
+            return Result.failure(it)
+        }
+        return Result.failure(Exception("failed to fetch NtTempRKey"))
+    }
+
     /**
      * 获取NT图片的RKEY
      */
@@ -386,8 +424,9 @@ internal object NtV2RichMediaSvc: BaseSvc() {
                     )
                 )
             ).toByteArray()
-            val buffer = sendOidbAW("OidbSvcTrpcTcp.0x11c5_200", 4549, 200, req, true)?.slice(4)
-            buffer?.decodeProtobuf<TrpcOidb>()?.buffer?.decodeProtobuf<NtV2RichMediaRsp>()?.download?.rkeyParam?.let {
+            val buffer = sendOidbAW("OidbSvcTrpcTcp.0x11c5_200", 4549, 200, req, true)
+                ?: return Result.failure(Exception("no response"))
+            buffer.decodeToTrpcOidb().buffer.decodeProtobuf<NtV2RichMediaRsp>().download?.rkeyParam?.let {
                 return Result.success(it)
             }
         }.onFailure {
@@ -470,17 +509,16 @@ internal object NtV2RichMediaSvc: BaseSvc() {
         ).toByteArray()
         val buffer = when (chatType) {
             MsgConstant.KCHATTYPEGROUP -> {
-                sendOidbAW("OidbSvcTrpcTcp.0x11c4_100", 4548, 100, req, true, timeout = 3_000)?.slice(4)
+                sendOidbAW("OidbSvcTrpcTcp.0x11c4_100", 4548, 100, req, true, timeout = 3.seconds)
                     ?: return Result.failure(Exception("no response: timeout"))
             }
             MsgConstant.KCHATTYPEC2C -> {
-                sendOidbAW("OidbSvcTrpcTcp.0x11c5_100", 4549, 100, req, true, timeout = 3_000)?.slice(4)
+                sendOidbAW("OidbSvcTrpcTcp.0x11c5_100", 4549, 100, req, true, timeout = 3.seconds)
                     ?: return Result.failure(Exception("no response: timeout"))
             }
-
             else -> return Result.failure(Exception("unknown chat type: $chatType"))
         }
-        val rspBuffer = buffer.decodeProtobuf<TrpcOidb>().buffer
+        val rspBuffer = buffer.decodeToTrpcOidb().buffer
         val rsp = rspBuffer.decodeProtobuf<NtV2RichMediaRsp>()
         if (rsp.upload == null) {
             return Result.failure(Exception("unable to request upload nt pic: ${rsp.head}"))
@@ -522,7 +560,7 @@ internal object NtV2RichMediaSvc: BaseSvc() {
                     )
                 ),
             ).toByteArray())!!
-            val rsp = rspBuffer.decodeProtobuf<Cmd0x388RspBody>()
+            val rsp = rspBuffer.decodeToObject<Cmd0x388RspBody>()
                 .msgTryUpImgRsp!!.first()
             TryUpPicData(
                 uKey = rsp.ukey,

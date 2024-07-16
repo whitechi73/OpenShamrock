@@ -20,8 +20,6 @@ import moe.fuqiuluo.shamrock.xposed.helper.AppRuntimeFetcher
 import moe.fuqiuluo.symbols.Process
 import moe.fuqiuluo.symbols.XposedHook
 import mqq.app.MobileQQ
-import kotlin.concurrent.timer
-import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 @XposedHook(Process.MAIN, priority = 10)

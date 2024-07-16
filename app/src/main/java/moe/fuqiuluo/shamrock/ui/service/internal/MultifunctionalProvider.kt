@@ -58,7 +58,7 @@ class MultifunctionalProvider: ContentProvider() {
 
 inline fun Context.broadcastToModule(intentBuilder: Intent.() -> Unit) {
     val intent = Intent()
-    intent.action = "moe.fuqiuluo.xqbot.dynamic"
+    intent.action = "moe.fuqiuluo.onebot.dynamic"
     intent.intentBuilder()
     sendBroadcast(intent)
 }

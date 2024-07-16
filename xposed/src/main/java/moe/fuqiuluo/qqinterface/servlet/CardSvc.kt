@@ -21,12 +21,14 @@ import moe.fuqiuluo.shamrock.tools.json
 import moe.fuqiuluo.shamrock.tools.slice
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
+import moe.fuqiuluo.shamrock.tools.decodeToOidb
+import moe.fuqiuluo.shamrock.xposed.helper.QQInterfaces
 import mqq.app.Packet
 import tencent.im.oidb.cmd0x11b2.oidb_0x11b2
 import tencent.im.oidb.oidb_sso
 import kotlin.coroutines.resume
 
-internal object CardSvc: BaseSvc() {
+internal object CardSvc: QQInterfaces() {
     private val GetModelShowLock by lazy {
         Mutex()
     }
@@ -46,7 +48,8 @@ internal object CardSvc: BaseSvc() {
 
             val resp = sendBufferAW("VipCustom.GetCustomOnlineStatus", false, uniPacket.encode())
                 ?: error("unable to fetch contact model_show")
-            Packet.decodePacket(resp, "rsp",  GetCustomOnlineStatusRsp()).sBuffer
+            val buffer = resp.wupBuffer
+            Packet.decodePacket(buffer, "rsp",  GetCustomOnlineStatusRsp()).sBuffer
         }
     }
 
@@ -79,10 +82,9 @@ internal object CardSvc: BaseSvc() {
         reqBody.uin.set(peerId)
         reqBody.jump_url.set("mqqapi://card/show_pslcard?src_type=internal&source=sharecard&version=1&uin=$peerId")
 
-        val buffer = sendOidbAW("OidbSvcTrpcTcp.0x11ca_0", 4790, 0, reqBody.toByteArray())
+        val fromServiceMsg = sendOidbAW("OidbSvcTrpcTcp.0x11ca_0", 4790, 0, reqBody.toByteArray())
             ?: error("unable to fetch contact ark_json_text")
-        val body = oidb_sso.OIDBSSOPkg()
-        body.mergeFrom(buffer.slice(4))
+        val body = fromServiceMsg.decodeToOidb()
         val rsp = oidb_0x11b2.BusinessCardV3Rsp()
         rsp.mergeFrom(body.bytes_bodybuffer.get().toByteArray())
         return rsp.signed_ark_msg.get()

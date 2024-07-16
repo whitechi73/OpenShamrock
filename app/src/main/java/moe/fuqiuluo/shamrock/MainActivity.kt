@@ -52,7 +52,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
@@ -64,6 +63,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import moe.fuqiuluo.shamrock.ui.app.AppRuntime
 import moe.fuqiuluo.shamrock.ui.app.Logger
@@ -79,7 +79,7 @@ import moe.fuqiuluo.shamrock.ui.theme.RANDOM_SUB_TITLE
 import moe.fuqiuluo.shamrock.ui.theme.RANDOM_TITLE
 import moe.fuqiuluo.shamrock.ui.theme.ShamrockTheme
 import moe.fuqiuluo.shamrock.ui.tools.NoIndication
-import moe.fuqiuluo.shamrock.ui.tools.ShamrockTab
+import moe.fuqiuluo.shamrock.ui.tools.ShamrockTabV2
 import moe.fuqiuluo.shamrock.ui.tools.getShamrockVersion
 
 class MainActivity : ComponentActivity() {
@@ -87,6 +87,15 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
+            LaunchedEffect(Unit) {
+                while (true) {
+                    delay(5_000) // Delay in milliseconds
+                    broadcastToModule {
+                        putExtra("__cmd", "switch_status")
+                    }
+                }
+            }
+
             CompositionLocalProvider(
                 LocalIndication provides NoIndication
             ) {
@@ -336,7 +345,7 @@ private fun AnimatedTab(
         }
     }
 
-    ShamrockTab(
+    ShamrockTabV2(
         selected = curSelected,
         onClick = {
             scope.launch {

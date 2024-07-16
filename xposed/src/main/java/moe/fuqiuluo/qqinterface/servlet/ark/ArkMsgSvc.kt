@@ -1,11 +1,11 @@
 package moe.fuqiuluo.qqinterface.servlet.ark
 
 import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
-import moe.fuqiuluo.qqinterface.servlet.BaseSvc
 import moe.fuqiuluo.qqinterface.servlet.ark.data.ArkAppInfo
+import moe.fuqiuluo.shamrock.xposed.helper.QQInterfaces
 import tencent.im.oidb.cmd0xb77.oidb_cmd0xb77
 
-internal object ArkMsgSvc: BaseSvc() {
+internal object ArkMsgSvc: QQInterfaces() {
     fun tryShareMusic(
         chatType: Int,
         peerId: Long,

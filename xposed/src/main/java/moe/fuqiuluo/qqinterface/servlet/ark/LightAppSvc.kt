@@ -1,8 +1,8 @@
 package moe.fuqiuluo.qqinterface.servlet.ark
 
-import moe.fuqiuluo.qqinterface.servlet.BaseSvc
 import moe.fuqiuluo.qqinterface.servlet.ark.data.ArkAppInfo
 import moe.fuqiuluo.shamrock.utils.PlatformUtils
+import moe.fuqiuluo.shamrock.xposed.helper.QQInterfaces
 import moe.fuqiuluo.symbols.decodeProtobuf
 import protobuf.auto.toByteArray
 import protobuf.lightapp.AdaptShareInfoReq
@@ -11,7 +11,7 @@ import protobuf.qweb.DEFAULT_DEVICE_INFO
 import protobuf.qweb.QWebReq
 import protobuf.qweb.QWebRsp
 
-internal object LightAppSvc: BaseSvc() {
+internal object LightAppSvc: QQInterfaces() {
     suspend fun adaptShareJumpUrl(
         arkAppInfo: ArkAppInfo,
         coverUrl: String,
@@ -37,7 +37,7 @@ internal object LightAppSvc: BaseSvc() {
                 webURL = url,
             ).toByteArray(),
             traceId = app.account + "_0_0",
-        ).toByteArray())?.decodeProtobuf<QWebRsp>()?.buffer?.decodeProtobuf<AdaptShareInfoResp>()
+        ).toByteArray())?.wupBuffer?.decodeProtobuf<QWebRsp>()?.buffer?.decodeProtobuf<AdaptShareInfoResp>()
         if (rsp == null || rsp.json.isNullOrEmpty())
             return Result.failure(Exception("unable to adapt ShareInfo"))
         return Result.success(rsp.json!!)

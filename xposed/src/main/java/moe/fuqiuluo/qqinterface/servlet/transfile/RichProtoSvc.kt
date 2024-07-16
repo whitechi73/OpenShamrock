@@ -6,18 +6,20 @@ import com.tencent.mobileqq.transfile.FileMsg
 import com.tencent.mobileqq.transfile.api.IProtoReqManager
 import com.tencent.mobileqq.transfile.protohandler.RichProto
 import com.tencent.mobileqq.transfile.protohandler.RichProtoProc
+import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
+import com.tencent.qqnt.kernel.nativeinterface.PicElement
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.serialization.ExperimentalSerializationApi
-import moe.fuqiuluo.qqinterface.servlet.BaseSvc
 import moe.fuqiuluo.qqinterface.servlet.transfile.NtV2RichMediaSvc.getNtPicRKey
 import moe.fuqiuluo.shamrock.helper.ContactHelper
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
-import moe.fuqiuluo.shamrock.tools.hex2ByteArray
+import moe.fuqiuluo.shamrock.tools.decodeToOidb
 import moe.fuqiuluo.shamrock.tools.slice
 import moe.fuqiuluo.shamrock.tools.toHexString
 import moe.fuqiuluo.shamrock.utils.PlatformUtils
 import moe.fuqiuluo.shamrock.xposed.helper.AppRuntimeFetcher
+import moe.fuqiuluo.shamrock.xposed.helper.QQInterfaces
 import moe.fuqiuluo.symbols.decodeProtobuf
 import mqq.app.MobileQQ
 import protobuf.auto.toByteArray
@@ -38,7 +40,7 @@ private const val GPRO_PIC = "gchat.qpic.cn"
 private const val MULTIMEDIA_DOMAIN = "multimedia.nt.qq.com.cn"
 private const val C2C_PIC = "c2cpicdw.qpic.cn"
 
-internal object RichProtoSvc: BaseSvc() {
+internal object RichProtoSvc: QQInterfaces() {
     suspend fun getGuildFileDownUrl(peerId: String, channelId: String, fileId: String, bizId: Int): String {
         val buffer = sendOidbAW("OidbSvcTrpcTcp.0xfc2_0", 4034, 0, Oidb0xfc2ReqBody(
             msgCmd = 1200,
@@ -53,8 +55,7 @@ internal object RichProtoSvc: BaseSvc() {
                 supportEncrypt = 0
             )
         ).toByteArray()) ?: return ""
-        val body = oidb_sso.OIDBSSOPkg()
-        body.mergeFrom(buffer.slice(4))
+        val body = buffer.decodeToOidb()
         body.bytes_bodybuffer
             .get().toByteArray()
             .decodeProtobuf<Oidb0xfc2RspBody>()
@@ -79,8 +80,7 @@ internal object RichProtoSvc: BaseSvc() {
                 str_file_id.set(fileId)
             })
         }.toByteArray()) ?: return ""
-        val body = oidb_sso.OIDBSSOPkg()
-        body.mergeFrom(buffer.slice(4))
+        val body = buffer.decodeToOidb()
         val result = oidb_0x6d6.RspBody().mergeFrom(body.bytes_bodybuffer.get().toByteArray())
         if (body.uint32_result.get() != 0
             || result.download_file_rsp.int32_ret_code.get() != 0) {
@@ -128,8 +128,7 @@ internal object RichProtoSvc: BaseSvc() {
             }
             return ""
         } else {
-            val body = oidb_sso.OIDBSSOPkg()
-            body.mergeFrom(buffer.slice(4))
+            val body = buffer.decodeToOidb()
             val result = cmd0x346.RspBody().mergeFrom(cmd0xe37.Resp0xe37().mergeFrom(
                 body.bytes_bodybuffer.get().toByteArray()
             ).bytes_cmd_0x346_rsp_body.get().toByteArray())
@@ -147,6 +146,75 @@ internal object RichProtoSvc: BaseSvc() {
             val version = PlatformUtils.getQQVersion(MobileQQ.getContext())
 
             return "$domain$params&isthumb=0&client_proto=qq&client_appid=$appId&client_type=android&client_ver=$version&client_down_type=auto&client_aio_type=unk"
+        }
+    }
+
+    suspend fun getTempPicDownloadUrl(
+        chatType: Int,
+        originalUrl: String,
+        md5: String,
+        image: PicElement,
+        storeId: Int = 0,
+        peer: String? = null,
+        subPeer: String? = null,
+    ): String {
+        val isNtServer = originalUrl.startsWith("/download")
+        if (isNtServer) {
+            val tmpRKey = NtV2RichMediaSvc.getTempNtRKey()
+            if (tmpRKey.isSuccess) {
+                val tmpRKeyRsp = tmpRKey.getOrThrow()
+                val tmpRKeyMap = hashMapOf<UInt, String>()
+                tmpRKeyRsp.rkeys?.forEach { rKeyInfo ->
+                    tmpRKeyMap[rKeyInfo.type] = rKeyInfo.rkey
+                }
+                val rkey = tmpRKeyMap[when(chatType) {
+                    MsgConstant.KCHATTYPEDISC, MsgConstant.KCHATTYPEGROUP -> 10u
+                    MsgConstant.KCHATTYPEC2C -> 20u
+                    MsgConstant.KCHATTYPEGUILD -> 10u
+                    else -> 0u
+                }]
+                if (rkey != null) {
+                    return "https://$MULTIMEDIA_DOMAIN$originalUrl$rkey"
+                }
+            }
+        }
+        return when (chatType) {
+            MsgConstant.KCHATTYPEDISC, MsgConstant.KCHATTYPEGROUP -> getGroupPicDownUrl(
+                originalUrl = originalUrl,
+                md5 = md5,
+                fileId = image.fileUuid,
+                width = image.picWidth.toUInt(),
+                height = image.picHeight.toUInt(),
+                sha = "",
+                fileSize = image.fileSize.toULong(),
+                peer = peer ?: "0"
+            )
+
+            MsgConstant.KCHATTYPEC2C -> getC2CPicDownUrl(
+                originalUrl = originalUrl,
+                md5 = md5,
+                fileId = image.fileUuid,
+                width = image.picWidth.toUInt(),
+                height = image.picHeight.toUInt(),
+                sha = "",
+                fileSize = image.fileSize.toULong(),
+                peer = peer ?: "0",
+                storeId = storeId
+            )
+
+            MsgConstant.KCHATTYPEGUILD -> getGuildPicDownUrl(
+                originalUrl = originalUrl,
+                md5 = md5,
+                fileId = image.fileUuid,
+                width = image.picWidth.toUInt(),
+                height = image.picHeight.toUInt(),
+                sha = "",
+                fileSize = image.fileSize.toULong(),
+                peer = peer ?: "0",
+                subPeer = subPeer ?: "0"
+            )
+
+            else -> throw UnsupportedOperationException("Not supported chat type: $chatType")
         }
     }
 

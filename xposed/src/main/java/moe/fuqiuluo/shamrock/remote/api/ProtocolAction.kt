@@ -2,13 +2,13 @@ package moe.fuqiuluo.shamrock.remote.api
 
 import com.tencent.mobileqq.dt.model.FEBound
 import io.ktor.server.routing.Routing
-import moe.fuqiuluo.qqinterface.servlet.BaseSvc
 import moe.fuqiuluo.shamrock.remote.structures.Protocol
 import moe.fuqiuluo.shamrock.remote.structures.QSignDtConfig
 import moe.fuqiuluo.shamrock.remote.structures.Status
 import moe.fuqiuluo.shamrock.tools.*
 import moe.fuqiuluo.shamrock.utils.MMKVFetcher
 import moe.fuqiuluo.shamrock.utils.PlatformUtils
+import moe.fuqiuluo.shamrock.xposed.helper.QQInterfaces
 import mqq.app.MobileQQ
 import oicq.wlogin_sdk.tlv_type.tlv_t100
 import oicq.wlogin_sdk.tlv_type.tlv_t106
@@ -20,8 +20,8 @@ fun Routing.obtainProtocolData() {
         val cmd = fetchOrThrow("cmd")
         val isPb = fetchOrThrow("proto").toBooleanStrict()
         val buffer = fetchOrThrow("buffer").hex2ByteArray()
-        val resp = BaseSvc.sendBufferAW(cmd, isPb, buffer)
-        respond(true, Status.Ok, data = resp?.toHexString() ?: "null", msg = "成功")
+        val resp = QQInterfaces.sendBufferAW(cmd, isPb, buffer)
+        respond(true, Status.Ok, data = resp?.wupBuffer?.toHexString() ?: "null", msg = "成功")
     }
 
     getOrPost("/set_guid") {

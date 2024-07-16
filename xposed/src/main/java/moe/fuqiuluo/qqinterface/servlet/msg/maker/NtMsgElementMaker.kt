@@ -856,7 +856,15 @@ internal object NtMsgElementMaker {
                                 .ifNullOrEmpty(qqStr)
                         }"
                     } else {
-                        at.content = "@$qqStr"
+                        at.content = "@${
+                            GroupSvc.getTroopMemberInfoByUinV3(peerId.toLong(), qq).let {
+                                it?.troopNick
+                                    .ifNullOrEmpty(it?.friendNick)
+                                    .ifNullOrEmpty(it?.showName)
+                                    .ifNullOrEmpty(it?.autoRemark)
+                                    .ifNullOrEmpty(it?.colorNick)
+                            } ?: qqStr
+                        }"
                     }
                 } else {
                     at.content = "@$name"

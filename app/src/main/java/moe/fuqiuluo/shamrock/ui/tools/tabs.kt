@@ -242,13 +242,13 @@ private fun Placeable.PlacementScope.placeTextAndIcon(
 }
 
 @Composable
-fun ShamrockTab(
+fun ShamrockTabV2(
     selected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    text: @Composable (() -> Unit)? = null,
-    icon: @Composable (() -> Unit)? = null,
+    text: (@Composable (() -> Unit))? = null,
+    icon: (@Composable (() -> Unit))? = null,
     selectedContentColor: Color = GlobalColor.TabSelected,
     unselectedContentColor: Color = selectedContentColor,
     indication: Indication? = rememberRipple(bounded = true, color = selectedContentColor),
@@ -262,7 +262,7 @@ fun ShamrockTab(
             ProvideTextStyle(style, content = text)
         }
     }
-    ShamrockTab(
+    ShamrockTabV2(
         selected,
         onClick,
         modifier,
@@ -277,7 +277,7 @@ fun ShamrockTab(
 }
 
 @Composable
-fun ShamrockTab(
+fun ShamrockTabV2(
     selected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,

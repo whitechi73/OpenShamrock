@@ -7,7 +7,7 @@ import moe.fuqiuluo.symbols.XposedHook
 
 @XposedHook(priority = 0)
 internal class FixLibraryLoad: IAction {
-    val redirectedLibrary =arrayOf(
+    private val redirectedLibrary =arrayOf(
         "ffmpegkit_abidetect",
         "avutil",
         "swscale",

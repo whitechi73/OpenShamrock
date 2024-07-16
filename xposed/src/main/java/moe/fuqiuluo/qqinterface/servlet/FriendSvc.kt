@@ -13,13 +13,15 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
+import moe.fuqiuluo.shamrock.tools.decodeToObject
 import moe.fuqiuluo.shamrock.tools.slice
 import moe.fuqiuluo.shamrock.xposed.helper.AppRuntimeFetcher
+import moe.fuqiuluo.shamrock.xposed.helper.QQInterfaces
 import mqq.app.AppRuntime
 import tencent.mobileim.structmsg.structmsg
 import kotlin.coroutines.resume
 
-internal object FriendSvc: BaseSvc() {
+internal object FriendSvc: QQInterfaces() {
 
     suspend fun getFriendList(refresh: Boolean): Result<List<Friends>> {
         val runtime = AppRuntimeFetcher.appRuntime
@@ -91,8 +93,7 @@ internal object FriendSvc: BaseSvc() {
             ArrayList()
         } else {
             try {
-                val msg = structmsg.RspSystemMsgNew()
-                msg.mergeFrom(respBuffer.slice(4))
+                val msg = respBuffer.decodeToObject(structmsg.RspSystemMsgNew())
                 return msg.friendmsgs.get()
             } catch (err: Throwable) {
                 requestFriendSystemMsgNew(msgNum, latestFriendSeq, latestGroupSeq, retryCnt - 1)

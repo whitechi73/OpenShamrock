@@ -1,5 +1,6 @@
 package moe.fuqiuluo.shamrock.remote.service.listener
 
+import com.tencent.qphone.base.remote.FromServiceMsg
 import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -24,7 +25,6 @@ import moe.fuqiuluo.shamrock.tools.asJsonObject
 import moe.fuqiuluo.shamrock.tools.asString
 import moe.fuqiuluo.shamrock.tools.readBuf32Long
 import moe.fuqiuluo.shamrock.tools.slice
-import moe.fuqiuluo.shamrock.xposed.helper.PacketHandler
 import moe.fuqiuluo.symbols.decodeProtobuf
 import protobuf.message.ContentHead
 import protobuf.message.MsgBody
@@ -32,16 +32,16 @@ import protobuf.message.ResponseHead
 import protobuf.push.*
 
 internal object PrimitiveListener {
-    fun registerListener() {
-        PacketHandler.register("trpc.msg.olpush.OlPushService.MsgPush") { _, buffer ->
+    fun onPush(fromServiceMsg: FromServiceMsg) {
+        if (fromServiceMsg.wupBuffer == null) return
+        try {
+            val push = fromServiceMsg.wupBuffer.slice(4)
+                .decodeProtobuf<MessagePush>()
             GlobalScope.launch {
-                try {
-                    val push = buffer.slice(4).decodeProtobuf<MessagePush>()
-                    onMsgPush(push)
-                } catch (e: Exception) {
-                    LogCenter.log(e.stackTraceToString(), Level.WARN)
-                }
+                onMsgPush(push)
             }
+        } catch (e: Exception) {
+            LogCenter.log(e.stackTraceToString(), Level.WARN)
         }
     }
 
@@ -188,6 +188,8 @@ internal object PrimitiveListener {
     }
 
     private suspend fun onGroupUniqueTitleChange(msgTime: Long, body: MsgBody) {
+        if (body.msgContent == null) return
+
         val event = runCatching {
             body.msgContent!!.decodeProtobuf<GroupCommonTipsEvent>()
         }.getOrElse {
@@ -200,6 +202,7 @@ internal object PrimitiveListener {
             }.decodeProtobuf<GroupCommonTipsEvent>()
         }
         val groupId = event.groupCode.toLong()
+        if (event.uniqueTitleChangeDetail == null) return
         val detail = event.uniqueTitleChangeDetail!!.first()
 
         //detail = if (detail[5] is ProtoList) {

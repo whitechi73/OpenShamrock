@@ -9,8 +9,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import moe.fuqiuluo.shamrock.remote.service.config.ShamrockConfig
-import moe.fuqiuluo.shamrock.xposed.hooks.toast
-import moe.fuqiuluo.shamrock.xposed.helper.internal.DataRequester
+import moe.fuqiuluo.shamrock.tools.toast
+import moe.fuqiuluo.shamrock.xposed.helper.AppTalker
 import mqq.app.MobileQQ
 import java.io.File
 import java.util.Date
@@ -60,10 +60,10 @@ internal object LogCenter {
         }
         // 把日志广播到主进程
         GlobalScope.launch(Dispatchers.Default) {
-            DataRequester.request("send_message", bodyBuilder = {
+            AppTalker.talk("send_message") {
                 put("string", string)
                 put("level", level.id)
-            })
+            }
         }
 
         if (!LogFile.exists()) {
@@ -89,10 +89,10 @@ internal object LogCenter {
         }
         // 把日志广播到主进程
         GlobalScope.launch(Dispatchers.Default) {
-            DataRequester.request("send_message", bodyBuilder = {
+            AppTalker.talk("send_message") {
                 put("string", log)
                 put("level", level.id)
-            })
+            }
         }
 
         if (!LogFile.exists()) {

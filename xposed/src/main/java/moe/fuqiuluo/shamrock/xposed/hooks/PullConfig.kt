@@ -4,92 +4,39 @@ package moe.fuqiuluo.shamrock.xposed.hooks
 
 import android.content.Context
 import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import moe.fuqiuluo.shamrock.remote.HTTPServer
 import moe.fuqiuluo.shamrock.remote.service.config.ShamrockConfig
+import moe.fuqiuluo.shamrock.tools.toast
 import moe.fuqiuluo.shamrock.utils.PlatformUtils
-import moe.fuqiuluo.shamrock.xposed.helper.internal.DataRequester
-import moe.fuqiuluo.shamrock.xposed.helper.internal.DynamicReceiver
-import moe.fuqiuluo.shamrock.xposed.helper.internal.IPCRequest
-import moe.fuqiuluo.shamrock.xposed.loader.NativeLoader
+import moe.fuqiuluo.shamrock.xposed.helper.AppTalker
 import moe.fuqiuluo.symbols.Process
 import moe.fuqiuluo.symbols.XposedHook
-import mqq.app.MobileQQ
-import kotlin.concurrent.thread
 import kotlin.system.exitProcess
+import kotlin.time.Duration.Companion.seconds
 
 @XposedHook(Process.MAIN, priority = 1)
 class PullConfig: IAction {
     companion object {
-        @JvmStatic
-        var isConfigOk = false
+        external fun testNativeLibrary(): String
     }
-
-    private external fun testNativeLibrary(): String
 
     override fun invoke(ctx: Context) {
         if (!PlatformUtils.isMainProcess()) return
 
-        GlobalScope.launch(Dispatchers.Default) {
-            DynamicReceiver.register("fetchPort", IPCRequest {
-                DataRequester.request("success", values = mapOf(
-                    "port" to HTTPServer.currServerPort,
-                    "voice" to NativeLoader.isVoiceLoaded
-                ))
-            })
-            DynamicReceiver.register("checkAndStartService", IPCRequest {
-                if (HTTPServer.isServiceStarted) {
-                    HTTPServer.isServiceStarted = false
+        val isInit = ShamrockConfig.isInit()
+        AppTalker.talk("init", onFailure = {
+            if (isInit) {
+                ctx.toast("Shamrock主进程未启动，将不会同步配置！")
+            } else {
+                ctx.toast("Shamrock主进程未启动，初始化失败！")
+                GlobalScope.launch {
+                    delay(3.seconds)
+                    exitProcess(1)
                 }
-                initAppService(MobileQQ.getContext())
-            })
-            DynamicReceiver.register("push_config", IPCRequest {
-                ctx.toast("动态推送配置文件成功。")
-                ShamrockConfig.updateConfig(it)
-            })
-            DynamicReceiver.register("change_port", IPCRequest {
-                when (it.getStringExtra("type")) {
-                    "port" -> {
-                        ctx.toast("动态修改HTTP端口成功。")
-                        HTTPServer.changePort(it.getIntExtra("port", 5700))
-                    }
-                    "ws_port" -> {
-                        ctx.toast("动态修改WS端口不支持。")
-                    }
-                    "restart" -> {
-                        if(HTTPServer.isServiceStarted) {
-                            ctx.toast("重启HTTPServer完成。")
-                            HTTPServer.restart()
-                        }
-                    }
-                }
-            })
-
-            DataRequester.request("init", onFailure = {
-                if (!ShamrockConfig.isInit()) {
-                    ctx.toast("请启动Shamrock主进程以初始化服务，进程将退出。")
-                    ShamrockConfig.putDefaultSettings()
-                    thread {
-                        Thread.sleep(3000)
-                        exitProcess(1)
-                    }
-                } else {
-                    ctx.toast("Shamrock进程未启动，不会推送配置文件。")
-                    initAppService(ctx)
-                }
-            }, bodyBuilder = null) {
-                isConfigOk = true
-                ShamrockConfig.updateConfig(it)
-                initAppService(ctx)
             }
-        }
-    }
-
-    private fun initAppService(ctx: Context) {
-        NativeLoader.load("shamrock")
-        ctx.toast(testNativeLibrary())
-        runServiceActions(ctx)
+        })
+        ctx.toast("同步配置中...")
     }
 }
