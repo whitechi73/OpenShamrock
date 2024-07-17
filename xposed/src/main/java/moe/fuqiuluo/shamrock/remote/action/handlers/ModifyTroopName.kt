@@ -16,7 +16,7 @@ internal object ModifyTroopName: IActionHandler() {
         return invoke(groupId, groupName, session.echo)
     }
 
-    operator fun invoke(groupId: Long, name: String, echo: JsonElement = EmptyJsonString): String {
+    suspend operator fun invoke(groupId: Long, name: String, echo: JsonElement = EmptyJsonString): String {
         return if (GroupSvc.isAdmin(groupId)) {
             GroupSvc.modifyTroopName(groupId, name)
             ok("成功", echo)

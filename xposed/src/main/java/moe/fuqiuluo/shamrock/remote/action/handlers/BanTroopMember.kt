@@ -17,7 +17,7 @@ internal object BanTroopMember: IActionHandler() {
         return invoke(groupId, userId, duration, session.echo)
     }
 
-    operator fun invoke(
+    suspend operator fun invoke(
         groupId: Long,
         userId: Long,
         duration: Int = 30 * 60,

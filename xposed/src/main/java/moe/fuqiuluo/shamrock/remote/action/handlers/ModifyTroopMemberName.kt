@@ -17,7 +17,7 @@ internal object ModifyTroopMemberName: IActionHandler() {
         return invoke(groupId, userId, name, session.echo)
     }
 
-    operator fun invoke(groupId: Long, userId: Long, card: String, echo: JsonElement = EmptyJsonString): String {
+    suspend operator fun invoke(groupId: Long, userId: Long, card: String, echo: JsonElement = EmptyJsonString): String {
         if (!GroupSvc.isAdmin(groupId) && userId != TicketSvc.getUin().toLong()) {
             return logic("you are not admin", echo)
         }

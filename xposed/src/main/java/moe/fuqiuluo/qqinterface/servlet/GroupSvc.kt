@@ -56,6 +56,7 @@ import moe.fuqiuluo.qqinterface.servlet.structures.ProhibitedMemberInfo
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.helper.MessageHelper
+import moe.fuqiuluo.shamrock.remote.action.handlers.GetTroopMemberInfo
 import moe.fuqiuluo.shamrock.remote.service.data.EssenceMessage
 import moe.fuqiuluo.shamrock.remote.service.data.GroupAnnouncement
 import moe.fuqiuluo.shamrock.remote.service.data.GroupAnnouncementMessage
@@ -476,12 +477,21 @@ internal object GroupSvc: QQInterfaces() {
         return groupInfo.troopowneruin == app.account
     }
 
-    fun isAdmin(groupId: Long): Boolean {
+    suspend fun isAdmin(groupId: Long): Boolean {
+        if (PlatformUtils.getQQVersionCode() > QQ_9_0_65_VER) {
+            // 针对新版本api做的适配
+            val account = app.longAccountUin
+            getTroopMemberInfoByUinV2(groupId, account, false).onSuccess {
+                if (it.role == com.tencent.qqnt.kernelpublic.nativeinterface.MemberRole.ADMIN
+                    || it.role == com.tencent.qqnt.kernelpublic.nativeinterface.MemberRole.OWNER) {
+                    return true
+                }
+            }
+        }
+
         val service = app
             .getRuntimeService(ITroopInfoService::class.java, "all")
-
         val groupInfo = service.getTroopInfo(groupId.toString())
-
         return groupInfo.isAdmin || groupInfo.troopowneruin == app.account
     }
 
