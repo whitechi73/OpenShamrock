@@ -30,7 +30,7 @@ internal object NtMsgElementConverter {
         MsgConstant.KELEMTYPEMARKETFACE to NtMsgElementConverter::convertMarketFaceElem,
         MsgConstant.KELEMTYPEARKSTRUCT to NtMsgElementConverter::convertStructJsonElem,
         MsgConstant.KELEMTYPEREPLY to NtMsgElementConverter::convertReplyElem,
-        MsgConstant.KELEMTYPEGRAYTIP to NtMsgElementConverter::convertGrayTipsElem,
+        //MsgConstant.KELEMTYPEGRAYTIP to NtMsgElementConverter::convertGrayTipsElem,
         MsgConstant.KELEMTYPEFILE to NtMsgElementConverter::convertFileElem,
         MsgConstant.KELEMTYPEMARKDOWN to NtMsgElementConverter::convertMarkdownElem,
         //MsgConstant.KELEMTYPEMULTIFORWARD to MsgElementConverter::convertXmlMultiMsgElem,
