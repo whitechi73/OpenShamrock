@@ -16,7 +16,7 @@
 
 ## 简介
 
-☘ 基于 Lsposed(**Non**-Riru) 实现 OneBot 标准的 QQ 机器人框架，原作者[**fuqiuluo**](https://github.com/fuqiuluo)已脱离开发，接下来由白池接手哦！本项目为OpenShamrock，不会有任何收费行为，欢迎大家的加入！
+☘ 基于 Lsposed(**Non**-Riru) 实现 OneBot 标准的 QQ 机器人框架！
 
 > 本项目仅提供学习与交流用途，请在24小时内删除。   
 > 本项目目的是研究 Xposed 和 LSPosed 框架的使用。 Epic 框架开发相关知识。  
@@ -26,6 +26,8 @@
 > 官方论坛，[点我直达](https://forum.libfekit.so/)！
 
 ## 兼容|迁移|替代 说明
+
+仅支持QQ9.0.70以上的版本，低版本问题将不再修复与处理。
 
 - 一键移植：本项目基于 go-cqhttp 的文档进行开发实现。
 - 平行部署：可多平台部署，未来将会支持 Docker 部署的教程。
