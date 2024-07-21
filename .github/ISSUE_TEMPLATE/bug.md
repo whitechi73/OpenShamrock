@@ -20,7 +20,8 @@ labels: bug
 
 ## 系统信息
 
-- Shamrock 版本: 
+- Shamrock 版本:
+- QQ 版本: 
 - Android 版本: 
 - LSPosed 框架版本: 
 - 设备的制造商和型号: 
