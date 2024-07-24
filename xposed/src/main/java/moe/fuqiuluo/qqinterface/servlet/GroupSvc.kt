@@ -56,7 +56,6 @@ import moe.fuqiuluo.qqinterface.servlet.structures.ProhibitedMemberInfo
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.helper.MessageHelper
-import moe.fuqiuluo.shamrock.remote.action.handlers.GetTroopMemberInfo
 import moe.fuqiuluo.shamrock.remote.service.data.EssenceMessage
 import moe.fuqiuluo.shamrock.remote.service.data.GroupAnnouncement
 import moe.fuqiuluo.shamrock.remote.service.data.GroupAnnouncementMessage
@@ -76,7 +75,7 @@ import moe.fuqiuluo.shamrock.tools.ifNullOrEmpty
 import moe.fuqiuluo.shamrock.tools.putBuf32Long
 import moe.fuqiuluo.shamrock.utils.FileUtils
 import moe.fuqiuluo.shamrock.utils.PlatformUtils
-import moe.fuqiuluo.shamrock.utils.PlatformUtils.QQ_9_0_65_VER
+import moe.fuqiuluo.shamrock.utils.PlatformUtils.QQ_9_0_71_VER
 import moe.fuqiuluo.shamrock.utils.PlatformUtils.QQ_9_0_8_VER
 import moe.fuqiuluo.shamrock.xposed.helper.AppRuntimeFetcher
 import moe.fuqiuluo.shamrock.xposed.helper.NTServiceFetcher
@@ -290,7 +289,7 @@ internal object GroupSvc: QQInterfaces() {
         var nick = getTroopMemberInfoByUinV2(groupId, userId, true).getOrThrow().let {
             it.troopnick.ifEmpty { it.troopremark.ifNullOrEmpty("") }
         }
-        if (PlatformUtils.getQQVersionCode() > QQ_9_0_65_VER && nick == null) {
+        if (PlatformUtils.getQQVersionCode() > QQ_9_0_71_VER && nick == null) {
             nick = getTroopMemberNickByUin(groupId, userId)?.let {
                 it.troopNick
                     .ifNullOrEmpty(it.friendNick)
@@ -478,7 +477,7 @@ internal object GroupSvc: QQInterfaces() {
     }
 
     suspend fun isAdmin(groupId: Long): Boolean {
-        if (PlatformUtils.getQQVersionCode() > QQ_9_0_65_VER) {
+        if (PlatformUtils.getQQVersionCode() > QQ_9_0_71_VER) {
             // 针对新版本api做的适配
             val account = app.longAccountUin
             getTroopMemberInfoByUinV2(groupId, account, false).onSuccess {
@@ -607,7 +606,7 @@ internal object GroupSvc: QQInterfaces() {
         groupId: Long,
         uin: Long
     ): TroopMemberNickInfo? {
-        if (PlatformUtils.getQQVersionCode() > QQ_9_0_65_VER) {
+        if (PlatformUtils.getQQVersionCode() > QQ_9_0_71_VER) {
             val api = QRoute.api(ITroopMemberListRepoApi::class.java)
             return withTimeoutOrNull(5.seconds) {
                 suspendCancellableCoroutine<TroopMemberNickInfo> { continuation ->
@@ -627,7 +626,7 @@ internal object GroupSvc: QQInterfaces() {
         refresh: Boolean = false
     ): Result<TroopMemberInfo> {
         var info: TroopMemberInfo? = null
-        if (PlatformUtils.getQQVersionCode() <= QQ_9_0_65_VER) {
+        if (PlatformUtils.getQQVersionCode() <= QQ_9_0_71_VER) {
             val service = app.getRuntimeService(ITroopMemberInfoService::class.java, "all")
             info = service.getTroopMember(groupId.toString(), uin.toString())
             if (refresh || !service.isMemberInCache(groupId.toString(), uin.toString()) || info == null || info.troopnick == null) {

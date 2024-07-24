@@ -2,7 +2,7 @@ package com.tencent.mobileqq.qqguildsdk.data;
 
 import androidx.annotation.NonNull;
 
-import com.tencent.qqnt.kernel.nativeinterface.GProGuildRole;
+import com.tencent.qqnt.kernelgpro.nativeinterface.GProGuildRole;
 
 import java.util.ArrayList;
 import java.util.Iterator;

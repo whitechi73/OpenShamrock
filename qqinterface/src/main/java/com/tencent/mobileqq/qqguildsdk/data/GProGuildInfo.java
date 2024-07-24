@@ -1,20 +1,12 @@
 package com.tencent.mobileqq.qqguildsdk.data;
 
-import android.text.TextUtils;
-
-import com.tencent.mobileqq.qqguildsdk.data.genc.GGProMedalInfo;
-import com.tencent.mobileqq.qqguildsdk.data.genc.GGProNavigationInfo;
 import com.tencent.mobileqq.qqguildsdk.data.genc.IGProMedalInfo;
 import com.tencent.mobileqq.qqguildsdk.data.genc.IGProNavigationInfo;
-import com.tencent.qqnt.kernel.nativeinterface.GProGuild;
-import com.tencent.qqnt.kernel.nativeinterface.GProGuildSpeakableThreshold;
-import com.tencent.qqnt.kernel.nativeinterface.GProMedalInfo;
-import com.tencent.qqnt.kernel.nativeinterface.GProNavigationInfo;
+import com.tencent.qqnt.kernelgpro.nativeinterface.GProGuild;
 
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 
 
 public class GProGuildInfo implements IGProGuildInfo {

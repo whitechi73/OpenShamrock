@@ -1,13 +1,18 @@
-package com.tencent.qqnt.kernel.nativeinterface;
+package com.tencent.qqnt.kernelgpro.nativeinterface;
 
-import com.tencent.qqnt.kernelgpro.nativeinterface.GProGuild;
-import com.tencent.qqnt.kernelgpro.nativeinterface.GProRoleCreateInfo;
-import com.tencent.qqnt.kernelgpro.nativeinterface.IGProCreateRoleCallback;
-import com.tencent.qqnt.kernelgpro.nativeinterface.IGProFetchMemberListWithRoleCallback;
-import com.tencent.qqnt.kernelgpro.nativeinterface.IGProFetchMemberRolesCallback;
-import com.tencent.qqnt.kernelgpro.nativeinterface.IGProFetchRoleListPermissionCallback;
-import com.tencent.qqnt.kernelgpro.nativeinterface.IGProFetchRolePermissionCallback;
-import com.tencent.qqnt.kernelgpro.nativeinterface.IGProResultCallback;
+import com.tencent.qqnt.kernel.nativeinterface.GProFaceAuthInfo;
+import com.tencent.qqnt.kernel.nativeinterface.GProGuildReqInfo;
+import com.tencent.qqnt.kernel.nativeinterface.GProSimpleProfile;
+import com.tencent.qqnt.kernel.nativeinterface.IGProAddGuildInfoCallBack;
+import com.tencent.qqnt.kernel.nativeinterface.IGProFetchChannelInvisibleRoleListCallback;
+import com.tencent.qqnt.kernel.nativeinterface.IGProFetchChannelLiveableRoleListCallback;
+import com.tencent.qqnt.kernel.nativeinterface.IGProFetchGuildInfoCallback;
+import com.tencent.qqnt.kernel.nativeinterface.IGProFetchGuildListCallback;
+import com.tencent.qqnt.kernel.nativeinterface.IGProFetchRetentionGuildListCallback;
+import com.tencent.qqnt.kernel.nativeinterface.IGProFetchUserJoinedGuildListCallback;
+import com.tencent.qqnt.kernel.nativeinterface.IGProGetMemberInfoByOpenIdCallback;
+import com.tencent.qqnt.kernel.nativeinterface.IGProGetUserInfoCallback;
+import com.tencent.qqnt.kernel.nativeinterface.IKernelGuildListener;
 
 import java.util.ArrayList;
 
@@ -54,8 +59,8 @@ public interface IKernelGuildService {
 
     void fetchUserInfo(long guildId, long channelId, ArrayList<Long> tinyIdList, int seq, IGProGetUserInfoCallback cb);
 
-    @Deprecated(since = "QQ新版本不支持创建话题子频道")
-    void fetchTopFeeds(long guildId, long channelId, IGProFetchTopFeedsCallback cb);
+    //@Deprecated(since = "QQ新版本不支持创建话题子频道")
+    //void fetchTopFeeds(long guildId, long channelId, IGProFetchTopFeedsCallback cb);
 
     void fetchChannelInvisibleRoleList(long guildId, long channelId, IGProFetchChannelInvisibleRoleListCallback cb);
 

@@ -12,12 +12,12 @@ import com.tencent.qqnt.kernel.nativeinterface.GProCreateGuildGuideInfo
 import com.tencent.qqnt.kernel.nativeinterface.GProDailyRecommendPush
 import com.tencent.qqnt.kernel.nativeinterface.GProDiscoveryStateChangedMsg
 import com.tencent.qqnt.kernel.nativeinterface.GProGlobalBanner
-import com.tencent.qqnt.kernel.nativeinterface.GProGuild
+import com.tencent.qqnt.kernelgpro.nativeinterface.GProGuild
 import com.tencent.qqnt.kernel.nativeinterface.GProGuildData
 import com.tencent.qqnt.kernel.nativeinterface.GProGuildInit
 import com.tencent.qqnt.kernel.nativeinterface.GProGuildListSortInfo
 import com.tencent.qqnt.kernel.nativeinterface.GProGuildMemberCountInfo
-import com.tencent.qqnt.kernel.nativeinterface.GProGuildRole
+import com.tencent.qqnt.kernelgpro.nativeinterface.GProGuildRole
 import com.tencent.qqnt.kernel.nativeinterface.GProGuildSpeakableThreshold
 import com.tencent.qqnt.kernel.nativeinterface.GProGuildStateRspInfo
 import com.tencent.qqnt.kernel.nativeinterface.GProGuildUserProfile
@@ -49,7 +49,6 @@ import com.tencent.qqnt.kernel.nativeinterface.GProVoiceSmobaGameUserActionPush
 import com.tencent.qqnt.kernel.nativeinterface.GProWorldState
 import com.tencent.qqnt.kernel.nativeinterface.GProYLGameTeamInfo
 import com.tencent.qqnt.kernel.nativeinterface.IKernelGuildListener
-import moe.fuqiuluo.shamrock.helper.LogCenter
 import java.util.ArrayList
 import java.util.HashMap
 

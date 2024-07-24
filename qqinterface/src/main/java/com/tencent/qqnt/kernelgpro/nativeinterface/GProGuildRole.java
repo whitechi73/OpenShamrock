@@ -1,4 +1,6 @@
-package com.tencent.qqnt.kernel.nativeinterface;
+package com.tencent.qqnt.kernelgpro.nativeinterface;
+
+import com.tencent.qqnt.kernel.nativeinterface.GProRolePermission;
 
 import java.util.ArrayList;
 

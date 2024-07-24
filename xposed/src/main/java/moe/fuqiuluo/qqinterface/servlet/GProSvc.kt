@@ -3,10 +3,11 @@
 package moe.fuqiuluo.qqinterface.servlet
 
 import com.tencent.mobileqq.qqguildsdk.api.IGPSService
-import com.tencent.qqnt.kernel.nativeinterface.GProGuildRole
-import com.tencent.qqnt.kernel.nativeinterface.GProRoleCreateInfo
+import com.tencent.qqnt.kernelgpro.nativeinterface.GProGuildRole
+import com.tencent.qqnt.kernelgpro.nativeinterface.GProRoleCreateInfo
 import com.tencent.qqnt.kernel.nativeinterface.GProRoleMemberList
 import com.tencent.qqnt.kernel.nativeinterface.GProRolePermission
+import com.tencent.qqnt.kernelgpro.nativeinterface.IQQGProWrapperSession
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -21,7 +22,6 @@ import moe.fuqiuluo.shamrock.helper.LogCenter
 import moe.fuqiuluo.shamrock.tools.EMPTY_BYTE_ARRAY
 import moe.fuqiuluo.shamrock.tools.decodeToObject
 import moe.fuqiuluo.shamrock.tools.decodeToOidb
-import moe.fuqiuluo.shamrock.tools.slice
 import moe.fuqiuluo.shamrock.utils.PlatformUtils
 import moe.fuqiuluo.shamrock.xposed.helper.NTServiceFetcher
 import moe.fuqiuluo.shamrock.xposed.helper.QQInterfaces
@@ -44,13 +44,16 @@ import protobuf.qweb.DEFAULT_DEVICE_INFO
 import protobuf.qweb.QWebExtInfo
 import protobuf.qweb.QWebReq
 import protobuf.qweb.QWebRsp
-import tencent.im.oidb.oidb_sso
 import kotlin.coroutines.resume
 
 internal object GProSvc: QQInterfaces() {
     fun getSelfTinyId(): ULong {
         val service = app.getRuntimeService(IGPSService::class.java, "all")
         return service.selfTinyId.toULong()
+    }
+
+    private fun getNTGProSessionId(): String? {
+        return NTServiceFetcher.startupSessionWrapper.sessionIdList["gpro"]
     }
 
     suspend fun getGuildInfo(guildId: ULong): Result<Oidb0xf57MetaInfo> {
@@ -132,7 +135,9 @@ internal object GProSvc: QQInterfaces() {
     }
 
     fun refreshGuildInfo(guildId: ULong) {
-        val kernelGProService = NTServiceFetcher.kernelService.wrapperSession.guildService
+        val kernelGProService = IQQGProWrapperSession.CppProxy.getGProWrapperSession(
+            getNTGProSessionId()
+        ).guildService
         kernelGProService.refreshGuildInfo(guildId.toLong(), true, 1)
     }
 
@@ -144,8 +149,8 @@ internal object GProSvc: QQInterfaces() {
         fetchAll: Boolean = false,
         result: ArrayList<GProRoleMemberList> = arrayListOf()
     ): Result<Pair<GetGuildMemberListNextToken, ArrayList<GProRoleMemberList>>> {
-        val kernelGProService = NTServiceFetcher.kernelService.wrapperSession.guildService
-
+        val kernelGProService =
+            IQQGProWrapperSession.CppProxy.getGProWrapperSession(getNTGProSessionId()).guildService
         val fetchGuildMemberListResult: Pair<GetGuildMemberListNextToken, ArrayList<GProRoleMemberList>> = (withTimeoutOrNull(5000) {
             suspendCancellableCoroutine {
                 kernelGProService.fetchMemberListWithRole(guildId.toLong(), 0, startIndex, roleIndex, count, 0) { code, reason, finish, nextIndex, nextRoleIdIndex, _, seq, roleList ->
@@ -214,7 +219,8 @@ internal object GProSvc: QQInterfaces() {
     }
 
     private fun getGuildListByNt(result: ArrayList<GuildInfo>) {
-        val kernelGProService = NTServiceFetcher.kernelService.wrapperSession.guildService
+        val kernelGProService =
+            IQQGProWrapperSession.CppProxy.getGProWrapperSession(getNTGProSessionId()).guildService
         kernelGProService.guildListFromCache.forEach {
             if (it.result != 0) return@forEach
             val guildInfo = it.guildInfo
@@ -236,7 +242,9 @@ internal object GProSvc: QQInterfaces() {
     }
 
     suspend fun fetchGuildMemberRoles(guildId: ULong, tinyId: ULong, refresh: Boolean = false): Result<ArrayList<GProGuildRole>> {
-        val kernelGProService = NTServiceFetcher.kernelService.wrapperSession.guildService
+        val kernelGProService = IQQGProWrapperSession.CppProxy.getGProWrapperSession(
+            getNTGProSessionId()
+        ).guildService
         if (refresh) {
             kernelGProService.refreshGuildUserProfileInfo(guildId.toLong(), tinyId.toLong(), 1)
         }
@@ -251,7 +259,9 @@ internal object GProSvc: QQInterfaces() {
     }
 
     fun getGuildList(refresh: Boolean = false, forceOldApi: Boolean): ArrayList<GuildInfo> {
-        val kernelGProService = NTServiceFetcher.kernelService.wrapperSession.guildService
+        val kernelGProService = IQQGProWrapperSession.CppProxy.getGProWrapperSession(
+            getNTGProSessionId()
+        ).guildService
         if (refresh) {
             kernelGProService.refreshGuildList(true)
             kernelGProService.guildListFromCache.forEach {
@@ -274,7 +284,10 @@ internal object GProSvc: QQInterfaces() {
     }
 
     suspend fun getGuildRoles(guildId: ULong): Result<List<GProGuildRole>> {
-        val kernelGProService = NTServiceFetcher.kernelService.wrapperSession.guildService
+        val kernelGProService = IQQGProWrapperSession.CppProxy.getGProWrapperSession(
+            getNTGProSessionId()
+        ).guildService
+
         val roles: List<GProGuildRole> = withTimeoutOrNull(5000) {
             suspendCancellableCoroutine {
                 kernelGProService.fetchRoleListWithPermission(guildId.toLong(), 1) { code, _, roles, _, _, _ ->
@@ -286,7 +299,10 @@ internal object GProSvc: QQInterfaces() {
     }
 
     fun deleteGuildRole(guildId: ULong, roleId: ULong) {
-        val kernelGProService = NTServiceFetcher.kernelService.wrapperSession.guildService
+        val kernelGProService = IQQGProWrapperSession.CppProxy.getGProWrapperSession(
+            getNTGProSessionId()
+        ).guildService
+
         kernelGProService.deleteRole(guildId.toLong(), roleId.toLong()) { code, msg, result ->
             if (code != 0) {
                 LogCenter.log("deleteGuildRole failed: $code($msg) => $result", Level.WARN)
@@ -295,7 +311,10 @@ internal object GProSvc: QQInterfaces() {
     }
 
     fun setMemberRole(guildId: ULong, tinyId: ULong, roleId: ULong, isSet: Boolean) {
-        val kernelGProService = NTServiceFetcher.kernelService.wrapperSession.guildService
+        val kernelGProService = IQQGProWrapperSession.CppProxy.getGProWrapperSession(
+            getNTGProSessionId()
+        ).guildService
+
         val addList = arrayListOf<Long>()
         val rmList = arrayListOf<Long>()
         (if (isSet) addList else rmList).add(roleId.toLong())
@@ -307,8 +326,11 @@ internal object GProSvc: QQInterfaces() {
     }
 
     suspend fun getGuildRolePermission(guildId: ULong, roleId: ULong): Result<GProGuildRole> {
-        val kernelGProService = NTServiceFetcher.kernelService.wrapperSession.guildService
-        val role:GProGuildRole = withTimeoutOrNull(5000) {
+        val kernelGProService = IQQGProWrapperSession.CppProxy.getGProWrapperSession(
+            getNTGProSessionId()
+        ).guildService
+
+        val role: GProGuildRole = withTimeoutOrNull(5000) {
             suspendCancellableCoroutine {
                 kernelGProService.fetchRoleWithPermission(guildId.toLong(), roleId.toLong(), 1) { code, msg, role, _, _, _ ->
                     if (code != 0) {
@@ -325,10 +347,14 @@ internal object GProSvc: QQInterfaces() {
         val oldInfo = getGuildRolePermission(guildId, roleId).onFailure {
             return Result.failure(it)
         }.getOrThrow()
-        val kernelGProService = NTServiceFetcher.kernelService.wrapperSession.guildService
-        val info = GProRoleCreateInfo(
-            name, color, oldInfo.bHoist, oldInfo.rolePermissions
-        )
+        val kernelGProService = IQQGProWrapperSession.CppProxy.getGProWrapperSession(
+            getNTGProSessionId()
+        ).guildService
+
+        val info =
+            GProRoleCreateInfo(
+                name, color, oldInfo.bHoist, oldInfo.rolePermissions
+            )
         kernelGProService.setRoleInfo(guildId.toLong(), roleId.toLong(), info) { code, msg, result ->
             if (code != 0) {
                 LogCenter.log("updateGuildRole failed: $code($msg) => $result", Level.WARN)
@@ -338,9 +364,18 @@ internal object GProSvc: QQInterfaces() {
     }
 
     suspend fun createGuildRole(guildId: ULong, name: String, color: Long, initialUsers: ArrayList<Long>): Result<GProGuildRole> {
-        val kernelGProService = NTServiceFetcher.kernelService.wrapperSession.guildService
+        val kernelGProService = IQQGProWrapperSession.CppProxy.getGProWrapperSession(
+            getNTGProSessionId()
+        ).guildService
+
         val permission = GProRolePermission(false, arrayListOf())
-        val info = GProRoleCreateInfo(name, color, false, permission)
+        val info =
+            GProRoleCreateInfo(
+                name,
+                color,
+                false,
+                permission
+            )
         val role: GProGuildRole = withTimeoutOrNull(5000) {
             suspendCancellableCoroutine {
                 kernelGProService.createRole(guildId.toLong(), info, initialUsers) { code, msg, result, role ->

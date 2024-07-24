@@ -12,7 +12,7 @@ import moe.fuqiuluo.shamrock.remote.service.data.push.MemberRole
 import moe.fuqiuluo.shamrock.tools.EmptyJsonString
 import moe.fuqiuluo.shamrock.tools.ifNullOrEmpty
 import moe.fuqiuluo.shamrock.utils.PlatformUtils
-import moe.fuqiuluo.shamrock.utils.PlatformUtils.QQ_9_0_65_VER
+import moe.fuqiuluo.shamrock.utils.PlatformUtils.QQ_9_0_71_VER
 import moe.fuqiuluo.symbols.OneBotHandler
 
 @OneBotHandler("get_group_member_info")
@@ -37,7 +37,7 @@ internal object GetTroopMemberInfo : IActionHandler() {
 
         val code = PlatformUtils.getQQVersionCode()
         return ok(when {
-            (code >= QQ_9_0_65_VER) -> ntQQApiData(groupId, userId, info)
+            (code >= QQ_9_0_71_VER) -> ntQQApiData(groupId, userId, info)
             else -> oldQQApiData(groupId, userId, info)
         }, echo)
     }
@@ -111,7 +111,7 @@ internal object GetTroopMemberInfo : IActionHandler() {
             age = info.age.toInt(),
             shutUpTimestamp = 0L
         ).also {
-            if (PlatformUtils.getQQVersionCode() <= QQ_9_0_65_VER) {
+            if (PlatformUtils.getQQVersionCode() <= QQ_9_0_71_VER) {
                 it.distance = info.distance
                 it.area = info.alias
             }

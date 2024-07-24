@@ -1,5 +1,8 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
+import com.tencent.qqnt.kernelgpro.nativeinterface.GProGuild;
+import com.tencent.qqnt.kernelgpro.nativeinterface.GProGuildRole;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 

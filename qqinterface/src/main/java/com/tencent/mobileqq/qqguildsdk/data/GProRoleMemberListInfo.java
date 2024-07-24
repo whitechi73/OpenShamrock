@@ -1,6 +1,6 @@
 package com.tencent.mobileqq.qqguildsdk.data;
 
-import com.tencent.qqnt.kernel.nativeinterface.GProGuildRole;
+import com.tencent.qqnt.kernelgpro.nativeinterface.GProGuildRole;
 import com.tencent.qqnt.kernel.nativeinterface.GProUser;
 
 import java.util.ArrayList;

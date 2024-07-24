@@ -1,9 +1,11 @@
 package moe.fuqiuluo.shamrock.xposed.helper
 
 import com.tencent.qqnt.kernel.api.IKernelService
+import com.tencent.qqnt.kernel.api.impl.KernelServiceImpl
 import com.tencent.qqnt.kernel.api.impl.MsgService
 import com.tencent.qqnt.kernel.nativeinterface.IOperateCallback
 import com.tencent.qqnt.kernel.nativeinterface.IQQNTWrapperSession
+import com.tencent.qqnt.ntstartup.nativeinterface.IQQNTStartupSessionWrapper
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import moe.fuqiuluo.shamrock.helper.Level
@@ -15,6 +17,7 @@ import moe.fuqiuluo.shamrock.utils.PlatformUtils
 
 internal object NTServiceFetcher {
     private lateinit var iKernelService: IKernelService
+    private lateinit var startupSession: IQQNTStartupSessionWrapper
     private val lock = Mutex()
     private var curKernelHash = 0
 
@@ -30,7 +33,13 @@ internal object NTServiceFetcher {
             LogCenter.log("Fetch kernel service successfully: $curKernelHash,$curHash,${PlatformUtils.isMainProcess()}")
             curKernelHash = curHash
             this.iKernelService = service
-
+            if (PlatformUtils.getQQVersionCode() >= PlatformUtils.QQ_9_0_71_VER) {
+                this.startupSession = KernelServiceImpl::class.java.declaredFields.first {
+                    it.type == IQQNTStartupSessionWrapper::class.java
+                }.also {
+                    it.isAccessible = true
+                }.get(service) as IQQNTStartupSessionWrapper
+            }
 
             initNTKernelListener(msgService)
             antiBackgroundMode(sessionService)
@@ -99,4 +108,6 @@ internal object NTServiceFetcher {
 
     val kernelService: IKernelService
         get() = iKernelService
+    val startupSessionWrapper: IQQNTStartupSessionWrapper
+        get() = startupSession
 }

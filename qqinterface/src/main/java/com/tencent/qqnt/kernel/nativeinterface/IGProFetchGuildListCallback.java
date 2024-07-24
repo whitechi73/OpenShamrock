@@ -1,5 +1,7 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
+import com.tencent.qqnt.kernelgpro.nativeinterface.GProGuild;
+
 import java.util.ArrayList;
 
 public interface IGProFetchGuildListCallback {

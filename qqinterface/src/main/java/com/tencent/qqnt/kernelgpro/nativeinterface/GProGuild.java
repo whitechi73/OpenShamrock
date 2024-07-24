@@ -1,7 +1,9 @@
-package com.tencent.qqnt.kernel.nativeinterface;
+package com.tencent.qqnt.kernelgpro.nativeinterface;
+
+import com.tencent.qqnt.kernel.nativeinterface.GProCmdUinInfo;
+import com.tencent.qqnt.kernel.nativeinterface.GProGuildInfo;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 
 public final class GProGuild implements Serializable {
     GProCmdUinInfo cmdUinInfo;
