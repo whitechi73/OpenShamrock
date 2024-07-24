@@ -11,6 +11,7 @@ import com.tencent.qqnt.kernel.nativeinterface.PicElement
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.serialization.ExperimentalSerializationApi
 import moe.fuqiuluo.qqinterface.servlet.transfile.NtV2RichMediaSvc.getNtPicRKey
+import moe.fuqiuluo.qqinterface.servlet.transfile.NtV2RichMediaSvc.getTempNtRKey
 import moe.fuqiuluo.shamrock.helper.ContactHelper
 import moe.fuqiuluo.shamrock.helper.Level
 import moe.fuqiuluo.shamrock.helper.LogCenter
@@ -231,6 +232,23 @@ internal object RichProtoSvc: QQInterfaces() {
         val isNtServer = originalUrl.startsWith("/download")
         val domain = if (isNtServer) MULTIMEDIA_DOMAIN else GPRO_PIC
         if (originalUrl.isNotEmpty()) {
+            // 高于QQ9.0.70，可以直接请求获取rkey
+            val tmpRKey = getTempNtRKey().onFailure {
+                LogCenter.log("getTempNtRKey: ${it.stackTraceToString()}", Level.WARN)
+            }
+            if (tmpRKey.isSuccess) {
+                val tmpRKeyRsp = tmpRKey.getOrThrow()
+                val tmpRKeyMap = hashMapOf<UInt, String>()
+                tmpRKeyRsp.rkeys?.forEach { rKeyInfo ->
+                    tmpRKeyMap[rKeyInfo.type] = rKeyInfo.rkey
+                }
+                val rkey = tmpRKeyMap[10u]
+                if (rkey != null) {
+                    return "https://$MULTIMEDIA_DOMAIN$originalUrl$rkey"
+                }
+            }
+
+            // 低于QQ9.0.70但是支持nt资源的客户端支持
             if (isNtServer && !originalUrl.contains("rkey=")) {
                 getNtPicRKey(
                     fileId = fileId,
@@ -267,6 +285,21 @@ internal object RichProtoSvc: QQInterfaces() {
         val isNtServer = storeId == 1 || originalUrl.startsWith("/download")
         val domain = if (isNtServer) MULTIMEDIA_DOMAIN else C2C_PIC
         if (originalUrl.isNotEmpty()) {
+            // 高于QQ9.0.70，可以直接请求获取rkey
+            val tmpRKey = getTempNtRKey()
+            if (tmpRKey.isSuccess) {
+                val tmpRKeyRsp = tmpRKey.getOrThrow()
+                val tmpRKeyMap = hashMapOf<UInt, String>()
+                tmpRKeyRsp.rkeys?.forEach { rKeyInfo ->
+                    tmpRKeyMap[rKeyInfo.type] = rKeyInfo.rkey
+                }
+                val rkey = tmpRKeyMap[20u]
+                if (rkey != null) {
+                    return "https://$MULTIMEDIA_DOMAIN$originalUrl$rkey"
+                }
+            }
+
+            // 低于QQ9.0.70但是支持nt资源的客户端支持
             if (fileId.isNotEmpty()) getNtPicRKey(
                 fileId = fileId,
                 md5 = md5,

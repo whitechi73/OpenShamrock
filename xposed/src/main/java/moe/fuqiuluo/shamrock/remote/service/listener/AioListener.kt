@@ -42,6 +42,7 @@ internal object AioListener : IKernelMsgListener {
         try {
             if (MessageTempHandler.notify(record)) return
             if (record.msgSeq < 0) return
+            if (record.chatType == MsgConstant.KCHATTYPETEMPPUBLICACCOUNT) return // 订阅号不处理
 
             val msgHash = MessageHelper.generateMsgIdHash(record.chatType, record.msgId)
 

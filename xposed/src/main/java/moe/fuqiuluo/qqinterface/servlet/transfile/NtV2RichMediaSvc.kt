@@ -15,6 +15,7 @@ import com.tencent.qqnt.kernel.nativeinterface.VideoElement
 import com.tencent.qqnt.kernelpublic.nativeinterface.Contact
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withTimeoutOrNull
 import moe.fuqiuluo.qqinterface.servlet.TicketSvc
 import moe.fuqiuluo.qqinterface.servlet.transfile.data.TryUpPicData
@@ -45,6 +46,7 @@ import protobuf.oidb.cmd0x11c5.IndexNode
 import protobuf.oidb.cmd0x11c5.MultiMediaReqHead
 import protobuf.oidb.cmd0x11c5.NtV2RichMediaReq
 import protobuf.oidb.cmd0x11c5.NtV2RichMediaRsp
+import protobuf.oidb.cmd0x11c5.RKeyInfo
 import protobuf.oidb.cmd0x11c5.SceneInfo
 import protobuf.oidb.cmd0x11c5.UploadInfo
 import protobuf.oidb.cmd0x11c5.UploadReq
@@ -63,6 +65,8 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 internal object NtV2RichMediaSvc: QQInterfaces() {
+    private lateinit var cacheRKeyInfo: DownloadRkeyRsp
+    private var lastRefreshRKeyTime = 0L
     private val requestIdSeq = atomic(2L)
 
     fun fetchGroupResUploadTo(): String {
@@ -325,6 +329,9 @@ internal object NtV2RichMediaSvc: QQInterfaces() {
     }
 
     suspend fun getTempNtRKey(): Result<DownloadRkeyRsp> {
+        if (System.currentTimeMillis() - lastRefreshRKeyTime < 60 * 60_000 && ::cacheRKeyInfo.isInitialized) {
+            return Result.success(cacheRKeyInfo)
+        }
         runCatching {
             val req = NtV2RichMediaReq(
                 head = MultiMediaReqHead(
@@ -350,6 +357,8 @@ internal object NtV2RichMediaSvc: QQInterfaces() {
             }
             val trpc = fromServiceMsg.decodeToTrpcOidb()
             trpc.buffer.decodeProtobuf<NtV2RichMediaRsp>().downloadRkeyRsp?.let {
+                cacheRKeyInfo = it
+                lastRefreshRKeyTime = System.currentTimeMillis()
                 return Result.success(it)
             }
         }.onFailure {
