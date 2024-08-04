@@ -161,7 +161,7 @@ internal object RichProtoSvc: QQInterfaces() {
     ): String {
         val isNtServer = originalUrl.startsWith("/download")
         if (isNtServer) {
-            val tmpRKey = NtV2RichMediaSvc.getTempNtRKey()
+            val tmpRKey = getTempNtRKey()
             if (tmpRKey.isSuccess) {
                 val tmpRKeyRsp = tmpRKey.getOrThrow()
                 val tmpRKeyMap = hashMapOf<UInt, String>()
@@ -169,10 +169,10 @@ internal object RichProtoSvc: QQInterfaces() {
                     tmpRKeyMap[rKeyInfo.type] = rKeyInfo.rkey
                 }
                 val rkey = tmpRKeyMap[when(chatType) {
-                    MsgConstant.KCHATTYPEDISC, MsgConstant.KCHATTYPEGROUP -> 10u
-                    MsgConstant.KCHATTYPEC2C -> 20u
-                    MsgConstant.KCHATTYPEGUILD -> 10u
-                    else -> 0u
+                    MsgConstant.KCHATTYPEDISC, MsgConstant.KCHATTYPEGROUP -> 20u
+                    MsgConstant.KCHATTYPEC2C -> 10u
+                    MsgConstant.KCHATTYPEGUILD -> 20u
+                    else -> 20u
                 }]
                 if (rkey != null) {
                     return "https://$MULTIMEDIA_DOMAIN$originalUrl$rkey"
@@ -242,7 +242,7 @@ internal object RichProtoSvc: QQInterfaces() {
                 tmpRKeyRsp.rkeys?.forEach { rKeyInfo ->
                     tmpRKeyMap[rKeyInfo.type] = rKeyInfo.rkey
                 }
-                val rkey = tmpRKeyMap[10u]
+                val rkey = tmpRKeyMap[20u]
                 if (rkey != null) {
                     return "https://$MULTIMEDIA_DOMAIN$originalUrl$rkey"
                 }
@@ -293,7 +293,7 @@ internal object RichProtoSvc: QQInterfaces() {
                 tmpRKeyRsp.rkeys?.forEach { rKeyInfo ->
                     tmpRKeyMap[rKeyInfo.type] = rKeyInfo.rkey
                 }
-                val rkey = tmpRKeyMap[20u]
+                val rkey = tmpRKeyMap[10u]
                 if (rkey != null) {
                     return "https://$MULTIMEDIA_DOMAIN$originalUrl$rkey"
                 }
