@@ -19,6 +19,7 @@ import com.tencent.protofile.join_group_link.join_group_link
 import com.tencent.qphone.base.remote.ToServiceMsg
 import com.tencent.qqnt.kernel.nativeinterface.MemberInfo
 import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
+import com.tencent.qqnt.trooplist.ITroopListRepoApi
 import com.tencent.qqnt.troopmemberlist.ITroopMemberListRepoApi
 import friendlist.stUinInfo
 import io.ktor.client.call.body
@@ -76,6 +77,7 @@ import moe.fuqiuluo.shamrock.tools.putBuf32Long
 import moe.fuqiuluo.shamrock.utils.FileUtils
 import moe.fuqiuluo.shamrock.utils.PlatformUtils
 import moe.fuqiuluo.shamrock.utils.PlatformUtils.QQ_9_0_71_VER
+import moe.fuqiuluo.shamrock.utils.PlatformUtils.QQ_9_0_80_VER
 import moe.fuqiuluo.shamrock.utils.PlatformUtils.QQ_9_0_8_VER
 import moe.fuqiuluo.shamrock.xposed.helper.AppRuntimeFetcher
 import moe.fuqiuluo.shamrock.xposed.helper.NTServiceFetcher
@@ -228,17 +230,27 @@ internal object GroupSvc: QQInterfaces() {
     }
 
     suspend fun getGroupList(refresh: Boolean): Result<List<TroopInfo>> {
-        val service = app.getRuntimeService(ITroopInfoService::class.java, "all")
+        if (PlatformUtils.getQQVersionCode() <= QQ_9_0_80_VER) {
+            val service = app.getRuntimeService(ITroopInfoService::class.java, "all")
 
-        var troopList = service.allTroopList
-        if(refresh || !service.isTroopCacheInited || troopList == null) {
-            if(!requestGroupInfo(service)) {
-                return Result.failure(Exception("获取群列表失败"))
-            } else {
-                troopList = service.allTroopList
+            var troopList = service.allTroopList
+            if(refresh || !service.isTroopCacheInited || troopList == null) {
+                if(!requestGroupInfo(service)) {
+                    return Result.failure(Exception("获取群列表失败"))
+                } else {
+                    troopList = service.allTroopList
+                }
             }
+            return Result.success(troopList)
+        } else {
+            val service = QRoute.api(ITroopListRepoApi::class.java)
+            val troopList = service.troopListFromCache
+            if (troopList == null || troopList.isEmpty() || refresh) {
+                service.fetchTroopList(true)
+                return Result.success(service.troopListFromCache)
+            }
+            return Result.success(troopList)
         }
-        return Result.success(troopList)
     }
 
     suspend fun getNotJoinedGroupInfo(groupId: Long): Result<NotJoinedGroupInfo> {

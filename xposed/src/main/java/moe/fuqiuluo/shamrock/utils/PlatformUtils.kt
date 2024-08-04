@@ -18,6 +18,7 @@ import kotlin.random.Random
 internal object PlatformUtils {
     const val QQ_9_0_8_VER =  5540
     const val QQ_9_0_71_VER = 6702
+    const val QQ_9_0_80_VER =  6869
 
     fun getQUA(): String {
         return "V1_AND_SQ_${getQQVersion(MobileQQ.getContext())}_${getQQVersionCode()}_YYB_D"

@@ -146,6 +146,7 @@ public class TroopInfo {
     public byte[] troopInfoExtByte;
     public String troopLevelMap;
     public String troopRemark;
+    @Deprecated
     public String troopcode;
     public short troopface;
     public String troopmemo;
@@ -154,6 +155,7 @@ public class TroopInfo {
     public int trooptype;
     public String troopuin;
     public long udwCmdUinRingtoneID;
+    @Deprecated
     public String uin;
     public int wClickBAFTipCount;
     public int wInsertBAFTipCount;
